@@ -70,7 +70,6 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<Role>('athlete');
 
   // Coach State
   const [athletes, setAthletes] = useState<Profile[]>([]);
@@ -197,11 +196,11 @@ export default function Home() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName, role: selectedRole } }
+        options: { full_name: fullName, role: 'athlete' } }
       });
       if (error) alert('Errore registrazione: ' + error.message);
       else if (data.user) {
-        const newProfile = { id: data.user.id, full_name: fullName, role: selectedRole };
+       const newProfile = { id: data.user.id, full_name: fullName, role: 'athlete' };
         await supabase.from('profiles').upsert(newProfile);
         setUser(data.user);
         setProfile(newProfile);
