@@ -365,9 +365,6 @@ export default function Home() {
                     placeholder="Mario Rossi"
                   />
                 </div>
-                <div>
-                 
-                </div>
               </>
             )}
 
