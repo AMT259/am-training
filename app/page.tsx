@@ -367,27 +367,7 @@ export default function Home() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 font-medium">Ruolo Account</label>
-                  <div className="grid grid-cols-2 gap-2 mt-1">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('coach')}
-                      className={`p-3 rounded-lg border text-sm font-semibold transition ${
-                        selectedRole === 'coach' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'
-                      }`}
-                    >
-                      🏋️ Coach
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedRole('athlete')}
-                      className={`p-3 rounded-lg border text-sm font-semibold transition ${
-                        selectedRole === 'athlete' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'
-                      }`}
-                    >
-                      🏃 Atleta
-                    </button>
-                  </div>
+                 
                 </div>
               </>
             )}
