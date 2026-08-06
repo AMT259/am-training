@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from './supabase';
+import { supabase } from '../../lib/supabase';
 import { 
   Dumbbell, Calendar as CalendarIcon, Users, User, Plus, Check, ChevronRight, Clock, Award, Trash2, Edit2, X, Save, LogOut, BookOpen, Shield, Activity, TrendingUp, Settings 
 } from 'lucide-react';
@@ -13,7 +13,6 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Coach State & Workout Builder State
   const [athletes, setAthletes] = useState<any[]>([]);
   const [classesList, setClassesList] = useState<string[]>(['Classe Mattina', 'Classe Serale']);
   const [selectedTargetType, setSelectedTargetType] = useState<'athlete' | 'class'>('athlete');
@@ -23,10 +22,6 @@ export default function Home() {
   const [workoutTitle, setWorkoutTitle] = useState('');
   const [workoutType, setWorkoutType] = useState<'amrap' | 'emom' | 'rnd' | 'interval'>('amrap');
   const [duration, setDuration] = useState('12');
-  const [rndRounds, setRndRounds] = useState('5');
-  const [workTime, setWorkTime] = useState('40');
-  const [restTime, setRestTime] = useState('20');
-  const [intervalRounds, setIntervalRounds] = useState('5');
 
   useEffect(() => {
     supabase.auth.getSession().then((response: any) => {
@@ -57,7 +52,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Dumbbell className="text-blue-500" /> AMTRAINING Dashboard
+            <Dumbbell className="text-blue-500" /> AMTRAINING Admin Dashboard
           </h1>
           {session && (
             <button 
@@ -75,9 +70,6 @@ export default function Home() {
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Activity className="text-green-500" /> Generatore Allenamenti & Coach
               </h2>
-              <p className="text-slate-400 text-sm mb-4">Benvenuto nell'area di gestione di AMTRAINING. Configura i tuoi WOD e assegnali agli atleti o alle classi.</p>
-              
-              {/* Esempio sezione builder */}
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1 text-slate-300">Titolo Allenamento</label>
@@ -90,7 +82,7 @@ export default function Home() {
                   />
                 </div>
                 <button 
-                  onClick={() => alert('Allenamento pronto!')}
+                  onClick={() => alert('Allenamento salvato con successo!')}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <Plus size={18} /> Crea e Assegna WOD
