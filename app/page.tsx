@@ -204,6 +204,25 @@ export default function TrainingApp() {
     ]);
   };
 
+  // Funzioni di rimozione blocchi
+  const removeBlockFromFreeDay = (dayIndex: number, blockIndex: number) => {
+    const updated = [...programDays];
+    updated[dayIndex].blocks.splice(blockIndex, 1);
+    setProgramDays(updated);
+  };
+
+  const removeBlockFromWeekDay = (dayIndex: number, blockIndex: number) => {
+    const updated = [...weekDays];
+    updated[dayIndex].blocks.splice(blockIndex, 1);
+    setWeekDays(updated);
+  };
+
+  const removeBlockFromEditingDay = (dayIndex: number, blockIndex: number) => {
+    const updated = { ...editingProgram };
+    updated.days[dayIndex].blocks.splice(blockIndex, 1);
+    setEditingProgram(updated);
+  };
+
   const addBlockToFreeDay = (dayIndex: number) => {
     const updated = [...programDays];
     updated[dayIndex].blocks.push({
@@ -216,7 +235,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '' // Campo per il link video
+      videoUrl: ''
     });
     setProgramDays(updated);
   };
@@ -239,7 +258,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '' // Campo per il link video
+      videoUrl: ''
     });
     setWeekDays(updated);
   };
@@ -294,7 +313,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '' // Campo per il link video
+      videoUrl: ''
     });
     setEditingProgram(updated);
   };
@@ -397,16 +416,22 @@ export default function TrainingApp() {
 
                   {day.blocks?.map((block: any, bIdx: number) => (
                     <div key={block.id || bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                        <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                        <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                      
+                      {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                          <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                          <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                        </div>
+                        <button type="button" onClick={() => removeBlockFromEditingDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                          🗑️ Elimina
+                        </button>
                       </div>
 
                       <div style={{ marginBottom: '10px' }}>
                         <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
                       </div>
 
-                      {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
                       <div style={{ marginBottom: '10px' }}>
                         <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
                       </div>
@@ -491,16 +516,22 @@ export default function TrainingApp() {
 
                           {day.blocks.map((block: any, bIdx: number) => (
                             <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                                <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                                <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                              
+                              {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                  <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                                  <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                                </div>
+                                <button type="button" onClick={() => removeBlockFromWeekDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                  🗑️ Elimina
+                                </button>
                               </div>
 
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
                               </div>
 
-                              {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="url" value={block.videoUrl || ''} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
                               </div>
@@ -556,16 +587,22 @@ export default function TrainingApp() {
 
                           {day.blocks.map((block: any, bIdx: number) => (
                             <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                                <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                                <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                              
+                              {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                  <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                                  <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                                </div>
+                                <button type="button" onClick={() => removeBlockFromFreeDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                  🗑️ Elimina
+                                </button>
                               </div>
 
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome Esercizio" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
                               </div>
 
-                              {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
                               </div>
