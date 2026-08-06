@@ -101,6 +101,40 @@ export default function TrainingApp() {
     setSession(null);
   };
 
+  const addBlockToDay = (dayIndex: number) => {
+    const updatedDays = [...programDays];
+    updatedDays[dayIndex].blocks.push({
+      id: Date.now(),
+      name: `Blocco ${updatedDays[dayIndex].blocks.length + 1}`,
+      type: 'forza',
+      sets: 4,
+      reps: '10',
+      load: '70%',
+      rpe: '/',
+      exercises: [{ name: '', reps: '' }],
+      notes: ''
+    });
+    setProgramDays(updatedDays);
+  };
+
+  const updateBlock = (dayIndex: number, blockIndex: number, field: string, value: any) => {
+    const updatedDays = [...programDays];
+    updatedDays[dayIndex].blocks[blockIndex][field] = value;
+    setProgramDays(updatedDays);
+  };
+
+  const addExercise = (dayIndex: number, blockIndex: number) => {
+    const updatedDays = [...programDays];
+    updatedDays[dayIndex].blocks[blockIndex].exercises.push({ name: '', reps: '' });
+    setProgramDays(updatedDays);
+  };
+
+  const updateExercise = (dayIndex: number, blockIndex: number, exIndex: number, field: string, value: string) => {
+    const updatedDays = [...programDays];
+    updatedDays[dayIndex].blocks[blockIndex].exercises[exIndex][field] = value;
+    setProgramDays(updatedDays);
+  };
+
   const saveProgramToLibrary = async () => {
     if (!programTitle) {
       alert('Inserisci un titolo per il programma');
@@ -178,6 +212,40 @@ export default function TrainingApp() {
                   ))}
                 </select>
               </div>
+
+              {programDays.map((day, dIdx) => (
+                <div key={dIdx} style={{ background: '#1f2937', padding: '12px', borderRadius: '8px', marginBottom: '12px' }}>
+                  <input type="text" value={day.dayName} onChange={(e) => {
+                    const upd = [...programDays];
+                    upd[dIdx].dayName = e.target.value;
+                    setProgramDays(upd);
+                  }} placeholder="Nome Giornata (es. Upper Body)" style={{ width: '100%', padding: '8px', marginBottom: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box' }} />
+
+                  {day.blocks.map((block: any, bIdx: number) => (
+                    <div key={block.id} style={{ background: '#111827', padding: '10px', borderRadius: '6px', marginBottom: '10px', border: '1px solid #374151' }}>
+                      <input type="text" value={block.name} onChange={(e) => updateBlock(dIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', padding: '6px', marginBottom: '8px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px', boxSizing: 'border-box' }} />
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '8px' }}>
+                        <input type="number" placeholder="Set" value={block.sets} onChange={(e) => updateBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ padding: '6px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px' }} />
+                        <input type="text" placeholder="Reps" value={block.reps} onChange={(e) => updateBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ padding: '6px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px' }} />
+                        <input type="text" placeholder="Carico %" value={block.load} onChange={(e) => updateBlock(dIdx, bIdx, 'load', e.target.value)} style={{ padding: '6px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px' }} />
+                      </div>
+
+                      <div style={{ marginBottom: '6px' }}>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Esercizi:</span>
+                        {block.exercises.map((ex: any, eIdx: number) => (
+                          <div key={eIdx} style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                            <input type="text" placeholder="Nome Esercizio" value={ex.name} onChange={(e) => updateExercise(dIdx, bIdx, eIdx, 'name', e.target.value)} style={{ flex: 2, padding: '4px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px' }} />
+                            <input type="text" placeholder="Note/Reps" value={ex.reps} onChange={(e) => updateExercise(dIdx, bIdx, eIdx, 'reps', e.target.value)} style={{ flex: 1, padding: '4px', background: '#1f2937', border: 'none', color: '#fff', borderRadius: '4px' }} />
+                          </div>
+                        ))}
+                        <button onClick={() => addExercise(dIdx, bIdx)} style={{ background: 'transparent', border: 'none', color: '#10b981', fontSize: '11px', cursor: 'pointer', marginTop: '4px' }}>+ Aggiungi Esercizio</button>
+                      </div>
+                    </div>
+                  ))}
+                  <button onClick={() => addBlockToDay(dIdx)} style={{ width: '100%', padding: '6px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>+ Aggiungi Blocco</button>
+                </div>
+              ))}
 
               {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
               <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Salva e Assegna Programma</button>
