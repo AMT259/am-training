@@ -99,7 +99,7 @@ export default function TrainingApp() {
       const formatted = data.map((item: any) => ({
         id: item.id,
         title: item.title,
-        assignedAthleteId: item.assigned_athlete_id,
+        assignedAthleteId: item.assigned_athlete_id || '',
         useCalendar: item.use_calendar || false,
         days: item.days || []
       }));
@@ -195,6 +195,19 @@ export default function TrainingApp() {
     }
   };
 
+  const updateProgramAssignment = async (programId: string, newAthleteId: string) => {
+    const { error } = await supabase
+      .from('programs')
+      .update({ assigned_athlete_id: newAthleteId === '' ? null : newAthleteId })
+      .eq('id', programId);
+
+    if (error) {
+      alert('Errore durante l\'aggiornamento dell\'assegnazione: ' + error.message);
+    } else {
+      alert('Programma riassegnato con successo!');
+    }
+  };
+
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
       const { error } = await supabase.from('programs').delete().eq('id', id);
@@ -250,9 +263,9 @@ export default function TrainingApp() {
               <input type="text" placeholder="Titolo Programma (es. Forza & Conditioning)" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', marginBottom: '16px', boxSizing: 'border-box' }} />
               
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Assegna ad Atleta:</label>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Assegna ad Atleta (opzionale):</label>
                 <select value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', boxSizing: 'border-box' }}>
-                  <option value="">Tutti gli atleti</option>
+                  <option value="">Tutti gli atleti (Generale)</option>
                   {athletes.map((a) => (
                     <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
                   ))}
@@ -395,17 +408,47 @@ export default function TrainingApp() {
               {programLibrary.length === 0 ? (
                 <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Nessun programma in libreria.</p>
               ) : (
-                programLibrary.map((prog) => (
-                  <div key={prog.id} style={{ background: '#111827', padding: '16px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>{prog.useCalendar ? '📅 Calendario Settimanale' : '📋 Programma Giornaliero Libero'}</span>
+                programLibrary.map((prog) => {
+                  const currentAssigned = athletes.find((a) => a.id === prog.assignedAthleteId);
+                  return (
+                    <div key={prog.id} style={{ background: '#111827', padding: '16px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div>
+                          <h4 style={{ margin: '0 0 4px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                          <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                            {prog.useCalendar ? '📅 Calendario Settimanale' : '📋 Programma Giornaliero Libero'}
+                          </span>
+                          <span style={{ fontSize: '11px', color: currentAssigned ? '#38bdf8' : '#cbd5e1', background: '#1e293b', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                            Assegnato a: {currentAssigned ? (currentAssigned.full_name || currentAssigned.email) : 'Tutti (Generale)'}
+                          </span>
+                        </div>
+                        <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#1f2937', padding: '10px', borderRadius: '8px' }}>
+                        <select 
+                          defaultValue={prog.assignedAthleteId} 
+                          id={`select-${prog.id}`}
+                          style={{ flex: 1, padding: '8px', borderRadius: '6px', background: '#111827', border: '1px solid #374151', color: '#fff', fontSize: '12px' }}
+                        >
+                          <option value="">Tutti gli atleti (Generale)</option>
+                          {athletes.map((a) => (
+                            <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
+                          ))}
+                        </select>
+                        <button 
+                          onClick={() => {
+                            const selectElement = document.getElementById(`select-${prog.id}`) as HTMLSelectElement;
+                            updateProgramAssignment(prog.id, selectElement.value);
+                          }}
+                          style={{ background: '#10b981', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          Assegna
+                        </button>
+                      </div>
                     </div>
-                    {role === 'coach' && (
-                      <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>Elimina</button>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}
