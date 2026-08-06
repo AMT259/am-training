@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import { 
   Dumbbell, Calendar as CalendarIcon, Users, User, LogOut, 
-  Plus, Check, ChevronRight, Clock, Award, Shield, Activity, TrendingUp, Settings, BookOpen, FolderPlus, Play, Square, RotateCcw
+  Plus, Check, ChevronRight, Clock, Award, Shield, Activity, TrendingUp, Settings, BookOpen, FolderPlus, Play, Square, RotateCcw, Target
 } from 'lucide-react';
 
 export default function Home() {
@@ -12,6 +12,9 @@ export default function Home() {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeCoachTab, setActiveCoachTab] = useState<'builder' | 'library' | 'classes'>('builder');
+
+  // Sub-tab per il Coach: 'wod' o 'exercise'
+  const [builderSubTab, setBuilderSubTab] = useState<'wod' | 'exercise'>('wod');
 
   // Auth State
   const [isLogin, setIsLogin] = useState(true);
@@ -26,6 +29,7 @@ export default function Home() {
   const [selectedAthlete, setSelectedAthlete] = useState<string>('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   
+  // WOD Builder State
   const [workoutTitle, setWorkoutTitle] = useState('');
   const [workoutType, setWorkoutType] = useState<'amrap' | 'emom' | 'rnd' | 'intervals'>('amrap');
   const [duration, setDuration] = useState('12');
@@ -34,8 +38,15 @@ export default function Home() {
   const [restTime, setRestTime] = useState('20');
   const [intervalRounds, setIntervalRounds] = useState('5');
   
+  // Exercise Builder State (Nuovo!)
+  const [exerciseName, setExerciseName] = useState('');
+  const [exerciseCategory, setExerciseCategory] = useState<'forza' | 'ginnastica' | 'cardio' | 'sollevamento'>('forza');
+  const [exerciseEquipment, setExerciseEquipment] = useState('Bilanciere');
+  const [exerciseNotes, setExerciseNotes] = useState('');
+
   // Library & Weekly Programs State
   const [workoutLibrary, setWorkoutLibrary] = useState<any[]>([]);
+  const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
   const [isWeeklyProgram, setIsWeeklyProgram] = useState(false);
   const [weeklyDays, setWeeklyDays] = useState({
     Lunedì: '',
@@ -73,7 +84,7 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Timer Effect per la modalità interattiva dell'atleta
+  // Timer Effect per WOD interattivi
   useEffect(() => {
     let interval: any = null;
     if (timerActive) {
@@ -81,17 +92,14 @@ export default function Home() {
         setTimerSeconds((prev) => {
           if (prev <= 1) {
             if (activeWorkoutSession?.type === 'intervals') {
-              // Gestione ciclica Lavoro / Recupero per Intervals
               const targetWork = parseInt(activeWorkoutSession.workTime || '40');
               const targetRest = parseInt(activeWorkoutSession.restTime || '20');
               const maxRounds = parseInt(activeWorkoutSession.intervalRounds || '5');
 
               if (!isResting) {
-                // Passa a recupero
                 setIsResting(true);
                 return targetRest;
               } else {
-                // Fine recupero, prossimo round o fine allenamento
                 if (currentIntervalRound >= maxRounds) {
                   setTimerActive(false);
                   alert('Allenamento completato con successo! Ottimo lavoro.');
@@ -209,7 +217,27 @@ export default function Home() {
     };
 
     setWorkoutLibrary([...workoutLibrary, newWorkoutItem]);
-    alert("Allenamento salvato con successo nella libreria e pronto per essere assegnato!");
+    alert("Allenamento salvato con successo nella libreria!");
+  };
+
+  // Funzione per salvare un esercizio singolo
+  const saveExerciseToLibrary = () => {
+    if (!exerciseName) {
+      alert("Inserisci il nome dell'esercizio.");
+      return;
+    }
+    const newExerciseItem = {
+      id: Date.now(),
+      name: exerciseName,
+      category: exerciseCategory,
+      equipment: exerciseEquipment,
+      notes: exerciseNotes
+    };
+
+    setExerciseLibrary([...exerciseLibrary, newExerciseItem]);
+    setExerciseName('');
+    setExerciseNotes('');
+    alert("Esercizio singolo creato e salvato con successo nella libreria!");
   };
 
   const startWorkoutSession = (workout: any) => {
@@ -328,7 +356,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto space-y-6">
         {profile?.role === 'coach' ? (
           <div>
-            {/* Navigazione Pannello Coach */}
+            {/* Navigazione Principale Pannello Coach */}
             <div className="flex gap-2 mb-6 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
               <button
                 onClick={() => setActiveCoachTab('builder')}
@@ -356,199 +384,322 @@ export default function Home() {
               </button>
             </div>
 
-            {/* TAB 1: CREA / ASSEGNA */}
+            {/* TAB 1: CREA / ASSEGNA (Con selettore WOD o Esercizio Singolo) */}
             {activeCoachTab === 'builder' && (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-emerald-400" /> Nuovo Allenamento o Programma
-                </h2>
-
-                <div className="grid grid-cols-2 gap-2">
+                
+                {/* Switch tra WOD e Esercizio Singolo */}
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-4">
                   <button
-                    type="button"
-                    onClick={() => setSelectedTargetType('athlete')}
-                    className={`py-2 text-xs font-bold rounded-lg border ${
-                      selectedTargetType === 'athlete' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
+                    onClick={() => setBuilderSubTab('wod')}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                      builderSubTab === 'wod' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Assegna a Singolo Atleta
+                    Crea Circuito / WOD
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setSelectedTargetType('class')}
-                    className={`py-2 text-xs font-bold rounded-lg border ${
-                      selectedTargetType === 'class' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
+                    onClick={() => setBuilderSubTab('exercise')}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                      builderSubTab === 'exercise' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Assegna a Classe (Gruppo)
+                    Crea Esercizio Singolo
                   </button>
                 </div>
 
-                {selectedTargetType === 'athlete' ? (
-                  <div>
-                    <label className="text-xs text-slate-400 font-medium">Seleziona Atleta</label>
-                    <select
-                      value={selectedAthlete}
-                      onChange={(e) => setSelectedAthlete(e.target.value)}
-                      className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    >
-                      <option value="">-- Scegli atleta --</option>
-                      {athletes.map((athlete) => (
-                        <option key={athlete.id} value={athlete.id}>
-                          {athlete.full_name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="text-xs text-slate-400 font-medium">Seleziona Classe</label>
-                    <select
-                      value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
-                      className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
-                    >
-                      <option value="">-- Scegli classe --</option>
-                      {classesList.map((cls, idx) => (
-                        <option key={idx} value={cls}>{cls}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="weeklyCheck"
-                    checked={isWeeklyProgram}
-                    onChange={(e) => setIsWeeklyProgram(e.target.checked)}
-                    className="w-4 h-4 accent-emerald-500 rounded"
-                  />
-                  <label htmlFor="weeklyCheck" className="text-xs text-slate-300 font-medium">
-                    Crea Programma Settimanale (Multi-giorno)
-                  </label>
-                </div>
-
-                {!isWeeklyProgram ? (
+                {builderSubTab === 'wod' ? (
                   <>
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Plus className="w-5 h-5 text-emerald-400" /> Nuovo Allenamento o Programma
+                    </h2>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTargetType('athlete')}
+                        className={`py-2 text-xs font-bold rounded-lg border ${
+                          selectedTargetType === 'athlete' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        Assegna a Singolo Atleta
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTargetType('class')}
+                        className={`py-2 text-xs font-bold rounded-lg border ${
+                          selectedTargetType === 'class' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        Assegna a Classe (Gruppo)
+                      </button>
+                    </div>
+
+                    {selectedTargetType === 'athlete' ? (
+                      <div>
+                        <label className="text-xs text-slate-400 font-medium">Seleziona Atleta</label>
+                        <select
+                          value={selectedAthlete}
+                          onChange={(e) => setSelectedAthlete(e.target.value)}
+                          className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        >
+                          <option value="">-- Scegli atleta --</option>
+                          {athletes.map((athlete) => (
+                            <option key={athlete.id} value={athlete.id}>
+                              {athlete.full_name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-xs text-slate-400 font-medium">Seleziona Classe</label>
+                        <select
+                          value={selectedClass}
+                          onChange={(e) => setSelectedClass(e.target.value)}
+                          className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        >
+                          <option value="">-- Scegli classe --</option>
+                          {classesList.map((cls, idx) => (
+                            <option key={idx} value={cls}>{cls}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="weeklyCheck"
+                        checked={isWeeklyProgram}
+                        onChange={(e) => setIsWeeklyProgram(e.target.checked)}
+                        className="w-4 h-4 accent-emerald-500 rounded"
+                      />
+                      <label htmlFor="weeklyCheck" className="text-xs text-slate-300 font-medium">
+                        Crea Programma Settimanale (Multi-giorno)
+                      </label>
+                    </div>
+
+                    {!isWeeklyProgram ? (
+                      <>
+                        <div>
+                          <label className="text-xs text-slate-400 font-medium">Titolo Allenamento</label>
+                          <input
+                            type="text"
+                            value={workoutTitle}
+                            onChange={(e) => setWorkoutTitle(e.target.value)}
+                            placeholder="Es. WOD Metcon"
+                            className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs text-slate-400 font-medium block mb-2">Tipologia Circuito</label>
+                          <div className="grid grid-cols-4 gap-2">
+                            {['amrap', 'emom', 'rnd', 'intervals'].map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => setWorkoutType(t as any)}
+                                className={`py-2 text-xs font-bold uppercase rounded-lg transition-colors ${
+                                  workoutType === t ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                          {workoutType === 'amrap' && (
+                            <div>
+                              <label className="text-xs text-slate-400 font-medium">Durata AMRAP (Minuti)</label>
+                              <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                            </div>
+                          )}
+                          {workoutType === 'emom' && (
+                            <div>
+                              <label className="text-xs text-slate-400 font-medium">Durata EMOM (Minuti)</label>
+                              <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                            </div>
+                          )}
+                          {workoutType === 'rnd' && (
+                            <div>
+                              <label className="text-xs text-slate-400 font-medium">Numero di Round (RND)</label>
+                              <input type="number" value={rndRounds} onChange={(e) => setRndRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                            </div>
+                          )}
+                          {workoutType === 'intervals' && (
+                            <div className="space-y-3">
+                              <div>
+                                <label className="text-xs text-slate-400 font-medium">Numero Round</label>
+                                <input type="number" value={intervalRounds} onChange={(e) => setIntervalRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-slate-400 font-medium">Lavoro (sec)</label>
+                                  <input type="number" value={workTime} onChange={(e) => setWorkTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-slate-400 font-medium">Recupero (sec)</label>
+                                  <input type="number" value={restTime} onChange={(e) => setRestTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <button onClick={saveToLibrary} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg text-sm transition-colors shadow-lg">
+                          Salva e Assegna Allenamento
+                        </button>
+                      </>
+                    ) : (
+                      <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
+                        <h3 className="text-sm font-bold text-emerald-400 mb-2">Programmazione Settimanale</h3>
+                        {Object.keys(weeklyDays).map((day) => (
+                          <div key={day} className="flex items-center gap-3">
+                            <span className="w-24 text-xs font-semibold text-slate-400">{day}</span>
+                            <input
+                              type="text"
+                              placeholder="Es. WOD AMRAP 15' o Riposo"
+                              value={(weeklyDays as any)[day]}
+                              onChange={(e) => setWeeklyDays({...weeklyDays, [day]: e.target.value})}
+                              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
+                            />
+                          </div>
+                        ))}
+                        <button onClick={() => alert("Programma settimanale salvato e assegnato con successo!")} className="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors">
+                          Salva Programma Settimanale
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* CREAZIONE ESERCIZIO SINGOLO */
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Target className="w-5 h-5 text-emerald-400" /> Nuovo Esercizio Singolo
+                    </h2>
+
                     <div>
-                      <label className="text-xs text-slate-400 font-medium">Titolo Allenamento</label>
+                      <label className="text-xs text-slate-400 font-medium">Nome Esercizio</label>
                       <input
                         type="text"
-                        value={workoutTitle}
-                        onChange={(e) => setWorkoutTitle(e.target.value)}
-                        placeholder="Es. WOD Metcon"
+                        value={exerciseName}
+                        onChange={(e) => setExerciseName(e.target.value)}
+                        placeholder="Es. Back Squat, Pull-ups, Clean & Jerk"
                         className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white"
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 font-medium block mb-2">Tipologia Circuito</label>
+                      <label className="text-xs text-slate-400 font-medium block mb-2">Categoria</label>
                       <div className="grid grid-cols-4 gap-2">
-                        {['amrap', 'emom', 'rnd', 'intervals'].map((t) => (
+                        {[
+                          { id: 'forza', label: 'Forza' },
+                          { id: 'ginnastica', label: 'Ginnastica' },
+                          { id: 'cardio', label: 'Cardio' },
+                          { id: 'sollevamento', label: 'Sollevamento' }
+                        ].map((cat) => (
                           <button
-                            key={t}
+                            key={cat.id}
                             type="button"
-                            onClick={() => setWorkoutType(t as any)}
-                            className={`py-2 text-xs font-bold uppercase rounded-lg transition-colors ${
-                              workoutType === t ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
+                            onClick={() => setExerciseCategory(cat.id as any)}
+                            className={`py-2 text-xs font-bold rounded-lg transition-colors ${
+                              exerciseCategory === cat.id ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
                             }`}
                           >
-                            {t}
+                            {cat.label}
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                      {workoutType === 'amrap' && (
-                        <div>
-                          <label className="text-xs text-slate-400 font-medium">Durata AMRAP (Minuti)</label>
-                          <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                        </div>
-                      )}
-                      {workoutType === 'emom' && (
-                        <div>
-                          <label className="text-xs text-slate-400 font-medium">Durata EMOM (Minuti)</label>
-                          <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                        </div>
-                      )}
-                      {workoutType === 'rnd' && (
-                        <div>
-                          <label className="text-xs text-slate-400 font-medium">Numero di Round (RND)</label>
-                          <input type="number" value={rndRounds} onChange={(e) => setRndRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                        </div>
-                      )}
-                      {workoutType === 'intervals' && (
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-xs text-slate-400 font-medium">Numero Round</label>
-                            <input type="number" value={intervalRounds} onChange={(e) => setIntervalRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-xs text-slate-400 font-medium">Lavoro (sec)</label>
-                              <input type="number" value={workTime} onChange={(e) => setWorkTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                            </div>
-                            <div>
-                              <label className="text-xs text-slate-400 font-medium">Recupero (sec)</label>
-                              <input type="number" value={restTime} onChange={(e) => setRestTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                    <div>
+                      <label className="text-xs text-slate-400 font-medium">Attrezzatura</label>
+                      <input
+                        type="text"
+                        value={exerciseEquipment}
+                        onChange={(e) => setExerciseEquipment(e.target.value)}
+                        placeholder="Es. Bilanciere, Sbarra, Vogatore"
+                        className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white"
+                      />
                     </div>
 
-                    <button onClick={saveToLibrary} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg text-sm transition-colors shadow-lg">
-                      Salva e Assegna Allenamento
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                    <h3 className="text-sm font-bold text-emerald-400 mb-2">Programmazione Settimanale</h3>
-                    {Object.keys(weeklyDays).map((day) => (
-                      <div key={day} className="flex items-center gap-3">
-                        <span className="w-24 text-xs font-semibold text-slate-400">{day}</span>
-                        <input
-                          type="text"
-                          placeholder="Es. WOD AMRAP 15' o Riposo"
-                          value={(weeklyDays as any)[day]}
-                          onChange={(e) => setWeeklyDays({...weeklyDays, [day]: e.target.value})}
-                          className="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
-                        />
-                      </div>
-                    ))}
-                    <button onClick={() => alert("Programma settimanale salvato e assegnato con successo!")} className="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors">
-                      Salva Programma Settimanale
+                    <div>
+                      <label className="text-xs text-slate-400 font-medium">Note / Esecuzione</label>
+                      <textarea
+                        value={exerciseNotes}
+                        onChange={(e) => setExerciseNotes(e.target.value)}
+                        placeholder="Dettagli tecnici o istruzioni per l'atleta..."
+                        rows={3}
+                        className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white resize-none"
+                      />
+                    </div>
+
+                    <button 
+                      onClick={saveExerciseToLibrary} 
+                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg text-sm transition-colors shadow-lg"
+                    >
+                      Salva Esercizio nella Libreria
                     </button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* TAB 2: LIBRERIA ALLENAMENTI */}
+            {/* TAB 2: LIBRERIA ALLENAMENTI ED ESERCIZI */}
             {activeCoachTab === 'library' && (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-emerald-400" /> Libreria Circuiti Creati
-                </h2>
-                {workoutLibrary.length === 0 ? (
-                  <p className="text-xs text-slate-500">Nessun allenamento salvato nella libreria.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {workoutLibrary.map((item) => (
-                      <div key={item.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-white">{item.title}</h4>
-                          <p className="text-xs text-emerald-400 uppercase tracking-wide">{item.type} • {item.details}</p>
+              <div className="space-y-6">
+                {/* Libreria WOD */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-emerald-400" /> Libreria Circuiti / WOD
+                  </h2>
+                  {workoutLibrary.length === 0 ? (
+                    <p className="text-xs text-slate-500">Nessun WOD salvato nella libreria.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {workoutLibrary.map((item) => (
+                        <div key={item.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                          <div>
+                            <h4 className="font-bold text-sm text-white">{item.title}</h4>
+                            <p className="text-xs text-emerald-400 uppercase tracking-wide">{item.type} • {item.details}</p>
+                          </div>
+                          <button onClick={() => alert("Assegnato con successo!")} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                            Assegna
+                          </button>
                         </div>
-                        <button onClick={() => alert("Assegnato con successo all'atleta/classe!")} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                          Assegna
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Libreria Esercizi Singoli */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Target className="w-5 h-5 text-emerald-400" /> Libreria Esercizi Singoli
+                  </h2>
+                  {exerciseLibrary.length === 0 ? (
+                    <p className="text-xs text-slate-500">Nessun esercizio singolo salvato.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {exerciseLibrary.map((ex) => (
+                        <div key={ex.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-bold text-sm text-white">{ex.name}</h4>
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md">
+                              {ex.category}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400">Attrezzatura: <span className="text-slate-200">{ex.equipment}</span></p>
+                          {ex.notes && <p className="text-xs text-slate-500 italic bg-slate-900 p-2 rounded">{ex.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
