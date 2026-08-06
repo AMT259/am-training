@@ -215,7 +215,8 @@ export default function TrainingApp() {
       load: '70%',
       rest: '90 sec',
       notes: '',
-      wodNotes: ''
+      wodNotes: '',
+      videoUrl: '' // Campo per il link video
     });
     setProgramDays(updated);
   };
@@ -237,7 +238,8 @@ export default function TrainingApp() {
       load: '70%',
       rest: '90 sec',
       notes: '',
-      wodNotes: ''
+      wodNotes: '',
+      videoUrl: '' // Campo per il link video
     });
     setWeekDays(updated);
   };
@@ -291,7 +293,8 @@ export default function TrainingApp() {
       load: '70%',
       rest: '90 sec',
       notes: '',
-      wodNotes: ''
+      wodNotes: '',
+      videoUrl: '' // Campo per il link video
     });
     setEditingProgram(updated);
   };
@@ -351,7 +354,6 @@ export default function TrainingApp() {
     (prog) => !prog.assignedAthleteId || prog.assignedAthleteId === '' || prog.assignedAthleteId === session?.user?.id
   );
 
-  // Filtro programmi nella libreria del coach basato sull'utente selezionato
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteId === libraryFilterAthlete;
@@ -402,6 +404,11 @@ export default function TrainingApp() {
 
                       <div style={{ marginBottom: '10px' }}>
                         <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                      </div>
+
+                      {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
+                      <div style={{ marginBottom: '10px' }}>
+                        <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
                       </div>
 
                       {block.type === 'forza' ? (
@@ -456,11 +463,11 @@ export default function TrainingApp() {
                 <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                   
-                  <input type="text" placeholder="Titolo Programma (es. Forza & Conditioning)" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', marginBottom: '16px', boxSizing: 'border-box' }} />
+                  <input type="text" placeholder="Titolo Programma (es. Forza & Conditioning)" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #334151', color: '#fff', marginBottom: '16px', boxSizing: 'border-box' }} />
                   
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Assegna ad Atleta (opzionale):</label>
-                    <select value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', boxSizing: 'border-box' }}>
+                    <select value={selectedAthlete} onChange={(e) => setSelectedAthlete(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #334151', color: '#fff', boxSizing: 'border-box' }}>
                       <option value="">Tutti gli atleti (Generale)</option>
                       {athletes.map((a) => (
                         <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
@@ -468,7 +475,7 @@ export default function TrainingApp() {
                     </select>
                   </div>
 
-                  <div style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #334151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <span style={{ fontSize: '14px', fontWeight: 'bold', display: 'block' }}>Usa Calendario Settimanale</span>
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>Struttura fissa Lunedì - Domenica</span>
@@ -479,7 +486,7 @@ export default function TrainingApp() {
                   {useCalendar ? (
                     <div>
                       {weekDays.map((day, dIdx) => (
-                        <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #374151' }}>
+                        <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #334151' }}>
                           <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', marginBottom: '12px' }}>📅 {day.dayName}</div>
 
                           {day.blocks.map((block: any, bIdx: number) => (
@@ -491,6 +498,11 @@ export default function TrainingApp() {
 
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                              </div>
+
+                              {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
+                              <div style={{ marginBottom: '10px' }}>
+                                <input type="url" value={block.videoUrl || ''} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
                               </div>
 
                               {block.type === 'forza' ? (
@@ -553,6 +565,11 @@ export default function TrainingApp() {
                                 <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome Esercizio" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
                               </div>
 
+                              {/* CAMPO LINK VIDEO PER L'ESERCIZIO */}
+                              <div style={{ marginBottom: '10px' }}>
+                                <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
+                              </div>
+
                               {block.type === 'forza' ? (
                                 <div>
                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -603,7 +620,6 @@ export default function TrainingApp() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
                     
-                    {/* FILTRO PER UTENTE NELLA LIBRERIA DEL COACH */}
                     <select 
                       value={libraryFilterAthlete} 
                       onChange={(e) => setLibraryFilterAthlete(e.target.value)} 
@@ -641,7 +657,6 @@ export default function TrainingApp() {
                             </div>
                           </div>
 
-                          {/* VISUALIZZAZIONE DEI RISULTATI DEGLI ATLETI PER IL COACH */}
                           <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '8px', border: '1px solid #374151' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             {Object.keys(progResultsByAthlete).length === 0 ? (
@@ -713,7 +728,15 @@ export default function TrainingApp() {
                               const blockKey = `${realDayIndex}_${bIdx}`;
                               return (
                                 <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name}</div>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                    {blk.videoUrl && (
+                                      <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                        🎥 Guarda Video
+                                      </a>
+                                    )}
+                                  </div>
+
                                   {blk.type === 'forza' ? (
                                     <div>
                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -750,7 +773,6 @@ export default function TrainingApp() {
                                     </div>
                                   )}
 
-                                  {/* CASELLE SCORE E NOTE COLLEGATE A SUPABASE */}
                                   <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
                                     <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
@@ -786,7 +808,15 @@ export default function TrainingApp() {
                         const blockKey = `${dIdx}_${bIdx}`;
                         return (
                           <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px'}>{blk.name}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                              {blk.videoUrl && (
+                                <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                  🎥 Guarda Video
+                                </a>
+                              )}
+                            </div>
+
                             {blk.type === 'forza' ? (
                               <div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
@@ -823,7 +853,6 @@ export default function TrainingApp() {
                               </div>
                             )}
 
-                            {/* CASELLE SCORE E NOTE COLLEGATE A SUPABASE */}
                             <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
                               <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
