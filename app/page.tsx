@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import { 
-  Dumbbell, Calendar as CalendarIcon, Users, User, LogOut, 
-  Plus, Check, ChevronRight, Clock, Award, Shield, Activity, TrendingUp, Settings, BookOpen, FolderPlus, Play, Square, RotateCcw, Target, Trash2
+  Dumbbell, User, LogOut, 
+  Plus, BookOpen, Play, Square, RotateCcw, Target, Trash2
 } from 'lucide-react';
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
   // WOD Builder State (Multi-Blocco)
   const [workoutTitle, setWorkoutTitle] = useState('');
   const [workoutBlocks, setWorkoutBlocks] = useState<any[]>([
-    { id: 1, type: 'amrap', title: 'Blocco 1', duration: '12', rndRounds: '5', workTime: '40', restTime: '20', intervalRounds: '5' }
+    { id: 1, type: 'amrap', title: 'Blocco 1: Forza', duration: '12', rndRounds: '5', workTime: '40', restTime: '20', intervalRounds: '5' }
   ]);
   
   // Exercise Builder State
@@ -41,17 +41,6 @@ export default function Home() {
   // Library State
   const [workoutLibrary, setWorkoutLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
-  const [isWeeklyProgram, setIsWeeklyProgram] = useState(false);
-  const [weeklyDays, setWeeklyDays] = useState({
-    Lunedì: [],
-    Martedì: [],
-    Mercoledì: [],
-    Giovedì: [],
-    Venerdì: [],
-    Sabato: [],
-    Domenica: []
-  });
-  const [selectedDayToEdit, setSelectedDayToEdit] = useState<string>('Lunedì');
 
   // Athlete Active Workout Simulation State
   const [activeWorkoutSession, setActiveWorkoutSession] = useState<any | null>(null);
@@ -219,8 +208,7 @@ export default function Home() {
     const newWorkoutItem = {
       id: Date.now(),
       title: workoutTitle,
-      blocks: workoutBlocks,
-      isWeekly: isWeeklyProgram
+      blocks: workoutBlocks
     };
 
     setWorkoutLibrary([...workoutLibrary, newWorkoutItem]);
@@ -246,15 +234,14 @@ export default function Home() {
     alert("Esercizio singolo creato e salvato con successo!");
   };
 
-  const startWorkoutSession = (workout: any) => {
-    const firstBlock = workout.blocks ? workout.blocks[0] : workout;
-    setActiveWorkoutSession(firstBlock);
+  const startWorkoutSession = (block: any) => {
+    setActiveWorkoutSession(block);
     setCurrentIntervalRound(1);
     setIsResting(false);
-    if (firstBlock.type === 'intervals') {
-      setTimerSeconds(parseInt(firstBlock.workTime || '40'));
-    } else if (firstBlock.type === 'amrap' || firstBlock.type === 'emom') {
-      setTimerSeconds(parseInt(firstBlock.duration || '12') * 60);
+    if (block.type === 'intervals') {
+      setTimerSeconds(parseInt(block.workTime || '40'));
+    } else if (block.type === 'amrap' || block.type === 'emom') {
+      setTimerSeconds(parseInt(block.duration || '12') * 60);
     } else {
       setTimerSeconds(0);
     }
@@ -383,7 +370,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* TAB 1: CREA & ASSEGNA (WOD Multi-Blocco / Esercizio Singolo) */}
+            {/* TAB 1: CREA & ASSEGNA */}
             {activeCoachTab === 'builder' && (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 
@@ -447,9 +434,9 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={addWorkoutBlock}
-                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                          className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-md"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Aggiungi Blocco
+                          <Plus className="w-4 h-4" /> Aggiungi Blocco
                         </button>
                       </div>
 
@@ -602,10 +589,9 @@ export default function Home() {
               </div>
             )}
 
-            {/* TAB 2: LIBRERIA WOD ED ESERCIZI */}
+            {/* TAB 2: LIBRERIA */}
             {activeCoachTab === 'library' && (
               <div className="space-y-6">
-                {/* WOD Library */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-emerald-400" /> Libreria WOD Multi-Blocco
@@ -630,7 +616,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Exercise Library */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <Target className="w-5 h-5 text-emerald-400" /> Libreria Esercizi Singoli
