@@ -74,6 +74,13 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Carica i programmi da Supabase ogni volta che c'è una sessione attiva
+  useEffect(() => {
+    if (session) {
+      fetchProgramLibrary();
+    }
+  }, [session]);
+
   useEffect(() => {
     let interval: any = null;
     if (timerActive) {
@@ -122,6 +129,28 @@ export default function Home() {
       setAthletes(data || []);
     } catch (error) {
       console.error('Errore recupero atleti:', error);
+    }
+  };
+
+  const fetchProgramLibrary = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('programs')
+        .select('*');
+
+      if (error) throw error;
+      if (data) {
+        const formatted = data.map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          assignedAthleteId: item.assigned_athlete_id,
+          assignedTo: item.assigned_to,
+          days: item.days
+        }));
+        setProgramLibrary(formatted);
+      }
+    } catch (error) {
+      console.error('Errore caricamento libreria:', error);
     }
   };
 
@@ -250,21 +279,34 @@ export default function Home() {
     setProgramDays(updated);
   };
 
-  const saveProgramToLibrary = () => {
+  const saveProgramToLibrary = async () => {
     if (!programTitle) {
       alert("Inserisci un titolo per il programma.");
       return;
     }
-    const newProgramItem = {
-      id: Date.now(),
-      title: programTitle,
-      assignedAthleteId: selectedAthlete,
-      assignedTo: selectedAthlete ? athletes.find(a => a.id === selectedAthlete)?.full_name : 'Tutti',
-      days: programDays
-    };
 
-    setProgramLibrary([...programLibrary, newProgramItem]);
-    alert("Programma salvato e assegnato con successo!");
+    const athleteName = selectedAthlete ? athletes.find(a => a.id === selectedAthlete)?.full_name : 'Tutti';
+
+    try {
+      const { error } = await supabase
+        .from('programs')
+        .insert([
+          {
+            title: programTitle,
+            assigned_athlete_id: selectedAthlete,
+            assigned_to: athleteName,
+            days: programDays
+          }
+        ]);
+
+      if (error) throw error;
+
+      alert("Programma salvato e assegnato con successo su Supabase!");
+      setProgramTitle('');
+      fetchProgramLibrary(); // Ricarica la libreria aggiornata dal DB
+    } catch (error: any) {
+      alert("Errore durante il salvataggio: " + error.message);
+    }
   };
 
   const startWorkoutSession = (block: any) => {
