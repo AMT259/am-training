@@ -32,10 +32,8 @@ export default function Home() {
         { 
           id: 1, 
           categoryType: 'strength', 
-          type: 'strength', 
           title: 'Blocco 1: Forza', 
           headerNote: '',
-          strengthMode: 'percentage',
           sets: '5',
           reps: '5',
           percentage: '80%',
@@ -56,8 +54,6 @@ export default function Home() {
   const [activeWorkoutSession, setActiveWorkoutSession] = useState<any | null>(null);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
-  const [isResting, setIsResting] = useState(false);
-  const [currentIntervalRound, setCurrentIntervalRound] = useState(1);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }: any) => {
@@ -84,37 +80,16 @@ export default function Home() {
       interval = setInterval(() => {
         setTimerSeconds((prev) => {
           if (prev <= 1) {
-            if (activeWorkoutSession?.type === 'intervals' || activeWorkoutSession?.type === 'tabata') {
-              const targetWork = parseInt(activeWorkoutSession.workTime || '40');
-              const targetRest = parseInt(activeWorkoutSession.restTime || '20');
-              const maxRounds = parseInt(activeWorkoutSession.intervalRounds || '5');
-
-              if (!isResting) {
-                setIsResting(true);
-                return targetRest;
-              } else {
-                if (currentIntervalRound >= maxRounds) {
-                  setTimerActive(false);
-                  alert('Allenamento completato con successo!');
-                  return 0;
-                } else {
-                  setCurrentIntervalRound((r) => r + 1);
-                  setIsResting(false);
-                  return targetWork;
-                }
-              }
-            } else {
-              setTimerActive(false);
-              alert('Tempo scaduto!');
-              return 0;
-            }
+            setTimerActive(false);
+            alert('Tempo scaduto!');
+            return 0;
           }
           return prev - 1;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [timerActive, isResting, currentIntervalRound, activeWorkoutSession]);
+  }, [timerActive]);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -197,10 +172,8 @@ export default function Home() {
           {
             id: Date.now(),
             categoryType: 'strength',
-            type: 'strength',
-            title: 'Blocco 1: Forza',
+            title: `Blocco 1`,
             headerNote: '',
-            strengthMode: 'percentage',
             sets: '4',
             reps: '8',
             percentage: '75%',
@@ -231,10 +204,8 @@ export default function Home() {
     updated[dayIndex].workoutBlocks.push({
       id: Date.now(),
       categoryType: 'strength',
-      type: 'strength',
       title: `Blocco ${updated[dayIndex].workoutBlocks.length + 1}`,
       headerNote: '',
-      strengthMode: 'percentage',
       sets: '4',
       reps: '8',
       percentage: '75%',
@@ -298,15 +269,7 @@ export default function Home() {
 
   const startWorkoutSession = (block: any) => {
     setActiveWorkoutSession(block);
-    setCurrentIntervalRound(1);
-    setIsResting(false);
-    if (block.type === 'intervals' || block.type === 'tabata') {
-      setTimerSeconds(parseInt(block.workTime || '40'));
-    } else if (block.type === 'amrap' || block.type === 'emom') {
-      setTimerSeconds(parseInt(block.duration || '12') * 60);
-    } else {
-      setTimerSeconds(600);
-    }
+    setTimerSeconds(600);
     setTimerActive(false);
   };
 
@@ -387,9 +350,9 @@ export default function Home() {
     );
   }
 
-  // Filtriamo i programmi per l'atleta loggato (mostra quelli assegnati specificamente a lui o a "Tutti")
+  // Mostra i programmi se sono assegnati specificamente all'atleta o se sono per "Tutti" (!prog.assignedAthleteId)
   const athletePrograms = programLibrary.filter(
-    (prog) => !prog.assignedAthleteId || prog.assignedAthleteId === session?.user?.id
+    (prog) => !prog.assignedAthleteId || prog.assignedAthleteId === '' || prog.assignedAthleteId === session?.user?.id
   );
 
   return (
@@ -551,7 +514,7 @@ export default function Home() {
                                   <button
                                     type="button"
                                     onClick={() => updateBlockInDay(dayIdx, blockIdx, 'categoryType', 'strength')}
-                                    className={`py-1.5 text-xs font-bold uppercase rounded-lg transition-colors ${
+                                    className={`py-2 text-xs font-bold uppercase rounded-lg transition-colors ${
                                       block.categoryType === 'strength' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-950 text-slate-300'
                                     }`}
                                   >
@@ -560,7 +523,7 @@ export default function Home() {
                                   <button
                                     type="button"
                                     onClick={() => updateBlockInDay(dayIdx, blockIdx, 'categoryType', 'circuit')}
-                                    className={`py-1.5 text-xs font-bold uppercase rounded-lg transition-colors ${
+                                    className={`py-2 text-xs font-bold uppercase rounded-lg transition-colors ${
                                       block.categoryType === 'circuit' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-950 text-slate-300'
                                     }`}
                                   >
@@ -572,33 +535,23 @@ export default function Home() {
                               {/* Parametri dinamici in base al tipo */}
                               {block.categoryType === 'strength' ? (
                                 <div className="space-y-3 bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                                  <div className="grid grid-cols-3 gap-2">
+                                  <div className="grid grid-cols-4 gap-2">
                                     <div>
                                       <label className="text-[10px] text-slate-400 font-medium">Set</label>
-                                      <input type="text" value={block.sets} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'sets', e.target.value)} placeholder="5" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
+                                      <input type="text" value={block.sets} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'sets', e.target.value)} placeholder="4" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white text-center" />
                                     </div>
                                     <div>
                                       <label className="text-[10px] text-slate-400 font-medium">Reps</label>
-                                      <input type="text" value={block.reps} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'reps', e.target.value)} placeholder="5" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
+                                      <input type="text" value={block.reps} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'reps', e.target.value)} placeholder="8" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white text-center" />
                                     </div>
                                     <div>
-                                      <label className="text-[10px] text-slate-400 font-medium">Modalità Carico</label>
-                                      <select
-                                        value={block.strengthMode}
-                                        onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'strengthMode', e.target.value)}
-                                        className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white"
-                                      >
-                                        <option value="percentage">%</option>
-                                        <option value="rpe">RPE</option>
-                                      </select>
+                                      <label className="text-[10px] text-slate-400 font-medium">% Carico</label>
+                                      <input type="text" value={block.percentage} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'percentage', e.target.value)} placeholder="75%" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white text-center" />
                                     </div>
-                                  </div>
-                                  <div>
-                                    {block.strengthMode === 'percentage' ? (
-                                      <input type="text" value={block.percentage} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'percentage', e.target.value)} placeholder="Es. 80%" className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
-                                    ) : (
-                                      <input type="text" value={block.rpe} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'rpe', e.target.value)} placeholder="Es. 8" className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
-                                    )}
+                                    <div>
+                                      <label className="text-[10px] text-slate-400 font-medium">RPE</label>
+                                      <input type="text" value={block.rpe} onChange={(e) => updateBlockInDay(dayIdx, blockIdx, 'rpe', e.target.value)} placeholder="7.5" className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white text-center" />
+                                    </div>
                                   </div>
                                 </div>
                               ) : (
@@ -614,56 +567,58 @@ export default function Home() {
                                 </div>
                               )}
 
-                              {/* Esercizi */}
-                              <div className="space-y-2 pt-2 border-t border-slate-800">
-                                <div className="flex justify-between items-center">
-                                  <label className="text-[10px] font-bold uppercase text-slate-400">Esercizi del Blocco</label>
-                                  <button
-                                    type="button"
-                                    onClick={() => addExerciseToBlockInDay(dayIdx, blockIdx)}
-                                    className="text-[10px] font-bold text-emerald-400 hover:underline flex items-center gap-1"
-                                  >
-                                    <Plus className="w-3 h-3" /> Aggiungi Esercizio
-                                  </button>
-                                </div>
-
-                                {block.exerciseList?.map((ex: any, exIdx: number) => (
-                                  <div key={exIdx} className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
-                                    <div className="flex gap-2 items-center">
-                                      <input
-                                        type="text"
-                                        placeholder="Nome Esercizio"
-                                        value={ex.name}
-                                        onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'name', e.target.value)}
-                                        className="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white"
-                                      />
-                                      <input
-                                        type="text"
-                                        placeholder="Dettagli"
-                                        value={ex.details}
-                                        onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'details', e.target.value)}
-                                        className="w-1/3 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white"
-                                      />
-                                      {block.exerciseList.length > 1 && (
-                                        <button
-                                          type="button"
-                                          onClick={() => removeExerciseFromBlockInDay(dayIdx, blockIdx, exIdx)}
-                                          className="text-slate-500 hover:text-red-400"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      )}
-                                    </div>
-                                    <input
-                                      type="text"
-                                      placeholder="Nota specifica esercizio..."
-                                      value={ex.note || ''}
-                                      onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'note', e.target.value)}
-                                      className="w-full bg-slate-900 border border-slate-800/60 rounded-lg p-1.5 text-[11px] text-slate-300"
-                                    />
+                              {/* Esercizi (Mostrati SOLO se il blocco è Forza) */}
+                              {block.categoryType === 'strength' && (
+                                <div className="space-y-2 pt-2 border-t border-slate-800">
+                                  <div className="flex justify-between items-center">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400">Esercizi del Blocco</label>
+                                    <button
+                                      type="button"
+                                      onClick={() => addExerciseToBlockInDay(dayIdx, blockIdx)}
+                                      className="text-[10px] font-bold text-emerald-400 hover:underline flex items-center gap-1"
+                                    >
+                                      <Plus className="w-3 h-3" /> Aggiungi Esercizio
+                                    </button>
                                   </div>
-                                ))}
-                              </div>
+
+                                  {block.exerciseList?.map((ex: any, exIdx: number) => (
+                                    <div key={exIdx} className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+                                      <div className="flex gap-2 items-center">
+                                        <input
+                                          type="text"
+                                          placeholder="Nome Esercizio"
+                                          value={ex.name}
+                                          onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'name', e.target.value)}
+                                          className="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white"
+                                        />
+                                        <input
+                                          type="text"
+                                          placeholder="Dettagli"
+                                          value={ex.details}
+                                          onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'details', e.target.value)}
+                                          className="w-1/3 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white"
+                                        />
+                                        {block.exerciseList.length > 1 && (
+                                          <button
+                                            type="button"
+                                            onClick={() => removeExerciseFromBlockInDay(dayIdx, blockIdx, exIdx)}
+                                            className="text-slate-500 hover:text-red-400"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        )}
+                                      </div>
+                                      <input
+                                        type="text"
+                                        placeholder="Nota specifica esercizio..."
+                                        value={ex.note || ''}
+                                        onChange={(e) => updateExerciseInBlock(dayIdx, blockIdx, exIdx, 'note', e.target.value)}
+                                        className="w-full bg-slate-900 border border-slate-800/60 rounded-lg p-1.5 text-[11px] text-slate-300"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -713,7 +668,7 @@ export default function Home() {
                                       <span className="font-bold text-white">• {b.title}</span>
                                       {b.categoryType === 'strength' ? (
                                         <div className="text-[11px] text-emerald-400">
-                                          {b.sets} set x {b.reps} reps ({b.strengthMode === 'percentage' ? b.percentage : `RPE ${b.rpe}`})
+                                          {b.sets} set x {b.reps} reps (% {b.percentage} - RPE {b.rpe})
                                         </div>
                                       ) : (
                                         b.headerNote && <p className="text-[11px] text-slate-400 italic">{b.headerNote}</p>
@@ -802,11 +757,8 @@ export default function Home() {
                                   <div className="flex gap-4 text-xs text-emerald-400 font-medium bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
                                     {block.sets && <span>Set: {block.sets}</span>}
                                     {block.reps && <span>Reps: {block.reps}</span>}
-                                    {block.strengthMode === 'percentage' ? (
-                                      block.percentage && <span>Carico: {block.percentage}</span>
-                                    ) : (
-                                      block.rpe && <span>RPE: {block.rpe}</span>
-                                    )}
+                                    {block.percentage && <span>% Carico: {block.percentage}</span>}
+                                    {block.rpe && <span>RPE: {block.rpe}</span>}
                                   </div>
                                 ) : (
                                   block.headerNote && (
@@ -816,21 +768,23 @@ export default function Home() {
                                   )
                                 )}
 
-                                <div className="space-y-2 pt-1">
-                                  {block.exerciseList?.map((ex: any, exIdx: number) => (
-                                    <div key={exIdx} className="text-xs bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/60">
-                                      <div className="flex justify-between text-slate-200">
-                                        <span className="font-bold">• {ex.name}</span>
-                                        <span className="text-slate-400 font-mono">{ex.details}</span>
-                                      </div>
-                                      {ex.note && (
-                                        <div className="text-[11px] text-slate-400 italic mt-1 pl-3 border-l border-emerald-500/30">
-                                          Nota: {ex.note}
+                                {block.categoryType === 'strength' && (
+                                  <div className="space-y-2 pt-1">
+                                    {block.exerciseList?.map((ex: any, exIdx: number) => (
+                                      <div key={exIdx} className="text-xs bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/60">
+                                        <div className="flex justify-between text-slate-200">
+                                          <span className="font-bold">• {ex.name}</span>
+                                          <span className="text-slate-400 font-mono">{ex.details}</span>
                                         </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
+                                        {ex.note && (
+                                          <div className="text-[11px] text-slate-400 italic mt-1 pl-3 border-l border-emerald-500/30">
+                                            Nota: {ex.note}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
 
                                 <button
                                   onClick={() => startWorkoutSession(block)}
