@@ -44,7 +44,15 @@ export default function TrainingApp() {
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedDayView, setSelectedDayView] = useState('Lunedì');
 
-  // Stato per la modifica di un programma esistente nella libreria
+  // Filtro per la libreria del Coach
+  const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
+
+  // Risultati degli atleti
+  const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
+  
+  // Risultati di tutti gli atleti visibili al coach: { [programId]: { [athleteId]: resultsData } }
+  const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
+
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
 
   useEffect(() => {
@@ -67,6 +75,9 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       if (role === 'coach') {
         fetchAthletes();
+        fetchAllAthleteResultsForCoach();
+      } else {
+        fetchAthleteResults();
       }
 
       const channel = supabase
@@ -80,8 +91,20 @@ export default function TrainingApp() {
         )
         .subscribe();
 
+      const resultsChannel = supabase
+        .channel('realtime-results')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'program_results' },
+          () => {
+            if (role === 'coach') fetchAllAthleteResultsForCoach();
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(resultsChannel);
       };
     }
   }, [session, role]);
@@ -108,6 +131,58 @@ export default function TrainingApp() {
       }));
       setProgramLibrary(formatted);
     }
+  };
+
+  const fetchAthleteResults = async () => {
+    const { data } = await supabase
+      .from('program_results')
+      .select('*')
+      .eq('athlete_id', session.user.id);
+
+    if (data) {
+      const resultsMap: { [key: string]: any } = {};
+      data.forEach((item: any) => {
+        resultsMap[item.program_id] = item.results || {};
+      });
+      setAthleteResults(resultsMap);
+    }
+  };
+
+  const fetchAllAthleteResultsForCoach = async () => {
+    const { data } = await supabase.from('program_results').select('*');
+    if (data) {
+      const map: { [key: string]: any } = {};
+      data.forEach((item: any) => {
+        if (!map[item.program_id]) map[item.program_id] = {};
+        map[item.program_id][item.athlete_id] = item.results;
+      });
+      setCoachAllResults(map);
+    }
+  };
+
+  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string) => {
+    const currentProgResults = athleteResults[programId] || {};
+    const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
+    
+    const updatedBlockResults = { ...currentBlockResults, [field]: value };
+    const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
+
+    setAthleteResults({
+      ...athleteResults,
+      [programId]: updatedProgResults
+    });
+
+    await supabase
+      .from('program_results')
+      .upsert(
+        {
+          program_id: programId,
+          athlete_id: session.user.id,
+          results: updatedProgResults,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'program_id, athlete_id' }
+      );
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -275,6 +350,12 @@ export default function TrainingApp() {
   const athletePrograms = programLibrary.filter(
     (prog) => !prog.assignedAthleteId || prog.assignedAthleteId === '' || prog.assignedAthleteId === session?.user?.id
   );
+
+  // Filtro programmi nella libreria del coach basato sull'utente selezionato
+  const filteredLibraryPrograms = programLibrary.filter((prog) => {
+    if (!libraryFilterAthlete) return true;
+    return prog.assignedAthleteId === libraryFilterAthlete;
+  });
 
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
@@ -519,12 +600,29 @@ export default function TrainingApp() {
                 </div>
               ) : (
                 <div>
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Libreria Programmi</h3>
-                  {programLibrary.length === 0 ? (
-                    <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Nessun programma in libreria.</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
+                    
+                    {/* FILTRO PER UTENTE NELLA LIBRERIA DEL COACH */}
+                    <select 
+                      value={libraryFilterAthlete} 
+                      onChange={(e) => setLibraryFilterAthlete(e.target.value)} 
+                      style={{ padding: '8px 12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', fontSize: '13px' }}
+                    >
+                      <option value="">Filtra per utente (Tutti)</option>
+                      {athletes.map((a) => (
+                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {filteredLibraryPrograms.length === 0 ? (
+                    <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Nessun programma trovato con questo filtro.</p>
                   ) : (
-                    programLibrary.map((prog) => {
+                    filteredLibraryPrograms.map((prog) => {
                       const currentAssigned = athletes.find((a) => a.id === prog.assignedAthleteId);
+                      const progResultsByAthlete = coachAllResults[prog.id] || {};
+                      
                       return (
                         <div key={prog.id} style={{ background: '#111827', padding: '16px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '16px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -541,6 +639,37 @@ export default function TrainingApp() {
                               <button onClick={() => setEditingProgram(JSON.parse(JSON.stringify(prog)))} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
                               <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
+                          </div>
+
+                          {/* VISUALIZZAZIONE DEI RISULTATI DEGLI ATLETI PER IL COACH */}
+                          <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '8px', border: '1px solid #374151' }}>
+                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
+                            {Object.keys(progResultsByAthlete).length === 0 ? (
+                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Nessun risultato registrato per questo programma.</span>
+                            ) : (
+                              Object.keys(progResultsByAthlete).map((athId) => {
+                                const athObj = athletes.find(a => a.id === athId);
+                                const athName = athObj ? (athObj.full_name || athObj.email) : 'Atleta';
+                                const resObj = progResultsByAthlete[athId];
+
+                                return (
+                                  <div key={athId} style={{ marginBottom: '8px', background: '#111827', padding: '8px', borderRadius: '6px' }}>
+                                    <span style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 'bold' }}>{athName}:</span>
+                                    <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '4px' }}>
+                                      {Object.keys(resObj).map((blockKey) => {
+                                        const blockData = resObj[blockKey];
+                                        if (!blockData.score && !blockData.notes) return null;
+                                        return (
+                                          <div key={blockKey} style={{ marginLeft: '8px', marginBottom: '2px' }}>
+                                            • Blocco [{blockKey}]: <strong style={{ color: '#fff' }}>Score:</strong> {blockData.score || '-'} | <strong style={{ color: '#fff' }}>Note:</strong> {blockData.notes || '-'}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
                           </div>
                         </div>
                       );
@@ -573,133 +702,150 @@ export default function TrainingApp() {
                       ))}
                     </div>
 
-                    {prog.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any, dIdx: number) => (
-                      <div key={dIdx}>
-                        {day.blocks?.length === 0 ? (
-                          <p style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Riposo o nessun allenamento inserito per {day.dayName}.</p>
-                        ) : (
-                          day.blocks?.map((blk: any, bIdx: number) => (
-                            <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name}</div>
-                              {blk.type === 'forza' ? (
-                                <div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                    <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                    {prog.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any, dIdx: number) => {
+                      const realDayIndex = prog.days.findIndex((d: any) => d.dayName === selectedDayView);
+                      return (
+                        <div key={dIdx}>
+                          {day.blocks?.length === 0 ? (
+                            <p style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Riposo o nessun allenamento inserito per {day.dayName}.</p>
+                          ) : (
+                            day.blocks?.map((blk: any, bIdx: number) => {
+                              const blockKey = `${realDayIndex}_${bIdx}`;
+                              return (
+                                <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
+                                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name}</div>
+                                  {blk.type === 'forza' ? (
+                                    <div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                        </div>
+                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                        </div>
+                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                        </div>
+                                      </div>
+                                      {blk.notes && (
+                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                        </div>
+                                      )}
                                     </div>
-                                    <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
-                                    </div>
-                                  </div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                    <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                    </div>
-                                    <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                    </div>
-                                  </div>
-                                  {blk.notes && (
-                                    <div style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                  ) : (
+                                    <div style={{ background: '#111827', padding: '10px', borderRadius: '6px' }}>
+                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                      <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                                     </div>
                                   )}
-                                </div>
-                              ) : (
-                                <div style={{ background: '#111827', padding: '10px', borderRadius: '6px' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                  <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                                </div>
-                              )}
 
-                              {/* CASELLE SCORE E NOTE PER L'ATLETA */}
-                              <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                                <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                  <input 
-                                    type="text" 
-                                    placeholder="Score (es. 100kg / 8:30)" 
-                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                  />
-                                  <input 
-                                    type="text" 
-                                    placeholder="Note personali..." 
-                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                  />
+                                  {/* CASELLE SCORE E NOTE COLLEGATE A SUPABASE */}
+                                  <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                    <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                      <input 
+                                        type="text" 
+                                        placeholder="Score (es. 100kg / 8:30)" 
+                                        value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                        onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                        style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                      />
+                                      <input 
+                                        type="text" 
+                                        placeholder="Note personali..." 
+                                        value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                        onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                        style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    ))}
+                              );
+                            })
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  prog.days?.map((day: any, idx: number) => (
-                    <div key={idx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px' }}>
+                  prog.days?.map((day: any, dIdx: number) => (
+                    <div key={dIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px' }}>
                       <span style={{ fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px', color: '#10b981' }}>{day.dayName}</span>
-                      {day.blocks?.map((blk: any, bIdx: number) => (
-                        <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name}</div>
-                          {blk.type === 'forza' ? (
-                            <div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                  <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                      {day.blocks?.map((blk: any, bIdx: number) => {
+                        const blockKey = `${dIdx}_${bIdx}`;
+                        return (
+                          <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px'}>{blk.name}</div>
+                            {blk.type === 'forza' ? (
+                              <div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                  </div>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                  </div>
                                 </div>
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                  <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                  </div>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                  </div>
                                 </div>
+                                {blk.notes && (
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                  </div>
+                                )}
                               </div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                  <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                </div>
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                  <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                </div>
+                            ) : (
+                              <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
+                                <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                               </div>
-                              {blk.notes && (
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
-                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                              <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                            </div>
-                          )}
+                            )}
 
-                          {/* CASELLE SCORE E NOTE PER L'ATLETA */}
-                          <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                            <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                              <input 
-                                type="text" 
-                                placeholder="Score (es. 100kg / 8:30)" 
-                                style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                              />
-                              <input 
-                                type="text" 
-                                placeholder="Note personali..." 
-                                style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                              />
+                            {/* CASELLE SCORE E NOTE COLLEGATE A SUPABASE */}
+                            <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                              <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                <input 
+                                  type="text" 
+                                  placeholder="Score (es. 100kg / 8:30)" 
+                                  value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                />
+                                <input 
+                                  type="text" 
+                                  placeholder="Note personali..." 
+                                  value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ))
                 )}
