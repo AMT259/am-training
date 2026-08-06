@@ -198,7 +198,6 @@ export default function TrainingApp() {
     }
   };
 
-  // Funzioni per modificare un programma in corso di modifica nella libreria
   const updateEditingBlock = (dayIndex: number, blockIndex: number, field: string, value: any) => {
     const updated = { ...editingProgram };
     updated.days[dayIndex].blocks[blockIndex][field] = value;
@@ -264,8 +263,8 @@ export default function TrainingApp() {
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <h1 style={{ color: '#10b981', marginBottom: '20px' }}>AM TRAINING</h1>
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#fff' }} />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#fff' }} />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
           <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Accedi</button>
         </form>
@@ -284,13 +283,12 @@ export default function TrainingApp() {
           <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0 }}>AM TRAINING</h2>
           <span style={{ fontSize: '13px', color: '#94a3b8' }}>{session.user.email} ({role})</span>
         </div>
-        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334155', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Esci</button>
+        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>Esci</button>
       </header>
 
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           {editingProgram ? (
-            // SCHERMATA MODIFICA PROGRAMMA ESISTENTE
             <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
@@ -367,7 +365,6 @@ export default function TrainingApp() {
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
-            // SCHERMATA NORMALE COACH (Crea o Libreria)
             <div>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Crea Programma</button>
@@ -619,6 +616,23 @@ export default function TrainingApp() {
                                   <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                                 </div>
                               )}
+
+                              {/* CASELLE SCORE E NOTE PER L'ATLETA */}
+                              <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                  <input 
+                                    type="text" 
+                                    placeholder="Score (es. 100kg / 8:30)" 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                  />
+                                  <input 
+                                    type="text" 
+                                    placeholder="Note personali..." 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                  />
+                                </div>
+                              </div>
                             </div>
                           ))
                         )}
@@ -667,6 +681,23 @@ export default function TrainingApp() {
                               <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                             </div>
                           )}
+
+                          {/* CASELLE SCORE E NOTE PER L'ATLETA */}
+                          <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                            <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                              <input 
+                                type="text" 
+                                placeholder="Score (es. 100kg / 8:30)" 
+                                style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                              />
+                              <input 
+                                type="text" 
+                                placeholder="Note personali..." 
+                                style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                              />
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
