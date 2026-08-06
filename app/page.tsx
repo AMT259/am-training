@@ -15,15 +15,12 @@ export default function TrainingApp() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Dati Coach / Programmi
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState('');
   const [programTitle, setProgramTitle] = useState('');
   
-  // Opzione: Utilizzare o meno il calendario settimanale
   const [useCalendar, setUseCalendar] = useState<boolean>(false);
 
-  // Struttura Giornaliera Libera
   const [programDays, setProgramDays] = useState<any[]>([
     {
       dayNumber: 1,
@@ -32,7 +29,6 @@ export default function TrainingApp() {
     }
   ]);
 
-  // Struttura Settimanale Calendario (Lunedì -> Domenica)
   const [weekDays, setWeekDays] = useState<any[]>([
     { dayName: 'Lunedì', blocks: [] },
     { dayName: 'Martedì', blocks: [] },
@@ -46,7 +42,7 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'create' | 'library'>('create');
   const [saveMessage, setSaveMessage] = useState('');
-  const [selectedDayView, setSelectedDayView] = useState('Lunedì'); // Per visualizzazione atleta
+  const [selectedDayView, setSelectedDayView] = useState('Lunedì');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -69,6 +65,23 @@ export default function TrainingApp() {
       if (role === 'coach') {
         fetchAthletes();
       }
+
+      // CONFIGURAZIONE REALTIME: Ascolta i cambiamenti sulla tabella 'programs'
+      const channel = supabase
+        .channel('realtime-programs')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'programs' },
+          () => {
+            // Ricarica la libreria in tempo reale quando c'è un INSERT, UPDATE o DELETE
+            fetchProgramLibrary();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [session, role]);
 
@@ -108,7 +121,6 @@ export default function TrainingApp() {
     setSession(null);
   };
 
-  // Funzioni per la modalità Libera (Giorni multipli custom)
   const addDay = () => {
     setProgramDays([
       ...programDays,
@@ -138,7 +150,6 @@ export default function TrainingApp() {
     setProgramDays(updated);
   };
 
-  // Funzioni per la modalità Calendario Settimanale
   const addBlockToWeekDay = (dayIndex: number) => {
     const updated = [...weekDays];
     updated[dayIndex].blocks.push({
@@ -241,7 +252,6 @@ export default function TrainingApp() {
                 </select>
               </div>
 
-              {/* SELETTORE OPZIONE: Usa Calendario o No */}
               <div style={{ background: '#1f2937', padding: '12px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: 'bold', display: 'block' }}>Usa Calendario Settimanale</span>
@@ -250,7 +260,6 @@ export default function TrainingApp() {
                 <input type="checkbox" checked={useCalendar} onChange={(e) => setUseCalendar(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#10b981' }} />
               </div>
 
-              {/* SEZIONE MODALITÀ CALENDARIO */}
               {useCalendar ? (
                 <div>
                   {weekDays.map((day, dIdx) => (
@@ -308,7 +317,6 @@ export default function TrainingApp() {
                   ))}
                 </div>
               ) : (
-                /* SEZIONE MODALITÀ GIORNALIERA LIBERA */
                 <div>
                   {programDays.map((day, dIdx) => (
                     <div key={dIdx} style={{ background: '#1f2937', padding: '12px', borderRadius: '8px', marginBottom: '12px' }}>
@@ -391,7 +399,6 @@ export default function TrainingApp() {
           )}
         </div>
       ) : (
-        /* VISTA ATLETA */
         <div>
           <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>I tuoi allenamenti</h3>
           {athletePrograms.length === 0 ? (
@@ -403,7 +410,6 @@ export default function TrainingApp() {
               <div key={prog.id} style={{ background: '#111827', padding: '16px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '16px' }}>
                 <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '12px' }}>{prog.title}</h4>
                 
-                {/* Se il programma usa il calendario, mostra la barra dei giorni della settimana */}
                 {prog.useCalendar ? (
                   <div>
                     <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
@@ -464,7 +470,6 @@ export default function TrainingApp() {
                     ))}
                   </div>
                 ) : (
-                  /* Se il programma è in modalità libera, mostra tutti i giorni in sequenza */
                   prog.days?.map((day: any, idx: number) => (
                     <div key={idx} style={{ background: '#1f2937', padding: '10px', borderRadius: '8px', marginBottom: '8px' }}>
                       <span style={{ fontWeight: 'bold', fontSize: '13px', display: 'block', marginBottom: '8px', color: '#10b981' }}>{day.dayName}</span>
