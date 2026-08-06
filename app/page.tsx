@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import { 
   Dumbbell, Calendar as CalendarIcon, Users, User, LogOut, 
-  Plus, Check, ChevronRight, Clock, Award, Shield, Activity, TrendingUp, Settings, BookOpen, FolderPlus, Play, Square, RotateCcw, Target
+  Plus, Check, ChevronRight, Clock, Award, Shield, Activity, TrendingUp, Settings, BookOpen, FolderPlus, Play, Square, RotateCcw, Target, Trash2
 } from 'lucide-react';
 
 export default function Home() {
   const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeCoachTab, setActiveCoachTab] = useState<'builder' | 'library' | 'classes'>('builder');
+  const [activeCoachTab, setActiveCoachTab] = useState<'builder' | 'library'>('builder');
 
   // Sub-tab per il Coach: 'wod' o 'exercise'
   const [builderSubTab, setBuilderSubTab] = useState<'wod' | 'exercise'>('wod');
@@ -24,39 +24,34 @@ export default function Home() {
 
   // Coach State & Workout Builder State
   const [athletes, setAthletes] = useState<any[]>([]);
-  const [classesList, setClassesList] = useState<string[]>(['Classe Mattina', 'Classe Sera', 'Team Advanced']);
-  const [selectedTargetType, setSelectedTargetType] = useState<'athlete' | 'class'>('athlete');
   const [selectedAthlete, setSelectedAthlete] = useState<string>('');
-  const [selectedClass, setSelectedClass] = useState<string>('');
   
-  // WOD Builder State
+  // WOD Builder State (Multi-Blocco)
   const [workoutTitle, setWorkoutTitle] = useState('');
-  const [workoutType, setWorkoutType] = useState<'amrap' | 'emom' | 'rnd' | 'intervals'>('amrap');
-  const [duration, setDuration] = useState('12');
-  const [rndRounds, setRndRounds] = useState('5');
-  const [workTime, setWorkTime] = useState('40');
-  const [restTime, setRestTime] = useState('20');
-  const [intervalRounds, setIntervalRounds] = useState('5');
+  const [workoutBlocks, setWorkoutBlocks] = useState<any[]>([
+    { id: 1, type: 'amrap', title: 'Blocco 1', duration: '12', rndRounds: '5', workTime: '40', restTime: '20', intervalRounds: '5' }
+  ]);
   
-  // Exercise Builder State (Nuovo!)
+  // Exercise Builder State
   const [exerciseName, setExerciseName] = useState('');
   const [exerciseCategory, setExerciseCategory] = useState<'forza' | 'ginnastica' | 'cardio' | 'sollevamento'>('forza');
   const [exerciseEquipment, setExerciseEquipment] = useState('Bilanciere');
   const [exerciseNotes, setExerciseNotes] = useState('');
 
-  // Library & Weekly Programs State
+  // Library State
   const [workoutLibrary, setWorkoutLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
   const [isWeeklyProgram, setIsWeeklyProgram] = useState(false);
   const [weeklyDays, setWeeklyDays] = useState({
-    Lunedì: '',
-    Martedì: '',
-    Mercoledì: '',
-    Giovedì: '',
-    Venerdì: '',
-    Sabato: '',
-    Domenica: ''
+    Lunedì: [],
+    Martedì: [],
+    Mercoledì: [],
+    Giovedì: [],
+    Venerdì: [],
+    Sabato: [],
+    Domenica: []
   });
+  const [selectedDayToEdit, setSelectedDayToEdit] = useState<string>('Lunedì');
 
   // Athlete Active Workout Simulation State
   const [activeWorkoutSession, setActiveWorkoutSession] = useState<any | null>(null);
@@ -194,25 +189,37 @@ export default function Home() {
     await supabase.auth.signOut();
   };
 
+  // Gestione Blocchi Multipli
+  const addWorkoutBlock = () => {
+    setWorkoutBlocks([
+      ...workoutBlocks,
+      { id: Date.now(), type: 'amrap', title: `Blocco ${workoutBlocks.length + 1}`, duration: '12', rndRounds: '5', workTime: '40', restTime: '20', intervalRounds: '5' }
+    ]);
+  };
+
+  const updateBlock = (index: number, field: string, value: string) => {
+    const updated = [...workoutBlocks];
+    updated[index][field] = value;
+    setWorkoutBlocks(updated);
+  };
+
+  const removeBlock = (index: number) => {
+    if (workoutBlocks.length === 1) {
+      alert("Devi mantenere almeno un blocco.");
+      return;
+    }
+    setWorkoutBlocks(workoutBlocks.filter((_, i) => i !== index));
+  };
+
   const saveToLibrary = () => {
     if (!workoutTitle) {
-      alert("Inserisci un titolo per salvare l'allenamento nella libreria.");
+      alert("Inserisci un titolo per l'allenamento.");
       return;
     }
     const newWorkoutItem = {
       id: Date.now(),
       title: workoutTitle,
-      type: workoutType,
-      duration,
-      rndRounds,
-      workTime,
-      restTime,
-      intervalRounds,
-      details: workoutType === 'intervals' 
-        ? `${intervalRounds}RND - Lavoro: ${workTime}s / Rec: ${restTime}s` 
-        : workoutType === 'rnd' 
-        ? `Rounds: ${rndRounds}` 
-        : `Durata: ${duration} min`,
+      blocks: workoutBlocks,
       isWeekly: isWeeklyProgram
     };
 
@@ -220,7 +227,6 @@ export default function Home() {
     alert("Allenamento salvato con successo nella libreria!");
   };
 
-  // Funzione per salvare un esercizio singolo
   const saveExerciseToLibrary = () => {
     if (!exerciseName) {
       alert("Inserisci il nome dell'esercizio.");
@@ -237,17 +243,18 @@ export default function Home() {
     setExerciseLibrary([...exerciseLibrary, newExerciseItem]);
     setExerciseName('');
     setExerciseNotes('');
-    alert("Esercizio singolo creato e salvato con successo nella libreria!");
+    alert("Esercizio singolo creato e salvato con successo!");
   };
 
   const startWorkoutSession = (workout: any) => {
-    setActiveWorkoutSession(workout);
+    const firstBlock = workout.blocks ? workout.blocks[0] : workout;
+    setActiveWorkoutSession(firstBlock);
     setCurrentIntervalRound(1);
     setIsResting(false);
-    if (workout.type === 'intervals') {
-      setTimerSeconds(parseInt(workout.workTime || '40'));
-    } else if (workout.type === 'amrap' || workout.type === 'emom') {
-      setTimerSeconds(parseInt(workout.duration || '12') * 60);
+    if (firstBlock.type === 'intervals') {
+      setTimerSeconds(parseInt(firstBlock.workTime || '40'));
+    } else if (firstBlock.type === 'amrap' || firstBlock.type === 'emom') {
+      setTimerSeconds(parseInt(firstBlock.duration || '12') * 60);
     } else {
       setTimerSeconds(0);
     }
@@ -356,7 +363,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto space-y-6">
         {profile?.role === 'coach' ? (
           <div>
-            {/* Navigazione Principale Pannello Coach */}
+            {/* Navigazione Pannello Coach */}
             <div className="flex gap-2 mb-6 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
               <button
                 onClick={() => setActiveCoachTab('builder')}
@@ -364,7 +371,7 @@ export default function Home() {
                   activeCoachTab === 'builder' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Plus className="w-4 h-4" /> Crea / Assegna
+                <Plus className="w-4 h-4" /> Crea & Assegna
               </button>
               <button
                 onClick={() => setActiveCoachTab('library')}
@@ -372,23 +379,15 @@ export default function Home() {
                   activeCoachTab === 'library' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <BookOpen className="w-4 h-4" /> Libreria & Programmi
-              </button>
-              <button
-                onClick={() => setActiveCoachTab('classes')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  activeCoachTab === 'classes' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <Users className="w-4 h-4" /> Gestione Classi
+                <BookOpen className="w-4 h-4" /> Libreria & Esercizi
               </button>
             </div>
 
-            {/* TAB 1: CREA / ASSEGNA (Con selettore WOD o Esercizio Singolo) */}
+            {/* TAB 1: CREA & ASSEGNA (WOD Multi-Blocco / Esercizio Singolo) */}
             {activeCoachTab === 'builder' && (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 
-                {/* Switch tra WOD e Esercizio Singolo */}
+                {/* Switch WOD vs Esercizio Singolo */}
                 <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-4">
                   <button
                     onClick={() => setBuilderSubTab('wod')}
@@ -396,7 +395,7 @@ export default function Home() {
                       builderSubTab === 'wod' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Crea Circuito / WOD
+                    Crea WOD / Allenamento
                   </button>
                   <button
                     onClick={() => setBuilderSubTab('exercise')}
@@ -409,172 +408,126 @@ export default function Home() {
                 </div>
 
                 {builderSubTab === 'wod' ? (
-                  <>
+                  <div className="space-y-4">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Plus className="w-5 h-5 text-emerald-400" /> Nuovo Allenamento o Programma
+                      <Plus className="w-5 h-5 text-emerald-400" /> Nuovo Allenamento (Multi-Blocco)
                     </h2>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTargetType('athlete')}
-                        className={`py-2 text-xs font-bold rounded-lg border ${
-                          selectedTargetType === 'athlete' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
-                        }`}
+                    <div>
+                      <label className="text-xs text-slate-400 font-medium">Assegna ad Atleta</label>
+                      <select
+                        value={selectedAthlete}
+                        onChange={(e) => setSelectedAthlete(e.target.value)}
+                        className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
                       >
-                        Assegna a Singolo Atleta
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedTargetType('class')}
-                        className={`py-2 text-xs font-bold rounded-lg border ${
-                          selectedTargetType === 'class' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-300'
-                        }`}
-                      >
-                        Assegna a Classe (Gruppo)
-                      </button>
+                        <option value="">-- Seleziona Atleta --</option>
+                        {athletes.map((athlete) => (
+                          <option key={athlete.id} value={athlete.id}>
+                            {athlete.full_name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {selectedTargetType === 'athlete' ? (
-                      <div>
-                        <label className="text-xs text-slate-400 font-medium">Seleziona Atleta</label>
-                        <select
-                          value={selectedAthlete}
-                          onChange={(e) => setSelectedAthlete(e.target.value)}
-                          className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
-                        >
-                          <option value="">-- Scegli atleta --</option>
-                          {athletes.map((athlete) => (
-                            <option key={athlete.id} value={athlete.id}>
-                              {athlete.full_name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="text-xs text-slate-400 font-medium">Seleziona Classe</label>
-                        <select
-                          value={selectedClass}
-                          onChange={(e) => setSelectedClass(e.target.value)}
-                          className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-500"
-                        >
-                          <option value="">-- Scegli classe --</option>
-                          {classesList.map((cls, idx) => (
-                            <option key={idx} value={cls}>{cls}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 pt-2">
+                    <div>
+                      <label className="text-xs text-slate-400 font-medium">Titolo Giornata / WOD</label>
                       <input
-                        type="checkbox"
-                        id="weeklyCheck"
-                        checked={isWeeklyProgram}
-                        onChange={(e) => setIsWeeklyProgram(e.target.checked)}
-                        className="w-4 h-4 accent-emerald-500 rounded"
+                        type="text"
+                        value={workoutTitle}
+                        onChange={(e) => setWorkoutTitle(e.target.value)}
+                        placeholder="Es. Forza + Metcon del Giorno"
+                        className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white"
                       />
-                      <label htmlFor="weeklyCheck" className="text-xs text-slate-300 font-medium">
-                        Crea Programma Settimanale (Multi-giorno)
-                      </label>
                     </div>
 
-                    {!isWeeklyProgram ? (
-                      <>
-                        <div>
-                          <label className="text-xs text-slate-400 font-medium">Titolo Allenamento</label>
-                          <input
-                            type="text"
-                            value={workoutTitle}
-                            onChange={(e) => setWorkoutTitle(e.target.value)}
-                            placeholder="Es. WOD Metcon"
-                            className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white"
-                          />
-                        </div>
+                    {/* BLOCCHI MULTIPLI */}
+                    <div className="space-y-3 pt-2">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Blocchi di Allenamento ({workoutBlocks.length})</h3>
+                        <button
+                          type="button"
+                          onClick={addWorkoutBlock}
+                          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Aggiungi Blocco
+                        </button>
+                      </div>
 
-                        <div>
-                          <label className="text-xs text-slate-400 font-medium block mb-2">Tipologia Circuito</label>
+                      {workoutBlocks.map((block, idx) => (
+                        <div key={block.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3 relative">
+                          <div className="flex justify-between items-center">
+                            <input
+                              type="text"
+                              value={block.title}
+                              onChange={(e) => updateBlock(idx, 'title', e.target.value)}
+                              className="bg-transparent font-bold text-sm text-white border-b border-slate-800 pb-1 focus:outline-none focus:border-emerald-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeBlock(idx)}
+                              className="text-slate-500 hover:text-red-400 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
                           <div className="grid grid-cols-4 gap-2">
                             {['amrap', 'emom', 'rnd', 'intervals'].map((t) => (
                               <button
                                 key={t}
                                 type="button"
-                                onClick={() => setWorkoutType(t as any)}
-                                className={`py-2 text-xs font-bold uppercase rounded-lg transition-colors ${
-                                  workoutType === t ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'
+                                onClick={() => updateBlock(idx, 'type', t)}
+                                className={`py-1.5 text-[10px] font-bold uppercase rounded-lg transition-colors ${
+                                  block.type === t ? 'bg-emerald-500 text-slate-950' : 'bg-slate-900 text-slate-300'
                                 }`}
                               >
                                 {t}
                               </button>
                             ))}
                           </div>
-                        </div>
 
-                        <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                          {workoutType === 'amrap' && (
+                          {block.type === 'amrap' && (
                             <div>
-                              <label className="text-xs text-slate-400 font-medium">Durata AMRAP (Minuti)</label>
-                              <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                              <label className="text-[10px] text-slate-400 font-medium">Durata AMRAP (Min)</label>
+                              <input type="number" value={block.duration} onChange={(e) => updateBlock(idx, 'duration', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
                             </div>
                           )}
-                          {workoutType === 'emom' && (
+                          {block.type === 'emom' && (
                             <div>
-                              <label className="text-xs text-slate-400 font-medium">Durata EMOM (Minuti)</label>
-                              <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                              <label className="text-[10px] text-slate-400 font-medium">Durata EMOM (Min)</label>
+                              <input type="number" value={block.duration} onChange={(e) => updateBlock(idx, 'duration', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
                             </div>
                           )}
-                          {workoutType === 'rnd' && (
+                          {block.type === 'rnd' && (
                             <div>
-                              <label className="text-xs text-slate-400 font-medium">Numero di Round (RND)</label>
-                              <input type="number" value={rndRounds} onChange={(e) => setRndRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                              <label className="text-[10px] text-slate-400 font-medium">Numero Round (RND)</label>
+                              <input type="number" value={block.rndRounds} onChange={(e) => updateBlock(idx, 'rndRounds', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
                             </div>
                           )}
-                          {workoutType === 'intervals' && (
-                            <div className="space-y-3">
+                          {block.type === 'intervals' && (
+                            <div className="grid grid-cols-3 gap-2">
                               <div>
-                                <label className="text-xs text-slate-400 font-medium">Numero Round</label>
-                                <input type="number" value={intervalRounds} onChange={(e) => setIntervalRounds(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
+                                <label className="text-[10px] text-slate-400 font-medium">Round</label>
+                                <input type="number" value={block.intervalRounds} onChange={(e) => updateBlock(idx, 'intervalRounds', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
                               </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <label className="text-xs text-slate-400 font-medium">Lavoro (sec)</label>
-                                  <input type="number" value={workTime} onChange={(e) => setWorkTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                                </div>
-                                <div>
-                                  <label className="text-xs text-slate-400 font-medium">Recupero (sec)</label>
-                                  <input type="number" value={restTime} onChange={(e) => setRestTime(e.target.value)} className="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm text-white" />
-                                </div>
+                              <div>
+                                <label className="text-[10px] text-slate-400 font-medium">Lavoro (s)</label>
+                                <input type="number" value={block.workTime} onChange={(e) => updateBlock(idx, 'workTime', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
+                              </div>
+                              <div>
+                                <label className="text-[10px] text-slate-400 font-medium">Recupero (s)</label>
+                                <input type="number" value={block.restTime} onChange={(e) => updateBlock(idx, 'restTime', e.target.value)} className="w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white" />
                               </div>
                             </div>
                           )}
                         </div>
+                      ))}
+                    </div>
 
-                        <button onClick={saveToLibrary} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg text-sm transition-colors shadow-lg">
-                          Salva e Assegna Allenamento
-                        </button>
-                      </>
-                    ) : (
-                      <div className="space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800">
-                        <h3 className="text-sm font-bold text-emerald-400 mb-2">Programmazione Settimanale</h3>
-                        {Object.keys(weeklyDays).map((day) => (
-                          <div key={day} className="flex items-center gap-3">
-                            <span className="w-24 text-xs font-semibold text-slate-400">{day}</span>
-                            <input
-                              type="text"
-                              placeholder="Es. WOD AMRAP 15' o Riposo"
-                              value={(weeklyDays as any)[day]}
-                              onChange={(e) => setWeeklyDays({...weeklyDays, [day]: e.target.value})}
-                              className="flex-1 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white"
-                            />
-                          </div>
-                        ))}
-                        <button onClick={() => alert("Programma settimanale salvato e assegnato con successo!")} className="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-colors">
-                          Salva Programma Settimanale
-                        </button>
-                      </div>
-                    )}
-                  </>
+                    <button onClick={saveToLibrary} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-lg text-sm transition-colors shadow-lg">
+                      Salva e Assegna Allenamento Multi-Blocco
+                    </button>
+                  </div>
                 ) : (
                   /* CREAZIONE ESERCIZIO SINGOLO */
                   <div className="space-y-4">
@@ -649,34 +602,35 @@ export default function Home() {
               </div>
             )}
 
-            {/* TAB 2: LIBRERIA ALLENAMENTI ED ESERCIZI */}
+            {/* TAB 2: LIBRERIA WOD ED ESERCIZI */}
             {activeCoachTab === 'library' && (
               <div className="space-y-6">
-                {/* Libreria WOD */}
+                {/* WOD Library */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-emerald-400" /> Libreria Circuiti / WOD
+                    <BookOpen className="w-5 h-5 text-emerald-400" /> Libreria WOD Multi-Blocco
                   </h2>
                   {workoutLibrary.length === 0 ? (
-                    <p className="text-xs text-slate-500">Nessun WOD salvato nella libreria.</p>
+                    <p className="text-xs text-slate-500">Nessun allenamento salvato.</p>
                   ) : (
                     <div className="space-y-3">
                       {workoutLibrary.map((item) => (
-                        <div key={item.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                          <div>
-                            <h4 className="font-bold text-sm text-white">{item.title}</h4>
-                            <p className="text-xs text-emerald-400 uppercase tracking-wide">{item.type} • {item.details}</p>
+                        <div key={item.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                          <h4 className="font-bold text-sm text-white">{item.title}</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {item.blocks.map((b: any, i: number) => (
+                              <span key={i} className="text-[10px] uppercase font-bold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 rounded-md border border-emerald-500/20">
+                                {b.title} ({b.type})
+                              </span>
+                            ))}
                           </div>
-                          <button onClick={() => alert("Assegnato con successo!")} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                            Assegna
-                          </button>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* Libreria Esercizi Singoli */}
+                {/* Exercise Library */}
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <Target className="w-5 h-5 text-emerald-400" /> Libreria Esercizi Singoli
@@ -702,56 +656,48 @@ export default function Home() {
                 </div>
               </div>
             )}
-
-            {/* TAB 3: GESTIONE CLASSI */}
-            {activeCoachTab === 'classes' && (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Users className="w-5 h-5 text-emerald-400" /> Gestione Classi / Gruppi
-                </h2>
-                <div className="space-y-3">
-                  {classesList.map((cls, idx) => (
-                    <div key={idx} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                      <span className="font-bold text-sm text-white">{cls}</span>
-                      <span className="text-xs text-slate-400 bg-slate-900 px-2.5 py-1 rounded-md">Gruppo Attivo</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         ) : (
-          /* AREA ATLETA CON TIMER INTERATTIVO */
+          /* AREA ATLETA */
           <div className="space-y-6">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
               <h2 className="text-lg font-bold text-white mb-2">Benvenuto, {profile?.full_name}!</h2>
-              <p className="text-slate-400 text-sm mb-4">Ecco i tuoi allenamenti assegnati. Avvia il timer per iniziare la sessione interattiva.</p>
+              <p className="text-slate-400 text-sm mb-4">Ecco i tuoi allenamenti assegnati con i relativi blocchi.</p>
 
               {workoutLibrary.length === 0 ? (
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                  <p className="text-xs text-slate-500">Nessun allenamento disponibile al momento. Il tuo coach pubblicherà presto i WOD.</p>
+                  <p className="text-xs text-slate-500">Nessun allenamento disponibile al momento.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {workoutLibrary.map((w) => (
-                    <div key={w.id} className="bg-slate-950 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-                      <div>
-                        <h4 className="font-bold text-sm text-white">{w.title}</h4>
-                        <p className="text-xs text-emerald-400 uppercase tracking-wide">{w.type} • {w.details}</p>
+                    <div key={w.id} className="bg-slate-950 border border-slate-800 p-5 rounded-xl space-y-3">
+                      <h4 className="font-bold text-base text-white">{w.title}</h4>
+                      <div className="space-y-2">
+                        {w.blocks.map((block: any, idx: number) => (
+                          <div key={idx} className="bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between">
+                            <div>
+                              <span className="font-bold text-xs text-white">{block.title}</span>
+                              <p className="text-[10px] text-emerald-400 uppercase tracking-wide">
+                                {block.type} {block.type === 'intervals' ? `• ${block.intervalRounds}RND (${block.workTime}s/${block.restTime}s)` : ''}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => startWorkoutSession(block)}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-md"
+                            >
+                              <Play className="w-3 h-3 fill-current" /> Avvia Blocco
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                      <button
-                        onClick={() => startWorkoutSession(w)}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-lg"
-                      >
-                        <Play className="w-3.5 h-3.5 fill-current" /> Avvia WOD
-                      </button>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* SEZIONE TIMER ATTIVO PER L'ATLETA */}
+            {/* TIMER ATTIVO */}
             {activeWorkoutSession && (
               <div className="bg-slate-900 border border-emerald-500/50 rounded-2xl p-6 shadow-2xl text-center space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -775,7 +721,7 @@ export default function Home() {
                   <p className="text-xs text-slate-500 mt-2">
                     {activeWorkoutSession.type === 'intervals' 
                       ? (isResting ? 'Tempo di recupero rimanente' : 'Tempo di lavoro rimanente') 
-                      : 'Cronometro WOD in esecuzione'}
+                      : 'Cronometro Blocco in esecuzione'}
                   </p>
                 </div>
 
