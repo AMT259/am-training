@@ -66,14 +66,12 @@ export default function TrainingApp() {
         fetchAthletes();
       }
 
-      // CONFIGURAZIONE REALTIME: Ascolta i cambiamenti sulla tabella 'programs'
       const channel = supabase
         .channel('realtime-programs')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'programs' },
           () => {
-            // Ricarica la libreria in tempo reale quando c'è un INSERT, UPDATE o DELETE
             fetchProgramLibrary();
           }
         )
@@ -194,6 +192,16 @@ export default function TrainingApp() {
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
       fetchProgramLibrary();
+    }
+  };
+
+  // Funzione per eliminare il programma (Solo Coach)
+  const deleteProgram = async (id: string) => {
+    if (confirm('Sei sicuro di voler eliminare questo programma?')) {
+      const { error } = await supabase.from('programs').delete().eq('id', id);
+      if (error) {
+        alert('Errore durante l\'eliminazione: ' + error.message);
+      }
     }
   };
 
@@ -389,9 +397,14 @@ export default function TrainingApp() {
                 <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>Nessun programma in libreria.</p>
               ) : (
                 programLibrary.map((prog) => (
-                  <div key={prog.id} style={{ background: '#111827', padding: '14px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '12px' }}>
-                    <h4 style={{ margin: '0 0 4px 0', color: '#10b981' }}>{prog.title}</h4>
-                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>{prog.useCalendar ? '📅 Calendario Settimanale' : '📋 Programma Giornaliero Libero'}</span>
+                  <div key={prog.id} style={{ background: '#111827', padding: '14px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', color: '#10b981' }}>{prog.title}</h4>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>{prog.useCalendar ? '📅 Calendario Settimanale' : '📋 Programma Giornaliero Libero'}</span>
+                    </div>
+                    {role === 'coach' && (
+                      <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                    )}
                   </div>
                 ))
               )}
