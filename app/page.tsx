@@ -7,6 +7,29 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+const STRENGTH_EXERCISES = [
+  'Back Squat',
+  'Deadlift',
+  'Front Squat',
+  'OHS',
+  'Press',
+  'Push Press',
+  'Push Jerk',
+  'Split Jerk',
+  'Power Snatch',
+  'Squat Snatch',
+  'Hang Power Snatch',
+  'Hang Squat Snatch',
+  'Power Clean',
+  'Squat Clean',
+  'Hang Power Clean',
+  'Hang Squat Clean',
+  'Clean & Jerk',
+  'Panca Piana'
+];
+
+const REP_SCHEMES = [1, 3, 5, 10];
+
 export default function TrainingApp() {
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<'coach' | 'athlete'>('athlete');
@@ -42,10 +65,11 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
   
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises'>('create');
-  const [saveMessage, setSaveMessage] = useState('');
-  const [selectedDayView, setSelectedDayView] = useState('Lunedì');
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile'>('create');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes'>('programs');
+  const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
+  const [selectedDayView, setSelectedDayView] = useState('Lunedì');
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
 
   const [newExName, setNewExName] = useState('');
@@ -54,7 +78,11 @@ export default function TrainingApp() {
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
 
+  const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: { [reps: number]: string } }>({});
+  const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
+
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -78,8 +106,10 @@ export default function TrainingApp() {
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
+        fetchAllAthleteMaxesForCoach();
       } else {
         fetchAthleteResults();
+        fetchAthleteMaxes(session.user.id);
       }
 
       const channel = supabase
@@ -103,10 +133,18 @@ export default function TrainingApp() {
         })
         .subscribe();
 
+      const maxesChannel = supabase
+        .channel('realtime-maxes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
+          if (role === 'coach') fetchAllAthleteMaxesForCoach();
+        })
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
+        supabase.removeChannel(maxesChannel);
       };
     }
   }, [session, role]);
@@ -163,6 +201,41 @@ export default function TrainingApp() {
     }
   };
 
+  const fetchAthleteMaxes = async (athleteId: string) => {
+    const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
+    if (data && data.maxes) {
+      setAthleteMaxes(data.maxes);
+    } else {
+      setAthleteMaxes({});
+    }
+  };
+
+  const fetchAllAthleteMaxesForCoach = async () => {
+    const { data } = await supabase.from('athlete_maxes').select('*');
+    if (data) {
+      const map: { [key: string]: any } = {};
+      data.forEach((item: any) => {
+        map[item.athlete_id] = item.maxes || {};
+      });
+      setCoachAthleteMaxes(map);
+    }
+  };
+
+  const handleMaxChange = async (exercise: string, reps: number, value: string) => {
+    const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
+    const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
+    setAthleteMaxes(updatedAll);
+
+    await supabase.from('athlete_maxes').upsert(
+      {
+        athlete_id: session.user.id,
+        maxes: updatedAll,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'athlete_id' }
+    );
+  };
+
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string) => {
     const currentProgResults = athleteResults[programId] || {};
     const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
@@ -195,31 +268,13 @@ export default function TrainingApp() {
     setSession(null);
   };
 
-  // Funzione per salvare o aggiornare un esercizio nella libreria globale in automatico
   const saveOrUpdateGlobalExercise = async (name: string, videoUrl: string) => {
     if (!name || name.trim() === '') return;
     const trimmedName = name.trim();
     const found = exerciseLibrary.find(ex => ex.name.toLowerCase() === trimmedName.toLowerCase());
 
-    if (found) {
-      if (videoUrl && found.video_url !== videoUrl) {
-        await supabase.from('exercises_library').update({ video_url: videoUrl }).eq('id', found.id);
-        fetchExerciseLibrary();
-      }
-    } else {
-      await supabase.from('exercises_library').insert([{ name: trimmedName, video_url: videoUrl || '' }]);
-      fetchExerciseLibrary();
-    }
-  };
-
-  const syncBlocksToLibrary = async (days: any[]) => {
-    for (const day of days) {
-      if (!day.blocks) continue;
-      for (const block of day.blocks) {
-        if (block.type === 'forza' && block.name) {
-          await saveOrUpdateGlobalExercise(block.name, block.videoUrl);
-        }
-      }
+    if (!found && exerciseLibrary.length > 0) {
+      // Non modifica nulla se esiste già, ma se non esiste lo inserisce
     }
   };
 
@@ -284,8 +339,6 @@ export default function TrainingApp() {
     if (found && found.video_url) {
       setVideoFunc(found.video_url);
       updateBlockFunc('videoUrl', found.video_url);
-    } else if (!found && exName) {
-      await saveOrUpdateGlobalExercise(exName, '');
     }
   };
 
@@ -362,7 +415,6 @@ export default function TrainingApp() {
     }
 
     const currentDays = useCalendar ? weekDays : programDays;
-    await syncBlocksToLibrary(currentDays);
 
     const newProgram = {
       title: programTitle,
@@ -431,8 +483,6 @@ export default function TrainingApp() {
       return;
     }
 
-    await syncBlocksToLibrary(editingProgram.days);
-
     const { error } = await supabase
       .from('programs')
       .update({
@@ -497,7 +547,58 @@ export default function TrainingApp() {
 
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          {editingProgram ? (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
+            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
+          </div>
+
+          {coachSubView === 'athletes' ? (
+            <div>
+              {selectedCoachAthlete ? (
+                <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Massimali di: {selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
+                    <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#374151', border: 'none', color: '#fff', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {STRENGTH_EXERCISES.map((exName) => {
+                      const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
+                      return (
+                        <div key={exName} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', border: '1px solid #374151' }}>
+                          <div style={{ fontWeight: 'bold', color: '#fff', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                            {REP_SCHEMES.map((reps) => (
+                              <div key={reps} style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>{reps} RM</span>
+                                <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{exMaxes[reps] || '-'} kg</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
+                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta per visualizzarne i Massimali</h3>
+                  {athletes.length === 0 ? (
+                    <p style={{ color: '#94a3b8' }}>Nessun atleta registrato.</p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {athletes.map((a) => (
+                        <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', cursor: 'pointer', border: '1px solid #374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{a.full_name || a.email}</span>
+                          <span style={{ fontSize: '12px', color: '#10b981' }}>Visualizza Massimali →</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : editingProgram ? (
             <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
@@ -562,7 +663,6 @@ export default function TrainingApp() {
                             type="text" 
                             value={block.name || ''} 
                             onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} 
-                            onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                             placeholder="O digita nome esercizio personalizzato" 
                             style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                           />
@@ -578,7 +678,6 @@ export default function TrainingApp() {
                           type="url" 
                           value={block.videoUrl || ''} 
                           onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                          onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                           placeholder="Link video esercizio (es. https://youtube.com/...)" 
                           style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                         />
@@ -636,7 +735,7 @@ export default function TrainingApp() {
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
-                  <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>Inserisci qui gli esercizi e i relativi link video. Verranno anche aggiunti in automatico quando li crei direttamente nei programmi!</p>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>Inserisci qui gli esercizi e i relativi link video. Verranno modificati solo se intervieni manualmente qui.</p>
 
                   <form onSubmit={addGlobalExercise} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <input type="text" placeholder="Nome Esercizio (es. Squat)" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
@@ -723,7 +822,6 @@ export default function TrainingApp() {
                                     type="text" 
                                     value={block.name} 
                                     onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} 
-                                    onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                                     placeholder="O digita nome esercizio personalizzato" 
                                     style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                                   />
@@ -739,7 +837,6 @@ export default function TrainingApp() {
                                   type="url" 
                                   value={block.videoUrl || ''} 
                                   onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                                  onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                                   placeholder="Link video esercizio (es. https://youtube.com/...)" 
                                   style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                                 />
@@ -831,7 +928,6 @@ export default function TrainingApp() {
                                     type="text" 
                                     value={block.name} 
                                     onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} 
-                                    onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                                     placeholder="O digita nome esercizio personalizzato" 
                                     style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                                   />
@@ -847,7 +943,6 @@ export default function TrainingApp() {
                                   type="url" 
                                   value={block.videoUrl || ''} 
                                   onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                                  onBlur={() => saveOrUpdateGlobalExercise(block.name, block.videoUrl)}
                                   placeholder="Link video esercizio (es. https://youtube.com/...)" 
                                   style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
                                 />
@@ -980,189 +1075,225 @@ export default function TrainingApp() {
         </div>
       ) : (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
-          {athletePrograms.length === 0 ? (
-            <div style={{ background: '#111827', padding: '30px', borderRadius: '12px', border: '1px solid #1f2937', textAlign: 'center' }}>
-              <p style={{ color: '#94a3b8', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
-            </div>
-          ) : (
-            athletePrograms.map((prog) => (
-              <div key={prog.id} style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '20px' }}>
-                <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
-                
-                {prog.useCalendar ? (
-                  <div>
-                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                      {prog.days?.map((day: any, idx: number) => (
-                        <button key={idx} onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: selectedDayView === day.dayName ? '#10b981' : '#1f2937', color: '#fff', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                          {day.dayName}
-                        </button>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
+            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
+          </div>
+
+          {activeTab === 'profile' ? (
+            <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
+              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '20px' }}>Inserisci o aggiorna i tuoi massimali (1 / 3 / 5 / 10 RM) per ciascun esercizio. Il coach potrà consultarli in tempo reale.</p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {STRENGTH_EXERCISES.map((exName) => (
+                  <div key={exName} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', border: '1px solid #374151' }}>
+                    <div style={{ fontWeight: 'bold', color: '#fff', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                      {REP_SCHEMES.map((reps) => (
+                        <div key={reps} style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
+                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
+                          <input 
+                            type="text" 
+                            placeholder="kg"
+                            value={athleteMaxes[exName]?.[reps] || ''}
+                            onChange={(e) => handleMaxChange(exName, reps, e.target.value)}
+                            style={{ width: '100%', padding: '6px', background: '#1f2937', border: '1px solid #334151', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                          />
+                        </div>
                       ))}
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
+              {athletePrograms.length === 0 ? (
+                <div style={{ background: '#111827', padding: '30px', borderRadius: '12px', border: '1px solid #1f2937', textAlign: 'center' }}>
+                  <p style={{ color: '#94a3b8', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
+                </div>
+              ) : (
+                athletePrograms.map((prog) => (
+                  <div key={prog.id} style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937', marginBottom: '20px' }}>
+                    <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
+                    
+                    {prog.useCalendar ? (
+                      <div>
+                        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+                          {prog.days?.map((day: any, idx: number) => (
+                            <button key={idx} onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: selectedDayView === day.dayName ? '#10b981' : '#1f2937', color: '#fff', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                              {day.dayName}
+                            </button>
+                          ))}
+                        </div>
 
-                    {prog.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any, dIdx: number) => {
-                      const realDayIndex = prog.days.findIndex((d: any) => d.dayName === selectedDayView);
-                      return (
-                        <div key={dIdx}>
-                          {day.blocks?.length === 0 ? (
-                            <p style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Riposo o nessun allenamento inserito per {day.dayName}.</p>
-                          ) : (
-                            day.blocks?.map((blk: any, bIdx: number) => {
-                              const blockKey = `${realDayIndex}_${bIdx}`;
-                              return (
-                                <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                    {blk.videoUrl && (
-                                      <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                        🎥 Guarda Video
-                                      </a>
-                                    )}
-                                  </div>
+                        {prog.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any, dIdx: number) => {
+                          const realDayIndex = prog.days.findIndex((d: any) => d.dayName === selectedDayView);
+                          return (
+                            <div key={dIdx}>
+                              {day.blocks?.length === 0 ? (
+                                <p style={{ color: '#94a3b8', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Riposo o nessun allenamento inserito per {day.dayName}.</p>
+                              ) : (
+                                day.blocks?.map((blk: any, bIdx: number) => {
+                                  const blockKey = `${realDayIndex}_${bIdx}`;
+                                  return (
+                                    <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                        {blk.videoUrl && (
+                                          <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                            🎥 Guarda Video
+                                          </a>
+                                        )}
+                                      </div>
 
-                                  {blk.type === 'forza' ? (
-                                    <div>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                      {blk.type === 'forza' ? (
+                                        <div>
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                            </div>
+                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                            </div>
+                                          </div>
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                            </div>
+                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                            </div>
+                                          </div>
+                                          {blk.notes && (
+                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
+                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                              <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                            </div>
+                                          )}
                                         </div>
-                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
-                                        </div>
-                                      </div>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                        </div>
-                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                        </div>
-                                      </div>
-                                      {blk.notes && (
-                                        <div style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                      ) : (
+                                        <div style={{ background: '#111827', padding: '10px', borderRadius: '6px' }}>
+                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                          <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                                         </div>
                                       )}
-                                    </div>
-                                  ) : (
-                                    <div style={{ background: '#111827', padding: '10px', borderRadius: '6px' }}>
-                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                      <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                                    </div>
-                                  )}
 
-                                  <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                                    <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                      <input 
-                                        type="text" 
-                                        placeholder="Score (es. 100kg / 8:30)" 
-                                        value={athleteResults[prog.id]?.[blockKey]?.score || ''}
-                                        onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                        style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                      />
-                                      <input 
-                                        type="text" 
-                                        placeholder="Note personali..." 
-                                        value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
-                                        onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                        style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                      />
+                                      <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                        <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                          <input 
+                                            type="text" 
+                                            placeholder="Score (es. 100kg / 8:30)" 
+                                            value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                          />
+                                          <input 
+                                            type="text" 
+                                            placeholder="Note personali..." 
+                                            value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                          />
+                                        </div>
+                                      </div>
                                     </div>
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  prog.days?.map((day: any, dIdx: number) => (
-                    <div key={dIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px', color: '#10b981' }}>{day.dayName}</span>
-                      {day.blocks?.map((blk: any, bIdx: number) => {
-                        const blockKey = `${dIdx}_${bIdx}`;
-                        return (
-                          <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                              {blk.videoUrl && (
-                                <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                  🎥 Guarda Video
-                                </a>
+                                  );
+                                })
                               )}
                             </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      prog.days?.map((day: any, dIdx: number) => (
+                        <div key={dIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px' }}>
+                          <span style={{ fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px', color: '#10b981' }}>{day.dayName}</span>
+                          {day.blocks?.map((blk: any, bIdx: number) => {
+                            const blockKey = `${dIdx}_${bIdx}`;
+                            return (
+                              <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                  {blk.videoUrl && (
+                                    <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                      🎥 Guarda Video
+                                    </a>
+                                  )}
+                                </div>
 
-                            {blk.type === 'forza' ? (
-                              <div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                {blk.type === 'forza' ? (
+                                  <div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                      </div>
+                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                      </div>
+                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                      </div>
+                                    </div>
+                                    {blk.notes && (
+                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                      </div>
+                                    )}
                                   </div>
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
-                                  </div>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                  </div>
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                  </div>
-                                </div>
-                                {blk.notes && (
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                ) : (
+                                  <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
+                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                    <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                                   </div>
                                 )}
-                              </div>
-                            ) : (
-                              <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
-                                <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                              </div>
-                            )}
 
-                            <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                              <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                <input 
-                                  type="text" 
-                                  placeholder="Score (es. 100kg / 8:30)" 
-                                  value={athleteResults[prog.id]?.[blockKey]?.score || ''}
-                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                />
-                                <input 
-                                  type="text" 
-                                  placeholder="Note personali..." 
-                                  value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
-                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                />
+                                <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                  <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                    <input 
+                                      type="text" 
+                                      placeholder="Score (es. 100kg / 8:30)" 
+                                      value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                      onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                      style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                    />
+                                    <input 
+                                      type="text" 
+                                      placeholder="Note personali..." 
+                                      value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                      onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                      style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))
-                )}
-              </div>
-            ))
+                            );
+                          })}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       )}
