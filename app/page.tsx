@@ -224,7 +224,6 @@ export default function TrainingApp() {
     setEditingProgram(updated);
   };
 
-  // Funzione magica per selezionare esercizio dalla libreria globale
   const handleSelectExerciseFromLibrary = async (exName: string, updateBlockFunc: (field: string, val: any) => void, setVideoFunc: (val: string) => void) => {
     updateBlockFunc('name', exName);
     const found = exerciseLibrary.find(ex => ex.name === exName);
@@ -232,7 +231,6 @@ export default function TrainingApp() {
       setVideoFunc(found.video_url);
       updateBlockFunc('videoUrl', found.video_url);
     } else if (!found && exName) {
-      // Se l'esercizio non esiste nella libreria globale, lo aggiungiamo in automatico!
       await supabase.from('exercises_library').insert([{ name: exName, video_url: '' }]);
       fetchExerciseLibrary();
     }
@@ -325,6 +323,25 @@ export default function TrainingApp() {
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
+      fetchProgramLibrary();
+    }
+  };
+
+  // Nuova funzione per duplicare un programma esistente
+  const duplicateProgram = async (prog: any) => {
+    const duplicatedProgram = {
+      title: `${prog.title} (Copia)`,
+      assigned_athlete_id: prog.assignedAthleteId || null,
+      use_calendar: prog.useCalendar || false,
+      days: prog.days || []
+    };
+
+    const { error } = await supabase.from('programs').insert([duplicatedProgram]);
+
+    if (error) {
+      alert('Errore durante la duplicazione: ' + error.message);
+    } else {
+      alert('Programma duplicato con successo nella libreria!');
       fetchProgramLibrary();
     }
   };
@@ -553,8 +570,8 @@ export default function TrainingApp() {
                   <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>Inserisci qui gli esercizi e i relativi link video. Quando li userai nei programmi, i link appariranno in automatico senza doverli reinserire!</p>
 
                   <form onSubmit={addGlobalExercise} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <input type="text" placeholder="Nome Esercizio (es. Squat)" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
-                    <input type="url" placeholder="Link Video (es. https://youtube.com/...)" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
+                    <input type="text" placeholder="Nome Esercizio (es. Squat)" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
+                    <input type="url" placeholder="Link Video (es. https://youtube.com/...)" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
                     <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio alla Libreria</button>
                   </form>
 
@@ -824,6 +841,7 @@ export default function TrainingApp() {
                               </span>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                               <button onClick={() => setEditingProgram(JSON.parse(JSON.stringify(prog)))} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
                               <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
