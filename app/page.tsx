@@ -40,17 +40,22 @@ export default function TrainingApp() {
   ]);
 
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'create' | 'library'>('create');
+  const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
+  
+  // Tab di navigazione coach: 'create' | 'library' | 'exercises'
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises'>('create');
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedDayView, setSelectedDayView] = useState('Lunedì');
 
   // Filtro per la libreria del Coach
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
 
-  // Risultati degli atleti
+  // Form nuovo esercizio globale
+  const [newExName, setNewExName] = useState('');
+  const [newExVideo, setNewExVideo] = useState('');
+
+  // Risultati atleti
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
-  
-  // Risultati di tutti gli atleti visibili al coach: { [programId]: { [athleteId]: resultsData } }
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
 
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
@@ -73,6 +78,7 @@ export default function TrainingApp() {
   useEffect(() => {
     if (session) {
       fetchProgramLibrary();
+      fetchExerciseLibrary();
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -82,28 +88,28 @@ export default function TrainingApp() {
 
       const channel = supabase
         .channel('realtime-programs')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'programs' },
-          () => {
-            fetchProgramLibrary();
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
+          fetchProgramLibrary();
+        })
+        .subscribe();
+
+      const exChannel = supabase
+        .channel('realtime-exercises')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
+          fetchExerciseLibrary();
+        })
         .subscribe();
 
       const resultsChannel = supabase
         .channel('realtime-results')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'program_results' },
-          () => {
-            if (role === 'coach') fetchAllAthleteResultsForCoach();
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
+          if (role === 'coach') fetchAllAthleteResultsForCoach();
+        })
         .subscribe();
 
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
       };
     }
@@ -133,12 +139,13 @@ export default function TrainingApp() {
     }
   };
 
-  const fetchAthleteResults = async () => {
-    const { data } = await supabase
-      .from('program_results')
-      .select('*')
-      .eq('athlete_id', session.user.id);
+  const fetchExerciseLibrary = async () => {
+    const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
+    if (data) setExerciseLibrary(data);
+  };
 
+  const fetchAthleteResults = async () => {
+    const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
     if (data) {
       const resultsMap: { [key: string]: any } = {};
       data.forEach((item: any) => {
@@ -167,22 +174,17 @@ export default function TrainingApp() {
     const updatedBlockResults = { ...currentBlockResults, [field]: value };
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
 
-    setAthleteResults({
-      ...athleteResults,
-      [programId]: updatedProgResults
-    });
+    setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
 
-    await supabase
-      .from('program_results')
-      .upsert(
-        {
-          program_id: programId,
-          athlete_id: session.user.id,
-          results: updatedProgResults,
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: 'program_id, athlete_id' }
-      );
+    await supabase.from('program_results').upsert(
+      {
+        program_id: programId,
+        athlete_id: session.user.id,
+        results: updatedProgResults,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'program_id, athlete_id' }
+    );
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -204,7 +206,6 @@ export default function TrainingApp() {
     ]);
   };
 
-  // Funzioni di rimozione blocchi
   const removeBlockFromFreeDay = (dayIndex: number, blockIndex: number) => {
     const updated = [...programDays];
     updated[dayIndex].blocks.splice(blockIndex, 1);
@@ -221,6 +222,40 @@ export default function TrainingApp() {
     const updated = { ...editingProgram };
     updated.days[dayIndex].blocks.splice(blockIndex, 1);
     setEditingProgram(updated);
+  };
+
+  // Funzione magica per selezionare esercizio dalla libreria globale
+  const handleSelectExerciseFromLibrary = async (exName: string, updateBlockFunc: (field: string, val: any) => void, setVideoFunc: (val: string) => void) => {
+    updateBlockFunc('name', exName);
+    const found = exerciseLibrary.find(ex => ex.name === exName);
+    if (found && found.video_url) {
+      setVideoFunc(found.video_url);
+      updateBlockFunc('videoUrl', found.video_url);
+    } else if (!found && exName) {
+      // Se l'esercizio non esiste nella libreria globale, lo aggiungiamo in automatico!
+      await supabase.from('exercises_library').insert([{ name: exName, video_url: '' }]);
+      fetchExerciseLibrary();
+    }
+  };
+
+  const addGlobalExercise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExName) return;
+    const { error } = await supabase.from('exercises_library').insert([{ name: newExName, video_url: newExVideo }]);
+    if (error) {
+      alert('Errore: ' + error.message);
+    } else {
+      setNewExName('');
+      setNewExVideo('');
+      fetchExerciseLibrary();
+    }
+  };
+
+  const deleteGlobalExercise = async (id: string) => {
+    if (confirm('Vuoi eliminare questo esercizio dalla libreria?')) {
+      await supabase.from('exercises_library').delete().eq('id', id);
+      fetchExerciseLibrary();
+    }
   };
 
   const addBlockToFreeDay = (dayIndex: number) => {
@@ -334,7 +369,7 @@ export default function TrainingApp() {
       .eq('id', editingProgram.id);
 
     if (error) {
-      alert('Errore durante il salvataggio delle modifiche: ' + error.message);
+      alert('Errore durante il salvataggio: ' + error.message);
     } else {
       alert('Programma aggiornato con successo!');
       setEditingProgram(null);
@@ -345,9 +380,7 @@ export default function TrainingApp() {
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
       const { error } = await supabase.from('programs').delete().eq('id', id);
-      if (error) {
-        alert('Errore durante l\'eliminazione: ' + error.message);
-      }
+      if (error) alert('Errore: ' + error.message);
     }
   };
 
@@ -416,21 +449,50 @@ export default function TrainingApp() {
 
                   {day.blocks?.map((block: any, bIdx: number) => (
                     <div key={block.id || bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                      
-                      {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                         <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                           <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
                           <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
                         </div>
-                        <button type="button" onClick={() => removeBlockFromEditingDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                        <button type="button" onClick={() => {
+                          const updated = { ...editingProgram };
+                          updated.days[dIdx].blocks.splice(bIdx, 1);
+                          setEditingProgram(updated);
+                        }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
                           🗑️ Elimina
                         </button>
                       </div>
 
-                      <div style={{ marginBottom: '10px' }}>
-                        <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                      </div>
+                      {block.type === 'forza' ? (
+                        <div style={{ marginBottom: '10px' }}>
+                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                          <select 
+                            value={block.name || ''} 
+                            onChange={(e) => handleSelectExerciseFromLibrary(
+                              e.target.value, 
+                              (f, val) => updateEditingBlock(dIdx, bIdx, f, val),
+                              (vUrl) => updateEditingBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                            )}
+                            style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                          >
+                            <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                            {exerciseLibrary.map((ex) => (
+                              <option key={ex.id} value={ex.name}>{ex.name}</option>
+                            ))}
+                          </select>
+                          <input 
+                            type="text" 
+                            value={block.name || ''} 
+                            onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} 
+                            placeholder="O digita nome esercizio personalizzato" 
+                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ marginBottom: '10px' }}>
+                          <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                        </div>
+                      )}
 
                       <div style={{ marginBottom: '10px' }}>
                         <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
@@ -479,12 +541,36 @@ export default function TrainingApp() {
             </div>
           ) : (
             <div>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Crea Programma</button>
-                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Libreria</button>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
+                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
+                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
 
-              {activeTab === 'create' ? (
+              {activeTab === 'exercises' ? (
+                <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
+                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>Inserisci qui gli esercizi e i relativi link video. Quando li userai nei programmi, i link appariranno in automatico senza doverli reinserire!</p>
+
+                  <form onSubmit={addGlobalExercise} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <input type="text" placeholder="Nome Esercizio (es. Squat)" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
+                    <input type="url" placeholder="Link Video (es. https://youtube.com/...)" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', fontSize: '13px' }} />
+                    <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio alla Libreria</button>
+                  </form>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {exerciseLibrary.map((ex) => (
+                      <div key={ex.id} style={{ background: '#1f2937', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #374151' }}>
+                        <div>
+                          <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#fff' }}>{ex.name}</div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.video_url || 'Nessun link video'}</div>
+                        </div>
+                        <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : activeTab === 'create' ? (
                 <div style={{ background: '#111827', padding: '20px', borderRadius: '12px', border: '1px solid #1f2937' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                   
@@ -516,8 +602,6 @@ export default function TrainingApp() {
 
                           {day.blocks.map((block: any, bIdx: number) => (
                             <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                              
-                              {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                                   <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
@@ -528,9 +612,36 @@ export default function TrainingApp() {
                                 </button>
                               </div>
 
-                              <div style={{ marginBottom: '10px' }}>
-                                <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder={block.type === 'forza' ? "Nome Esercizio" : "Nome WOD"} style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                              </div>
+                              {block.type === 'forza' ? (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                                  <select 
+                                    value={block.name} 
+                                    onChange={(e) => handleSelectExerciseFromLibrary(
+                                      e.target.value, 
+                                      (f, val) => updateWeekBlock(dIdx, bIdx, f, val),
+                                      (vUrl) => updateWeekBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                                    )}
+                                    style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                                  >
+                                    <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                                    {exerciseLibrary.map((ex) => (
+                                      <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                    ))}
+                                  </select>
+                                  <input 
+                                    type="text" 
+                                    value={block.name} 
+                                    onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} 
+                                    placeholder="O digita nome esercizio personalizzato" 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                  />
+                                </div>
+                              ) : (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                                </div>
+                              )}
 
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="url" value={block.videoUrl || ''} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
@@ -587,8 +698,6 @@ export default function TrainingApp() {
 
                           {day.blocks.map((block: any, bIdx: number) => (
                             <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                              
-                              {/* INTESTAZIONE BLOCCO CON PULSANTE ELIMINA */}
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                                   <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
@@ -599,9 +708,36 @@ export default function TrainingApp() {
                                 </button>
                               </div>
 
-                              <div style={{ marginBottom: '10px' }}>
-                                <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome Esercizio" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                              </div>
+                              {block.type === 'forza' ? (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                                  <select 
+                                    value={block.name} 
+                                    onChange={(e) => handleSelectExerciseFromLibrary(
+                                      e.target.value, 
+                                      (f, val) => updateFreeBlock(dIdx, bIdx, f, val),
+                                      (vUrl) => updateFreeBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                                    )}
+                                    style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                                  >
+                                    <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                                    {exerciseLibrary.map((ex) => (
+                                      <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                    ))}
+                                  </select>
+                                  <input 
+                                    type="text" 
+                                    value={block.name} 
+                                    onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} 
+                                    placeholder="O digita nome esercizio personalizzato" 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                  />
+                                </div>
+                              ) : (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                                </div>
+                              )}
 
                               <div style={{ marginBottom: '10px' }}>
                                 <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio (es. https://youtube.com/...)" style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} />
@@ -656,7 +792,6 @@ export default function TrainingApp() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
-                    
                     <select 
                       value={libraryFilterAthlete} 
                       onChange={(e) => setLibraryFilterAthlete(e.target.value)} 
@@ -670,7 +805,7 @@ export default function TrainingApp() {
                   </div>
 
                   {filteredLibraryPrograms.length === 0 ? (
-                    <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Nessun programma trovato con questo filtro.</p>
+                    <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
                   ) : (
                     filteredLibraryPrograms.map((prog) => {
                       const currentAssigned = athletes.find((a) => a.id === prog.assignedAthleteId);
@@ -697,7 +832,7 @@ export default function TrainingApp() {
                           <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '8px', border: '1px solid #374151' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             {Object.keys(progResultsByAthlete).length === 0 ? (
-                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Nessun risultato registrato per questo programma.</span>
+                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Nessun risultato registrato.</span>
                             ) : (
                               Object.keys(progResultsByAthlete).map((athId) => {
                                 const athObj = athletes.find(a => a.id === athId);
