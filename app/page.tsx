@@ -218,9 +218,40 @@ export default function TrainingApp() {
     setWeekDays(updated);
   };
 
-  const removeBlockFromEditingDay = (dayIndex: number, blockIndex: number) => {
+  // Funzioni per spostare i blocchi su e giù
+  const moveFreeBlock = (dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
+    const updated = [...programDays];
+    const blocks = [...updated[dayIndex].blocks];
+    const newIndex = direction === 'up' ? blockIndex - 1 : blockIndex + 1;
+    if (newIndex < 0 || newIndex >= blocks.length) return;
+    const temp = blocks[blockIndex];
+    blocks[blockIndex] = blocks[newIndex];
+    blocks[newIndex] = temp;
+    updated[dayIndex].blocks = blocks;
+    setProgramDays(updated);
+  };
+
+  const moveWeekBlock = (dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
+    const updated = [...weekDays];
+    const blocks = [...updated[dayIndex].blocks];
+    const newIndex = direction === 'up' ? blockIndex - 1 : blockIndex + 1;
+    if (newIndex < 0 || newIndex >= blocks.length) return;
+    const temp = blocks[blockIndex];
+    blocks[blockIndex] = blocks[newIndex];
+    blocks[newIndex] = temp;
+    updated[dayIndex].blocks = blocks;
+    setWeekDays(updated);
+  };
+
+  const moveEditingBlock = (dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
     const updated = { ...editingProgram };
-    updated.days[dayIndex].blocks.splice(blockIndex, 1);
+    const blocks = [...updated.days[dayIndex].blocks];
+    const newIndex = direction === 'up' ? blockIndex - 1 : blockIndex + 1;
+    if (newIndex < 0 || newIndex >= blocks.length) return;
+    const temp = blocks[blockIndex];
+    blocks[blockIndex] = blocks[newIndex];
+    blocks[newIndex] = temp;
+    updated.days[dayIndex].blocks = blocks;
     setEditingProgram(updated);
   };
 
@@ -327,7 +358,6 @@ export default function TrainingApp() {
     }
   };
 
-  // Nuova funzione per duplicare un programma esistente
   const duplicateProgram = async (prog: any) => {
     const duplicatedProgram = {
       title: `${prog.title} (Copia)`,
@@ -471,13 +501,17 @@ export default function TrainingApp() {
                           <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
                           <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
                         </div>
-                        <button type="button" onClick={() => {
-                          const updated = { ...editingProgram };
-                          updated.days[dIdx].blocks.splice(bIdx, 1);
-                          setEditingProgram(updated);
-                        }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                          🗑️ Elimina
-                        </button>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                          <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                          <button type="button" onClick={() => {
+                            const updated = { ...editingProgram };
+                            updated.days[dIdx].blocks.splice(bIdx, 1);
+                            setEditingProgram(updated);
+                          }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                            🗑️
+                          </button>
+                        </div>
                       </div>
 
                       {block.type === 'forza' ? (
@@ -618,15 +652,19 @@ export default function TrainingApp() {
                           <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', marginBottom: '12px' }}>📅 {day.dayName}</div>
 
                           {day.blocks.map((block: any, bIdx: number) => (
-                            <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
+                            <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #334151' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                                   <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
                                   <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
                                 </div>
-                                <button type="button" onClick={() => removeBlockFromWeekDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                                  🗑️ Elimina
-                                </button>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                                  <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                                  <button type="button" onClick={() => removeBlockFromWeekDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                    🗑️
+                                  </button>
+                                </div>
                               </div>
 
                               {block.type === 'forza' ? (
@@ -720,9 +758,13 @@ export default function TrainingApp() {
                                   <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
                                   <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
                                 </div>
-                                <button type="button" onClick={() => removeBlockFromFreeDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                                  🗑️ Elimina
-                                </button>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                                  <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                                  <button type="button" onClick={() => removeBlockFromFreeDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                    🗑️
+                                  </button>
+                                </div>
                               </div>
 
                               {block.type === 'forza' ? (
