@@ -48,19 +48,18 @@ export default function TrainingApp() {
     {
       dayNumber: 1,
       dayName: 'Giorno 1',
-      blocks: [],
-      collapsed: false
+      blocks: []
     }
   ]);
 
   const [weekDays, setWeekDays] = useState<any[]>([
-    { dayName: 'Lunedì', blocks: [], collapsed: false },
-    { dayName: 'Martedì', blocks: [], collapsed: false },
-    { dayName: 'Mercoledì', blocks: [], collapsed: false },
-    { dayName: 'Giovedì', blocks: [], collapsed: false },
-    { dayName: 'Venerdì', blocks: [], collapsed: false },
-    { dayName: 'Sabato', blocks: [], collapsed: false },
-    { dayName: 'Domenica', blocks: [], collapsed: false },
+    { dayName: 'Lunedì', blocks: [] },
+    { dayName: 'Martedì', blocks: [] },
+    { dayName: 'Mercoledì', blocks: [] },
+    { dayName: 'Giovedì', blocks: [] },
+    { dayName: 'Venerdì', blocks: [] },
+    { dayName: 'Sabato', blocks: [] },
+    { dayName: 'Domenica', blocks: [] },
   ]);
 
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
@@ -168,14 +167,7 @@ export default function TrainingApp() {
         title: item.title,
         assignedAthleteId: item.assigned_athlete_id || '',
         useCalendar: item.use_calendar || false,
-        days: (item.days || []).map((d: any) => ({
-          ...d,
-          collapsed: d.collapsed ?? false,
-          blocks: (d.blocks || []).map((b: any) => ({
-            ...b,
-            collapsed: b.collapsed ?? false
-          }))
-        }))
+        days: item.days || []
       }));
       setProgramLibrary(formatted);
     }
@@ -276,101 +268,21 @@ export default function TrainingApp() {
     setSession(null);
   };
 
+  const saveOrUpdateGlobalExercise = async (name: string, videoUrl: string) => {
+    if (!name || name.trim() === '') return;
+    const trimmedName = name.trim();
+    const found = exerciseLibrary.find(ex => ex.name.toLowerCase() === trimmedName.toLowerCase());
+
+    if (!found && exerciseLibrary.length > 0) {
+      // Non modifica nulla se esiste già, ma se non esiste lo inserisce
+    }
+  };
+
   const addDay = () => {
     setProgramDays([
       ...programDays,
-      { dayNumber: programDays.length + 1, dayName: `Giorno ${programDays.length + 1}`, blocks: [], collapsed: false }
+      { dayNumber: programDays.length + 1, dayName: `Giorno ${programDays.length + 1}`, blocks: [] }
     ]);
-  };
-
-  const duplicateFreeDay = (dayIndex: number) => {
-    const targetDay = programDays[dayIndex];
-    const duplicatedDay = {
-      ...targetDay,
-      dayNumber: programDays.length + 1,
-      dayName: `${targetDay.dayName} (Copia)`,
-      collapsed: false,
-      blocks: (targetDay.blocks || []).map((b: any) => ({
-        ...b,
-        id: Date.now() + Math.random(),
-        collapsed: b.collapsed ?? false
-      }))
-    };
-    const updated = [...programDays];
-    updated.splice(dayIndex + 1, 0, duplicatedDay);
-    // Rinumera i dayNumber
-    const renumbered = updated.map((d, idx) => ({ ...d, dayNumber: idx + 1 }));
-    setProgramDays(renumbered);
-  };
-
-  const duplicateWeekDay = (dayIndex: number) => {
-    const targetDay = weekDays[dayIndex];
-    const duplicatedDay = {
-      ...targetDay,
-      dayName: `${targetDay.dayName} (Copia)`,
-      collapsed: false,
-      blocks: (targetDay.blocks || []).map((b: any) => ({
-        ...b,
-        id: Date.now() + Math.random(),
-        collapsed: b.collapsed ?? false
-      }))
-    };
-    const updated = [...weekDays];
-    updated.splice(dayIndex + 1, 0, duplicatedDay);
-    setWeekDays(updated);
-  };
-
-  const duplicateEditingDay = (dayIndex: number) => {
-    const updated = { ...editingProgram };
-    const targetDay = updated.days[dayIndex];
-    const duplicatedDay = {
-      ...targetDay,
-      dayName: `${targetDay.dayName} (Copia)`,
-      collapsed: false,
-      blocks: (targetDay.blocks || []).map((b: any) => ({
-        ...b,
-        id: Date.now() + Math.random(),
-        collapsed: b.collapsed ?? false
-      }))
-    };
-    updated.days.splice(dayIndex + 1, 0, duplicatedDay);
-    setEditingProgram(updated);
-  };
-
-  const toggleDayCollapseFree = (dayIndex: number) => {
-    const updated = [...programDays];
-    updated[dayIndex].collapsed = !updated[dayIndex].collapsed;
-    setProgramDays(updated);
-  };
-
-  const toggleDayCollapseWeek = (dayIndex: number) => {
-    const updated = [...weekDays];
-    updated[dayIndex].collapsed = !updated[dayIndex].collapsed;
-    setWeekDays(updated);
-  };
-
-  const toggleDayCollapseEditing = (dayIndex: number) => {
-    const updated = { ...editingProgram };
-    updated.days[dayIndex].collapsed = !updated.days[dayIndex].collapsed;
-    setEditingProgram(updated);
-  };
-
-  const toggleBlockCollapseFree = (dayIndex: number, blockIndex: number) => {
-    const updated = [...programDays];
-    updated[dayIndex].blocks[blockIndex].collapsed = !updated[dayIndex].blocks[blockIndex].collapsed;
-    setProgramDays(updated);
-  };
-
-  const toggleBlockCollapseWeek = (dayIndex: number, blockIndex: number) => {
-    const updated = [...weekDays];
-    updated[dayIndex].blocks[blockIndex].collapsed = !updated[dayIndex].blocks[blockIndex].collapsed;
-    setWeekDays(updated);
-  };
-
-  const toggleBlockCollapseEditing = (dayIndex: number, blockIndex: number) => {
-    const updated = { ...editingProgram };
-    updated.days[dayIndex].blocks[blockIndex].collapsed = !updated.days[dayIndex].blocks[blockIndex].collapsed;
-    setEditingProgram(updated);
   };
 
   const removeBlockFromFreeDay = (dayIndex: number, blockIndex: number) => {
@@ -462,8 +374,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '',
-      collapsed: false
+      videoUrl: ''
     });
     setProgramDays(updated);
   };
@@ -486,8 +397,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '',
-      collapsed: false
+      videoUrl: ''
     });
     setWeekDays(updated);
   };
@@ -562,8 +472,7 @@ export default function TrainingApp() {
       rest: '90 sec',
       notes: '',
       wodNotes: '',
-      videoUrl: '',
-      collapsed: false
+      videoUrl: ''
     });
     setEditingProgram(updated);
   };
@@ -711,123 +620,105 @@ export default function TrainingApp() {
 
               {editingProgram.days?.map((day: any, dIdx: number) => (
                 <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #374151' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => toggleDayCollapseEditing(dIdx)}>
-                      <span>{day.collapsed ? '▶' : '▼'}</span> 📅 {day.dayName}
-                    </div>
-                    <button type="button" onClick={() => duplicateEditingDay(dIdx)} style={{ background: '#374151', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                      📋 Duplica Giorno
-                    </button>
-                  </div>
+                  <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', marginBottom: '12px' }}>📅 {day.dayName}</div>
 
-                  {!day.collapsed && (
-                    <>
-                      {day.blocks?.map((block: any, bIdx: number) => (
-                        <div key={block.id || bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                              <span style={{ cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }} onClick={() => toggleBlockCollapseEditing(dIdx, bIdx)}>
-                                {block.collapsed ? '▶' : '▼'}
-                              </span>
-                              <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                              <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                  {day.blocks?.map((block: any, bIdx: number) => (
+                    <div key={block.id || bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                          <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                          <button type="button" onClick={() => updateEditingBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                          <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                          <button type="button" onClick={() => {
+                            const updated = { ...editingProgram };
+                            updated.days[dIdx].blocks.splice(bIdx, 1);
+                            setEditingProgram(updated);
+                          }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+
+                      {block.type === 'forza' ? (
+                        <div style={{ marginBottom: '10px' }}>
+                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                          <select 
+                            value={block.name || ''} 
+                            onChange={(e) => handleSelectExerciseFromLibrary(
+                              e.target.value, 
+                              (f, val) => updateEditingBlock(dIdx, bIdx, f, val),
+                              (vUrl) => updateEditingBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                            )}
+                            style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                          >
+                            <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                            {exerciseLibrary.map((ex) => (
+                              <option key={ex.id} value={ex.name}>{ex.name}</option>
+                            ))}
+                          </select>
+                          <input 
+                            type="text" 
+                            value={block.name || ''} 
+                            onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} 
+                            placeholder="O digita nome esercizio personalizzato" 
+                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                          />
+                        </div>
+                      ) : (
+                        <div style={{ marginBottom: '10px' }}>
+                          <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                        </div>
+                      )}
+
+                      <div style={{ marginBottom: '10px' }}>
+                        <input 
+                          type="url" 
+                          value={block.videoUrl || ''} 
+                          onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
+                          placeholder="Link video esercizio (es. https://youtube.com/...)" 
+                          style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                        />
+                      </div>
+
+                      {block.type === 'forza' ? (
+                        <div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
+                              <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                             </div>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                              <button type="button" onClick={() => moveEditingBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                              <button type="button" onClick={() => {
-                                const updated = { ...editingProgram };
-                                updated.days[dIdx].blocks.splice(bIdx, 1);
-                                setEditingProgram(updated);
-                              }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                                🗑️
-                              </button>
+                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
+                              <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                             </div>
                           </div>
-
-                          {!block.collapsed && (
-                            <>
-                              {block.type === 'forza' ? (
-                                <div style={{ marginBottom: '10px' }}>
-                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
-                                  <select 
-                                    value={block.name || ''} 
-                                    onChange={(e) => handleSelectExerciseFromLibrary(
-                                      e.target.value, 
-                                      (f, val) => updateEditingBlock(dIdx, bIdx, f, val),
-                                      (vUrl) => updateEditingBlock(dIdx, bIdx, 'videoUrl', vUrl)
-                                    )}
-                                    style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
-                                  >
-                                    <option value="">-- Scegli Esercizio o Scrivine uno --</option>
-                                    {exerciseLibrary.map((ex) => (
-                                      <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                    ))}
-                                  </select>
-                                  <input 
-                                    type="text" 
-                                    value={block.name || ''} 
-                                    onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} 
-                                    placeholder="O digita nome esercizio personalizzato" 
-                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                  />
-                                </div>
-                              ) : (
-                                <div style={{ marginBottom: '10px' }}>
-                                  <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                                </div>
-                              )}
-
-                              <div style={{ marginBottom: '10px' }}>
-                                <input 
-                                  type="url" 
-                                  value={block.videoUrl || ''} 
-                                  onChange={(e) => updateEditingBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                                  placeholder="Link video esercizio (es. https://youtube.com/...)" 
-                                  style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                />
-                              </div>
-
-                              {block.type === 'forza' ? (
-                                <div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
-                                      <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                    </div>
-                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
-                                      <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                    </div>
-                                  </div>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
-                                      <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                    </div>
-                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
-                                      <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                    </div>
-                                  </div>
-                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                    <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
-                                    <input type="text" value={block.notes || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                  </div>
-                                </div>
-                              ) : (
-                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
-                                  <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                </div>
-                              )}
-                            </>
-                          )}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
+                              <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                            </div>
+                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
+                              <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                            </div>
+                          </div>
+                          <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                            <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
+                            <input type="text" value={block.notes || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                          </div>
                         </div>
-                      ))}
-                      <button onClick={() => addBlockToEditingDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi a {day.dayName}</button>
-                    </>
-                  )}
+                      ) : (
+                        <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
+                          <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <button onClick={() => addBlockToEditingDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi a {day.dayName}</button>
                 </div>
               ))}
 
@@ -892,119 +783,101 @@ export default function TrainingApp() {
                     <div>
                       {weekDays.map((day, dIdx) => (
                         <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #334151' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => toggleDayCollapseWeek(dIdx)}>
-                              <span>{day.collapsed ? '▶' : '▼'}</span> 📅 {day.dayName}
-                            </div>
-                            <button type="button" onClick={() => duplicateWeekDay(dIdx)} style={{ background: '#374151', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                              📋 Duplica Giorno
-                            </button>
-                          </div>
+                          <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', marginBottom: '12px' }}>📅 {day.dayName}</div>
 
-                          {!day.collapsed && (
-                            <>
-                              {day.blocks.map((block: any, bIdx: number) => (
-                                <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                                      <span style={{ cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }} onClick={() => toggleBlockCollapseWeek(dIdx, bIdx)}>
-                                        {block.collapsed ? '▶' : '▼'}
-                                      </span>
-                                      <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                                      <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'wod')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                          {day.blocks.map((block: any, bIdx: number) => (
+                            <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                  <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                                  <button type="button" onClick={() => updateWeekBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                                  <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                                  <button type="button" onClick={() => removeBlockFromWeekDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+
+                              {block.type === 'forza' ? (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                                  <select 
+                                    value={block.name} 
+                                    onChange={(e) => handleSelectExerciseFromLibrary(
+                                      e.target.value, 
+                                      (f, val) => updateWeekBlock(dIdx, bIdx, f, val),
+                                      (vUrl) => updateWeekBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                                    )}
+                                    style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                                  >
+                                    <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                                    {exerciseLibrary.map((ex) => (
+                                      <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                    ))}
+                                  </select>
+                                  <input 
+                                    type="text" 
+                                    value={block.name} 
+                                    onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} 
+                                    placeholder="O digita nome esercizio personalizzato" 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                  />
+                                </div>
+                              ) : (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                                </div>
+                              )}
+
+                              <div style={{ marginBottom: '10px' }}>
+                                <input 
+                                  type="url" 
+                                  value={block.videoUrl || ''} 
+                                  onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
+                                  placeholder="Link video esercizio (es. https://youtube.com/...)" 
+                                  style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                />
+                              </div>
+
+                              {block.type === 'forza' ? (
+                                <div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
+                                      <input type="number" value={block.sets} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                                     </div>
-                                    <div style={{ display: 'flex', gap: '4px' }}>
-                                      <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                      <button type="button" onClick={() => moveWeekBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                                      <button type="button" onClick={() => removeBlockFromWeekDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                                        🗑️
-                                      </button>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
+                                      <input type="text" value={block.reps} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                                     </div>
                                   </div>
-
-                                  {!block.collapsed && (
-                                    <>
-                                      {block.type === 'forza' ? (
-                                        <div style={{ marginBottom: '10px' }}>
-                                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
-                                          <select 
-                                            value={block.name} 
-                                            onChange={(e) => handleSelectExerciseFromLibrary(
-                                              e.target.value, 
-                                              (f, val) => updateWeekBlock(dIdx, bIdx, f, val),
-                                              (vUrl) => updateWeekBlock(dIdx, bIdx, 'videoUrl', vUrl)
-                                            )}
-                                            style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
-                                          >
-                                            <option value="">-- Scegli Esercizio o Scrivine uno --</option>
-                                            {exerciseLibrary.map((ex) => (
-                                              <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                            ))}
-                                          </select>
-                                          <input 
-                                            type="text" 
-                                            value={block.name} 
-                                            onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} 
-                                            placeholder="O digita nome esercizio personalizzato" 
-                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div style={{ marginBottom: '10px' }}>
-                                          <input type="text" value={block.name} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                                        </div>
-                                      )}
-
-                                      <div style={{ marginBottom: '10px' }}>
-                                        <input 
-                                          type="url" 
-                                          value={block.videoUrl || ''} 
-                                          onChange={(e) => updateWeekBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                                          placeholder="Link video esercizio (es. https://youtube.com/...)" 
-                                          style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                        />
-                                      </div>
-
-                                      {block.type === 'forza' ? (
-                                        <div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
-                                              <input type="number" value={block.sets} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
-                                              <input type="text" value={block.reps} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                          </div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
-                                              <input type="text" value={block.load} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
-                                              <input type="text" value={block.rest} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                          </div>
-                                          <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                            <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
-                                            <input type="text" value={block.notes} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
-                                          <textarea value={block.wodNotes || ''} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
+                                      <input type="text" value={block.load} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                    </div>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
+                                      <input type="text" value={block.rest} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                    </div>
+                                  </div>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                    <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
+                                    <input type="text" value={block.notes} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                                  </div>
                                 </div>
-                              ))}
-                              <button onClick={() => addBlockToWeekDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi a {day.dayName}</button>
-                            </>
-                          )}
+                              ) : (
+                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
+                                  <textarea value={block.wodNotes || ''} onChange={(e) => updateWeekBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          <button onClick={() => addBlockToWeekDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi a {day.dayName}</button>
                         </div>
                       ))}
                     </div>
@@ -1012,126 +885,105 @@ export default function TrainingApp() {
                     <div>
                       {programDays.map((day, dIdx) => (
                         <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                              <span style={{ cursor: 'pointer', fontSize: '14px', color: '#94a3b8' }} onClick={() => toggleDayCollapseFree(dIdx)}>
-                                {day.collapsed ? '▶' : '▼'}
-                              </span>
-                              <input type="text" value={day.dayName} onChange={(e) => {
-                                const upd = [...programDays];
-                                upd[dIdx].dayName = e.target.value;
-                                setProgramDays(upd);
-                              }} placeholder="Nome Giornata" style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            </div>
-                            <button type="button" onClick={() => duplicateFreeDay(dIdx)} style={{ background: '#374151', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                              📋 Duplica Giorno
-                            </button>
-                          </div>
+                          <input type="text" value={day.dayName} onChange={(e) => {
+                            const upd = [...programDays];
+                            upd[dIdx].dayName = e.target.value;
+                            setProgramDays(upd);
+                          }} placeholder="Nome Giornata" style={{ width: '100%', padding: '10px', marginBottom: '12px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box' }} />
 
-                          {!day.collapsed && (
-                            <>
-                              {day.blocks.map((block: any, bIdx: number) => (
-                                <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                                      <span style={{ cursor: 'pointer', fontSize: '12px', color: '#94a3b8' }} onClick={() => toggleBlockCollapseFree(dIdx, bIdx)}>
-                                        {block.collapsed ? '▶' : '▼'}
-                                      </span>
-                                      <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
-                                      <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'wod')} style={{ padding: '6px 10px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                          {day.blocks.map((block: any, bIdx: number) => (
+                            <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                  <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>FORZA</button>
+                                  <button type="button" onClick={() => updateFreeBlock(dIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#1f2937', color: '#fff', cursor: 'pointer' }}>WOD</button>
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
+                                  <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                                  <button type="button" onClick={() => removeBlockFromFreeDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
+                                    🗑️
+                                  </button>
+                                </div>
+                              </div>
+
+                              {block.type === 'forza' ? (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
+                                  <select 
+                                    value={block.name} 
+                                    onChange={(e) => handleSelectExerciseFromLibrary(
+                                      e.target.value, 
+                                      (f, val) => updateFreeBlock(dIdx, bIdx, f, val),
+                                      (vUrl) => updateFreeBlock(dIdx, bIdx, 'videoUrl', vUrl)
+                                    )}
+                                    style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
+                                  >
+                                    <option value="">-- Scegli Esercizio o Scrivine uno --</option>
+                                    {exerciseLibrary.map((ex) => (
+                                      <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                    ))}
+                                  </select>
+                                  <input 
+                                    type="text" 
+                                    value={block.name} 
+                                    onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} 
+                                    placeholder="O digita nome esercizio personalizzato" 
+                                    style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                  />
+                                </div>
+                              ) : (
+                                <div style={{ marginBottom: '10px' }}>
+                                  <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
+                                </div>
+                              )}
+
+                              <div style={{ marginBottom: '10px' }}>
+                                <input 
+                                  type="url" 
+                                  value={block.videoUrl || ''} 
+                                  onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
+                                  placeholder="Link video esercizio (es. https://youtube.com/...)" 
+                                  style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
+                                />
+                              </div>
+
+                              {block.type === 'forza' ? (
+                                <div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
+                                      <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                                     </div>
-                                    <div style={{ display: 'flex', gap: '4px' }}>
-                                      <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'up')} title="Sposta su" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                      <button type="button" onClick={() => moveFreeBlock(dIdx, bIdx, 'down')} title="Sposta giù" style={{ background: '#374151', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                                      <button type="button" onClick={() => removeBlockFromFreeDay(dIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                                        🗑️
-                                      </button>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
+                                      <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
                                     </div>
                                   </div>
-
-                                  {!block.collapsed && (
-                                    <>
-                                      {block.type === 'forza' ? (
-                                        <div style={{ marginBottom: '10px' }}>
-                                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>SELEZIONA DA LIBRERIA ESERCIZI</label>
-                                          <select 
-                                            value={block.name} 
-                                            onChange={(e) => handleSelectExerciseFromLibrary(
-                                              e.target.value, 
-                                              (f, val) => updateFreeBlock(dIdx, bIdx, f, val),
-                                              (vUrl) => updateFreeBlock(dIdx, bIdx, 'videoUrl', vUrl)
-                                            )}
-                                            style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}
-                                          >
-                                            <option value="">-- Scegli Esercizio o Scrivine uno --</option>
-                                            {exerciseLibrary.map((ex) => (
-                                              <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                            ))}
-                                          </select>
-                                          <input 
-                                            type="text" 
-                                            value={block.name} 
-                                            onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} 
-                                            placeholder="O digita nome esercizio personalizzato" 
-                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div style={{ marginBottom: '10px' }}>
-                                          <input type="text" value={block.name} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontWeight: 'bold', fontSize: '14px' }} />
-                                        </div>
-                                      )}
-
-                                      <div style={{ marginBottom: '10px' }}>
-                                        <input 
-                                          type="url" 
-                                          value={block.videoUrl || ''} 
-                                          onChange={(e) => updateFreeBlock(dIdx, bIdx, 'videoUrl', e.target.value)} 
-                                          placeholder="Link video esercizio (es. https://youtube.com/...)" 
-                                          style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box', fontSize: '12px' }} 
-                                        />
-                                      </div>
-
-                                      {block.type === 'forza' ? (
-                                        <div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</label>
-                                              <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</label>
-                                              <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                          </div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
-                                              <input type="text" value={block.load} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                            <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                              <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
-                                              <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                            </div>
-                                          </div>
-                                          <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                            <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
-                                            <input type="text" value={block.notes} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                          <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
-                                          <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
-                                        </div>
-                                      )}
-                                    </>
-                                  )}
+                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</label>
+                                      <input type="text" value={block.load} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                    </div>
+                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                      <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</label>
+                                      <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                    </div>
+                                  </div>
+                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                    <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</label>
+                                    <input type="text" value={block.notes} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                                  </div>
                                 </div>
-                              ))}
-                              <button onClick={() => addBlockToFreeDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
-                            </>
-                          )}
+                              ) : (
+                                <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                  <label style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>WOD / CIRCUITO</label>
+                                  <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(dIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#111827', border: 'none', color: '#fff', borderRadius: '4px', fontSize: '12px' }} />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          <button onClick={() => addBlockToFreeDay(dIdx)} style={{ width: '100%', padding: '8px', background: '#374151', border: 'none', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
                         </div>
                       ))}
                       <button onClick={addDay} style={{ width: '100%', padding: '12px', background: '#1e293b', border: '1px dashed #475569', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', marginBottom: '20px' }}>+ Aggiungi Nuovo Giorno</button>
