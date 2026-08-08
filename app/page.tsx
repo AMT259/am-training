@@ -38,6 +38,9 @@ export default function TrainingApp() {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
 
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [fullName, setFullName] = useState('');
+
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState('');
   const [programTitle, setProgramTitle] = useState('');
@@ -83,6 +86,20 @@ export default function TrainingApp() {
 
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
+
+  // STATI PER LA GESTIONE DELLE TENDINE (ACCORDION)
+  // Memorizza quali giorni sono aperti: es. { "progId-giornoIndex": true }
+  const [openDays, setOpenDays] = useState<{ [key: string]: boolean }>({});
+  // Memorizza quali blocchi sono aperti: es. { "progId-giornoIndex-bloccoIndex": true }
+  const [openBlocks, setOpenBlocks] = useState<{ [key: string]: boolean }>({});
+
+  const toggleDayAccordion = (key: string) => {
+    setOpenDays(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleBlockAccordion = (key: string) => {
+    setOpenBlocks(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -263,19 +280,30 @@ export default function TrainingApp() {
     if (error) setAuthError(error.message);
   };
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: 'athlete'
+        }
+      }
+    });
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      alert('Registrazione completata! Controlla la tua email per confermare o accedi direttamente se la conferma email è disabilitata.');
+      setIsRegistering(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
-  };
-
-  const saveOrUpdateGlobalExercise = async (name: string, videoUrl: string) => {
-    if (!name || name.trim() === '') return;
-    const trimmedName = name.trim();
-    const found = exerciseLibrary.find(ex => ex.name.toLowerCase() === trimmedName.toLowerCase());
-
-    if (!found && exerciseLibrary.length > 0) {
-      // Non modifica nulla se esiste già, ma se non esiste lo inserisce
-    }
   };
 
   const addDay = () => {
@@ -283,6 +311,31 @@ export default function TrainingApp() {
       ...programDays,
       { dayNumber: programDays.length + 1, dayName: `Giorno ${programDays.length + 1}`, blocks: [] }
     ]);
+  };
+
+  const duplicateFreeDay = (dayIndex: number) => {
+    const updated = [...programDays];
+    const dayToCopy = updated[dayIndex];
+    const newDay = {
+      ...dayToCopy,
+      dayNumber: updated.length + 1,
+      dayName: `${dayToCopy.dayName} (Copia)`,
+      blocks: dayToCopy.blocks.map(b => ({ ...b, id: Date.now() + Math.random() }))
+    };
+    updated.splice(dayIndex + 1, 0, newDay);
+    setProgramDays(updated);
+  };
+
+  const duplicateEditingDay = (dayIndex: number) => {
+    const updated = { ...editingProgram };
+    const dayToCopy = updated.days[dayIndex];
+    const newDay = {
+      ...dayToCopy,
+      dayName: `${dayToCopy.dayName} (Copia)`,
+      blocks: dayToCopy.blocks.map((b: any) => ({ ...b, id: Date.now() + Math.random() }))
+    };
+    updated.days.splice(dayIndex + 1, 0, newDay);
+    setEditingProgram(updated);
   };
 
   const removeBlockFromFreeDay = (dayIndex: number, blockIndex: number) => {
@@ -516,11 +569,48 @@ export default function TrainingApp() {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <h1 style={{ color: '#10b981', marginBottom: '20px' }}>AM TRAINING</h1>
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+        
+        <form onSubmit={isRegistering ? handleSignUp : handleLogin} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
+          {isRegistering && (
+            <input 
+              type="text" 
+              placeholder="Nome e Cognome" 
+              value={fullName} 
+              onChange={(e) => setFullName(e.target.value)} 
+              required 
+              style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} 
+            />
+          )}
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+            style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} 
+          />
+          <input 
+            type="password" 
+            placeholder="Password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            required 
+            style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} 
+          />
+          
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
-          <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>Accedi</button>
+          
+          <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
+            {isRegistering ? 'Registrati' : 'Accedi'}
+          </button>
+
+          <button 
+            type="button" 
+            onClick={() => setIsRegistering(!isRegistering)} 
+            style={{ background: 'transparent', color: '#94a3b8', border: 'none', cursor: 'pointer', fontSize: '13px', marginTop: '8px' }}
+          >
+            {isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
+          </button>
         </form>
       </div>
     );
@@ -606,11 +696,11 @@ export default function TrainingApp() {
               </div>
 
               <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
-              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', marginBottom: '16px', boxSizing: 'border-box' }} />
+              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #334151', color: '#fff', marginBottom: '16px', boxSizing: 'border-box' }} />
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Assegna ad Atleta:</label>
-                <select value={editingProgram.assignedAthleteId} onChange={(e) => setEditingProgram({ ...editingProgram, assignedAthleteId: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', boxSizing: 'border-box' }}>
+                <select value={editingProgram.assignedAthleteId} onChange={(e) => setEditingProgram({ ...editingProgram, assignedAthleteId: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1f2937', border: '1px solid #334151', color: '#fff', boxSizing: 'border-box' }}>
                   <option value="">Tutti gli atleti (Generale)</option>
                   {athletes.map((a) => (
                     <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
@@ -620,7 +710,17 @@ export default function TrainingApp() {
 
               {editingProgram.days?.map((day: any, dIdx: number) => (
                 <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #374151' }}>
-                  <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px', marginBottom: '12px' }}>📅 {day.dayName}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '15px' }}>📅 {day.dayName}</div>
+                    
+                    <button 
+                      type="button" 
+                      onClick={() => duplicateEditingDay(dIdx)} 
+                      style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+                    >
+                      📄 Duplica Giorno
+                    </button>
+                  </div>
 
                   {day.blocks?.map((block: any, bIdx: number) => (
                     <div key={block.id || bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #374151' }}>
@@ -885,11 +985,27 @@ export default function TrainingApp() {
                     <div>
                       {programDays.map((day, dIdx) => (
                         <div key={dIdx} style={{ background: '#1f2937', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
-                          <input type="text" value={day.dayName} onChange={(e) => {
-                            const upd = [...programDays];
-                            upd[dIdx].dayName = e.target.value;
-                            setProgramDays(upd);
-                          }} placeholder="Nome Giornata" style={{ width: '100%', padding: '10px', marginBottom: '12px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box' }} />
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                            <input 
+                              type="text" 
+                              value={day.dayName} 
+                              onChange={(e) => {
+                                const upd = [...programDays];
+                                upd[dIdx].dayName = e.target.value;
+                                setProgramDays(upd);
+                              }} 
+                              placeholder="Nome Giornata" 
+                              style={{ flex: 1, padding: '10px', background: '#111827', border: '1px solid #374151', color: '#fff', borderRadius: '6px', boxSizing: 'border-box' }} 
+                            />
+                            
+                            <button 
+                              type="button" 
+                              onClick={() => duplicateFreeDay(dIdx)} 
+                              style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '0 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                            >
+                              📄 Duplica
+                            </button>
+                          </div>
 
                           {day.blocks.map((block: any, bIdx: number) => (
                             <div key={block.id} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
@@ -1138,72 +1254,89 @@ export default function TrainingApp() {
                               ) : (
                                 day.blocks?.map((blk: any, bIdx: number) => {
                                   const blockKey = `${realDayIndex}_${bIdx}`;
+                                  const uniqueBlockKey = `${prog.id}-${realDayIndex}-${bIdx}`;
+                                  const isBlockOpen = openBlocks[uniqueBlockKey] ?? true; // di default aperto o chiuso
+
                                   return (
-                                    <div key={bIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151' }}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                        {blk.videoUrl && (
-                                          <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                            🎥 Guarda Video
-                                          </a>
-                                        )}
+                                    <div key={bIdx} style={{ background: '#1f2937', borderRadius: '8px', marginBottom: '10px', border: '1px solid #374151', overflow: 'hidden' }}>
+                                      {/* HEADER DEL BLOCCO / ESERCIZIO A TENDINA */}
+                                      <div 
+                                        onClick={() => toggleBlockAccordion(uniqueBlockKey)}
+                                        style={{ padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: '#1f2937' }}
+                                      >
+                                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name || 'Blocco senza nome'}</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          {blk.videoUrl && (
+                                            <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                              🎥 Video
+                                            </a>
+                                          )}
+                                          <span style={{ fontSize: '12px', color: '#94a3b8' }}>{isBlockOpen ? '▲ Riduci' : '▼ Apri'}</span>
+                                        </div>
                                       </div>
 
-                                      {blk.type === 'forza' ? (
-                                        <div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
-                                            </div>
-                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                      {/* CONTENUTO DEL BLOCCO (VISIBILE SOLO SE APERTO) */}
+                                      {isBlockOpen && (
+                                        <div style={{ padding: '0 14px 14px 14px', background: '#111827', borderTop: '1px solid #374151' }}>
+                                          <div style={{ paddingTop: '10px' }}>
+                                            {blk.type === 'forza' ? (
+                                              <div>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                                  </div>
+                                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                                  </div>
+                                                </div>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                                  </div>
+                                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                                  </div>
+                                                </div>
+                                                {blk.notes && (
+                                                  <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
+                                                <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                                <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
+                                              </div>
+                                            )}
+
+                                            <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                              <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                <input 
+                                                  type="text" 
+                                                  placeholder="Score (es. 100kg / 8:30)" 
+                                                  value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                                />
+                                                <input 
+                                                  type="text" 
+                                                  placeholder="Note personali..." 
+                                                  value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                                  onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                                  style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                                />
+                                              </div>
                                             </div>
                                           </div>
-                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                            </div>
-                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                            </div>
-                                          </div>
-                                          {blk.notes && (
-                                            <div style={{ background: '#111827', padding: '8px', borderRadius: '6px' }}>
-                                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                              <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
-                                            </div>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <div style={{ background: '#111827', padding: '10px', borderRadius: '6px' }}>
-                                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                          <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
                                         </div>
                                       )}
-
-                                      <div style={{ marginTop: '12px', background: '#111827', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                                        <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                          <input 
-                                            type="text" 
-                                            placeholder="Score (es. 100kg / 8:30)" 
-                                            value={athleteResults[prog.id]?.[blockKey]?.score || ''}
-                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                          />
-                                          <input 
-                                            type="text" 
-                                            placeholder="Note personali..." 
-                                            value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
-                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                            style={{ width: '100%', padding: '8px', background: '#1f2937', border: '1px solid #374151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                          />
-                                        </div>
-                                      </div>
                                     </div>
                                   );
                                 })
@@ -1213,82 +1346,122 @@ export default function TrainingApp() {
                         })}
                       </div>
                     ) : (
-                      prog.days?.map((day: any, dIdx: number) => (
-                        <div key={dIdx} style={{ background: '#1f2937', padding: '14px', borderRadius: '8px', marginBottom: '10px' }}>
-                          <span style={{ fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '10px', color: '#10b981' }}>{day.dayName}</span>
-                          {day.blocks?.map((blk: any, bIdx: number) => {
-                            const blockKey = `${dIdx}_${bIdx}`;
-                            return (
-                              <div key={bIdx} style={{ background: '#111827', padding: '12px', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                  {blk.videoUrl && (
-                                    <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                      🎥 Guarda Video
-                                    </a>
-                                  )}
-                                </div>
+                      prog.days?.map((day: any, dIdx: number) => {
+                        const uniqueDayKey = `${prog.id}-day-${dIdx}`;
+                        const isDayOpen = openDays[uniqueDayKey] ?? true; // Aperto o chiuso di default
 
-                                {blk.type === 'forza' ? (
-                                  <div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
-                                      </div>
-                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
-                                      </div>
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
-                                      </div>
-                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
-                                      </div>
-                                    </div>
-                                    {blk.notes && (
-                                      <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
-                                        <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
-                                      </div>
-                                    )}
-                                  </div>
+                        return (
+                          <div key={dIdx} style={{ background: '#1f2937', borderRadius: '8px', marginBottom: '12px', overflow: 'hidden', border: '1px solid #374151' }}>
+                            {/* HEADER DEL GIORNO A TENDINA */}
+                            <div 
+                              onClick={() => toggleDayAccordion(uniqueDayKey)}
+                              style={{ padding: '14px', background: '#1f2937', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                            >
+                              <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#10b981' }}>📅 {day.dayName}</span>
+                              <span style={{ fontSize: '12px', color: '#94a3b8' }}>{isDayOpen ? '▲ Chiudi Giorno' : '▼ Apri Giorno'}</span>
+                            </div>
+
+                            {/* CONTENUTO DEL GIORNO (BLOCCHI) */}
+                            {isDayOpen && (
+                              <div style={{ padding: '14px', background: '#111827', borderTop: '1px solid #374151' }}>
+                                {day.blocks?.length === 0 ? (
+                                  <p style={{ color: '#94a3b8', fontSize: '12px', margin: 0 }}>Nessun esercizio inserito in questo giorno.</p>
                                 ) : (
-                                  <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
-                                    <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                    <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                                  </div>
-                                )}
+                                  day.blocks?.map((blk: any, bIdx: number) => {
+                                    const blockKey = `${dIdx}_${bIdx}`;
+                                    const uniqueBlockKey = `${prog.id}-free-${dIdx}-${bIdx}`;
+                                    const isBlockOpen = openBlocks[uniqueBlockKey] ?? true;
 
-                                <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
-                                  <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                    <input 
-                                      type="text" 
-                                      placeholder="Score (es. 100kg / 8:30)" 
-                                      value={athleteResults[prog.id]?.[blockKey]?.score || ''}
-                                      onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                      style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                    />
-                                    <input 
-                                      type="text" 
-                                      placeholder="Note personali..." 
-                                      value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
-                                      onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                      style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
-                                    />
-                                  </div>
-                                </div>
+                                    return (
+                                      <div key={bIdx} style={{ background: '#1f2937', borderRadius: '8px', marginTop: '8px', border: '1px solid #374151', overflow: 'hidden' }}>
+                                        {/* HEADER DEL SINGOLO BLOCCO */}
+                                        <div 
+                                          onClick={() => toggleBlockAccordion(uniqueBlockKey)}
+                                          style={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: '#1f2937' }}
+                                        >
+                                          <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name || 'Blocco senza nome'}</div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {blk.videoUrl && (
+                                              <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 10px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                                🎥 Video
+                                              </a>
+                                            )}
+                                            <span style={{ fontSize: '12px', color: '#94a3b8' }}>{isBlockOpen ? '▲' : '▼'}</span>
+                                          </div>
+                                        </div>
+
+                                        {/* CONTENUTO DEL BLOCCO */}
+                                        {isBlockOpen && (
+                                          <div style={{ padding: '0 12px 12px 12px', background: '#111827', borderTop: '1px solid #374151' }}>
+                                            <div style={{ paddingTop: '10px' }}>
+                                              {blk.type === 'forza' ? (
+                                                <div>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>SET</span>
+                                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.sets}</span>
+                                                    </div>
+                                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>REP</span>
+                                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.reps}</span>
+                                                    </div>
+                                                  </div>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>CARICO / RPE</span>
+                                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.load}</span>
+                                                    </div>
+                                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>RECUPERO</span>
+                                                      <span style={{ fontWeight: 'bold', fontSize: '13px' }}>{blk.rest}</span>
+                                                    </div>
+                                                  </div>
+                                                  {blk.notes && (
+                                                    <div style={{ background: '#1f2937', padding: '8px', borderRadius: '6px' }}>
+                                                      <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>NOTE</span>
+                                                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#cbd5e1' }}>{blk.notes}</p>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <div style={{ background: '#1f2937', padding: '10px', borderRadius: '6px' }}>
+                                                  <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                                  <p style={{ fontSize: '12px', color: '#cbd5e1', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
+                                                </div>
+                                              )}
+
+                                              <div style={{ marginTop: '12px', background: '#1f2937', padding: '10px', borderRadius: '6px', border: '1px dashed #374151' }}>
+                                                <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                  <input 
+                                                    type="text" 
+                                                    placeholder="Score (es. 100kg / 8:30)" 
+                                                    value={athleteResults[prog.id]?.[blockKey]?.score || ''}
+                                                    onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
+                                                    style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                                  />
+                                                  <input 
+                                                    type="text" 
+                                                    placeholder="Note personali..." 
+                                                    value={athleteResults[prog.id]?.[blockKey]?.notes || ''}
+                                                    onChange={(e) => handleResultCommand(prog.id, blockKey, 'notes', e.target.value)} // Corretto in handler standard
+                                                    onChangeCapture={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
+                                                    style={{ width: '100%', padding: '8px', background: '#111827', border: '1px solid #334151', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+                                                  />
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })
+                                )}
                               </div>
-                            );
-                          })}
-                        </div>
-                      ))
+                            )}
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 ))
