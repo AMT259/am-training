@@ -671,17 +671,22 @@ export default function TrainingApp() {
                </select>
              </div>
  
-             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px', alignItems: 'center' }}>
-               {editingProgram.days?.map((day: any, idx: number) => (
-                 <div key={idx} style={{ display: 'flex', alignItems: 'center', background: selectedDayView === day.dayName ? '#10b981' : '#f1f5f9', borderRadius: '6px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
-                   <button onClick={() => moveEditingDayOrder(idx, 'left')} disabled={idx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: idx === 0 ? '#cbd5e1' : (selectedDayView === day.dayName ? '#fff' : '#334155'), cursor: idx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                   <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '8px 6px', border: 'none', background: 'transparent', color: selectedDayView === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                     {day.dayName}
-                   </button>
-                   <button onClick={() => cloneEditingDay(day)} title="Clona giorno" style={{ padding: '8px 6px', border: 'none', background: 'transparent', color: selectedDayView === day.dayName ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                   <button onClick={() => moveEditingDayOrder(idx, 'right')} disabled={idx === editingProgram.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: idx === editingProgram.days.length - 1 ? '#cbd5e1' : (selectedDayView === day.dayName ? '#fff' : '#334155'), cursor: idx === editingProgram.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                 </div>
-               ))}
+             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+               {editingProgram.days?.map((day: any, idx: number) => {
+                 const isSelected = selectedDayView === day.dayName;
+                 return (
+                   <div key={idx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                     <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                       {day.dayName}
+                     </button>
+                     <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                       <button onClick={() => moveEditingDayOrder(idx, 'left')} disabled={idx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: idx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: idx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
+                       <button onClick={() => cloneEditingDay(day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
+                       <button onClick={() => moveEditingDayOrder(idx, 'right')} disabled={idx === editingProgram.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: idx === editingProgram.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: idx === editingProgram.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
+                     </div>
+                   </div>
+                 );
+               })}
              </div>
 
              {editingProgram.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
@@ -863,17 +868,22 @@ export default function TrainingApp() {
                  </div>
 
                  <div>
-                   <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px', alignItems: 'center' }}>
-                     {programDays.map((day, idx) => (
-                       <div key={idx} style={{ display: 'flex', alignItems: 'center', background: selectedDayView === day.dayName ? '#10b981' : '#f1f5f9', borderRadius: '6px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
-                         <button onClick={() => moveDayOrder(idx, 'left')} disabled={idx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: idx === 0 ? '#cbd5e1' : (selectedDayView === day.dayName ? '#fff' : '#334155'), cursor: idx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                         <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '8px 6px', border: 'none', background: 'transparent', color: selectedDayView === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                           {day.dayName}
-                         </button>
-                         <button onClick={() => cloneDay(day)} title="Clona giorno" style={{ padding: '8px 6px', border: 'none', background: 'transparent', color: selectedDayView === day.dayName ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                         <button onClick={() => moveDayOrder(idx, 'right')} disabled={idx === programDays.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '8px 4px', color: idx === programDays.length - 1 ? '#cbd5e1' : (selectedDayView === day.dayName ? '#fff' : '#334155'), cursor: idx === programDays.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                       </div>
-                     ))}
+                   <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+                     {programDays.map((day, idx) => {
+                       const isSelected = selectedDayView === day.dayName;
+                       return (
+                         <div key={idx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                           <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                             {day.dayName}
+                           </button>
+                           <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                             <button onClick={() => moveDayOrder(idx, 'left')} disabled={idx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: idx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: idx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
+                             <button onClick={() => cloneDay(day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
+                             <button onClick={() => moveDayOrder(idx, 'right')} disabled={idx === programDays.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: idx === programDays.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: idx === programDays.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
+                           </div>
+                         </div>
+                       );
+                     })}
                    </div>
 
                    {programDays.filter((d) => d.dayName === selectedDayView).map((day) => {
