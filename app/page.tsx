@@ -49,6 +49,9 @@ export default function TrainingApp() {
  // Stato per gestire l'apertura/chiusura (Accordion) dei blocchi esercizio
  const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
  
+ // Stato separato per la visualizzazione dei giorni per singolo programma (chiave: programId, valore: nomeGiorno)
+ const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
+ 
  const [programDays, setProgramDays] = useState<any[]>([
    {
      dayNumber: 1,
@@ -143,6 +146,21 @@ export default function TrainingApp() {
      };
    }
  }, [session, role]);
+
+ // Imposta il giorno iniziale per ogni programma caricato nella libreria atleti se non è già settato
+ useEffect(() => {
+   if (programLibrary.length > 0) {
+     const initialDays: { [id: string]: string } = {};
+     programLibrary.forEach(prog => {
+       if (prog.days && prog.days.length > 0 && !selectedDaysByProgram[prog.id]) {
+         initialDays[prog.id] = prog.days[0].dayName;
+       }
+     });
+     if (Object.keys(initialDays).length > 0) {
+       setSelectedDaysByProgram(prev => ({ ...initialDays, ...prev }));
+     }
+   }
+ }, [programLibrary]);
  
  const fetchUserProfile = async (userId: string) => {
    const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
@@ -284,7 +302,7 @@ export default function TrainingApp() {
  const toggleBlockCollapse = (blockKey: string) => {
    setCollapsedBlocks(prev => ({
      ...prev,
-     [blockKey]: !prev[blockKey]
+     [blockKey]: prev[blockKey] === undefined ? true : !prev[blockKey]
    }));
  };
  
@@ -622,7 +640,7 @@ export default function TrainingApp() {
  
                    {day.blocks?.map((block: any, bIdx: number) => {
                      const blockKey = `edit_${actualDIdx}_${bIdx}`;
-                     const isClosed = collapsedBlocks[blockKey] || false;
+                     const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
                      return (
                        <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
@@ -804,7 +822,7 @@ export default function TrainingApp() {
  
                            {day.blocks.map((block: any, bIdx: number) => {
                              const blockKey = `prog_${actualDIdx}_${bIdx}`;
-                             const isClosed = collapsedBlocks[blockKey] || false;
+                             const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
                              return (
                                <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
@@ -920,7 +938,7 @@ export default function TrainingApp() {
  
                          {day.blocks.map((block: any, bIdx: number) => {
                            const blockKey = `free_${dIdx}_${bIdx}`;
-                           const isClosed = collapsedBlocks[blockKey] || false;
+                           const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
                            return (
                              <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #cbd5e1' }}>
@@ -1146,123 +1164,131 @@ export default function TrainingApp() {
                  <p style={{ color: '#64748b', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
                </div>
              ) : (
-               athletePrograms.map((prog) => (
-                 <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                   <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
-                   
-                   {prog.days ? (
-                     <div>
-                       {prog.useCalendar && (
-                         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                           {prog.days?.map((day: any, idx: number) => (
-                             <button key={idx} onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: selectedDayView === day.dayName ? '#10b981' : '#f1f5f9', color: selectedDayView === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                               {day.dayName}
-                             </button>
-                           ))}
-                         </div>
-                       )}
- 
-                       {prog.days?.filter((d: any) => !prog.useCalendar || d.dayName === selectedDayView).map((day: any) => {
-                         const realDayIndex = prog.days.findIndex((d: any) => d.dayName === day.dayName);
-                         return (
-                           <div key={realDayIndex} style={{ marginBottom: prog.useCalendar ? '0' : '20px' }}>
-                             {!prog.useCalendar && (
-                               <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '16px', marginBottom: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px' }}>
+               athletePrograms.map((prog) => {
+                 const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (prog.days && prog.days.length > 0 ? prog.days[0].dayName : '');
+
+                 return (
+                   <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                     <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
+                     
+                     {prog.days ? (
+                       <div>
+                         {prog.useCalendar && (
+                           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+                             {prog.days?.map((day: any, idx: number) => (
+                               <button 
+                                 key={idx} 
+                                 onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))} 
+                                 style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: currentProgramActiveDay === day.dayName ? '#10b981' : '#f1f5f9', color: currentProgramActiveDay === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                               >
                                  {day.dayName}
-                               </div>
-                             )}
-
-                             {day.blocks?.length === 0 ? (
-                               <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito per {day.dayName}.</p>
-                             ) : (
-                               day.blocks?.map((blk: any, bIdx: number) => {
-                                 const blockKey = `ath_${prog.id}_${realDayIndex}_${bIdx}`;
-                                 const isClosed = collapsedBlocks[blockKey] || false;
-
-                                 return (
-                                   <div key={bIdx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
-                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                       <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                         {blk.videoUrl && (
-                                           <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                             🎥 Video
-                                           </a>
-                                         )}
-                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                       </div>
-                                     </div>
- 
-                                     {!isClosed && (
-                                       <div>
-                                         {blk.type === 'forza' ? (
-                                           <div>
-                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                               <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
-                                                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
-                                               </div>
-                                               <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
-                                                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
-                                               </div>
-                                             </div>
-                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                               <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
-                                                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
-                                               </div>
-                                               <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
-                                                 <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
-                                               </div>
-                                             </div>
-                                             {blk.notes && (
-                                               <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
-                                                 <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
-                                               </div>
-                                             )}
-                                           </div>
-                                         ) : (
-                                           <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                             <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                             <p style={{ fontSize: '12px', color: '#334151', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
-                                           </div>
-                                         )}
-                                       </div>
-                                     )}
- 
-                                     <div style={{ marginTop: '12px', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                       <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                         <input
-                                           type="text"
-                                           placeholder="Score (es. 100kg / 8:30)"
-                                           value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.score || ''}
-                                           onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'score', e.target.value)}
-                                           style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                         />
-                                         <input
-                                           type="text"
-                                           placeholder="Note personali..."
-                                           value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.notes || ''}
-                                           onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'notes', e.target.value)}
-                                           style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                         />
-                                       </div>
-                                     </div>
-                                   </div>
-                                 );
-                               })
-                             )}
+                               </button>
+                             ))}
                            </div>
-                         );
-                       })}
-                     </div>
-                   ) : null}
-                 </div>
-               ))
+                         )}
+ 
+                         {prog.days?.filter((d: any) => !prog.useCalendar || d.dayName === currentProgramActiveDay).map((day: any) => {
+                           const realDayIndex = prog.days.findIndex((d: any) => d.dayName === day.dayName);
+                           return (
+                             <div key={realDayIndex} style={{ marginBottom: prog.useCalendar ? '0' : '20px' }}>
+                               {!prog.useCalendar && (
+                                 <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '16px', marginBottom: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '4px' }}>
+                                   {day.dayName}
+                                 </div>
+                               )}
+
+                               {day.blocks?.length === 0 ? (
+                                 <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito per {day.dayName}.</p>
+                               ) : (
+                                 day.blocks?.map((blk: any, bIdx: number) => {
+                                   const blockKey = `ath_${prog.id}_${realDayIndex}_${bIdx}`;
+                                   const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
+
+                                   return (
+                                     <div key={bIdx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                           {blk.videoUrl && (
+                                             <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                               🎥 Video
+                                             </a>
+                                           )}
+                                           <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                         </div>
+                                       </div>
+ 
+                                       {!isClosed && (
+                                         <div>
+                                           {blk.type === 'forza' ? (
+                                             <div>
+                                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                 <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                   <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
+                                                   <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
+                                                 </div>
+                                                 <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                   <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
+                                                   <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
+                                                 </div>
+                                               </div>
+                                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                 <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                   <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
+                                                   <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
+                                                 </div>
+                                                 <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                   <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
+                                                   <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
+                                                 </div>
+                                               </div>
+                                               {blk.notes && (
+                                                 <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                   <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
+                                                   <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                                 </div>
+                                               )}
+                                             </div>
+                                           ) : (
+                                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                               <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
+                                               <p style={{ fontSize: '12px', color: '#334151', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
+                                             </div>
+                                           )}
+                                         </div>
+                                       )}
+ 
+                                       <div style={{ marginTop: '12px', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                         <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
+                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                           <input
+                                             type="text"
+                                             placeholder="Score (es. 100kg / 8:30)"
+                                             value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.score || ''}
+                                             onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'score', e.target.value)}
+                                             style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                           />
+                                           <input
+                                             type="text"
+                                             placeholder="Note personali..."
+                                             value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.notes || ''}
+                                             onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'notes', e.target.value)}
+                                             style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                           />
+                                         </div>
+                                       </div>
+                                     </div>
+                                   );
+                                 })
+                               )}
+                             </div>
+                           );
+                         })}
+                       </div>
+                     ) : null}
+                   </div>
+                 );
+               })
              )}
            </div>
          )}
