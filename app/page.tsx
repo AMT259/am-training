@@ -671,7 +671,6 @@ export default function TrainingApp() {
                </select>
              </div>
  
-             {/* Navigazione giorni in Modifica con Spostamento (⬅️ ➡️) e Clona (📋) */}
              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px', alignItems: 'center' }}>
                {editingProgram.days?.map((day: any, idx: number) => (
                  <div key={idx} style={{ display: 'flex', alignItems: 'center', background: selectedDayView === day.dayName ? '#10b981' : '#f1f5f9', borderRadius: '6px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
@@ -740,25 +739,11 @@ export default function TrainingApp() {
                          <div style={{ marginBottom: '10px' }}>
                            {block.type === 'forza' ? (
                              <div>
-                               <select
-                                 value={block.name || ''}
-                                 onChange={(e) => handleSelectExerciseFromLibrary(
-                                   e.target.value,
-                                   (f, val) => updateEditingBlock(actualDIdx, bIdx, f, val),
-                                   (vUrl) => updateEditingBlock(actualDIdx, bIdx, 'videoUrl', vUrl)
-                                 )}
-                                 style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', marginBottom: '6px' }}
-                               >
-                                 <option value="">-- Scegli Esercizio --</option>
-                                 {exerciseLibrary.map((ex) => (
-                                   <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                 ))}
-                               </select>
                                <input
                                  type="text"
                                  value={block.name || ''}
                                  onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)}
-                                 placeholder="Nome esercizio personalizzato"
+                                 placeholder="Nome esercizio"
                                  style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
                                />
                              </div>
@@ -877,7 +862,6 @@ export default function TrainingApp() {
                    </div>
                  </div>
 
-                 {/* Visualizzazione tab orizzontale in creazione con spostamento (⬅️ ➡️) e Clona (📋) */}
                  <div>
                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px', alignItems: 'center' }}>
                      {programDays.map((day, idx) => (
@@ -943,25 +927,11 @@ export default function TrainingApp() {
                                <div style={{ marginBottom: '10px' }}>
                                  {block.type === 'forza' ? (
                                    <div>
-                                     <select
-                                       value={block.name}
-                                       onChange={(e) => handleSelectExerciseFromLibrary(
-                                         e.target.value,
-                                         (f, val) => updateFreeBlock(actualDIdx, bIdx, f, val),
-                                         (vUrl) => updateFreeBlock(actualDIdx, bIdx, 'videoUrl', vUrl)
-                                       )}
-                                       style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', marginBottom: '6px' }}
-                                     >
-                                       <option value="">-- Scegli Esercizio --</option>
-                                       {exerciseLibrary.map((ex) => (
-                                         <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                       ))}
-                                     </select>
                                      <input
                                        type="text"
                                        value={block.name}
                                        onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)}
-                                       placeholder="O digita nome personalizzato"
+                                       placeholder="Nome esercizio"
                                        style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
                                      />
                                    </div>
@@ -1181,7 +1151,34 @@ export default function TrainingApp() {
                                    return (
                                      <div key={bIdx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                         <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, marginRight: '10px' }}>
+                                           {blk.type === 'forza' ? (
+                                             <select
+                                               value={blk.name || ''}
+                                               onChange={(e) => {
+                                                 const val = e.target.value;
+                                                 const updatedProgLib = [...programLibrary];
+                                                 const pIndex = updatedProgLib.findIndex(p => p.id === prog.id);
+                                                 if (pIndex !== -1) {
+                                                   updatedProgLib[pIndex].days[realDayIndex].blocks[bIdx].name = val;
+                                                   const foundEx = exerciseLibrary.find(ex => ex.name === val);
+                                                   if (foundEx && foundEx.video_url) {
+                                                     updatedProgLib[pIndex].days[realDayIndex].blocks[bIdx].videoUrl = foundEx.video_url;
+                                                   }
+                                                   setProgramLibrary(updatedProgLib);
+                                                 }
+                                               }}
+                                               style={{ padding: '6px 8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', width: '100%' }}
+                                             >
+                                               <option value="">-- Scegli Esercizio (Menù Atleta) --</option>
+                                               {exerciseLibrary.map((ex) => (
+                                                 <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                               ))}
+                                             </select>
+                                           ) : (
+                                             <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                           )}
+                                         </div>
                                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                            {blk.videoUrl && (
                                              <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
