@@ -398,15 +398,6 @@ export default function TrainingApp() {
    setEditingProgram(updated);
  };
  
- const handleSelectExerciseFromLibrary = async (exName: string, updateBlockFunc: (field: string, val: any) => void, setVideoFunc: (val: string) => void) => {
-   updateBlockFunc('name', exName);
-   const found = exerciseLibrary.find(ex => ex.name === exName);
-   if (found && found.video_url) {
-     setVideoFunc(found.video_url);
-     updateBlockFunc('videoUrl', found.video_url);
-   }
- };
- 
  const addGlobalExercise = async (e: React.FormEvent) => {
    e.preventDefault();
    if (!newExName) return;
@@ -744,13 +735,25 @@ export default function TrainingApp() {
                          <div style={{ marginBottom: '10px' }}>
                            {block.type === 'forza' ? (
                              <div>
-                               <input
-                                 type="text"
+                               <select
                                  value={block.name || ''}
-                                 onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)}
-                                 placeholder="Nome esercizio"
-                                 style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
-                               />
+                                 onChange={(e) => {
+                                   const val = e.target.value;
+                                   const updated = { ...editingProgram };
+                                   updated.days[actualDIdx].blocks[bIdx].name = val;
+                                   const foundEx = exerciseLibrary.find(ex => ex.name === val);
+                                   if (foundEx && foundEx.video_url) {
+                                     updated.days[actualDIdx].blocks[bIdx].videoUrl = foundEx.video_url;
+                                   }
+                                   setEditingProgram(updated);
+                                 }}
+                                 style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }}
+                               >
+                                 <option value="">-- Seleziona Esercizio (Coach) --</option>
+                                 {exerciseLibrary.map((ex) => (
+                                   <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                 ))}
+                               </select>
                              </div>
                            ) : (
                              <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }} />
@@ -937,13 +940,23 @@ export default function TrainingApp() {
                                <div style={{ marginBottom: '10px' }}>
                                  {block.type === 'forza' ? (
                                    <div>
-                                     <input
-                                       type="text"
-                                       value={block.name}
-                                       onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)}
-                                       placeholder="Nome esercizio"
-                                       style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
-                                     />
+                                     <select
+                                       value={block.name || ''}
+                                       onChange={(e) => {
+                                         const val = e.target.value;
+                                         updateFreeBlock(actualDIdx, bIdx, 'name', val);
+                                         const foundEx = exerciseLibrary.find(ex => ex.name === val);
+                                         if (foundEx && foundEx.video_url) {
+                                           updateFreeBlock(actualDIdx, bIdx, 'videoUrl', foundEx.video_url);
+                                         }
+                                       }}
+                                       style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }}
+                                     >
+                                       <option value="">-- Seleziona Esercizio (Coach) --</option>
+                                       {exerciseLibrary.map((ex) => (
+                                         <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                       ))}
+                                     </select>
                                    </div>
                                  ) : (
                                    <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }} />
@@ -1162,32 +1175,7 @@ export default function TrainingApp() {
                                      <div key={bIdx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, marginRight: '10px' }}>
-                                           {blk.type === 'forza' ? (
-                                             <select
-                                               value={blk.name || ''}
-                                               onChange={(e) => {
-                                                 const val = e.target.value;
-                                                 const updatedProgLib = [...programLibrary];
-                                                 const pIndex = updatedProgLib.findIndex(p => p.id === prog.id);
-                                                 if (pIndex !== -1) {
-                                                   updatedProgLib[pIndex].days[realDayIndex].blocks[bIdx].name = val;
-                                                   const foundEx = exerciseLibrary.find(ex => ex.name === val);
-                                                   if (foundEx && foundEx.video_url) {
-                                                     updatedProgLib[pIndex].days[realDayIndex].blocks[bIdx].videoUrl = foundEx.video_url;
-                                                   }
-                                                   setProgramLibrary(updatedProgLib);
-                                                 }
-                                               }}
-                                               style={{ padding: '6px 8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', width: '100%' }}
-                                             >
-                                               <option value="">-- Scegli Esercizio (Menù Atleta) --</option>
-                                               {exerciseLibrary.map((ex) => (
-                                                 <option key={ex.id} value={ex.name}>{ex.name}</option>
-                                               ))}
-                                             </select>
-                                           ) : (
-                                             <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                           )}
+                                           <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
                                          </div>
                                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                            {blk.videoUrl && (
@@ -1242,13 +1230,17 @@ export default function TrainingApp() {
                                        <div style={{ marginTop: '12px', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                          <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                           <input
-                                             type="text"
-                                             placeholder="Score (es. 100kg / 8:30)"
+                                           <select
                                              value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.score || ''}
                                              onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'score', e.target.value)}
                                              style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                           />
+                                           >
+                                             <option value="">-- Seleziona Blocco / Esito --</option>
+                                             <option value="Completato Rx">Completato Rx</option>
+                                             <option value="Completato Scaled">Completato Scaled</option>
+                                             <option value="Fallito">Fallito</option>
+                                             <option value="Altro">Altro</option>
+                                           </select>
                                            <input
                                              type="text"
                                              placeholder="Note personali..."
