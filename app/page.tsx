@@ -1221,17 +1221,13 @@ export default function TrainingApp() {
                                        <div style={{ marginTop: '12px', background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                          <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                           <select
+                                           <input
+                                             type="text"
+                                             placeholder="Score (es. 100kg / 8:30)"
                                              value={athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.score || ''}
                                              onChange={(e) => handleResultChange(prog.id, `${realDayIndex}_${bIdx}`, 'score', e.target.value)}
                                              style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                           >
-                                             <option value="">-- Seleziona Blocco / Esito --</option>
-                                             <option value="Completato Rx">Completato Rx</option>
-                                             <option value="Completato Scaled">Completato Scaled</option>
-                                             <option value="Fallito">Fallito</option>
-                                             <option value="Altro">Altro</option>
-                                           </select>
+                                           />
                                            <input
                                              type="text"
                                              placeholder="Note personali..."
