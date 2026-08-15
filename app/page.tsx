@@ -44,8 +44,6 @@ export default function TrainingApp() {
  const [selectedAthlete, setSelectedAthlete] = useState('');
  const [programTitle, setProgramTitle] = useState('');
  
- const [useCalendar, setUseCalendar] = useState<boolean>(true);
- 
  const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
  const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
  
@@ -175,7 +173,6 @@ export default function TrainingApp() {
        id: item.id,
        title: item.title,
        assignedAthleteId: item.assigned_athlete_id || '',
-       useCalendar: item.use_calendar || false,
        days: item.days || []
      }));
      setProgramLibrary(formatted);
@@ -450,7 +447,6 @@ export default function TrainingApp() {
    const newProgram = {
      title: programTitle,
      assigned_athlete_id: selectedAthlete || null,
-     use_calendar: useCalendar,
      days: programDays
    };
  
@@ -470,7 +466,6 @@ export default function TrainingApp() {
    const duplicatedProgram = {
      title: `${prog.title} (Copia)`,
      assigned_athlete_id: prog.assignedAthleteId || null,
-     use_calendar: prog.useCalendar || false,
      days: prog.days || []
    };
  
@@ -735,7 +730,9 @@ export default function TrainingApp() {
                          <div style={{ marginBottom: '10px' }}>
                            {block.type === 'forza' ? (
                              <div>
-                               <select
+                               <input
+                                 type="text"
+                                 list={`ex_list_edit_${actualDIdx}_${bIdx}`}
                                  value={block.name || ''}
                                  onChange={(e) => {
                                    const val = e.target.value;
@@ -747,16 +744,17 @@ export default function TrainingApp() {
                                    }
                                    setEditingProgram(updated);
                                  }}
-                                 style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }}
-                               >
-                                 <option value="">-- Seleziona Esercizio (Coach) --</option>
+                                 placeholder="Inserisci o seleziona esercizio..."
+                                 style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
+                               />
+                               <datalist id={`ex_list_edit_${actualDIdx}_${bIdx}`}>
                                  {exerciseLibrary.map((ex) => (
-                                   <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                   <option key={ex.id} value={ex.name} />
                                  ))}
-                               </select>
+                               </datalist>
                              </div>
                            ) : (
-                             <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }} />
+                             <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                            )}
                          </div>
 
@@ -859,16 +857,6 @@ export default function TrainingApp() {
                      ))}
                    </select>
                  </div>
- 
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-                   <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <div>
-                       <span style={{ fontSize: '14px', fontWeight: 'bold', display: 'block', color: '#000' }}>Usa Calendario Semplice (Giorno 1, 2, 3...)</span>
-                       <span style={{ fontSize: '12px', color: '#64748b' }}>Attiva per strutturare il programma in giornate progressive</span>
-                     </div>
-                     <input type="checkbox" checked={useCalendar} onChange={(e) => setUseCalendar(e.target.checked)} style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#10b981' }} />
-                   </div>
-                 </div>
 
                  <div>
                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
@@ -940,7 +928,9 @@ export default function TrainingApp() {
                                <div style={{ marginBottom: '10px' }}>
                                  {block.type === 'forza' ? (
                                    <div>
-                                     <select
+                                     <input
+                                       type="text"
+                                       list={`ex_list_create_${actualDIdx}_${bIdx}`}
                                        value={block.name || ''}
                                        onChange={(e) => {
                                          const val = e.target.value;
@@ -950,16 +940,17 @@ export default function TrainingApp() {
                                            updateFreeBlock(actualDIdx, bIdx, 'videoUrl', foundEx.video_url);
                                          }
                                        }}
-                                       style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }}
-                                     >
-                                       <option value="">-- Seleziona Esercizio (Coach) --</option>
+                                       placeholder="Inserisci o seleziona esercizio..."
+                                       style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
+                                     />
+                                     <datalist id={`ex_list_create_${actualDIdx}_${bIdx}`}>
                                        {exerciseLibrary.map((ex) => (
-                                         <option key={ex.id} value={ex.name}>{ex.name}</option>
+                                         <option key={ex.id} value={ex.name} />
                                        ))}
-                                     </select>
+                                     </datalist>
                                    </div>
                                  ) : (
-                                   <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold' }} />
+                                   <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                  )}
                                </div>
 
