@@ -303,7 +303,7 @@ const toggleBlockCollapse = (blockKey: string) => {
 const toggleProgramDayCollapse = (key: string) => {
   setCollapsedProgramDays(prev => ({
     ...prev,
-    [key]: !prev[key]
+    [key]: prev[key] === undefined ? false : !prev[key]
   }));
 };
  
@@ -1173,7 +1173,7 @@ return (
                         {prog.days?.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
                           const realDayIndex = prog.days.findIndex((d: any) => d.dayName === day.dayName);
                           const dayCollapseKey = `${prog.id}_day_${realDayIndex}`;
-                          const isDayClosed = collapsedProgramDays[dayCollapseKey] || false;
+                          const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
 
                           return (
                             <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
