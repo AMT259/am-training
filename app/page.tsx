@@ -39,6 +39,8 @@ const [password, setPassword] = useState('');
 const [fullName, setFullName] = useState('');
 const [authError, setAuthError] = useState('');
 const [isRegistering, setIsRegistering] = useState(false);
+const [isResettingPassword, setIsResettingPassword] = useState(false);
+const [resetMessage, setResetMessage] = useState('');
  
 const [athletes, setAthletes] = useState<any[]>([]);
 const [selectedAthlete, setSelectedAthlete] = useState('');
@@ -47,7 +49,6 @@ const [programTitle, setProgramTitle] = useState('');
 const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
 const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
 const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
-// Stato per gestire il giorno selezionato nella vista risultati del coach
 const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
  
 const [programDays, setProgramDays] = useState<any[]>([
@@ -287,6 +288,22 @@ const handleSignUp = async (e: React.FormEvent) => {
  } else {
    alert('Registrazione effettuata con successo! Controlla la tua email se è richiesta la conferma.');
    setIsRegistering(false);
+ }
+};
+
+const handlePasswordReset = async (e: React.FormEvent) => {
+ e.preventDefault();
+ setAuthError('');
+ setResetMessage('');
+ 
+ const { error } = await supabase.auth.resetPasswordForEmail(email, {
+   redirectTo: window.location.origin,
+ });
+ 
+ if (error) {
+   setAuthError(error.message);
+ } else {
+   setResetMessage('Controlla la tua email per il link di recupero della password.');
  }
 };
  
@@ -561,24 +578,36 @@ if (!session) {
        <h1 style={{ color: '#10b981', margin: 0, fontSize: '24px' }}>AM TRAINING</h1>
      </div>
    
-     <form onSubmit={isRegistering ? handleSignUp : handleLogin} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
+     <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
-       <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+       
+       {!isResettingPassword && (
+         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+       )}
      
-       {isRegistering && (
+       {isRegistering && !isResettingPassword && (
          <input type="text" placeholder="Nome Completo" value={fullName} onChange={(e) => setFullName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
        )}
  
        {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
+       {resetMessage && <p style={{ color: '#10b981', fontSize: '14px' }}>{resetMessage}</p>}
      
        <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
-         {isRegistering ? 'Registrati' : 'Accedi'}
+         {isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi')}
        </button>
      </form>
  
-     <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }} style={{ marginTop: '16px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
-       {isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
-     </button>
+     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+       {!isResettingPassword && (
+         <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
+           {isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
+         </button>
+       )}
+       
+       <button onClick={() => { setIsResettingPassword(!isResettingPassword); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
+         {isResettingPassword ? 'Torna al Login' : 'Password dimenticata?'}
+       </button>
+     </div>
    </div>
  );
 }
@@ -1075,7 +1104,6 @@ return (
                        <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                          <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                          
-                         {/* Selettore giorni in modalità orizzontale */}
                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                            {prog.days?.map((day: any) => (
                              <button
@@ -1087,8 +1115,7 @@ return (
                              </button>
                            ))}
                          </div>
-
-                         {/* Dettaglio risultati del giorno attivo */}
+ 
                          <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                            {Object.keys(progResultsByAthlete).length === 0 ? (
                              <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
@@ -1102,17 +1129,16 @@ return (
                                return athletes.map((ath) => {
                                  const resObj = progResultsByAthlete[ath.id];
                                  if (!resObj) return null;
-
-                                 // Verifica se l'atleta ha inserito almeno un risultato in questo giorno specifico
+ 
                                  const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
                                    const blockKey = `${dayIndex}_${bIdx}`;
                                    return resObj[blockKey]?.score || resObj[blockKey]?.notes;
                                  });
-
+ 
                                  if (!hasResultsForThisDay) return null;
-
+ 
                                  const athName = ath.full_name || ath.email;
-
+ 
                                  return (
                                    <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
                                      <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
@@ -1121,7 +1147,7 @@ return (
                                          const blockKey = `${dayIndex}_${bIdx}`;
                                          const blockData = resObj[blockKey];
                                          if (!blockData || (!blockData.score && !blockData.notes)) return null;
-
+ 
                                          return (
                                            <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                              <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
