@@ -1,12 +1,12 @@
 'use client';
- 
+
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
- 
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
- 
+
 const STRENGTH_EXERCISES = [
   'Back Squat',
   'Deadlift',
@@ -27,9 +27,9 @@ const STRENGTH_EXERCISES = [
   'Clean & Jerk',
   'Panca Piana'
 ];
- 
+
 const REP_SCHEMES = [1, 3, 5, 10];
- 
+
 export default function TrainingApp() {
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<'coach' | 'athlete'>('athlete');
@@ -41,17 +41,17 @@ export default function TrainingApp() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
- 
+
   const [athletes, setAthletes] = useState<any[]>([]);
   // Selezione multipla atleti durante la creazione
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
- 
+
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
   const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
- 
+
   const [programDays, setProgramDays] = useState<any[]>([
     {
       dayNumber: 1,
@@ -59,44 +59,44 @@ export default function TrainingApp() {
       blocks: []
     }
   ]);
- 
+
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
- 
+
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile'>('create');
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
- 
+
   const [selectedDayView, setSelectedDayView] = useState('Giorno 1');
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
- 
+
   const [newExName, setNewExName] = useState('');
   const [newExVideo, setNewExVideo] = useState('');
- 
+
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
- 
+
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: { [reps: number]: string } }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
- 
+
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
- 
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchUserProfile(session.user.id);
       setLoading(false);
     });
- 
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) fetchUserProfile(session.user.id);
     });
- 
+
     return () => subscription.unsubscribe();
   }, []);
- 
+
   useEffect(() => {
     if (session) {
       fetchProgramLibrary();
@@ -109,35 +109,35 @@ export default function TrainingApp() {
         fetchAthleteResults();
         fetchAthleteMaxes(session.user.id);
       }
- 
+
       const channel = supabase
         .channel('realtime-programs')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
           fetchProgramLibrary();
         })
         .subscribe();
- 
+
       const exChannel = supabase
         .channel('realtime-exercises')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
           fetchExerciseLibrary();
         })
         .subscribe();
- 
+
       const resultsChannel = supabase
         .channel('realtime-results')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
           if (role === 'coach') fetchAllAthleteResultsForCoach();
         })
         .subscribe();
- 
+
       const maxesChannel = supabase
         .channel('realtime-maxes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
           if (role === 'coach') fetchAllAthleteMaxesForCoach();
         })
         .subscribe();
- 
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(exChannel);
@@ -146,7 +146,7 @@ export default function TrainingApp() {
       };
     }
   }, [session, role]);
- 
+
   useEffect(() => {
     if (programLibrary.length > 0) {
       const initialDays: { [id: string]: string } = {};
@@ -160,17 +160,17 @@ export default function TrainingApp() {
       }
     }
   }, [programLibrary]);
- 
+
   const fetchUserProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
     if (data) setRole(data.role);
   };
- 
+
   const fetchAthletes = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('role', 'athlete');
     if (data) setAthletes(data);
   };
- 
+
   const fetchProgramLibrary = async () => {
     const { data } = await supabase.from('programs').select('*');
     if (data) {
@@ -184,12 +184,12 @@ export default function TrainingApp() {
       setProgramLibrary(formatted);
     }
   };
- 
+
   const fetchExerciseLibrary = async () => {
     const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
     if (data) setExerciseLibrary(data);
   };
- 
+
   const fetchAthleteResults = async () => {
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
     if (data) {
@@ -200,7 +200,7 @@ export default function TrainingApp() {
       setAthleteResults(resultsMap);
     }
   };
- 
+
   const fetchAllAthleteResultsForCoach = async () => {
     const { data } = await supabase.from('program_results').select('*');
     if (data) {
@@ -212,7 +212,7 @@ export default function TrainingApp() {
       setCoachAllResults(map);
     }
   };
- 
+
   const fetchAthleteMaxes = async (athleteId: string) => {
     const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
     if (data && data.maxes) {
@@ -221,7 +221,7 @@ export default function TrainingApp() {
       setAthleteMaxes({});
     }
   };
- 
+
   const fetchAllAthleteMaxesForCoach = async () => {
     const { data } = await supabase.from('athlete_maxes').select('*');
     if (data) {
@@ -232,12 +232,12 @@ export default function TrainingApp() {
       setCoachAthleteMaxes(map);
     }
   };
- 
+
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
     const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
     const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
     setAthleteMaxes(updatedAll);
- 
+
     await supabase.from('athlete_maxes').upsert(
       {
         athlete_id: session.user.id,
@@ -247,16 +247,16 @@ export default function TrainingApp() {
       { onConflict: 'athlete_id' }
     );
   };
- 
+
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string) => {
     const currentProgResults = athleteResults[programId] || {};
     const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
- 
+
     const updatedBlockResults = { ...currentBlockResults, [field]: value };
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
- 
+
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
- 
+
     await supabase.from('program_results').upsert(
       {
         program_id: programId,
@@ -267,14 +267,14 @@ export default function TrainingApp() {
       { onConflict: 'program_id, athlete_id' }
     );
   };
- 
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setAuthError(error.message);
   };
- 
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -297,30 +297,30 @@ export default function TrainingApp() {
     e.preventDefault();
     setAuthError('');
     setResetMessage('');
- 
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
- 
+
     if (error) {
       setAuthError(error.message);
     } else {
       setResetMessage('Controlla la tua email per il link di recupero della password.');
     }
   };
- 
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
   };
- 
+
   const toggleBlockCollapse = (blockKey: string) => {
     setCollapsedBlocks(prev => ({
       ...prev,
       [blockKey]: prev[blockKey] === undefined ? true : !prev[blockKey]
     }));
   };
- 
+
   const toggleProgramDayCollapse = (key: string) => {
     setCollapsedProgramDays(prev => ({
       ...prev,
@@ -336,7 +336,7 @@ export default function TrainingApp() {
       setListFn([...currentList, athleteId]);
     }
   };
- 
+
   const addDay = () => {
     const nextNumber = programDays.length + 1;
     const newName = `Giorno ${nextNumber}`;
@@ -350,12 +350,12 @@ export default function TrainingApp() {
     ]);
     setSelectedDayView(newName);
   };
- 
+
   const cloneDay = (dayToClone: any) => {
     const nextNumber = programDays.length + 1;
     const clonedName = `${dayToClone.dayName} (Copia)`;
     const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
- 
+
     const newDays = [
       ...programDays,
       {
@@ -367,13 +367,13 @@ export default function TrainingApp() {
     setProgramDays(newDays);
     setSelectedDayView(clonedName);
   };
- 
+
   const cloneEditingDay = (dayToClone: any) => {
     const updated = { ...editingProgram };
     if (!updated.days) updated.days = [];
     const clonedName = `${dayToClone.dayName} (Copia)`;
     const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
- 
+
     updated.days.push({
       dayNumber: updated.days.length + 1,
       dayName: clonedName,
@@ -382,7 +382,7 @@ export default function TrainingApp() {
     setEditingProgram(updated);
     setSelectedDayView(clonedName);
   };
- 
+
   const moveDayOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= programDays.length) return;
@@ -392,7 +392,7 @@ export default function TrainingApp() {
     updated[newIndex] = temp;
     setProgramDays(updated);
   };
- 
+
   const moveEditingDayOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
     const updated = { ...editingProgram };
@@ -402,13 +402,13 @@ export default function TrainingApp() {
     updated.days[newIndex] = temp;
     setEditingProgram(updated);
   };
- 
+
   const removeBlockFromFreeDay = (dayIndex: number, blockIndex: number) => {
     const updated = [...programDays];
     updated[dayIndex].blocks.splice(blockIndex, 1);
     setProgramDays(updated);
   };
- 
+
   const moveFreeBlock = (dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
     const updated = [...programDays];
     const blocks = [...updated[dayIndex].blocks];
@@ -420,7 +420,7 @@ export default function TrainingApp() {
     updated[dayIndex].blocks = blocks;
     setProgramDays(updated);
   };
- 
+
   const moveEditingBlock = (dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
     const updated = { ...editingProgram };
     const blocks = [...updated.days[dayIndex].blocks];
@@ -432,7 +432,7 @@ export default function TrainingApp() {
     updated.days[dayIndex].blocks = blocks;
     setEditingProgram(updated);
   };
- 
+
   const addGlobalExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName) return;
@@ -445,14 +445,14 @@ export default function TrainingApp() {
       fetchExerciseLibrary();
     }
   };
- 
+
   const deleteGlobalExercise = async (id: string) => {
     if (confirm('Vuoi eliminare questo esercizio dalla libreria?')) {
       await supabase.from('exercises_library').delete().eq('id', id);
       fetchExerciseLibrary();
     }
   };
- 
+
   const addBlockToFreeDay = (dayIndex: number) => {
     const updated = [...programDays];
     updated[dayIndex].blocks.push({
@@ -469,27 +469,27 @@ export default function TrainingApp() {
     });
     setProgramDays(updated);
   };
- 
+
   const updateFreeBlock = (dayIndex: number, blockIndex: number, field: string, value: any) => {
     const updated = [...programDays];
     updated[dayIndex].blocks[blockIndex][field] = value;
     setProgramDays(updated);
   };
- 
+
   const saveProgramToLibrary = async () => {
     if (!programTitle) {
       alert('Inserisci un titolo per il programma');
       return;
     }
- 
+
     const newProgram = {
       title: programTitle,
       assigned_athlete_ids: selectedAthleteIds,
       days: programDays
     };
- 
+
     const { error } = await supabase.from('programs').insert([newProgram]);
- 
+
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
@@ -500,16 +500,16 @@ export default function TrainingApp() {
       fetchProgramLibrary();
     }
   };
- 
+
   const duplicateProgram = async (prog: any) => {
     const duplicatedProgram = {
       title: `${prog.title} (Copia)`,
       assigned_athlete_ids: prog.assignedAthleteIds || [],
       days: prog.days || []
     };
- 
+
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
- 
+
     if (error) {
       alert('Errore durante la duplicazione: ' + error.message);
     } else {
@@ -517,13 +517,13 @@ export default function TrainingApp() {
       fetchProgramLibrary();
     }
   };
- 
+
   const updateEditingBlock = (dayIndex: number, blockIndex: number, field: string, value: any) => {
     const updated = { ...editingProgram };
     updated.days[dayIndex].blocks[blockIndex][field] = value;
     setEditingProgram(updated);
   };
- 
+
   const addBlockToEditingDay = (dayIndex: number) => {
     const updated = { ...editingProgram };
     if (!updated.days[dayIndex].blocks) updated.days[dayIndex].blocks = [];
@@ -541,13 +541,13 @@ export default function TrainingApp() {
     });
     setEditingProgram(updated);
   };
- 
+
   const saveEditedProgram = async () => {
     if (!editingProgram.title) {
       alert('Il titolo non può essere vuoto');
       return;
     }
- 
+
     const { error } = await supabase
       .from('programs')
       .update({
@@ -556,7 +556,7 @@ export default function TrainingApp() {
         days: editingProgram.days
       })
       .eq('id', editingProgram.id);
- 
+
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
@@ -565,14 +565,14 @@ export default function TrainingApp() {
       fetchProgramLibrary();
     }
   };
- 
+
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
       const { error } = await supabase.from('programs').delete().eq('id', id);
       if (error) alert('Errore: ' + error.message);
     }
   };
- 
+
   if (loading) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
@@ -581,7 +581,7 @@ export default function TrainingApp() {
       </div>
     );
   }
- 
+
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -600,7 +600,7 @@ export default function TrainingApp() {
           {isRegistering && !isResettingPassword && (
             <input type="text" placeholder="Nome Completo" value={fullName} onChange={(e) => setFullName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
           )}
- 
+
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
           {resetMessage && <p style={{ color: '#10b981', fontSize: '14px' }}>{resetMessage}</p>}
         
@@ -608,7 +608,7 @@ export default function TrainingApp() {
             {isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi')}
           </button>
         </form>
- 
+
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
           {!isResettingPassword && (
             <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
@@ -623,17 +623,17 @@ export default function TrainingApp() {
       </div>
     );
   }
- 
+
   // Gli atleti vedono i programmi a loro assegnati o quelli generali (array vuoto)
   const athletePrograms = programLibrary.filter(
     (prog) => !prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session?.user?.id)
   );
- 
+
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
- 
+
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
@@ -646,14 +646,14 @@ export default function TrainingApp() {
         </div>
         <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
       </header>
- 
+
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
           </div>
- 
+
           {coachSubView === 'athletes' ? (
             <div>
               {selectedCoachAthlete ? (
@@ -662,7 +662,7 @@ export default function TrainingApp() {
                     <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Massimali di: {selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
- 
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {STRENGTH_EXERCISES.map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
@@ -706,10 +706,10 @@ export default function TrainingApp() {
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
                 <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
               </div>
- 
+
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '16px', boxSizing: 'border-box' }} />
- 
+
               {/* Selezione Multipla Atleti in Modifica */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
@@ -736,7 +736,7 @@ export default function TrainingApp() {
                   })}
                 </div>
               </div>
- 
+
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                 {editingProgram.days?.map((day: any, idx: number) => {
                   const isSelected = selectedDayView === day.dayName;
@@ -754,7 +754,7 @@ export default function TrainingApp() {
                   );
                 })}
               </div>
- 
+
               {editingProgram.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                 const actualDIdx = editingProgram.days.findIndex((d: any) => d.dayName === selectedDayView);
                 return (
@@ -782,11 +782,11 @@ export default function TrainingApp() {
                         }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                       )}
                     </div>
- 
+
                     {day.blocks?.map((block: any, bIdx: number) => {
                       const blockKey = `edit_${actualDIdx}_${bIdx}`;
                       const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
- 
+
                       return (
                         <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -805,7 +805,7 @@ export default function TrainingApp() {
                               }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
                             </div>
                           </div>
- 
+
                           <div style={{ marginBottom: '10px' }}>
                             {block.type === 'forza' ? (
                               <div>
@@ -836,7 +836,7 @@ export default function TrainingApp() {
                               <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                             )}
                           </div>
- 
+
                           {!isClosed && (
                             <div>
                               <div style={{ marginBottom: '10px' }}>
@@ -890,7 +890,7 @@ export default function TrainingApp() {
                   </div>
                 );
               })}
- 
+
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -900,7 +900,7 @@ export default function TrainingApp() {
                 <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
                 <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
- 
+
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
@@ -949,7 +949,7 @@ export default function TrainingApp() {
                       )}
                     </div>
                   </div>
- 
+
                   <div>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                       {programDays.map((day, idx) => {
@@ -968,7 +968,7 @@ export default function TrainingApp() {
                         );
                       })}
                     </div>
- 
+
                     {programDays.filter((d) => d.dayName === selectedDayView).map((day) => {
                       const actualDIdx = programDays.findIndex((d) => d.dayName === selectedDayView);
                       return (
@@ -996,11 +996,11 @@ export default function TrainingApp() {
                               }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                             )}
                           </div>
- 
+
                           {day.blocks.map((block: any, bIdx: number) => {
                             const blockKey = `prog_${actualDIdx}_${bIdx}`;
                             const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
- 
+
                             return (
                               <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1015,7 +1015,7 @@ export default function TrainingApp() {
                                     <button type="button" onClick={() => removeBlockFromFreeDay(actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
                                   </div>
                                 </div>
- 
+
                                 <div style={{ marginBottom: '10px' }}>
                                   {block.type === 'forza' ? (
                                     <div>
@@ -1044,7 +1044,7 @@ export default function TrainingApp() {
                                     <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                   )}
                                 </div>
- 
+
                                 {!isClosed && (
                                   <div>
                                     <div style={{ marginBottom: '10px' }}>
@@ -1100,7 +1100,7 @@ export default function TrainingApp() {
                     })}
                     <button onClick={addDay} style={{ width: '100%', padding: '12px', background: '#f8fafc', border: '1px dashed #cbd5e1', color: '#000', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', marginBottom: '20px' }}>+ Aggiungi Nuovo Giorno</button>
                   </div>
- 
+
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
@@ -1119,7 +1119,7 @@ export default function TrainingApp() {
                       ))}
                     </select>
                   </div>
- 
+
                   {filteredLibraryPrograms.length === 0 ? (
                     <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
                   ) : (
@@ -1144,7 +1144,7 @@ export default function TrainingApp() {
                               <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
                           </div>
- 
+
                           <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             
@@ -1159,7 +1159,7 @@ export default function TrainingApp() {
                                 </button>
                               ))}
                             </div>
- 
+
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                               {Object.keys(progResultsByAthlete).length === 0 ? (
                                 <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
@@ -1173,16 +1173,16 @@ export default function TrainingApp() {
                                   return athletes.map((ath) => {
                                     const resObj = progResultsByAthlete[ath.id];
                                     if (!resObj) return null;
- 
+
                                     const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
                                       const blockKey = `${dayIndex}_${bIdx}`;
                                       return resObj[blockKey]?.score || resObj[blockKey]?.notes;
                                     });
- 
+
                                     if (!hasResultsForThisDay) return null;
- 
+
                                     const athName = ath.full_name || ath.email;
- 
+
                                     return (
                                       <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
                                         <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
@@ -1191,7 +1191,7 @@ export default function TrainingApp() {
                                             const blockKey = `${dayIndex}_${bIdx}`;
                                             const blockData = resObj[blockKey];
                                             if (!blockData || (!blockData.score && !blockData.notes)) return null;
- 
+
                                             return (
                                               <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
@@ -1225,7 +1225,7 @@ export default function TrainingApp() {
             <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
             <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
           </div>
- 
+
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
@@ -1261,7 +1261,7 @@ export default function TrainingApp() {
               ) : (
                 athletePrograms.map((prog) => {
                   const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (prog.days && prog.days.length > 0 ? prog.days[0].dayName : '');
- 
+
                   return (
                     <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
                       <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
@@ -1279,12 +1279,12 @@ export default function TrainingApp() {
                               </button>
                             ))}
                           </div>
- 
+
                           {prog.days?.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
                             const realDayIndex = prog.days.findIndex((d: any) => d.dayName === day.dayName);
                             const dayCollapseKey = `${prog.id}_day_${realDayIndex}`;
                             const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
- 
+
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
@@ -1297,7 +1297,7 @@ export default function TrainingApp() {
                                     {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
                                   </button>
                                 </div>
- 
+
                                 {!isDayClosed && (
                                   <div>
                                     {day.blocks?.length === 0 ? (
@@ -1306,7 +1306,7 @@ export default function TrainingApp() {
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realDayIndex}_${bIdx}`;
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
- 
+
                                         return (
                                           <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1322,7 +1322,7 @@ export default function TrainingApp() {
                                                 <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                               </div>
                                             </div>
- 
+
                                             {!isClosed && (
                                               <div>
                                                 {blk.type === 'forza' ? (
@@ -1362,7 +1362,7 @@ export default function TrainingApp() {
                                                 )}
                                               </div>
                                             )}
- 
+
                                             <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                               <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
                                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
