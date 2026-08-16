@@ -326,17 +326,25 @@ export default function TrainingApp() {
   };
 
   const toggleBlockCollapse = (blockKey: string) => {
-    setCollapsedBlocks(prev => ({
-      ...prev,
-      [blockKey]: prev[blockKey] === undefined ? true : !prev[blockKey]
-    }));
+    setCollapsedBlocks(prev => {
+      const defaultValue = role === 'athlete' ? true : true; // gestito direttamente nel render
+      const currentValue = prev[blockKey] === undefined ? defaultValue : prev[blockKey];
+      return {
+        ...prev,
+        [blockKey]: !currentValue
+      };
+    });
   };
 
   const toggleProgramDayCollapse = (key: string) => {
-    setCollapsedProgramDays(prev => ({
-      ...prev,
-      [key]: prev[key] === undefined ? false : !prev[key]
-    }));
+    setCollapsedProgramDays(prev => {
+      const defaultValue = role === 'athlete' ? true : false;
+      const currentValue = prev[key] === undefined ? defaultValue : prev[key];
+      return {
+        ...prev,
+        [key]: !currentValue
+      };
+    });
   };
 
   const toggleAthleteSelection = (athleteId: string, currentList: string[], setListFn: (list: string[]) => void) => {
@@ -1560,7 +1568,8 @@ export default function TrainingApp() {
                             const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
                             const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
                             const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
-                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? false : collapsedProgramDays[dayCollapseKey];
+                            // Di default CHIUSO (true) sul lato atleta
+                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
 
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
@@ -1583,7 +1592,8 @@ export default function TrainingApp() {
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                        const isClosed = collapsedBlocks[blockKey] === undefined ? false : collapsedBlocks[blockKey];
+                                        // Di default CHIUSO (true) sul lato atleta per gli esercizi
+                                        const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
                                         return (
                                           <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
@@ -1682,4 +1692,3 @@ export default function TrainingApp() {
     </div>
   );
 }
-
