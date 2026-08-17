@@ -29,11 +29,11 @@ export default function TrainingApp() {
   const [resetMessage, setResetMessage] = useState('');
 
   // --- STATO BANNER PUBBLICITARIO ---
-  const [bannerImageUrl, setBannerImageUrl] = useState('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop');
+  const [bannerImageUrl, setBannerImageUrl] = useState('https://irletozuhpjmmhrvqaml.supabase.co/storage/v1/object/public/banners/IMG-20260817-WA0003.jpg');
   const [bannerTargetUrl, setBannerTargetUrl] = useState('https://www.google.com');
 
   // Campi temporanei per l'area di modifica del coach
-  const [tempBannerImage, setTempBannerImage] = useState(bannerImageUrl);
+  const [tempBannerImage, setTempBannerImage] = useState('https://irletozuhpjmmhrvqaml.supabase.co/storage/v1/object/public/banners/IMG-20260817-WA0003.jpg');
   const [tempBannerTarget, setTempBannerTarget] = useState(bannerTargetUrl);
   const [bannerSaveMessage, setBannerSaveMessage] = useState('');
 
@@ -1794,28 +1794,29 @@ export default function TrainingApp() {
                                                     )}
                                                   </div>
                                                 ) : (
-                                                  <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                    <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                                    <p style={{ margin: 0, fontSize: '13px', color: '#000', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                  <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                                    <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
+                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
                                                   </div>
                                                 )}
 
+                                                {/* Area Inserimento Risultati Atleta */}
                                                 <div style={{ marginTop: '12px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>📝 IL TUO RISULTATO & NOTE:</span>
-                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                  <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 Il tuo Risultato:</span>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                                     <input
                                                       type="text"
-                                                      placeholder="Score (es. 100kg / 5:20)"
+                                                      placeholder="Score (es. 100kg, 12:30, ecc.)"
                                                       value={athleteResults[prog.id]?.[resultKey]?.score || ''}
                                                       onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)}
-                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}
+                                                      style={{ width: '100%', padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
                                                     />
                                                     <input
                                                       type="text"
-                                                      placeholder="Note personali..."
+                                                      placeholder="Note personali (es. sentito pesante, scalato a...)"
                                                       value={athleteResults[prog.id]?.[resultKey]?.notes || ''}
                                                       onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
-                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                                      style={{ width: '100%', padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
                                                     />
                                                   </div>
                                                 </div>
