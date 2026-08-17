@@ -261,6 +261,15 @@ export default function TrainingApp() {
     setTimeout(() => setBannerSaveMessage(''), 3000);
   };
 
+  // Funzione per gestire il caricamento dell'immagine dalla galleria
+  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const localUrl = URL.createObjectURL(file);
+      setTempBannerImage(localUrl);
+    }
+  };
+
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
     const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
     const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
@@ -1107,13 +1116,11 @@ export default function TrainingApp() {
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Configurazione Banner Pubblicitario</h3>
                   <form onSubmit={handleSaveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>URL Immagine Banner:</label>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>Seleziona Immagine dalla Gallerie / Dispositivo:</label>
                       <input 
-                        type="url" 
-                        value={tempBannerImage} 
-                        onChange={(e) => setTempBannerImage(e.target.value)} 
-                        placeholder="https://link-immagine.com/banner.jpg" 
-                        required 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleBannerFileChange}
                         style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} 
                       />
                     </div>
