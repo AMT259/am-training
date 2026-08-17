@@ -28,6 +28,10 @@ export default function TrainingApp() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
 
+  // --- STATO BANNER PUBBLICITARIO ---
+  const [bannerImageUrl, setBannerImageUrl] = useState('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop');
+  const [bannerTargetUrl, setBannerTargetUrl] = useState('https://www.google.com');
+
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
@@ -1693,6 +1697,23 @@ export default function TrainingApp() {
                   );
                 })
               )}
+
+              {/* BANNER PUBBLICITARIO (SOLO LATO UTENTE / ATLETA IN FONDO PAGINA) */}
+              <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                <a href={bannerTargetUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', width: '100%', maxWidth: '100%', textDecoration: 'none' }}>
+                  <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)' }}>
+                    <img 
+                      src={bannerImageUrl} 
+                      alt="Sponsor / Banner Pubblicitario" 
+                      style={{ width: '100%', height: 'auto', maxHeight: '140px', objectFit: 'cover', display: 'block' }} 
+                    />
+                    <span style={{ position: 'absolute', bottom: '6px', right: '8px', background: 'rgba(0, 0, 0, 0.6)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Sponsor
+                    </span>
+                  </div>
+                </a>
+              </div>
+
             </div>
           )}
         </div>
@@ -1700,4 +1721,3 @@ export default function TrainingApp() {
     </div>
   );
 }
-
