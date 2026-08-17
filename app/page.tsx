@@ -32,6 +32,11 @@ export default function TrainingApp() {
   const [bannerImageUrl, setBannerImageUrl] = useState('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop');
   const [bannerTargetUrl, setBannerTargetUrl] = useState('https://www.google.com');
 
+  // Campi temporanei per l'area di modifica del coach
+  const [tempBannerImage, setTempBannerImage] = useState(bannerImageUrl);
+  const [tempBannerTarget, setTempBannerTarget] = useState(bannerTargetUrl);
+  const [bannerSaveMessage, setBannerSaveMessage] = useState('');
+
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
@@ -60,7 +65,7 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'banner' | 'profile'>('create');
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
@@ -82,7 +87,7 @@ export default function TrainingApp() {
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
 
-  // Helper per la conversione/normalizzazione da vecchi programmi (con solo `days`) al formato con `weeks`
+  // Helper per la conversione/normalizzazione da vecchi programmi
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
     if (prog.days && prog.days.length > 0) {
@@ -246,6 +251,14 @@ export default function TrainingApp() {
       });
       setCoachAthleteMaxes(map);
     }
+  };
+
+  const handleSaveBanner = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBannerImageUrl(tempBannerImage);
+    setBannerTargetUrl(tempBannerTarget);
+    setBannerSaveMessage('Banner pubblicitario aggiornato con successo!');
+    setTimeout(() => setBannerSaveMessage(''), 3000);
   };
 
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
@@ -1085,9 +1098,61 @@ export default function TrainingApp() {
                 <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
                 <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
                 <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
+                <button onClick={() => setActiveTab('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
               </div>
 
-              {activeTab === 'exercises' ? (
+              {activeTab === 'banner' ? (
+                /* --- GESTIONE BANNER PUBBLICITARIO (COACH) --- */
+                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Configurazione Banner Pubblicitario</h3>
+                  <form onSubmit={handleSaveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>URL Immagine Banner:</label>
+                      <input 
+                        type="url" 
+                        value={tempBannerImage} 
+                        onChange={(e) => setTempBannerImage(e.target.value)} 
+                        placeholder="https://link-immagine.com/banner.jpg" 
+                        required 
+                        style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} 
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>URL di Destinazione (Link Cliccabile):</label>
+                      <input 
+                        type="url" 
+                        value={tempBannerTarget} 
+                        onChange={(e) => setTempBannerTarget(e.target.value)} 
+                        placeholder="https://sito-sponsor.com" 
+                        required 
+                        style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', boxSizing: 'border-box' }} 
+                      />
+                    </div>
+
+                    <div style={{ marginTop: '10px', padding: '12px', background: '#f1f5f9', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                      <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Anteprima Banner Utente:</span>
+                      <a href={tempBannerTarget} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', textDecoration: 'none' }}>
+                        <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
+                          <img 
+                            src={tempBannerImage} 
+                            alt="Anteprima Banner" 
+                            style={{ width: '100%', height: 'auto', maxHeight: '120px', objectFit: 'cover', display: 'block' }} 
+                          />
+                          <span style={{ position: 'absolute', bottom: '6px', right: '8px', background: 'rgba(0, 0, 0, 0.6)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase' }}>
+                            Sponsor
+                          </span>
+                        </div>
+                      </a>
+                    </div>
+
+                    {bannerSaveMessage && <p style={{ color: '#10b981', fontSize: '14px', margin: 0 }}>{bannerSaveMessage}</p>}
+
+                    <button type="submit" style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', marginTop: '6px' }}>
+                      Aggiorna Banner
+                    </button>
+                  </form>
+                </div>
+              ) : activeTab === 'exercises' ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
                   <form onSubmit={addGlobalExercise} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #e2e8f0' }}>
