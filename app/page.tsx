@@ -700,12 +700,12 @@ export default function TrainingApp() {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Frijole&family=Permanent+Marker&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
         `}</style>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
           <div>
-            <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Frijole', cursive", letterSpacing: '1px' }}>AMTraining</h1>
+            <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Permanent Marker', cursive", letterSpacing: '1px' }}>AMTraining</h1>
             <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '2px' }}>Improve Your Fitness</div>
           </div>
         </div>
@@ -756,13 +756,13 @@ export default function TrainingApp() {
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Frijole&family=Permanent+Marker&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
       `}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
           <div>
-            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Frijole', cursive", letterSpacing: '1px' }}>AMTraining</h2>
+            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Permanent Marker', cursive", letterSpacing: '1px' }}>AMTraining</h2>
             <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
