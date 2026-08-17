@@ -327,7 +327,7 @@ export default function TrainingApp() {
 
   const toggleBlockCollapse = (blockKey: string) => {
     setCollapsedBlocks(prev => {
-      const defaultValue = role === 'athlete' ? true : true; // gestito direttamente nel render
+      const defaultValue = role === 'athlete' ? true : true;
       const currentValue = prev[blockKey] === undefined ? defaultValue : prev[blockKey];
       return {
         ...prev,
@@ -593,7 +593,7 @@ export default function TrainingApp() {
       title: programTitle,
       assigned_athlete_ids: selectedAthleteIds,
       weeks: programWeeks,
-      days: programWeeks[0]?.days || [] // Per garantire retrocompatibilità se richiesta dal DB
+      days: programWeeks[0]?.days || []
     };
 
     const { error } = await supabase.from('programs').insert([newProgram]);
@@ -700,28 +700,13 @@ export default function TrainingApp() {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <style>{`
-          @font-face {
-            font-family: 'WasbanterngsilpNP';
-            src: url('/fonts/WasbanterngsilpNP.woff2') format('woff2'),
-                 url('/fonts/WasbanterngsilpNP.woff') format('woff'),
-                 url('/fonts/WasbanterngsilpNP.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-          }
-          @font-face {
-            font-family: 'OWNeD';
-            src: url('/fonts/OWNeD.woff2') format('woff2'),
-                 url('/fonts/OWNeD.woff') format('woff'),
-                 url('/fonts/OWNeD.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-          }
+          @import url('https://fonts.googleapis.com/css2?family=Frijole&family=Permanent+Marker&display=swap');
         `}</style>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
           <div>
-            <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'WasbanterngsilpNP', sans-serif" }}>AMTraining</h1>
-            <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'OWNeD', sans-serif", marginTop: '2px' }}>Improve Your Fitness</div>
+            <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Frijole', cursive", letterSpacing: '1px' }}>AMTraining</h1>
+            <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '2px' }}>Improve Your Fitness</div>
           </div>
         </div>
       
@@ -771,29 +756,14 @@ export default function TrainingApp() {
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`
-        @font-face {
-          font-family: 'WasbanterngsilpNP';
-          src: url('/fonts/WasbanterngsilpNP.woff2') format('woff2'),
-               url('/fonts/WasbanterngsilpNP.woff') format('woff'),
-               url('/fonts/WasbanterngsilpNP.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
-        @font-face {
-          font-family: 'OWNeD';
-          src: url('/fonts/OWNeD.woff2') format('woff2'),
-               url('/fonts/OWNeD.woff') format('woff'),
-               url('/fonts/OWNeD.ttf') format('truetype');
-          font-weight: normal;
-          font-style: normal;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Frijole&family=Permanent+Marker&display=swap');
       `}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
           <div>
-            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'WasbanterngsilpNP', sans-serif" }}>AMTraining</h2>
-            <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'OWNeD', sans-serif" }}>Improve Your Fitness</div>
+            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Frijole', cursive", letterSpacing: '1px' }}>AMTraining</h2>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
@@ -1608,7 +1578,6 @@ export default function TrainingApp() {
                             const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
                             const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
                             const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
-                            // Di default CHIUSO (true) sul lato atleta
                             const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
 
                             return (
@@ -1632,7 +1601,6 @@ export default function TrainingApp() {
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                        // Di default CHIUSO (true) sul lato atleta per gli esercizi
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
                                         return (
