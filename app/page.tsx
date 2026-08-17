@@ -1796,31 +1796,31 @@ export default function TrainingApp() {
                                                 ) : (
                                                   <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                                     <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>WOD / CIRCUITO</span>
-                                                    <p style={{ fontSize: '12px', color: '#334151', whiteSpace: 'pre-wrap', margin: 0 }}>{blk.wodNotes}</p>
+                                                    <p style={{ margin: 0, fontSize: '13px', color: '#000', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
                                                   </div>
                                                 )}
+
+                                                <div style={{ marginTop: '12px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                                  <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>📝 IL TUO RISULTATO & NOTE:</span>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                    <input
+                                                      type="text"
+                                                      placeholder="Score (es. 100kg / 5:20)"
+                                                      value={athleteResults[prog.id]?.[resultKey]?.score || ''}
+                                                      onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)}
+                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}
+                                                    />
+                                                    <input
+                                                      type="text"
+                                                      placeholder="Note personali..."
+                                                      value={athleteResults[prog.id]?.[resultKey]?.notes || ''}
+                                                      onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
+                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                                    />
+                                                  </div>
+                                                </div>
                                               </div>
                                             )}
-
-                                            <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                              <span style={{ fontSize: '10px', color: '#10b981', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>✍️ I TUOI RISULTATI / NOTE</span>
-                                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                                <input
-                                                  type="text"
-                                                  placeholder="Score (es. 100kg / 8:30)"
-                                                  value={athleteResults[prog.id]?.[resultKey]?.score || athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.score || ''}
-                                                  onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)}
-                                                  style={{ width: '100%', padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                                />
-                                                <input
-                                                  type="text"
-                                                  placeholder="Note personali..."
-                                                  value={athleteResults[prog.id]?.[resultKey]?.notes || athleteResults[prog.id]?.[`${realDayIndex}_${bIdx}`]?.notes || ''}
-                                                  onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
-                                                  style={{ width: '100%', padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
-                                                />
-                                              </div>
-                                            </div>
                                           </div>
                                         );
                                       })
