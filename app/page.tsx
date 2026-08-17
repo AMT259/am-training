@@ -42,6 +42,11 @@ export default function TrainingApp() {
   const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
 
+  // Stato per il Banner Pubblicitario
+  const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [bannerSaving, setBannerSaving] = useState(false);
+
   // Struttura Settimane per il nuovo programma
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
@@ -56,8 +61,8 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile'>('create');
-  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes'>('programs');
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
   // Selezione della vista corrente durante creazione/modifica
@@ -106,6 +111,7 @@ export default function TrainingApp() {
     if (session) {
       fetchProgramLibrary();
       fetchExerciseLibrary();
+      fetchBanner();
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -119,6 +125,13 @@ export default function TrainingApp() {
         .channel('realtime-programs')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
           fetchProgramLibrary();
+        })
+        .subscribe();
+
+      const bannerChannel = supabase
+        .channel('realtime-banner')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
+          fetchBanner();
         })
         .subscribe();
 
@@ -145,6 +158,7 @@ export default function TrainingApp() {
 
       return () => {
         supabase.removeChannel(channel);
+        supabase.removeChannel(bannerChannel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
         supabase.removeChannel(maxesChannel);
@@ -181,6 +195,60 @@ export default function TrainingApp() {
   const fetchAthletes = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('role', 'athlete');
     if (data) setAthletes(data);
+  };
+
+  const fetchBanner = async () => {
+    const { data } = await supabase.from('settings').select('*').eq('key', 'app_banner').single();
+    if (data && data.value) {
+      setBannerData(data.value);
+    }
+  };
+
+  const saveBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBannerSaving(true);
+
+    let imageUrl = bannerData.image_url;
+
+    try {
+      if (bannerImageFile) {
+        const fileExt = bannerImageFile.name.split('.').pop();
+        const fileName = `banner_${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('banners')
+          .upload(filePath, bannerImageFile);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: publicURLData } = supabase.storage
+          .from('banners')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicURLData.publicUrl;
+      }
+
+      const newBannerValue = { image_url: imageUrl, link_url: bannerData.link_url };
+
+      const { error } = await supabase.from('settings').upsert({
+        key: 'app_banner',
+        value: newBannerValue,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+      if (error) throw error;
+
+      setBannerData(newBannerValue);
+      setBannerImageFile(null);
+      alert('Banner aggiornato con successo!');
+    } catch (err: any) {
+      alert('Errore durante il salvataggio del banner: ' + err.message);
+    } finally {
+      setBannerSaving(false);
+    }
   };
 
   const fetchProgramLibrary = async () => {
@@ -775,9 +843,51 @@ export default function TrainingApp() {
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
+            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
           </div>
 
-          {coachSubView === 'athletes' ? (
+          {coachSubView === 'banner' ? (
+            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
+              <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner (Galleria):</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setBannerImageFile(e.target.files[0]);
+                      }
+                    }} 
+                    style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000' }} 
+                  />
+                </div>
+
+                {bannerData.image_url && !bannerImageFile && (
+                  <div>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Immagine attuale:</span>
+                    <img src={bannerData.image_url} alt="Current Banner" style={{ maxHeight: '120px', borderRadius: '8px', border: '1px solid #cbd5e1', objectFit: 'cover' }} />
+                  </div>
+                )}
+
+                <div>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Link di destinazione al click:</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://tuosito.com" 
+                    value={bannerData.link_url} 
+                    onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} 
+                    style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000', boxSizing: 'border-box' }} 
+                  />
+                </div>
+
+                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
+                  {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
+                </button>
+              </form>
+            </div>
+          ) : coachSubView === 'athletes' ? (
             <div>
               {selectedCoachAthlete ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -1493,6 +1603,19 @@ export default function TrainingApp() {
       ) : (
         /* --- VISTA ATLETA --- */
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+
+          {/* BANNER PUBBLICITARIO IN ALTO AI PROGRAMMI */}
+          {bannerData.image_url && (
+            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+              {bannerData.link_url ? (
+                <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b', cursor: 'pointer' }} />
+                </a>
+              ) : (
+                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b' }} />
+              )}
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
