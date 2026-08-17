@@ -1619,6 +1619,23 @@ export default function TrainingApp() {
       ) : (
         /* --- VISTA ATLETA --- */
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          
+          {/* --- BANNER PUBBLICITARIO PER UTENTI --- */}
+          <div style={{ marginBottom: '20px' }}>
+            <a href={bannerTargetUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', textDecoration: 'none' }}>
+              <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #334151', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                <img 
+                  src={bannerImageUrl} 
+                  alt="Banner Sponsor" 
+                  style={{ width: '100%', height: 'auto', maxHeight: '160px', objectFit: 'cover', display: 'block' }} 
+                />
+                <span style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0, 0, 0, 0.7)', color: '#10b981', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Sponsor
+                </span>
+              </div>
+            </a>
+          </div>
+
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
             <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
@@ -1819,23 +1836,6 @@ export default function TrainingApp() {
                   );
                 })
               )}
-
-              {/* BANNER PUBBLICITARIO (SOLO LATO UTENTE / ATLETA IN FONDO PAGINA) */}
-              <div style={{ marginTop: '30px', textAlign: 'center' }}>
-                <a href={bannerTargetUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', width: '100%', maxWidth: '100%', textDecoration: 'none' }}>
-                  <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)' }}>
-                    <img 
-                      src={bannerImageUrl} 
-                      alt="Sponsor / Banner Pubblicitario" 
-                      style={{ width: '100%', height: 'auto', maxHeight: '140px', objectFit: 'cover', display: 'block' }} 
-                    />
-                    <span style={{ position: 'absolute', bottom: '6px', right: '8px', background: 'rgba(0, 0, 0, 0.6)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Sponsor
-                    </span>
-                  </div>
-                </a>
-              </div>
-
             </div>
           )}
         </div>
