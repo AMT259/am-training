@@ -108,8 +108,30 @@ export default function TrainingApp() {
       if (session) fetchUserProfile(session.user.id);
     });
 
+    fetchBannerSettings();
+
     return () => subscription.unsubscribe();
   }, []);
+
+  // Funzione per recuperare il banner da Supabase
+  const fetchBannerSettings = async () => {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'banner_config')
+      .single();
+
+    if (data && data.value) {
+      if (data.value.imageUrl) {
+        setBannerImageUrl(data.value.imageUrl);
+        setTempBannerImage(data.value.imageUrl);
+      }
+      if (data.value.targetUrl) {
+        setBannerTargetUrl(data.value.targetUrl);
+        setTempBannerTarget(data.value.targetUrl);
+      }
+    }
+  };
 
   useEffect(() => {
     if (session) {
@@ -152,11 +174,19 @@ export default function TrainingApp() {
         })
         .subscribe();
 
+      const settingsChannel = supabase
+        .channel('realtime-settings')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, () => {
+          fetchBannerSettings();
+        })
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
         supabase.removeChannel(maxesChannel);
+        supabase.removeChannel(settingsChannel);
       };
     }
   }, [session, role]);
@@ -253,12 +283,32 @@ export default function TrainingApp() {
     }
   };
 
-  const handleSaveBanner = (e: React.FormEvent) => {
+  // Funzione aggiornata per salvare il banner su Supabase
+  const handleSaveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBannerImageUrl(tempBannerImage);
-    setBannerTargetUrl(tempBannerTarget);
-    setBannerSaveMessage('Banner pubblicitario aggiornato con successo!');
-    setTimeout(() => setBannerSaveMessage(''), 3000);
+    
+    const bannerPayload = {
+      imageUrl: tempBannerImage,
+      targetUrl: tempBannerTarget
+    };
+
+    const { error } = await supabase.from('app_settings').upsert(
+      {
+        key: 'banner_config',
+        value: bannerPayload,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'key' }
+    );
+
+    if (error) {
+      alert('Errore durante il salvataggio del banner: ' + error.message);
+    } else {
+      setBannerImageUrl(tempBannerImage);
+      setBannerTargetUrl(tempBannerTarget);
+      setBannerSaveMessage('Banner pubblicitario aggiornato e salvato con successo!');
+      setTimeout(() => setBannerSaveMessage(''), 3000);
+    }
   };
 
   // Funzione per gestire il caricamento dell'immagine dalla galleria
@@ -1116,7 +1166,7 @@ export default function TrainingApp() {
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Configurazione Banner Pubblicitario</h3>
                   <form onSubmit={handleSaveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
-                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>Seleziona Immagine dalla Gallerie / Dispositivo:</label>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>Seleziona Immagine dalla Galleria / Dispositivo:</label>
                       <input 
                         type="file" 
                         accept="image/*"
@@ -1155,7 +1205,7 @@ export default function TrainingApp() {
                     {bannerSaveMessage && <p style={{ color: '#10b981', fontSize: '14px', margin: 0 }}>{bannerSaveMessage}</p>}
 
                     <button type="submit" style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', marginTop: '6px' }}>
-                      Aggiorna Banner
+                      Salva e Aggiorna Banner
                     </button>
                   </form>
                 </div>
