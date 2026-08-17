@@ -866,7 +866,7 @@ export default function TrainingApp() {
 
                 {bannerData.image_url && !bannerImageFile && (
                   <div>
-                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Immagine attuale:</span>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Immagineattuale:</span>
                     <img src={bannerData.image_url} alt="Current Banner" style={{ maxHeight: '120px', borderRadius: '8px', border: '1px solid #cbd5e1', objectFit: 'cover' }} />
                   </div>
                 )}
@@ -1795,10 +1795,10 @@ export default function TrainingApp() {
                                                       />
                                                     </div>
                                                     <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Sensazioni / Note</label>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note Personali</label>
                                                       <input
                                                         type="text"
-                                                        placeholder="Com'è andata?"
+                                                        placeholder="Note sulle sensazioni..."
                                                         value={athleteResults[prog.id]?.[resultKey]?.notes || ''}
                                                         onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
                                                         style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
@@ -1818,7 +1818,9 @@ export default function TrainingApp() {
                             );
                           })}
                         </div>
-                      ) : null}
+                      ) : (
+                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile in questa settimana.</p>
+                      )}
                     </div>
                   );
                 })
