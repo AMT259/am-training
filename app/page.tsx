@@ -31,23 +31,22 @@ export default function TrainingApp() {
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
+  const [programStartDate, setProgramStartDate] = useState('');
+  const [programEndDate, setProgramEndDate] = useState('');
 
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
   const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
 
-  // Gestione stato navigazione Settimane e Giorni
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
   
   const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
 
-  // Stato per il Banner Pubblicitario
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
 
-  // Struttura Settimane per il nuovo programma
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
       weekNumber: 1,
@@ -65,7 +64,6 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
-  // Selezione della vista corrente durante creazione/modifica
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
   const [selectedDayView, setSelectedDayView] = useState('Giorno 1');
   
@@ -83,7 +81,6 @@ export default function TrainingApp() {
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
 
-  // Helper per la conversione/normalizzazione da vecchi programmi
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
     if (prog.days && prog.days.length > 0) {
@@ -220,9 +217,7 @@ export default function TrainingApp() {
           .from('banners')
           .upload(filePath, bannerImageFile);
 
-        if (uploadError) {
-          throw uploadError;
-        }
+        if (uploadError) throw uploadError;
 
         const { data: publicURLData } = supabase.storage
           .from('banners')
@@ -257,6 +252,8 @@ export default function TrainingApp() {
       const formatted = data.map((item: any) => ({
         id: item.id,
         title: item.title,
+        startDate: item.start_date || '',
+        endDate: item.end_date || '',
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
         weeks: normalizeProgramWeeks(item)
       }));
@@ -360,14 +357,12 @@ export default function TrainingApp() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName }
-      }
+      options: { data: { full_name: fullName } }
     });
     if (error) {
       setAuthError(error.message);
     } else {
-      alert('Registrazione effettuata con successo! Controlla la tua email se è richiesta la conferma.');
+      alert('Registrazione effettuata con successo!');
       setIsRegistering(false);
     }
   };
@@ -376,15 +371,13 @@ export default function TrainingApp() {
     e.preventDefault();
     setAuthError('');
     setResetMessage('');
-
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
-
     if (error) {
       setAuthError(error.message);
     } else {
-      setResetMessage('Controlla la tua email per il link di recupero della password.');
+      setResetMessage('Controlla la tua email per il link di recupero.');
     }
   };
 
@@ -395,23 +388,15 @@ export default function TrainingApp() {
 
   const toggleBlockCollapse = (blockKey: string) => {
     setCollapsedBlocks(prev => {
-      const defaultValue = role === 'athlete' ? true : true;
-      const currentValue = prev[blockKey] === undefined ? defaultValue : prev[blockKey];
-      return {
-        ...prev,
-        [blockKey]: !currentValue
-      };
+      const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
+      return { ...prev, [blockKey]: !currentValue };
     });
   };
 
   const toggleProgramDayCollapse = (key: string) => {
     setCollapsedProgramDays(prev => {
-      const defaultValue = role === 'athlete' ? true : false;
-      const currentValue = prev[key] === undefined ? defaultValue : prev[key];
-      return {
-        ...prev,
-        [key]: !currentValue
-      };
+      const currentValue = prev[key] === undefined ? true : prev[key];
+      return { ...prev, [key]: !currentValue };
     });
   };
 
@@ -423,17 +408,12 @@ export default function TrainingApp() {
     }
   };
 
-  // --- GESTIONE SETTIMANE (CREAZIONE) ---
   const addWeek = () => {
     const nextNumber = programWeeks.length + 1;
     const newName = `Settimana ${nextNumber}`;
     setProgramWeeks([
       ...programWeeks,
-      {
-        weekNumber: nextNumber,
-        weekName: newName,
-        days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
-      }
+      { weekNumber: nextNumber, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }
     ]);
     setSelectedWeekView(newName);
     setSelectedDayView('Giorno 1');
@@ -443,16 +423,7 @@ export default function TrainingApp() {
     const nextNumber = programWeeks.length + 1;
     const clonedName = `${weekToClone.weekName} (Copia)`;
     const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
-
-    const newWeeks = [
-      ...programWeeks,
-      {
-        weekNumber: nextNumber,
-        weekName: clonedName,
-        days: clonedDays
-      }
-    ];
-    setProgramWeeks(newWeeks);
+    setProgramWeeks([...programWeeks, { weekNumber: nextNumber, weekName: clonedName, days: clonedDays }]);
     setSelectedWeekView(clonedName);
     if (clonedDays.length > 0) setSelectedDayView(clonedDays[0].dayName);
   };
@@ -467,17 +438,12 @@ export default function TrainingApp() {
     setProgramWeeks(updated);
   };
 
-  // --- GESTIONE GIORNI PER SETTIMANA (CREAZIONE) ---
   const addDay = (wIdx: number) => {
     const updated = [...programWeeks];
     const targetWeek = updated[wIdx];
     const nextNumber = targetWeek.days.length + 1;
     const newName = `Giorno ${nextNumber}`;
-    targetWeek.days.push({
-      dayNumber: nextNumber,
-      dayName: newName,
-      blocks: []
-    });
+    targetWeek.days.push({ dayNumber: nextNumber, dayName: newName, blocks: [] });
     setProgramWeeks(updated);
     setSelectedDayView(newName);
   };
@@ -488,12 +454,7 @@ export default function TrainingApp() {
     const nextNumber = targetWeek.days.length + 1;
     const clonedName = `${dayToClone.dayName} (Copia)`;
     const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
-
-    targetWeek.days.push({
-      dayNumber: nextNumber,
-      dayName: clonedName,
-      blocks: clonedBlocks
-    });
+    targetWeek.days.push({ dayNumber: nextNumber, dayName: clonedName, blocks: clonedBlocks });
     setProgramWeeks(updated);
     setSelectedDayView(clonedName);
   };
@@ -509,18 +470,12 @@ export default function TrainingApp() {
     setProgramWeeks(updated);
   };
 
-  // --- GESTIONE SETTIMANE E GIORNI (MODIFICA) ---
   const cloneEditingWeek = (weekToClone: any) => {
     const updated = { ...editingProgram };
     if (!updated.weeks) updated.weeks = [];
     const clonedName = `${weekToClone.weekName} (Copia)`;
     const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
-
-    updated.weeks.push({
-      weekNumber: updated.weeks.length + 1,
-      weekName: clonedName,
-      days: clonedDays
-    });
+    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: clonedName, days: clonedDays });
     setEditingProgram(updated);
     setSelectedWeekView(clonedName);
     if (clonedDays.length > 0) setSelectedDayView(clonedDays[0].dayName);
@@ -542,11 +497,7 @@ export default function TrainingApp() {
     if (!targetWeek.days) targetWeek.days = [];
     const nextNumber = targetWeek.days.length + 1;
     const newName = `Giorno ${nextNumber}`;
-    targetWeek.days.push({
-      dayNumber: nextNumber,
-      dayName: newName,
-      blocks: []
-    });
+    targetWeek.days.push({ dayNumber: nextNumber, dayName: newName, blocks: [] });
     setEditingProgram(updated);
     setSelectedDayView(newName);
   };
@@ -556,12 +507,7 @@ export default function TrainingApp() {
     const targetWeek = updated.weeks[wIdx];
     const clonedName = `${dayToClone.dayName} (Copia)`;
     const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
-
-    targetWeek.days.push({
-      dayNumber: targetWeek.days.length + 1,
-      dayName: clonedName,
-      blocks: clonedBlocks
-    });
+    targetWeek.days.push({ dayNumber: targetWeek.days.length + 1, dayName: clonedName, blocks: clonedBlocks });
     setEditingProgram(updated);
     setSelectedDayView(clonedName);
   };
@@ -577,7 +523,6 @@ export default function TrainingApp() {
     setEditingProgram(updated);
   };
 
-  // --- GESTIONE BLOCCHI ESERCIZIO ---
   const removeBlockFromFreeDay = (wIdx: number, dayIndex: number, blockIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.splice(blockIndex, 1);
@@ -622,7 +567,7 @@ export default function TrainingApp() {
   };
 
   const deleteGlobalExercise = async (id: string) => {
-    if (confirm('Vuoi eliminare questo esercizio dalla libreria?')) {
+    if (confirm('Vuoi eliminare questo esercizio?')) {
       await supabase.from('exercises_library').delete().eq('id', id);
       fetchExerciseLibrary();
     }
@@ -631,16 +576,7 @@ export default function TrainingApp() {
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(),
-      name: '',
-      type: 'forza',
-      sets: 4,
-      reps: '10',
-      load: '70%',
-      rest: '90 sec',
-      notes: '',
-      wodNotes: '',
-      videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setProgramWeeks(updated);
   };
@@ -659,6 +595,8 @@ export default function TrainingApp() {
 
     const newProgram = {
       title: programTitle,
+      start_date: programStartDate || null,
+      end_date: programEndDate || null,
       assigned_athlete_ids: selectedAthleteIds,
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
@@ -672,6 +610,8 @@ export default function TrainingApp() {
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
+      setProgramStartDate('');
+      setProgramEndDate('');
       setSelectedAthleteIds([]);
       setProgramWeeks([{
         weekNumber: 1,
@@ -685,6 +625,8 @@ export default function TrainingApp() {
   const duplicateProgram = async (prog: any) => {
     const duplicatedProgram = {
       title: `${prog.title} (Copia)`,
+      start_date: prog.startDate || null,
+      end_date: prog.endDate || null,
       assigned_athlete_ids: prog.assignedAthleteIds || [],
       weeks: prog.weeks || normalizeProgramWeeks(prog)
     };
@@ -692,9 +634,9 @@ export default function TrainingApp() {
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
 
     if (error) {
-      alert('Errore durante la duplicazione: ' + error.message);
+      alert('Errore: ' + error.message);
     } else {
-      alert('Programma duplicato con successo nella libreria!');
+      alert('Programma duplicato con successo!');
       fetchProgramLibrary();
     }
   };
@@ -709,16 +651,7 @@ export default function TrainingApp() {
     const updated = { ...editingProgram };
     if (!updated.weeks[wIdx].days[dayIndex].blocks) updated.weeks[wIdx].days[dayIndex].blocks = [];
     updated.weeks[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(),
-      name: '',
-      type: 'forza',
-      sets: 4,
-      reps: '10',
-      load: '70%',
-      rest: '90 sec',
-      notes: '',
-      wodNotes: '',
-      videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setEditingProgram(updated);
   };
@@ -733,6 +666,8 @@ export default function TrainingApp() {
       .from('programs')
       .update({
         title: editingProgram.title,
+        start_date: editingProgram.startDate || null,
+        end_date: editingProgram.endDate || null,
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         weeks: editingProgram.weeks,
         days: editingProgram.weeks[0]?.days || []
@@ -740,7 +675,7 @@ export default function TrainingApp() {
       .eq('id', editingProgram.id);
 
     if (error) {
-      alert('Errore durante il salvataggio: ' + error.message);
+      alert('Errore: ' + error.message);
     } else {
       alert('Programma aggiornato con successo!');
       setEditingProgram(null);
@@ -750,8 +685,7 @@ export default function TrainingApp() {
 
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
-      const { error } = await supabase.from('programs').delete().eq('id', id);
-      if (error) alert('Errore: ' + error.message);
+      await supabase.from('programs').delete().eq('id', id);
     }
   };
 
@@ -767,11 +701,7 @@ export default function TrainingApp() {
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');
-        `}</style>
-        
-        {/* LOGO E TITOLO CENTRATI */}
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px' }} />
           <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
@@ -780,18 +710,14 @@ export default function TrainingApp() {
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
-          
           {!isResettingPassword && (
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
           )}
-        
           {isRegistering && !isResettingPassword && (
             <input type="text" placeholder="Nome Completo" value={fullName} onChange={(e) => setFullName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
           )}
-
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
           {resetMessage && <p style={{ color: '#10b981', fontSize: '14px' }}>{resetMessage}</p>}
-        
           <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
             {isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi')}
           </button>
@@ -803,7 +729,6 @@ export default function TrainingApp() {
               {isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
             </button>
           )}
-          
           <button onClick={() => { setIsResettingPassword(!isResettingPassword); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
             {isResettingPassword ? 'Torna al Login' : 'Password dimenticata?'}
           </button>
@@ -823,9 +748,7 @@ export default function TrainingApp() {
 
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');
-      `}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
@@ -851,37 +774,19 @@ export default function TrainingApp() {
               <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
               <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner (Galleria):</label>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setBannerImageFile(e.target.files[0]);
-                      }
-                    }} 
-                    style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000' }} 
-                  />
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner:</label>
+                  <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setBannerImageFile(e.target.files[0]); }} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000' }} />
                 </div>
-
                 {bannerData.image_url && !bannerImageFile && (
                   <div>
                     <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Immagine attuale:</span>
                     <img src={bannerData.image_url} alt="Current Banner" style={{ maxHeight: '120px', borderRadius: '8px', border: '1px solid #cbd5e1', objectFit: 'cover' }} />
                   </div>
                 )}
-
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Link di destinazione al click:</label>
-                  <input 
-                    type="url" 
-                    placeholder="https://tuosito.com" 
-                    value={bannerData.link_url} 
-                    onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} 
-                    style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000', boxSizing: 'border-box' }} 
-                  />
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
+                  <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000', boxSizing: 'border-box' }} />
                 </div>
-
                 <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
                   {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
                 </button>
@@ -895,7 +800,6 @@ export default function TrainingApp() {
                     <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Massimali di: {selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
-
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {STRENGTH_EXERCISES.map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
@@ -917,7 +821,7 @@ export default function TrainingApp() {
                 </div>
               ) : (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta per visualizzarne i Massimali</h3>
+                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta</h3>
                   {athletes.length === 0 ? (
                     <p style={{ color: '#64748b' }}>Nessun atleta registrato.</p>
                   ) : (
@@ -942,12 +846,22 @@ export default function TrainingApp() {
               </div>
 
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
-              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '16px', boxSizing: 'border-box' }} />
+              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
+
+              {/* DATE INIZIO E FINE (MODIFICA) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
+                  <input type="date" value={editingProgram.startDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, startDate: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
+                  <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
+                </div>
+              </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
-                  Assegna ad Atleti (deseleziona tutti per rendere il programma "Generale"):
-                </label>
+                <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                   {athletes.map((a) => {
                     const currentAssigned = editingProgram.assignedAthleteIds || [];
@@ -1129,13 +1043,7 @@ export default function TrainingApp() {
                                 {!isClosed && (
                                   <div>
                                     <div style={{ marginBottom: '10px' }}>
-                                      <input
-                                        type="url"
-                                        value={block.videoUrl || ''}
-                                        onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)}
-                                        placeholder="Link video esercizio"
-                                        style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
-                                      />
+                                      <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                     </div>
                                     {block.type === 'forza' ? (
                                       <div>
@@ -1197,7 +1105,7 @@ export default function TrainingApp() {
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
                   <form onSubmit={addGlobalExercise} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #e2e8f0' }}>
-                    <input type="text" placeholder="Nome Esercizio (es. Squat)" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
+                    <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
                     <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
                     <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
                   </form>
@@ -1218,12 +1126,22 @@ export default function TrainingApp() {
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                 
-                  <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '16px', boxSizing: 'border-box' }} />
+                  <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
                 
+                  {/* DATE INIZIO E FINE (CREAZIONE) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
+                      <input type="date" value={programStartDate} onChange={(e) => setProgramStartDate(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
+                      <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
-                      Assegna ad Atleti (deseleziona tutti per rendere il programma "Generale"):
-                    </label>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
                         <span style={{ fontSize: '12px', color: '#64748b' }}>Nessun atleta disponibile.</span>
@@ -1396,13 +1314,7 @@ export default function TrainingApp() {
                                     {!isClosed && (
                                       <div>
                                         <div style={{ marginBottom: '10px' }}>
-                                          <input
-                                            type="url"
-                                            value={block.videoUrl || ''}
-                                            onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)}
-                                            placeholder="Link video esercizio"
-                                            style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }}
-                                          />
+                                          <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                         </div>
                                         {block.type === 'forza' ? (
                                           <div>
@@ -1458,11 +1370,7 @@ export default function TrainingApp() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
-                    <select
-                      value={libraryFilterAthlete}
-                      onChange={(e) => setLibraryFilterAthlete(e.target.value)}
-                      style={{ padding: '8px 12px', borderRadius: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
-                    >
+                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
                       <option value="">Filtra per utente (Tutti)</option>
                       {athletes.map((a) => (
                         <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
@@ -1487,9 +1395,16 @@ export default function TrainingApp() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                             <div>
                               <h4 style={{ margin: '0 0 4px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
-                              <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
-                                Assegnato a: {assignedList.length > 0 ? assignedList.map(a => a.full_name || a.email).join(', ') : 'Tutti (Generale)'}
-                              </span>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
+                                <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                                  Assegnato: {assignedList.length > 0 ? assignedList.map(a => a.full_name || a.email).join(', ') : 'Tutti (Generale)'}
+                                </span>
+                                {(prog.startDate || prog.endDate) && (
+                                  <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
+                                    📅 {prog.startDate || 'N/D'} → {prog.endDate || 'N/D'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
@@ -1509,7 +1424,6 @@ export default function TrainingApp() {
                           <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             
-                            {/* Filtro Settimana */}
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
                               {weeks.map((w: any) => (
                                 <button
@@ -1525,7 +1439,6 @@ export default function TrainingApp() {
                               ))}
                             </div>
 
-                            {/* Filtro Giorno */}
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                               {activeWeekObj?.days?.map((day: any) => (
                                 <button
@@ -1555,12 +1468,10 @@ export default function TrainingApp() {
 
                                     const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
                                       const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                      const oldBlockKey = `${dayIndex}_${bIdx}`;
-                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes || resObj[oldBlockKey]?.score || resObj[oldBlockKey]?.notes;
+                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
                                     });
 
                                     if (!hasResultsForThisDay) return null;
-
                                     const athName = ath.full_name || ath.email;
 
                                     return (
@@ -1569,8 +1480,7 @@ export default function TrainingApp() {
                                         <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
                                           {blocksOfActiveDay.map((blk: any, bIdx: number) => {
                                             const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                            const oldBlockKey = `${dayIndex}_${bIdx}`;
-                                            const blockData = resObj[blockKey] || resObj[oldBlockKey];
+                                            const blockData = resObj[blockKey];
                                             if (!blockData || (!blockData.score && !blockData.notes)) return null;
 
                                             return (
@@ -1604,7 +1514,6 @@ export default function TrainingApp() {
         /* --- VISTA ATLETA --- */
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-          {/* BANNER PUBBLICITARIO IN ALTO AI PROGRAMMI */}
           {bannerData.image_url && (
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
@@ -1633,13 +1542,7 @@ export default function TrainingApp() {
                       {REP_SCHEMES.map((reps) => (
                         <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
-                          <input
-                            type="text"
-                            placeholder="kg"
-                            value={athleteMaxes[exName]?.[reps] || ''}
-                            onChange={(e) => handleMaxChange(exName, reps, e.target.value)}
-                            style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
-                          />
+                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxChange(exName, reps, e.target.value)} style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
                         </div>
                       ))}
                     </div>
@@ -1663,9 +1566,15 @@ export default function TrainingApp() {
 
                   return (
                     <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                      <h4 style={{ color: '#10b981', marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>{prog.title}</h4>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
+                        {(prog.startDate || prog.endDate) && (
+                          <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                            📅 Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}
+                          </span>
+                        )}
+                      </div>
                     
-                      {/* Navigazione Settimane Atleta */}
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                         {weeks.map((week: any) => (
                           <button
@@ -1683,7 +1592,6 @@ export default function TrainingApp() {
                         ))}
                       </div>
 
-                      {/* Navigazione Giorni Atleta */}
                       {currentWeekObj?.days ? (
                         <div>
                           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
@@ -1708,11 +1616,7 @@ export default function TrainingApp() {
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
                                   <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#0f172a' }}>{currentWeekObj.weekName} - {day.dayName}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleProgramDayCollapse(dayCollapseKey)}
-                                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-                                  >
+                                  <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                                     {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
                                   </button>
                                 </div>
@@ -1720,7 +1624,7 @@ export default function TrainingApp() {
                                 {!isDayClosed && (
                                   <div>
                                     {day.blocks?.length === 0 ? (
-                                      <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito per {day.dayName}.</p>
+                                      <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
                                     ) : (
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
@@ -1730,9 +1634,7 @@ export default function TrainingApp() {
                                         return (
                                           <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, marginRight: '10px' }}>
-                                                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                              </div>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
                                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                                 {blk.videoUrl && (
                                                   <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
@@ -1786,23 +1688,11 @@ export default function TrainingApp() {
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      <input
-                                                        type="text"
-                                                        placeholder="es. 100kg / 5:30"
-                                                        value={athleteResults[prog.id]?.[resultKey]?.score || ''}
-                                                        onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)}
-                                                        style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }}
-                                                      />
+                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note Personali</label>
-                                                      <input
-                                                        type="text"
-                                                        placeholder="Note sulle sensazioni..."
-                                                        value={athleteResults[prog.id]?.[resultKey]?.notes || ''}
-                                                        onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
-                                                        style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
-                                                      />
+                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
                                                     </div>
                                                   </div>
                                                 </div>
@@ -1819,7 +1709,7 @@ export default function TrainingApp() {
                           })}
                         </div>
                       ) : (
-                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile in questa settimana.</p>
+                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile.</p>
                       )}
                     </div>
                   );
