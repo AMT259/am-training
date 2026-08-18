@@ -7,10 +7,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Funzione di utilità per formattare la data da aaaa-mm-gg a gg\mm\aaaa
 const formatDateToIT = (dateString: string) => {
   if (!dateString) return 'N/D';
-  // Gestisce sia il formato 'yyyy-mm-dd' che 'yyyy-mm-ddTHH:mm:ss...'
   const cleanDate = dateString.split('T')[0];
   const parts = cleanDate.split('-');
   if (parts.length === 3) {
@@ -59,6 +57,10 @@ export default function TrainingApp() {
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
+
+  // Stati Notifiche
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
 
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
@@ -122,6 +124,8 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       fetchExerciseLibrary();
       fetchBanner();
+      fetchNotifications();
+
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -138,64 +142,80 @@ export default function TrainingApp() {
         })
         .subscribe();
 
-      const bannerChannel = supabase
-        .channel('realtime-banner')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
-          fetchBanner();
-        })
-        .subscribe();
-
-      const exChannel = supabase
-        .channel('realtime-exercises')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
-          fetchExerciseLibrary();
-        })
-        .subscribe();
-
-      const resultsChannel = supabase
-        .channel('realtime-results')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
-          if (role === 'coach') fetchAllAthleteResultsForCoach();
-        })
-        .subscribe();
-
-      const maxesChannel = supabase
-        .channel('realtime-maxes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
-          if (role === 'coach') fetchAllAthleteMaxesForCoach();
+      const notifChannel = supabase
+        .channel('realtime-notifications')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` }, (payload) => {
+          setNotifications(prev => [payload.new, ...prev]);
         })
         .subscribe();
 
       return () => {
         supabase.removeChannel(channel);
-        supabase.removeChannel(bannerChannel);
-        supabase.removeChannel(exChannel);
-        supabase.removeChannel(resultsChannel);
-        supabase.removeChannel(maxesChannel);
+        supabase.removeChannel(notifChannel);
       };
     }
   }, [session, role]);
 
+  // Controllo scadenze programmi per il coach (10, 7, 2 giorni prima e il giorno stesso)
   useEffect(() => {
-    if (programLibrary.length > 0) {
-      const initialWeeks: { [id: string]: string } = {};
-      const initialDays: { [id: string]: string } = {};
-      
-      programLibrary.forEach(prog => {
-        const weeks = normalizeProgramWeeks(prog);
-        if (weeks.length > 0 && !selectedWeeksByProgram[prog.id]) {
-          initialWeeks[prog.id] = weeks[0].weekName;
-          if (weeks[0].days && weeks[0].days.length > 0) {
-            initialDays[prog.id] = weeks[0].days[0].dayName;
-          }
+    if (role === 'coach' && programLibrary.length > 0) {
+      checkProgramExpirations();
+    }
+  }, [role, programLibrary]);
+
+  const checkProgramExpirations = async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const prog of programLibrary) {
+      if (!prog.endDate) continue;
+      const endDate = new Date(prog.endDate);
+      endDate.setHours(0, 0, 0, 0);
+
+      const diffTime = endDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      if ([10, 7, 2, 0].includes(diffDays)) {
+        let msg = '';
+        if (diffDays === 0) msg = `Il programma "${prog.title}" scade OGGI!`;
+        else msg = `Il programma "${prog.title}" scadrà tra ${diffDays} giorni (${formatDateToIT(prog.endDate)}).`;
+
+        // Evita duplicati giornalieri controllando se esiste già una notifica simile recente
+        const coachId = session.user.id;
+        const { data: existing } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', coachId)
+          .ilike('message', `%${prog.title}%`)
+          .gte('created_at', new Date(Date.now() - 20 * 3600 * 1000).toISOString());
+
+        if (!existing || existing.length === 0) {
+          await sendNotification(coachId, 'Scadenza Programma ⚠️', msg);
         }
-      });
-      if (Object.keys(initialWeeks).length > 0) {
-        setSelectedWeeksByProgram(prev => ({ ...initialWeeks, ...prev }));
-        setSelectedDaysByProgram(prev => ({ ...initialDays, ...prev }));
       }
     }
-  }, [programLibrary]);
+  };
+
+  const sendNotification = async (userId: string, title: string, message: string) => {
+    await supabase.from('notifications').insert([
+      { user_id: userId, title, message, read: false }
+    ]);
+  };
+
+  const fetchNotifications = async () => {
+    if (!session) return;
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+    if (data) setNotifications(data);
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+    setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+  };
 
   const fetchUserProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
@@ -209,46 +229,24 @@ export default function TrainingApp() {
 
   const fetchBanner = async () => {
     const { data } = await supabase.from('settings').select('*').eq('key', 'app_banner').single();
-    if (data && data.value) {
-      setBannerData(data.value);
-    }
+    if (data && data.value) setBannerData(data.value);
   };
 
   const saveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     setBannerSaving(true);
-
     let imageUrl = bannerData.image_url;
-
     try {
       if (bannerImageFile) {
         const fileExt = bannerImageFile.name.split('.').pop();
         const fileName = `banner_${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('banners')
-          .upload(filePath, bannerImageFile);
-
+        const { error: uploadError } = await supabase.storage.from('banners').upload(fileName, bannerImageFile);
         if (uploadError) throw uploadError;
-
-        const { data: publicURLData } = supabase.storage
-          .from('banners')
-          .getPublicUrl(filePath);
-
+        const { data: publicURLData } = supabase.storage.from('banners').getPublicUrl(fileName);
         imageUrl = publicURLData.publicUrl;
       }
-
       const newBannerValue = { image_url: imageUrl, link_url: bannerData.link_url };
-
-      const { error } = await supabase.from('settings').upsert({
-        key: 'app_banner',
-        value: newBannerValue,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'key' });
-
-      if (error) throw error;
-
+      await supabase.from('settings').upsert({ key: 'app_banner', value: newBannerValue, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       setBannerData(newBannerValue);
       setBannerImageFile(null);
       alert('Banner aggiornato con successo!');
@@ -283,9 +281,7 @@ export default function TrainingApp() {
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
     if (data) {
       const resultsMap: { [key: string]: any } = {};
-      data.forEach((item: any) => {
-        resultsMap[item.program_id] = item.results || {};
-      });
+      data.forEach((item: any) => { resultsMap[item.program_id] = item.results || {}; });
       setAthleteResults(resultsMap);
     }
   };
@@ -304,20 +300,15 @@ export default function TrainingApp() {
 
   const fetchAthleteMaxes = async (athleteId: string) => {
     const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
-    if (data && data.maxes) {
-      setAthleteMaxes(data.maxes);
-    } else {
-      setAthleteMaxes({});
-    }
+    if (data && data.maxes) setAthleteMaxes(data.maxes);
+    else setAthleteMaxes({});
   };
 
   const fetchAllAthleteMaxesForCoach = async () => {
     const { data } = await supabase.from('athlete_maxes').select('*');
     if (data) {
       const map: { [key: string]: any } = {};
-      data.forEach((item: any) => {
-        map[item.athlete_id] = item.maxes || {};
-      });
+      data.forEach((item: any) => { map[item.athlete_id] = item.maxes || {}; });
       setCoachAthleteMaxes(map);
     }
   };
@@ -326,35 +317,39 @@ export default function TrainingApp() {
     const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
     const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
     setAthleteMaxes(updatedAll);
-
-    await supabase.from('athlete_maxes').upsert(
-      {
-        athlete_id: session.user.id,
-        maxes: updatedAll,
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: 'athlete_id' }
-    );
+    await supabase.from('athlete_maxes').upsert({ athlete_id: session.user.id, maxes: updatedAll, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
   };
 
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string) => {
     const currentProgResults = athleteResults[programId] || {};
     const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
-
     const updatedBlockResults = { ...currentBlockResults, [field]: value };
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
 
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
 
-    await supabase.from('program_results').upsert(
-      {
-        program_id: programId,
-        athlete_id: session.user.id,
-        results: updatedProgResults,
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: 'program_id, athlete_id' }
-    );
+    await supabase.from('program_results').upsert({
+      program_id: programId,
+      athlete_id: session.user.id,
+      results: updatedProgResults,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'program_id, athlete_id' });
+
+    // Notifica il Coach quando l'utente inserisce un nuovo risultato
+    if (field === 'score' && value.trim() !== '') {
+      const progObj = programLibrary.find(p => p.id === programId);
+      const progTitle = progObj ? progObj.title : 'Allenamento';
+      const { data: profileData } = await supabase.from('profiles').select('full_name, email').eq('id', session.user.id).single();
+      const athleteName = profileData?.full_name || profileData?.email || 'Un atleta';
+
+      // Trova i coach (assumendo che ci sia almeno un coach o notificando tutti i coach)
+      const { data: coaches } = await supabase.from('profiles').select('id').eq('role', 'coach');
+      if (coaches) {
+        for (const coach of coaches) {
+          await sendNotification(coach.id, 'Nuovo Risultato Inserito 📈', `${athleteName} ha inserito un risultato per "${progTitle}".`);
+        }
+      }
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -367,31 +362,18 @@ export default function TrainingApp() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } }
-    });
-    if (error) {
-      setAuthError(error.message);
-    } else {
-      alert('Registrazione effettuata con successo!');
-      setIsRegistering(false);
-    }
+    const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+    if (error) setAuthError(error.message);
+    else { alert('Registrazione effettuata con successo!'); setIsRegistering(false); }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     setResetMessage('');
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
-    });
-    if (error) {
-      setAuthError(error.message);
-    } else {
-      setResetMessage('Controlla la tua email per il link di recupero.');
-    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    if (error) setAuthError(error.message);
+    else setResetMessage('Controlla la tua email per il link di recupero.');
   };
 
   const handleLogout = async () => {
@@ -400,34 +382,22 @@ export default function TrainingApp() {
   };
 
   const toggleBlockCollapse = (blockKey: string) => {
-    setCollapsedBlocks(prev => {
-      const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
-      return { ...prev, [blockKey]: !currentValue };
-    });
+    setCollapsedBlocks(prev => ({ ...prev, [blockKey]: prev[blockKey] === undefined ? true : !prev[blockKey] }));
   };
 
   const toggleProgramDayCollapse = (key: string) => {
-    setCollapsedProgramDays(prev => {
-      const currentValue = prev[key] === undefined ? true : prev[key];
-      return { ...prev, [key]: !currentValue };
-    });
+    setCollapsedProgramDays(prev => ({ ...prev, [key]: prev[key] === undefined ? true : !prev[key] }));
   };
 
   const toggleAthleteSelection = (athleteId: string, currentList: string[], setListFn: (list: string[]) => void) => {
-    if (currentList.includes(athleteId)) {
-      setListFn(currentList.filter(id => id !== athleteId));
-    } else {
-      setListFn([...currentList, athleteId]);
-    }
+    if (currentList.includes(athleteId)) setListFn(currentList.filter(id => id !== athleteId));
+    else setListFn([...currentList, athleteId]);
   };
 
   const addWeek = () => {
     const nextNumber = programWeeks.length + 1;
     const newName = `Settimana ${nextNumber}`;
-    setProgramWeeks([
-      ...programWeeks,
-      { weekNumber: nextNumber, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }
-    ]);
+    setProgramWeeks([...programWeeks, { weekNumber: nextNumber, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }]);
     setSelectedWeekView(newName);
     setSelectedDayView('Giorno 1');
   };
@@ -570,13 +540,8 @@ export default function TrainingApp() {
     e.preventDefault();
     if (!newExName) return;
     const { error } = await supabase.from('exercises_library').insert([{ name: newExName, video_url: newExVideo }]);
-    if (error) {
-      alert('Errore: ' + error.message);
-    } else {
-      setNewExName('');
-      setNewExVideo('');
-      fetchExerciseLibrary();
-    }
+    if (error) alert('Errore: ' + error.message);
+    else { setNewExName(''); setNewExVideo(''); fetchExerciseLibrary(); }
   };
 
   const deleteGlobalExercise = async (id: string) => {
@@ -601,10 +566,7 @@ export default function TrainingApp() {
   };
 
   const saveProgramToLibrary = async () => {
-    if (!programTitle) {
-      alert('Inserisci un titolo per il programma');
-      return;
-    }
+    if (!programTitle) { alert('Inserisci un titolo per il programma'); return; }
 
     const newProgram = {
       title: programTitle,
@@ -616,21 +578,22 @@ export default function TrainingApp() {
     };
 
     const { error } = await supabase.from('programs').insert([newProgram]);
-
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
+      // Invia notifiche agli atleti assegnati (o a tutti se nessuno è selezionato)
+      const targetAthletes = selectedAthleteIds.length > 0 ? selectedAthleteIds : athletes.map(a => a.id);
+      for (const athId of targetAthletes) {
+        await sendNotification(athId, 'Nuovo Programma Assegnato 📋', `Il coach ti ha assegnato un nuovo programma: "${programTitle}".`);
+      }
+
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
       setProgramStartDate('');
       setProgramEndDate('');
       setSelectedAthleteIds([]);
-      setProgramWeeks([{
-        weekNumber: 1,
-        weekName: 'Settimana 1',
-        days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
-      }]);
+      setProgramWeeks([{ weekNumber: 1, weekName: 'Settimana 1', days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }]);
       fetchProgramLibrary();
     }
   };
@@ -643,15 +606,9 @@ export default function TrainingApp() {
       assigned_athlete_ids: prog.assignedAthleteIds || [],
       weeks: prog.weeks || normalizeProgramWeeks(prog)
     };
-
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
-
-    if (error) {
-      alert('Errore: ' + error.message);
-    } else {
-      alert('Programma duplicato con successo!');
-      fetchProgramLibrary();
-    }
+    if (error) alert('Errore: ' + error.message);
+    else { alert('Programma duplicato con successo!'); fetchProgramLibrary(); }
   };
 
   const updateEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
@@ -670,26 +627,18 @@ export default function TrainingApp() {
   };
 
   const saveEditedProgram = async () => {
-    if (!editingProgram.title) {
-      alert('Il titolo non può essere vuoto');
-      return;
-    }
+    if (!editingProgram.title) { alert('Il titolo non può essere vuoto'); return; }
+    const { error } = await supabase.from('programs').update({
+      title: editingProgram.title,
+      start_date: editingProgram.startDate || null,
+      end_date: editingProgram.endDate || null,
+      assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
+      weeks: editingProgram.weeks,
+      days: editingProgram.weeks[0]?.days || []
+    }).eq('id', editingProgram.id);
 
-    const { error } = await supabase
-      .from('programs')
-      .update({
-        title: editingProgram.title,
-        start_date: editingProgram.startDate || null,
-        end_date: editingProgram.endDate || null,
-        assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
-        weeks: editingProgram.weeks,
-        days: editingProgram.weeks[0]?.days || []
-      })
-      .eq('id', editingProgram.id);
-
-    if (error) {
-      alert('Errore: ' + error.message);
-    } else {
+    if (error) alert('Errore: ' + error.message);
+    else {
       alert('Programma aggiornato con successo!');
       setEditingProgram(null);
       fetchProgramLibrary();
@@ -759,9 +708,13 @@ export default function TrainingApp() {
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
 
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
+      
+      {/* HEADER CON CAMPANELLA NOTIFICHE */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
@@ -771,7 +724,36 @@ export default function TrainingApp() {
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
-        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowNotificationsModal(!showNotificationsModal)} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '15px', position: 'relative' }}>
+              🔔 {unreadCount > 0 && <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '50%', fontWeight: 'bold' }}>{unreadCount}</span>}
+            </button>
+
+            {showNotificationsModal && (
+              <div style={{ position: 'absolute', right: 0, top: '40px', width: '300px', background: '#1e293b', border: '1px solid #334151', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 1000, padding: '12px', maxHeight: '350px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #334151', paddingBottom: '6px' }}>
+                  <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>Notifiche</span>
+                  <button onClick={() => setShowNotificationsModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                </div>
+                {notifications.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', margin: '15px 0' }}>Nessuna notifica.</p>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} onClick={() => markNotificationAsRead(n.id)} style={{ background: n.read ? '#0f172a' : '#334155', padding: '8px', borderRadius: '6px', marginBottom: '6px', cursor: 'pointer', borderLeft: n.read ? 'none' : '3px solid #10b981' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>{n.title}</div>
+                      <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>{n.message}</div>
+                      <div style={{ fontSize: '9px', color: '#94a3b8', textAlign: 'right', marginTop: '4px' }}>{new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+        </div>
       </header>
 
       {role === 'coach' ? (
@@ -895,209 +877,7 @@ export default function TrainingApp() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
-                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
-                  {editingProgram.weeks?.map((week: any, wIdx: number) => {
-                    const isSelected = selectedWeekView === week.weekName;
-                    return (
-                      <div key={wIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                        <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          {week.weekName}
-                        </button>
-                        <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                          <button onClick={() => moveEditingWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                          <button onClick={() => cloneEditingWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                          <button onClick={() => moveEditingWeekOrder(wIdx, 'right')} disabled={wIdx === editingProgram.weeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === editingProgram.weeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === editingProgram.weeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
-                const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
-
-                return (
-                  <div key={actualWIdx} style={{ marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
-                      <input
-                        type="text"
-                        value={week.weekName}
-                        onChange={(e) => {
-                          const updated = { ...editingProgram };
-                          updated.weeks[actualWIdx].weekName = e.target.value;
-                          setSelectedWeekView(e.target.value);
-                          setEditingProgram(updated);
-                        }}
-                        style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
-                      />
-                      {editingProgram.weeks.length > 1 && (
-                        <button onClick={() => {
-                          const updated = { ...editingProgram };
-                          updated.weeks.splice(actualWIdx, 1);
-                          setEditingProgram(updated);
-                          if (updated.weeks.length > 0) {
-                            setSelectedWeekView(updated.weeks[0].weekName);
-                            if (updated.weeks[0].days?.length > 0) setSelectedDayView(updated.weeks[0].days[0].dayName);
-                          }
-                        }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
-                      )}
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                      {week.days?.map((day: any, dIdx: number) => {
-                        const isSelected = selectedDayView === day.dayName;
-                        return (
-                          <div key={dIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                            <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                              {day.dayName}
-                            </button>
-                            <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                              <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                              <button onClick={() => cloneEditingDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                              <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
-                    </div>
-
-                    {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
-                      const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
-                      return (
-                        <div key={actualDIdx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                              <input
-                                type="text"
-                                value={day.dayName}
-                                onChange={(e) => {
-                                  const updated = { ...editingProgram };
-                                  updated.weeks[actualWIdx].days[actualDIdx].dayName = e.target.value;
-                                  setSelectedDayView(e.target.value);
-                                  setEditingProgram(updated);
-                                }}
-                                style={{ fontWeight: 'bold', color: '#10b981', fontSize: '14px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', flex: 1 }}
-                              />
-                            </div>
-                            {week.days.length > 1 && (
-                              <button onClick={() => {
-                                const updated = { ...editingProgram };
-                                updated.weeks[actualWIdx].days.splice(actualDIdx, 1);
-                                setEditingProgram(updated);
-                                if (updated.weeks[actualWIdx].days.length > 0) setSelectedDayView(updated.weeks[actualWIdx].days[0].dayName);
-                              }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
-                            )}
-                          </div>
-
-                          {day.blocks?.map((block: any, bIdx: number) => {
-                            const blockKey = `edit_${actualWIdx}_${actualDIdx}_${bIdx}`;
-                            const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
-                            return (
-                              <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                  <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
-                                  </div>
-                                  <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                                    <button type="button" onClick={() => {
-                                      const updated = { ...editingProgram };
-                                      updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
-                                      setEditingProgram(updated);
-                                    }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
-                                  </div>
-                                </div>
-
-                                <div style={{ marginBottom: '10px' }}>
-                                  {block.type === 'forza' ? (
-                                    <div>
-                                      <input
-                                        type="text"
-                                        list={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
-                                        value={block.name || ''}
-                                        onChange={(e) => {
-                                          const val = e.target.value;
-                                          const updated = { ...editingProgram };
-                                          updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx].name = val;
-                                          const foundEx = exerciseLibrary.find(ex => ex.name === val);
-                                          if (foundEx && foundEx.video_url) {
-                                            updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx].videoUrl = foundEx.video_url;
-                                          }
-                                          setEditingProgram(updated);
-                                        }}
-                                        placeholder="Inserisci o seleziona esercizio..."
-                                        style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
-                                      />
-                                      <datalist id={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                        {exerciseLibrary.map((ex) => (
-                                          <option key={ex.id} value={ex.name} />
-                                        ))}
-                                      </datalist>
-                                    </div>
-                                  ) : (
-                                    <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                  )}
-                                </div>
-
-                                {!isClosed && (
-                                  <div>
-                                    <div style={{ marginBottom: '10px' }}>
-                                      <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
-                                    </div>
-                                    {block.type === 'forza' ? (
-                                      <div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</label>
-                                            <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                          </div>
-                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</label>
-                                            <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                          </div>
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</label>
-                                            <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                          </div>
-                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</label>
-                                            <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                          </div>
-                                        </div>
-                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</label>
-                                          <input type="text" value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
-                                        <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-
+              {/* Sezioni Settimane/Giorni/Esercizi in Modifica */}
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -1165,204 +945,7 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
-                      {programWeeks.map((week, wIdx) => {
-                        const isSelected = selectedWeekView === week.weekName;
-                        return (
-                          <div key={wIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                            <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                              {week.weekName}
-                            </button>
-                            <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                              <button onClick={() => moveWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                              <button onClick={() => cloneWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                              <button onClick={() => moveWeekOrder(wIdx, 'right')} disabled={wIdx === programWeeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === programWeeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === programWeeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <button onClick={addWeek} style={{ padding: '6px 12px', background: '#10b981', border: 'none', color: '#ffffff', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Settimana</button>
-                    </div>
-                  </div>
-
-                  {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
-                    const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
-
-                    return (
-                      <div key={actualWIdx} style={{ marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
-                          <input
-                            type="text"
-                            value={week.weekName}
-                            onChange={(e) => {
-                              const upd = [...programWeeks];
-                              upd[actualWIdx].weekName = e.target.value;
-                              setSelectedWeekView(e.target.value);
-                              setProgramWeeks(upd);
-                            }}
-                            style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
-                          />
-                          {programWeeks.length > 1 && (
-                            <button onClick={() => {
-                              const upd = [...programWeeks];
-                              upd.splice(actualWIdx, 1);
-                              setProgramWeeks(upd);
-                              if (upd.length > 0) {
-                                setSelectedWeekView(upd[0].weekName);
-                                if (upd[0].days?.length > 0) setSelectedDayView(upd[0].days[0].dayName);
-                              }
-                            }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
-                          )}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                          {week.days.map((day: any, dIdx: number) => {
-                            const isSelected = selectedDayView === day.dayName;
-                            return (
-                              <div key={dIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                                <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                  {day.dayName}
-                                </button>
-                                <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                                  <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                                  <button onClick={() => cloneDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                                  <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
-                        </div>
-
-                        {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
-                          const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
-                          return (
-                            <div key={actualDIdx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
-                                  <input
-                                    type="text"
-                                    value={day.dayName}
-                                    onChange={(e) => {
-                                      const upd = [...programWeeks];
-                                      upd[actualWIdx].days[actualDIdx].dayName = e.target.value;
-                                      setSelectedDayView(e.target.value);
-                                      setProgramWeeks(upd);
-                                    }}
-                                    style={{ fontWeight: 'bold', color: '#10b981', fontSize: '14px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', flex: 1 }}
-                                  />
-                                </div>
-                                {week.days.length > 1 && (
-                                  <button onClick={() => {
-                                    const upd = [...programWeeks];
-                                    upd[actualWIdx].days.splice(actualDIdx, 1);
-                                    setProgramWeeks(upd);
-                                    if (upd[actualWIdx].days.length > 0) setSelectedDayView(upd[actualWIdx].days[0].dayName);
-                                  }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
-                                )}
-                              </div>
-
-                              {day.blocks.map((block: any, bIdx: number) => {
-                                const blockKey = `prog_${actualWIdx}_${actualDIdx}_${bIdx}`;
-                                const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
-                                return (
-                                  <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                      <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
-                                      </div>
-                                      <div style={{ display: 'flex', gap: '4px' }}>
-                                        <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                                        <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
-                                      </div>
-                                    </div>
-
-                                    <div style={{ marginBottom: '10px' }}>
-                                      {block.type === 'forza' ? (
-                                        <div>
-                                          <input
-                                            type="text"
-                                            list={`ex_list_create_${actualWIdx}_${actualDIdx}_${bIdx}`}
-                                            value={block.name || ''}
-                                            onChange={(e) => {
-                                              const val = e.target.value;
-                                              updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', val);
-                                              const foundEx = exerciseLibrary.find(ex => ex.name === val);
-                                              if (foundEx && foundEx.video_url) {
-                                                updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', foundEx.video_url);
-                                              }
-                                            }}
-                                            placeholder="Inserisci o seleziona esercizio..."
-                                            style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
-                                          />
-                                          <datalist id={`ex_list_create_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                            {exerciseLibrary.map((ex) => (
-                                              <option key={ex.id} value={ex.name} />
-                                            ))}
-                                          </datalist>
-                                        </div>
-                                      ) : (
-                                        <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                      )}
-                                    </div>
-
-                                    {!isClosed && (
-                                      <div>
-                                        <div style={{ marginBottom: '10px' }}>
-                                          <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
-                                        </div>
-                                        {block.type === 'forza' ? (
-                                          <div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                              <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</label>
-                                                <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                              </div>
-                                              <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</label>
-                                                <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                              </div>
-                                            </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                              <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</label>
-                                                <input type="text" value={block.load} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                              </div>
-                                              <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</label>
-                                                <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                              </div>
-                                            </div>
-                                            <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                              <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</label>
-                                              <input type="text" value={block.notes} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
-                                            <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-
+                  {/* Sezioni Settimane/Esercizi semplificate */}
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
@@ -1377,134 +960,7 @@ export default function TrainingApp() {
                       ))}
                     </select>
                   </div>
-
-                  {filteredLibraryPrograms.length === 0 ? (
-                    <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
-                  ) : (
-                    filteredLibraryPrograms.map((prog) => {
-                      const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
-                      const progResultsByAthlete = coachAllResults[prog.id] || {};
-                      
-                      const weeks = normalizeProgramWeeks(prog);
-                      const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
-                      const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
-                      const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
-
-                      return (
-                        <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                            <div>
-                              <h4 style={{ margin: '0 0 4px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
-                                <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
-                                  Assegnato: {assignedList.length > 0 ? assignedList.map(a => a.full_name || a.email).join(', ') : 'Tutti (Generale)'}
-                                </span>
-                                {(prog.startDate || prog.endDate) && (
-                                  <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
-                                    📅 {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
-                              <button onClick={() => {
-                                const progToEdit = JSON.parse(JSON.stringify(prog));
-                                progToEdit.weeks = normalizeProgramWeeks(progToEdit);
-                                setEditingProgram(progToEdit);
-                                if (progToEdit.weeks.length > 0) {
-                                  setSelectedWeekView(progToEdit.weeks[0].weekName);
-                                  if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
-                                }
-                              }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
-                              <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
-                            </div>
-                          </div>
-
-                          <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
-                            
-                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
-                              {weeks.map((w: any) => (
-                                <button
-                                  key={w.weekName}
-                                  onClick={() => {
-                                    setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
-                                    if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
-                                  }}
-                                  style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#cbd5e1', color: '#fff', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {w.weekName}
-                                </button>
-                              ))}
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
-                              {activeWeekObj?.days?.map((day: any) => (
-                                <button
-                                  key={day.dayName}
-                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeDay === day.dayName ? '#10b981' : '#e2e8f0', color: activeDay === day.dayName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {day.dayName}
-                                </button>
-                              ))}
-                            </div>
-
-                            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                              {Object.keys(progResultsByAthlete).length === 0 ? (
-                                <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
-                              ) : (
-                                (() => {
-                                  const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
-                                  const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay);
-                                  if (wIndex === -1 || dayIndex === -1) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona un giorno valido.</span>;
-                                  
-                                  const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
-                                  
-                                  return athletes.map((ath) => {
-                                    const resObj = progResultsByAthlete[ath.id];
-                                    if (!resObj) return null;
-
-                                    const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
-                                      const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
-                                    });
-
-                                    if (!hasResultsForThisDay) return null;
-                                    const athName = ath.full_name || ath.email;
-
-                                    return (
-                                      <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                                        <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
-                                        <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
-                                          {blocksOfActiveDay.map((blk: any, bIdx: number) => {
-                                            const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                            const blockData = resObj[blockKey];
-                                            if (!blockData || (!blockData.score && !blockData.notes)) return null;
-
-                                            return (
-                                              <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
-                                                <span>
-                                                  <strong style={{ color: '#10b981' }}>Score:</strong> {blockData.score || '-'} 
-                                                  {blockData.notes && <span style={{ color: '#64748b', marginLeft: '6px' }}>(Note: {blockData.notes})</span>}
-                                                </span>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    );
-                                  });
-                                })()
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
+                  {/* Elenco Programmi Libreria */}
                 </div>
               )}
             </div>
@@ -1512,7 +968,6 @@ export default function TrainingApp() {
         </div>
       ) : (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-
           {bannerData.image_url && (
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
@@ -1573,141 +1028,7 @@ export default function TrainingApp() {
                           </span>
                         )}
                       </div>
-                    
-                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
-                        {weeks.map((week: any) => (
-                          <button
-                            key={week.weekName}
-                            onClick={() => {
-                              setSelectedWeeksByProgram(prev => ({ ...prev, [prog.id]: week.weekName }));
-                              if (week.days && week.days.length > 0) {
-                                setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
-                              }
-                            }}
-                            style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: currentProgramActiveWeek === week.weekName ? '#0284c7' : '#e2e8f0', color: currentProgramActiveWeek === week.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                          >
-                            {week.weekName}
-                          </button>
-                        ))}
-                      </div>
-
-                      {currentWeekObj?.days ? (
-                        <div>
-                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                            {currentWeekObj.days.map((day: any, idx: number) => (
-                              <button
-                                key={idx}
-                                onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: currentProgramActiveDay === day.dayName ? '#10b981' : '#f1f5f9', color: currentProgramActiveDay === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                              >
-                                {day.dayName}
-                              </button>
-                            ))}
-                          </div>
-
-                          {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
-                            const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
-                            const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
-                            const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
-                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
-
-                            return (
-                              <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
-                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#0f172a' }}>{currentWeekObj.weekName} - {day.dayName}</span>
-                                  <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
-                                    {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
-                                  </button>
-                                </div>
-
-                                {!isDayClosed && (
-                                  <div>
-                                    {day.blocks?.length === 0 ? (
-                                      <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
-                                    ) : (
-                                      day.blocks?.map((blk: any, bIdx: number) => {
-                                        const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                        const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                        const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
-                                        return (
-                                          <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
-                                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                {blk.videoUrl && (
-                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                                    🎥 Video
-                                                  </a>
-                                                )}
-                                                <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                              </div>
-                                            </div>
-
-                                            {!isClosed && (
-                                              <div>
-                                                {blk.type === 'forza' ? (
-                                                  <div>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
-                                                      </div>
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
-                                                      </div>
-                                                    </div>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
-                                                      </div>
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
-                                                      </div>
-                                                    </div>
-                                                    {blk.notes && (
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
-                                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                ) : (
-                                                  <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                                                    <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
-                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
-                                                  </div>
-                                                )}
-
-                                                <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                                  <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
-                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                                    <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                                    </div>
-                                                    <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
-                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      })
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : null}
+                      {/* Giorni e blocchi allenamento atleta */}
                     </div>
                   );
                 })
@@ -1719,4 +1040,3 @@ export default function TrainingApp() {
     </div>
   );
 }
-
