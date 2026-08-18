@@ -291,6 +291,7 @@ const fetchNotifications = async () => {
   }
 };
 
+const fetchProgramLibrary = async () => {
   const fetchProgramLibrary = async () => {
     const { data } = await supabase.from('programs').select('*');
     if (data) {
