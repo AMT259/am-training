@@ -47,10 +47,6 @@ export default function TrainingApp() {
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
 
-  // Stato Notifiche
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
       weekNumber: 1,
@@ -113,8 +109,6 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       fetchExerciseLibrary();
       fetchBanner();
-      fetchNotifications();
-
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -147,24 +141,8 @@ export default function TrainingApp() {
 
       const resultsChannel = supabase
         .channel('realtime-results')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, (payload) => {
-          if (role === 'coach') {
-            fetchAllAthleteResultsForCoach();
-            // Notifica real-time per il coach quando un utente inserisce un risultato
-            const newRecord = payload.new as any;
-            if (newRecord) {
-              createNotificationForCoach(
-                `L'atleta ha inserito o aggiornato un risultato nel programma.`
-              );
-            }
-          }
-        })
-        .subscribe();
-
-      const notifChannel = supabase
-        .channel('realtime-notifications')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` }, (payload) => {
-          setNotifications(prev => [payload.new, ...prev]);
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
+          if (role === 'coach') fetchAllAthleteResultsForCoach();
         })
         .subscribe();
 
@@ -180,82 +158,10 @@ export default function TrainingApp() {
         supabase.removeChannel(bannerChannel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
-        supabase.removeChannel(notifChannel);
         supabase.removeChannel(maxesChannel);
       };
     }
   }, [session, role]);
-
-  // Controlla scadenze programmi (10, 7, 2 giorni prima o oggi) per l'atleta loggato
-  useEffect(() => {
-    if (role === 'athlete' && session && programLibrary.length > 0) {
-      checkProgramExpirations();
-    }
-  }, [role, session, programLibrary]);
-
-  const fetchNotifications = async () => {
-    if (!session) return;
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
-    if (data) setNotifications(data);
-  };
-
-  const markNotificationAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ read: true }).eq('id', id);
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  };
-
-  const createNotification = async (userId: string, title: string, message: string) => {
-    await supabase.from('notifications').insert([
-      { user_id: userId, title, message, read: false, created_at: new Date().toISOString() }
-    ]);
-  };
-
-  const createNotificationForCoach = async (message: string) => {
-    // Trova i coach nel sistema o invia alla tabella se gestita centralmente
-    const { data: coaches } = await supabase.from('profiles').select('id').eq('role', 'coach');
-    if (coaches) {
-      for (const coach of coaches) {
-        await createNotification(coach.id, 'Nuovo Risultato Atleta 📊', message);
-      }
-    }
-  };
-
-  const checkProgramExpirations = async () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const myPrograms = programLibrary.filter(
-      (prog) => (!prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session.user.id)) && prog.endDate
-    );
-
-    for (const prog of myPrograms) {
-      const endDate = new Date(prog.endDate);
-      endDate.setHours(0, 0, 0, 0);
-
-      const diffTime = endDate.getTime() - today.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-      if ([10, 7, 2, 0].includes(diffDays)) {
-        let msg = '';
-        if (diffDays === 0) msg = `Il tuo programma "${prog.title}" scade oggi!`;
-        else msg = `Il tuo programma "${prog.title}" scadrà tra ${diffDays} giorni.`;
-
-        // Evita duplicati controllando se esiste già una notifica simile recente o salvandola con chiave unica se preferisci
-        // Qui inseriamo direttamente o verifiquiamo
-        const notifKey = `exp_${prog.id}_${diffDays}`;
-        // Controllo rapido locale per non spammare ad ogni render
-        const alreadyNotifiedKey = `notified_${session.user.id}_${notifKey}`;
-        if (!localStorage.getItem(alreadyNotifiedKey)) {
-          await createNotification(session.user.id, 'Scadenza Programma ⚠️', msg);
-          localStorage.setItem(alreadyNotifiedKey, 'true');
-        }
-      }
-    }
-  };
 
   useEffect(() => {
     if (programLibrary.length > 0) {
@@ -696,22 +602,11 @@ export default function TrainingApp() {
       days: programWeeks[0]?.days || []
     };
 
-    const { data, error } = await supabase.from('programs').insert([newProgram]).select().single();
+    const { error } = await supabase.from('programs').insert([newProgram]);
 
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
-      // Invia notifiche agli atleti assegnati per il nuovo programma
-      if (selectedAthleteIds && selectedAthleteIds.length > 0) {
-        for (const athleteId of selectedAthleteIds) {
-          await createNotification(
-            athleteId,
-            'Nuovo Programma Assegnato 📋',
-            `Il coach ti ha assegnato un nuovo programma: "${programTitle}"`
-          );
-        }
-      }
-
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
@@ -851,13 +746,9 @@ export default function TrainingApp() {
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
-      
-      {/* Header con Centro Notifiche */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
@@ -867,50 +758,7 @@ export default function TrainingApp() {
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Bottone Notifiche */}
-          <div style={{ position: 'relative' }}>
-            <button 
-              onClick={() => setShowNotificationsModal(!showNotificationsModal)} 
-              style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', position: 'relative' }}
-            >
-              🔔 {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: '#fff', fontSize: '10px', borderRadius: '50%', padding: '2px 6px', fontWeight: 'bold' }}>
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {showNotificationsModal && (
-              <div style={{ position: 'absolute', right: 0, top: '40px', width: '300px', background: '#1e293b', border: '1px solid #334151', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 1000, padding: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid #334151', paddingBottom: '6px' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>Notifiche</span>
-                  <button onClick={() => setShowNotificationsModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '12px' }}>✕</button>
-                </div>
-                <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {notifications.length === 0 ? (
-                    <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '12px' }}>Nessuna notifica</div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div 
-                        key={n.id} 
-                        onClick={() => markNotificationAsRead(n.id)}
-                        style={{ background: n.id && n.read ? '#0f172a' : '#334155', padding: '8px', borderRadius: '6px', cursor: 'pointer', borderLeft: n.read ? 'none' : '3px solid #10b981' }}
-                      >
-                        <div style={{ fontWeight: 'bold', fontSize: '12px', color: '#fff' }}>{n.title}</div>
-                        <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>{n.message}</div>
-                        <div style={{ fontSize: '9px', color: '#94a3b8', marginTop: '4px', textAlign: 'right' }}>{new Date(n.created_at).toLocaleDateString()} {new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
-        </div>
+        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
       </header>
 
       {role === 'coach' ? (
@@ -1559,6 +1407,87 @@ export default function TrainingApp() {
                               <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
                           </div>
+
+                          <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
+                            
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
+                              {weeks.map((w: any) => (
+                                <button
+                                  key={w.weekName}
+                                  onClick={() => {
+                                    setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
+                                    if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
+                                  }}
+                                  style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#cbd5e1', color: '#fff', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  {w.weekName}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                              {activeWeekObj?.days?.map((day: any) => (
+                                <button
+                                  key={day.dayName}
+                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeDay === day.dayName ? '#10b981' : '#e2e8f0', color: activeDay === day.dayName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  {day.dayName}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                              {Object.keys(progResultsByAthlete).length === 0 ? (
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
+                              ) : (
+                                (() => {
+                                  const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                                  const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay);
+                                  if (wIndex === -1 || dayIndex === -1) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona un giorno valido.</span>;
+                                  
+                                  const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
+                                  
+                                  return athletes.map((ath) => {
+                                    const resObj = progResultsByAthlete[ath.id];
+                                    if (!resObj) return null;
+
+                                    const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
+                                      const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
+                                    });
+
+                                    if (!hasResultsForThisDay) return null;
+                                    const athName = ath.full_name || ath.email;
+
+                                    return (
+                                      <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                                        <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
+                                        <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
+                                          {blocksOfActiveDay.map((blk: any, bIdx: number) => {
+                                            const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                            const blockData = resObj[blockKey];
+                                            if (!blockData || (!blockData.score && !blockData.notes)) return null;
+
+                                            return (
+                                              <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
+                                                <span>
+                                                  <strong style={{ color: '#10b981' }}>Score:</strong> {blockData.score || '-'} 
+                                                  {blockData.notes && <span style={{ color: '#64748b', marginLeft: '6px' }}>(Note: {blockData.notes})</span>}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  });
+                                })()
+                              )}
+                            </div>
+                          </div>
                         </div>
                       );
                     })
@@ -1569,82 +1498,208 @@ export default function TrainingApp() {
           )}
         </div>
       ) : (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>I tuoi Programmi</h3>
-          {athletePrograms.length === 0 ? (
-            <p style={{ color: '#64748b' }}>Nessun programma disponibile.</p>
-          ) : (
-            athletePrograms.map((prog) => {
-              const weeks = normalizeProgramWeeks(prog);
-              const activeWeekName = selectedWeeksByProgram[prog.id] || weeks[0]?.weekName;
-              const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
-              const activeDayName = selectedDaysByProgram[prog.id] || (activeWeekObj?.days?.[0]?.dayName);
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-              return (
-                <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                  <h4 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '18px' }}>{prog.title}</h4>
-                  <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '4px' }}>
-                    {weeks.map((week: any, wIdx: number) => {
-                      const isSelected = activeWeekName === week.weekName;
-                      return (
-                        <button key={wIdx} onClick={() => {
-                          setSelectedWeeksByProgram({ ...selectedWeeksByProgram, [prog.id]: week.weekName });
-                          if (week.days?.[0]) {
-                            setSelectedDaysByProgram({ ...selectedDaysByProgram, [prog.id]: week.days[0].dayName });
-                          }
-                        }} style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: isSelected ? '#10b981' : '#f1f5f9', color: isSelected ? '#fff' : '#000', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                          {week.weekName}
-                        </button>
-                      );
-                    })}
+          {bannerData.image_url && (
+            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+              {bannerData.link_url ? (
+                <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b', cursor: 'pointer' }} />
+                </a>
+              ) : (
+                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b' }} />
+              )}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
+            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
+          </div>
+
+          {activeTab === 'profile' ? (
+            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {STRENGTH_EXERCISES.map((exName) => (
+                  <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                      {REP_SCHEMES.map((reps) => (
+                        <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
+                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxChange(exName, reps, e.target.value)} style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-
-                  {activeWeekObj && (
-                    <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '4px' }}>
-                      {activeWeekObj.days?.map((day: any, dIdx: number) => {
-                        const isSelected = activeDayName === day.dayName;
-                        return (
-                          <button key={dIdx} onClick={() => setSelectedDaysByProgram({ ...selectedDaysByProgram, [prog.id]: day.dayName })} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: isSelected ? '#0284c7' : '#ffffff', color: isSelected ? '#fff' : '#000', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                            {day.dayName}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {activeWeekObj?.days?.filter((d: any) => d.dayName === activeDayName).map((day: any, dIdx: number) => (
-                    <div key={dIdx} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {day.blocks?.map((block: any, bIdx: number) => {
-                        const blockKey = `${prog.id}_${activeWeekName}_${activeDayName}_${bIdx}`;
-                        const res = athleteResults[prog.id]?.[blockKey] || { score: '', notes: '' };
-
-                        return (
-                          <div key={bIdx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '6px' }}>
-                              {block.name || (block.type === 'wod' ? 'WOD' : 'Esercizio')}
-                            </div>
-                            {block.type === 'forza' ? (
-                              <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px' }}>
-                                Set: <b>{block.sets}</b> | Reps: <b>{block.reps}</b> | Carico: <b>{block.load}</b> | Rec: <b>{block.rest}</b>
-                              </div>
-                            ) : (
-                              <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px', whiteSpace: 'pre-wrap' }}>
-                                {block.wodNotes}
-                              </div>
-                            )}
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '8px' }}>
-                              <input type="text" placeholder="Risultato (es. 100kg / Time)" value={res.score} onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)} style={{ padding: '8px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }} />
-                              <input type="text" placeholder="Note personali" value={res.notes} onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)} style={{ padding: '8px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
+              {athletePrograms.length === 0 ? (
+                <div style={{ background: '#ffffff', color: '#000', padding: '30px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  <p style={{ color: '#64748b', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
                 </div>
-              );
-            })
+              ) : (
+                athletePrograms.map((prog) => {
+                  const weeks = normalizeProgramWeeks(prog);
+                  const currentProgramActiveWeek = selectedWeeksByProgram[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
+                  const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || weeks[0];
+                  const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
+
+                  return (
+                    <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
+                        {(prog.startDate || prog.endDate) && (
+                          <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                            📅 Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}
+                          </span>
+                        )}
+                      </div>
+                    
+                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                        {weeks.map((week: any) => (
+                          <button
+                            key={week.weekName}
+                            onClick={() => {
+                              setSelectedWeeksByProgram(prev => ({ ...prev, [prog.id]: week.weekName }));
+                              if (week.days && week.days.length > 0) {
+                                setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
+                              }
+                            }}
+                            style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: currentProgramActiveWeek === week.weekName ? '#0284c7' : '#e2e8f0', color: currentProgramActiveWeek === week.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            {week.weekName}
+                          </button>
+                        ))}
+                      </div>
+
+                      {currentWeekObj?.days ? (
+                        <div>
+                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+                            {currentWeekObj.days.map((day: any, idx: number) => (
+                              <button
+                                key={idx}
+                                onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: currentProgramActiveDay === day.dayName ? '#10b981' : '#f1f5f9', color: currentProgramActiveDay === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                              >
+                                {day.dayName}
+                              </button>
+                            ))}
+                          </div>
+
+                          {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
+                            const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
+                            const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
+                            const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
+                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
+
+                            return (
+                              <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
+                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#0f172a' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+                                  <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                                    {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
+                                  </button>
+                                </div>
+
+                                {!isDayClosed && (
+                                  <div>
+                                    {day.blocks?.length === 0 ? (
+                                      <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
+                                    ) : (
+                                      day.blocks?.map((blk: any, bIdx: number) => {
+                                        const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                        const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                        const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
+
+                                        return (
+                                          <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                {blk.videoUrl && (
+                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                                    🎥 Video
+                                                  </a>
+                                                )}
+                                                <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                              </div>
+                                            </div>
+
+                                            {!isClosed && (
+                                              <div>
+                                                {blk.type === 'forza' ? (
+                                                  <div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
+                                                      </div>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
+                                                      </div>
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
+                                                      </div>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
+                                                      </div>
+                                                    </div>
+                                                    {blk.notes && (
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
+                                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                                    <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
+                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                  </div>
+                                                )}
+
+                                                <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                                  <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                    <div>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                    <div>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
+                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           )}
         </div>
       )}
