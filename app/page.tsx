@@ -838,7 +838,6 @@ export default function TrainingApp() {
               )}
             </div>
           ) : editingProgram ? (
-            /* --- EDITING PROGRAMMA --- */
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
@@ -848,7 +847,6 @@ export default function TrainingApp() {
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
 
-              {/* DATE INIZIO E FINE (MODIFICA) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -884,7 +882,6 @@ export default function TrainingApp() {
                 </div>
               </div>
 
-              {/* SELEZIONE E GESTIONE SETTIMANE (MODIFICA) */}
               <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -906,7 +903,6 @@ export default function TrainingApp() {
                 </div>
               </div>
 
-              {/* DETTAGLIO SETTIMANA SELEZIONATA (MODIFICA) */}
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
 
@@ -937,7 +933,6 @@ export default function TrainingApp() {
                       )}
                     </div>
 
-                    {/* SELEZIONE E GESTIONE GIORNI (MODIFICA) */}
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
@@ -957,7 +952,6 @@ export default function TrainingApp() {
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                     </div>
 
-                    {/* BLOCCO GIORNO SELEZIONATO (MODIFICA) */}
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                       const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                       return (
@@ -1122,13 +1116,11 @@ export default function TrainingApp() {
                   </div>
                 </div>
               ) : activeTab === 'create' ? (
-                /* --- CREAZIONE NUOVO PROGRAMMA --- */
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
                 
-                  {/* DATE INIZIO E FINE (CREAZIONE) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                     <div>
                       <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -1160,7 +1152,6 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
-                  {/* SELEZIONE E GESTIONE SETTIMANE (CREAZIONE) */}
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -1183,7 +1174,6 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
-                  {/* DETTAGLIO SETTIMANA SELEZIONATA (CREAZIONE) */}
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
                     const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
 
@@ -1214,7 +1204,6 @@ export default function TrainingApp() {
                           )}
                         </div>
 
-                        {/* SELEZIONE GIORNI PER SETTIMANA (CREAZIONE) */}
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
@@ -1234,7 +1223,6 @@ export default function TrainingApp() {
                           <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                         </div>
 
-                        {/* DETTAGLIO GIORNO SELEZIONATO (CREAZIONE) */}
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                           const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                           return (
@@ -1366,7 +1354,6 @@ export default function TrainingApp() {
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
-                /* --- LIBRERIA PROGRAMMI (COACH) --- */
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
@@ -1511,7 +1498,6 @@ export default function TrainingApp() {
           )}
         </div>
       ) : (
-        /* --- VISTA ATLETA --- */
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
           {bannerData.image_url && (
@@ -1691,7 +1677,7 @@ export default function TrainingApp() {
                                                       <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                     <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note Personali</label>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
                                                       <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
                                                     </div>
                                                   </div>
@@ -1708,9 +1694,7 @@ export default function TrainingApp() {
                             );
                           })}
                         </div>
-                      ) : (
-                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile.</p>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })
