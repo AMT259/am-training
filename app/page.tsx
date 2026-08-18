@@ -47,6 +47,9 @@ export default function TrainingApp() {
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
 
+  // STATO NOTIFICHE
+  const [notifications, setNotifications] = useState<any[]>([]);
+
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
       weekNumber: 1,
@@ -60,8 +63,8 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
-  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner' | 'notifications'>('create');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner' | 'notifications'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
@@ -109,6 +112,8 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       fetchExerciseLibrary();
       fetchBanner();
+      fetchNotifications();
+
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -153,12 +158,30 @@ export default function TrainingApp() {
         })
         .subscribe();
 
+      // Realtime per le notifiche dell'utente loggato
+      const notifChannel = supabase
+        .channel('realtime-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${session.user.id}`
+          },
+          (payload) => {
+            setNotifications((prev) => [payload.new, ...prev]);
+          }
+        )
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(bannerChannel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
         supabase.removeChannel(maxesChannel);
+        supabase.removeChannel(notifChannel);
       };
     }
   }, [session, role]);
@@ -199,6 +222,24 @@ export default function TrainingApp() {
     if (data && data.value) {
       setBannerData(data.value);
     }
+  };
+
+  const fetchNotifications = async () => {
+    if (!session) return;
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setNotifications(data);
+    }
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const saveBanner = async (e: React.FormEvent) => {
@@ -602,11 +643,21 @@ export default function TrainingApp() {
       days: programWeeks[0]?.days || []
     };
 
-    const { error } = await supabase.from('programs').insert([newProgram]);
+    const { data: insertedProg, error } = await supabase.from('programs').insert([newProgram]).select().single();
 
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
+      // Invia notifiche agli atleti assegnati (se specificati)
+      if (selectedAthleteIds.length > 0) {
+        const notificationsData = selectedAthleteIds.map(athId => ({
+          user_id: athId,
+          title: 'Nuovo Programma Assegnato',
+          message: `Ti è stato assegnato un nuovo programma: "${programTitle}"`
+        }));
+        await supabase.from('notifications').insert(notificationsData);
+      }
+
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
@@ -746,6 +797,8 @@ export default function TrainingApp() {
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
 
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
@@ -758,18 +811,46 @@ export default function TrainingApp() {
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
-        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button onClick={() => role === 'coach' ? setCoachSubView('notifications') : setActiveTab('notifications')} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', position: 'relative' }}>
+            🔔 {unreadCount > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: '50%', padding: '2px 6px', fontSize: '10px', position: 'absolute', top: '-5px', right: '-5px' }}>{unreadCount}</span>}
+          </button>
+          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+        </div>
       </header>
 
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
-            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
-            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
+            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti 🏋️‍♂️</button>
+            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Banner 📢</button>
+            <button onClick={() => setCoachSubView('notifications')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'notifications' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Notifiche 🔔</button>
           </div>
 
-          {coachSubView === 'banner' ? (
+          {coachSubView === 'notifications' ? (
+            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Le tue Notifiche</h3>
+              {notifications.length === 0 ? (
+                <p style={{ color: '#64748b' }}>Nessuna notifica presente.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {notifications.map((n) => (
+                    <div key={n.id} style={{ background: n.is_read ? '#f8fafc' : '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '4px' }}>{n.title}</div>
+                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px' }}>{n.message}</div>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                      {!n.is_read && (
+                        <button onClick={() => markNotificationAsRead(n.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Segna come letta</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : coachSubView === 'banner' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
               <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -838,7 +919,6 @@ export default function TrainingApp() {
               )}
             </div>
           ) : editingProgram ? (
-            /* --- EDITING PROGRAMMA --- */
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
@@ -848,7 +928,6 @@ export default function TrainingApp() {
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
 
-              {/* DATE INIZIO E FINE (MODIFICA) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -884,7 +963,6 @@ export default function TrainingApp() {
                 </div>
               </div>
 
-              {/* SELEZIONE E GESTIONE SETTIMANE (MODIFICA) */}
               <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -906,7 +984,6 @@ export default function TrainingApp() {
                 </div>
               </div>
 
-              {/* DETTAGLIO SETTIMANA SELEZIONATA (MODIFICA) */}
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
 
@@ -937,7 +1014,6 @@ export default function TrainingApp() {
                       )}
                     </div>
 
-                    {/* SELEZIONE E GESTIONE GIORNI (MODIFICA) */}
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
@@ -957,7 +1033,6 @@ export default function TrainingApp() {
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                     </div>
 
-                    {/* BLOCCO GIORNO SELEZIONATO (MODIFICA) */}
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                       const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                       return (
@@ -1122,13 +1197,11 @@ export default function TrainingApp() {
                   </div>
                 </div>
               ) : activeTab === 'create' ? (
-                /* --- CREAZIONE NUOVO PROGRAMMA --- */
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
                 
-                  {/* DATE INIZIO E FINE (CREAZIONE) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                     <div>
                       <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -1141,7 +1214,7 @@ export default function TrainingApp() {
                   </div>
 
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti (e invia notifica):</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
                         <span style={{ fontSize: '12px', color: '#64748b' }}>Nessun atleta disponibile.</span>
@@ -1160,7 +1233,6 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
-                  {/* SELEZIONE E GESTIONE SETTIMANE (CREAZIONE) */}
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -1183,7 +1255,6 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
-                  {/* DETTAGLIO SETTIMANA SELEZIONATA (CREAZIONE) */}
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
                     const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
 
@@ -1214,7 +1285,6 @@ export default function TrainingApp() {
                           )}
                         </div>
 
-                        {/* SELEZIONE GIORNI PER SETTIMANA (CREAZIONE) */}
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
@@ -1234,7 +1304,6 @@ export default function TrainingApp() {
                           <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                         </div>
 
-                        {/* DETTAGLIO GIORNO SELEZIONATO (CREAZIONE) */}
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                           const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                           return (
@@ -1366,7 +1435,6 @@ export default function TrainingApp() {
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
-                /* --- LIBRERIA PROGRAMMI (COACH) --- */
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
@@ -1528,10 +1596,33 @@ export default function TrainingApp() {
 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
-            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
+            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profilo & Massimali 🏋️‍♂️</button>
+            <button onClick={() => setActiveTab('notifications')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'notifications' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Notifiche 🔔</button>
           </div>
 
-          {activeTab === 'profile' ? (
+          {activeTab === 'notifications' ? (
+            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Le tue Notifiche</h3>
+              {notifications.length === 0 ? (
+                <p style={{ color: '#64748b' }}>Nessuna notifica presente.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {notifications.map((n) => (
+                    <div key={n.id} style={{ background: n.is_read ? '#f8fafc' : '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '4px' }}>{n.title}</div>
+                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px' }}>{n.message}</div>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>{new Date(n.created_at).toLocaleString()}</div>
+                      </div>
+                      {!n.is_read && (
+                        <button onClick={() => markNotificationAsRead(n.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Segna come letta</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1631,6 +1722,8 @@ export default function TrainingApp() {
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
 
+                                        const currentBlockResult = athleteResults[prog.id]?.[resultKey] || { score: '', notes: '' };
+
                                         return (
                                           <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -1670,7 +1763,7 @@ export default function TrainingApp() {
                                                       </div>
                                                     </div>
                                                     {blk.notes && (
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
                                                         <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
                                                       </div>
@@ -1683,17 +1776,23 @@ export default function TrainingApp() {
                                                   </div>
                                                 )}
 
-                                                <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                                  <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
-                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                                    <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                                    </div>
-                                                    <div>
-                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note Personali</label>
-                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
-                                                    </div>
+                                                <div style={{ background: '#f0fdf4', padding: '10px', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                                                  <span style={{ fontSize: '11px', color: '#166534', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>IL TUO RISULTATO:</span>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '6px' }}>
+                                                    <input
+                                                      type="text"
+                                                      placeholder="Score (es. 90kg, 12:30)"
+                                                      value={currentBlockResult.score || ''}
+                                                      onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)}
+                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                                    />
+                                                    <input
+                                                      type="text"
+                                                      placeholder="Note personali..."
+                                                      value={currentBlockResult.notes || ''}
+                                                      onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)}
+                                                      style={{ padding: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }}
+                                                    />
                                                   </div>
                                                 </div>
                                               </div>
@@ -1708,9 +1807,7 @@ export default function TrainingApp() {
                             );
                           })}
                         </div>
-                      ) : (
-                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile.</p>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })
