@@ -95,6 +95,7 @@ export default function TrainingApp() {
   const [saveMessage, setSaveMessage] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationError, setNotificationError] = useState('');
 
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -127,7 +128,15 @@ export default function TrainingApp() {
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (!error && data) setNotifications(data);
+    if (error) {
+      console.error('Errore caricamento notifiche:', error);
+      setNotificationError(error.message);
+      return;
+    }
+
+    setNotificationError('');
+
+    setNotifications(data || []);
   };
 
   const createNotificationIfMissing = async (
@@ -137,14 +146,18 @@ export default function TrainingApp() {
   ) => {
     if (!session?.user?.id) return;
 
-    const { data: existing } = await supabase
+    const { data: existing, error: checkError } = await supabase
       .from('notifications')
       .select('id')
       .eq('user_id', session.user.id)
       .eq('type', type)
-      .eq('title', title)
-      .eq('message', message)
       .limit(1);
+
+    if (checkError) {
+      console.error('Errore controllo notifica:', checkError);
+      setNotificationError(checkError.message);
+      return;
+    }
 
     if (existing && existing.length > 0) return;
 
@@ -156,7 +169,13 @@ export default function TrainingApp() {
       read: false
     }]);
 
-    if (!error) fetchNotifications();
+    if (error) {
+      console.error('Errore creazione notifica:', error);
+      setNotificationError(error.message);
+      return;
+    }
+
+    await fetchNotifications();
   };
 
   const syncProgramNotifications = async () => {
@@ -171,7 +190,7 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Nuovo programma assegnato',
           `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
-          'program_assigned'
+          `program_assigned_${prog.id}`
         );
       }
       return;
@@ -182,7 +201,6 @@ export default function TrainingApp() {
         if (!prog.endDate || !prog.assignedAthleteIds?.length) continue;
 
         const daysRemaining = getCalendarDaysDifference(prog.endDate);
-
         if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
 
         const dayText =
@@ -193,7 +211,7 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Scadenza programma',
           `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
-          'program_deadline'
+          `program_deadline_${prog.id}_${daysRemaining}`
         );
       }
     }
@@ -956,18 +974,19 @@ export default function TrainingApp() {
 
             {showNotifications && (
               <div style={{
-                position: 'absolute',
-                top: '48px',
-                right: 0,
-                width: 'min(360px, calc(100vw - 48px))',
-                maxHeight: '420px',
+                position: 'fixed',
+                top: '72px',
+                right: '12px',
+                width: 'min(360px, calc(100vw - 24px))',
+                maxHeight: 'min(70vh, 480px)',
                 overflowY: 'auto',
                 background: '#ffffff',
                 color: '#000',
-                borderRadius: '12px',
+                borderRadius: '14px',
                 border: '1px solid #cbd5e1',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
-                zIndex: 1000
+                boxShadow: '0 16px 40px rgba(0,0,0,0.30)',
+                zIndex: 9999,
+                boxSizing: 'border-box'
               }}>
                 <div style={{
                   padding: '12px 14px',
@@ -993,6 +1012,12 @@ export default function TrainingApp() {
                     </button>
                   )}
                 </div>
+
+                {notificationError && (
+                  <div style={{ padding: '10px 14px', background: '#fef2f2', color: '#b91c1c', fontSize: '11px', borderBottom: '1px solid #fecaca', lineHeight: 1.4 }}>
+                    Errore notifiche: {notificationError}
+                  </div>
+                )}
 
                 {notifications.length === 0 ? (
                   <div style={{ padding: '24px 14px', color: '#64748b', textAlign: 'center', fontSize: '13px' }}>
