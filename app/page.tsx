@@ -93,6 +93,8 @@ export default function TrainingApp() {
 
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -100,6 +102,125 @@ export default function TrainingApp() {
       return [{ weekNumber: 1, weekName: 'Settimana 1', days: prog.days }];
     }
     return [{ weekNumber: 1, weekName: 'Settimana 1', days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }];
+  };
+
+  const getCalendarDaysDifference = (dateString: string) => {
+    if (!dateString) return null;
+    const cleanDate = dateString.split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(Number);
+    if (!year || !month || !day) return null;
+
+    const target = Date.UTC(year, month - 1, day);
+    const today = new Date();
+    const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+    return Math.round((target - todayUTC) / 86400000);
+  };
+
+  const fetchNotifications = async () => {
+    if (!session?.user?.id) return;
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('id,user_id,title,message,type,read,created_at')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (!error && data) setNotifications(data);
+  };
+
+  const createNotificationIfMissing = async (
+    title: string,
+    message: string,
+    type: string
+  ) => {
+    if (!session?.user?.id) return;
+
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .eq('type', type)
+      .eq('title', title)
+      .eq('message', message)
+      .limit(1);
+
+    if (existing && existing.length > 0) return;
+
+    const { error } = await supabase.from('notifications').insert([{
+      user_id: session.user.id,
+      title,
+      message,
+      type,
+      read: false
+    }]);
+
+    if (!error) fetchNotifications();
+  };
+
+  const syncProgramNotifications = async () => {
+    if (!session?.user?.id || !programLibrary.length) return;
+
+    if (role === 'athlete') {
+      const assignedPrograms = programLibrary.filter(
+        (prog) => prog.assignedAthleteIds?.includes(session.user.id)
+      );
+
+      for (const prog of assignedPrograms) {
+        await createNotificationIfMissing(
+          'Nuovo programma assegnato',
+          `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
+          'program_assigned'
+        );
+      }
+      return;
+    }
+
+    if (role === 'coach') {
+      for (const prog of programLibrary) {
+        if (!prog.endDate || !prog.assignedAthleteIds?.length) continue;
+
+        const daysRemaining = getCalendarDaysDifference(prog.endDate);
+
+        if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
+
+        const dayText =
+          daysRemaining === 0
+            ? 'scade oggi'
+            : `scade tra ${daysRemaining} giorni`;
+
+        await createNotificationIfMissing(
+          'Scadenza programma',
+          `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
+          'program_deadline'
+        );
+      }
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId: string) => {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', notificationId)
+      .eq('user_id', session?.user?.id);
+
+    setNotifications(prev =>
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+    );
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    if (!session?.user?.id) return;
+
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', session.user.id)
+      .eq('read', false);
+
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   useEffect(() => {
@@ -122,6 +243,7 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       fetchExerciseLibrary();
       fetchBanner();
+      fetchNotifications();
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -166,15 +288,34 @@ export default function TrainingApp() {
         })
         .subscribe();
 
+      const notificationsChannel = supabase
+        .channel('realtime-notifications')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${session.user.id}`
+        }, () => {
+          fetchNotifications();
+        })
+        .subscribe();
+
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(bannerChannel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
         supabase.removeChannel(maxesChannel);
+        supabase.removeChannel(notificationsChannel);
       };
     }
   }, [session, role]);
+
+  useEffect(() => {
+    if (session && programLibrary.length > 0) {
+      syncProgramNotifications();
+    }
+  }, [session, role, programLibrary]);
 
   useEffect(() => {
     if (programLibrary.length > 0) {
@@ -771,7 +912,129 @@ export default function TrainingApp() {
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
-        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowNotifications(prev => !prev)}
+              title="Notifiche"
+              style={{
+                position: 'relative',
+                background: '#1e293b',
+                border: '1px solid #334151',
+                color: '#fff',
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontSize: '18px'
+              }}
+            >
+              🔔
+              {notifications.some(n => !n.read) && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  minWidth: '18px',
+                  height: '18px',
+                  padding: '0 4px',
+                  borderRadius: '999px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid #0b0f19'
+                }}>
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div style={{
+                position: 'absolute',
+                top: '48px',
+                right: 0,
+                width: 'min(360px, calc(100vw - 48px))',
+                maxHeight: '420px',
+                overflowY: 'auto',
+                background: '#ffffff',
+                color: '#000',
+                borderRadius: '12px',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.25)',
+                zIndex: 1000
+              }}>
+                <div style={{
+                  padding: '12px 14px',
+                  borderBottom: '1px solid #e2e8f0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <strong style={{ fontSize: '14px' }}>Notifiche</strong>
+                  {notifications.some(n => !n.read) && (
+                    <button
+                      onClick={markAllNotificationsAsRead}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#10b981',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Segna tutte come lette
+                    </button>
+                  )}
+                </div>
+
+                {notifications.length === 0 ? (
+                  <div style={{ padding: '24px 14px', color: '#64748b', textAlign: 'center', fontSize: '13px' }}>
+                    Nessuna notifica.
+                  </div>
+                ) : (
+                  notifications.map(notification => (
+                    <div
+                      key={notification.id}
+                      onClick={() => !notification.read && markNotificationAsRead(notification.id)}
+                      style={{
+                        padding: '12px 14px',
+                        borderBottom: '1px solid #f1f5f9',
+                        background: notification.read ? '#ffffff' : '#ecfdf5',
+                        cursor: notification.read ? 'default' : 'pointer'
+                      }}
+                    >
+                      <div style={{
+                        fontWeight: 'bold',
+                        fontSize: '13px',
+                        color: notification.read ? '#334155' : '#047857',
+                        marginBottom: '4px'
+                      }}>
+                        {notification.title}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
+                        {notification.message}
+                      </div>
+                      {notification.created_at && (
+                        <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '5px' }}>
+                          {new Date(notification.created_at).toLocaleString('it-IT')}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+        </div>
       </header>
 
       {role === 'coach' ? (
