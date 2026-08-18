@@ -150,11 +150,10 @@ export default function TrainingApp() {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, (payload) => {
           if (role === 'coach') {
             fetchAllAthleteResultsForCoach();
-            // Notifica in tempo reale al coach per nuovo risultato inserito/aggiornato da un atleta
             const newRecord = payload.new as any;
             if (newRecord) {
               createNotification(
-                session.user.id, // o un ID generico se il coach è destinatario, qui usiamo l'utente loggato se è coach
+                session.user.id,
                 'Nuovo Risultato',
                 `Un atleta ha inserito o aggiornato i risultati di un allenamento.`
               );
@@ -191,7 +190,6 @@ export default function TrainingApp() {
     }
   }, [session, role]);
 
-  // Controlla scadenze programmi (10g, 7g, 2g, oggi) per generare notifiche automatiche all'atleta
   useEffect(() => {
     if (session && role === 'athlete' && programLibrary.length > 0) {
       checkProgramExpirations();
@@ -259,7 +257,6 @@ export default function TrainingApp() {
         if (diffDays === 0) msg = `Il programma "${prog.title}" scade oggi!`;
         else msg = `Il programma "${prog.title}" scadrà tra ${diffDays} giorni.`;
 
-        // Evita di duplicare la notifica nello stesso giorno controllando se esiste già
         const existing = notifications.find(n => n.message === msg && n.user_id === session.user.id);
         if (!existing) {
           await createNotification(session.user.id, 'Scadenza Programma ⚠️', msg);
@@ -410,7 +407,6 @@ export default function TrainingApp() {
       { onConflict: 'program_id, athlete_id' }
     );
 
-    // Notifica al coach che l'atleta ha inserito un risultato
     athletes.forEach(async (coachUser) => {
       await createNotification(
         coachUser.id,
@@ -685,7 +681,6 @@ export default function TrainingApp() {
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
 
-      // Invia notifiche agli atleti assegnati
       selectedAthleteIds.forEach(async (athleteId) => {
         await createNotification(
           athleteId,
@@ -764,7 +759,6 @@ export default function TrainingApp() {
     } else {
       alert('Programma aggiornato con successo!');
 
-      // Notifica agli atleti assegnati dell'aggiornamento
       if (editingProgram.assignedAthleteIds) {
         editingProgram.assignedAthleteIds.forEach(async (athleteId: string) => {
           await createNotification(
@@ -849,7 +843,6 @@ export default function TrainingApp() {
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
       
-      {/* HEADER CON NOTIFICHE */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
@@ -876,7 +869,6 @@ export default function TrainingApp() {
         </div>
       </header>
 
-      {/* MODALE NOTIFICHE */}
       {showNotificationsModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
           <div style={{ background: '#1e293b', color: '#fff', width: '100%', maxWidth: '450px', borderRadius: '12px', padding: '20px', border: '1px solid #334151', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
@@ -1513,8 +1505,6 @@ export default function TrainingApp() {
                   ) : (
                     filteredLibraryPrograms.map((prog) => {
                       const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
-                      const progResultsByAthlete = coachAllResults[prog.id] || {};
-                      
                       const weeks = normalizeProgramWeeks(prog);
                       const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
 
@@ -1723,14 +1713,14 @@ export default function TrainingApp() {
                                             placeholder="Score / Peso"
                                             value={currentRes.score || ''}
                                             onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                            style={{ padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', color: '#000', fontWeight: 'bold' }}
+                                            style={{ padding: '8px', borderRadius: '4px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', width: '100%', boxSizing: 'border-box' }}
                                           />
                                           <input
                                             type="text"
-                                            placeholder="Note allenamento"
+                                            placeholder="Note personali"
                                             value={currentRes.notes || ''}
                                             onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                            style={{ padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px', color: '#000' }}
+                                            style={{ padding: '8px', borderRadius: '4px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', width: '100%', boxSizing: 'border-box' }}
                                           />
                                         </div>
                                       </div>
