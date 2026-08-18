@@ -32,11 +32,9 @@ export default function TrainingApp() {
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
-  const [programEndDate, setProgramEndDate] = useState('');
+  const [programEndDate, setProgramEndDate, setProgramEndDate] = useState('');
 
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
-  const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
-
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
 
@@ -1659,3 +1657,4 @@ export default function TrainingApp() {
     </div>
   );
 }
+
