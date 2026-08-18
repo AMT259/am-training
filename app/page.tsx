@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -123,7 +123,7 @@ export default function TrainingApp() {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('id,user_id,title,message,Is_read,created_at,program_id,notification_type')
+      .select('id,user_id,title,message,notification_type,read,created_at')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -142,8 +142,7 @@ export default function TrainingApp() {
   const createNotificationIfMissing = async (
     title: string,
     message: string,
-    notificationType: string,
-    programId?: string
+    notification_type: string
   ) => {
     if (!session?.user?.id) return;
 
@@ -151,7 +150,7 @@ export default function TrainingApp() {
       .from('notifications')
       .select('id')
       .eq('user_id', session.user.id)
-      .eq('notification_type', notificationType)
+      .eq('notification_type', type)
       .limit(1);
 
     if (checkError) {
@@ -166,9 +165,8 @@ export default function TrainingApp() {
       user_id: session.user.id,
       title,
       message,
-      notification_type: notificationType,
-      Is_read: false,
-      program_id: programId || null
+      notification_type,
+      is_read: false
     }]);
 
     if (error) {
@@ -192,8 +190,7 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Nuovo programma assegnato',
           `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
-          `program_assigned_${prog.id}`,
-          prog.id
+          `program_assigned_${prog.id}`
         );
       }
       return;
@@ -214,8 +211,7 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Scadenza programma',
           `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
-          `program_deadline_${prog.id}_${daysRemaining}`,
-          prog.id
+          `program_deadline_${prog.id}_${daysRemaining}`
         );
       }
     }
@@ -224,12 +220,12 @@ export default function TrainingApp() {
   const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
-      .update({ Is_read: true })
+      .update({ is_read: true })
       .eq('id', notificationId)
       .eq('user_id', session?.user?.id);
 
     setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, Is_read: true } : n)
+      prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
   };
 
@@ -238,11 +234,11 @@ export default function TrainingApp() {
 
     await supabase
       .from('notifications')
-      .update({ Is_read: true })
+      .update({ is_read: true })
       .eq('user_id', session.user.id)
-      .eq('Is_read', false);
+      .eq('is_read', false);
 
-    setNotifications(prev => prev.map(n => ({ ...n, Is_read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
   useEffect(() => {
@@ -752,7 +748,7 @@ export default function TrainingApp() {
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', notification_type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setProgramWeeks(updated);
   };
@@ -827,7 +823,7 @@ export default function TrainingApp() {
     const updated = { ...editingProgram };
     if (!updated.weeks[wIdx].days[dayIndex].blocks) updated.weeks[wIdx].days[dayIndex].blocks = [];
     updated.weeks[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', notification_type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setEditingProgram(updated);
   };
@@ -953,7 +949,7 @@ export default function TrainingApp() {
               }}
             >
               🔔
-              {notifications.some(n => !n.Is_read) && (
+              {notifications.some(n => !n.is_read) && (
                 <span style={{
                   position: 'absolute',
                   top: '-4px',
@@ -971,7 +967,7 @@ export default function TrainingApp() {
                   justifyContent: 'center',
                   border: '2px solid #0b0f19'
                 }}>
-                  {notifications.filter(n => !n.Is_read).length}
+                  {notifications.filter(n => !n.is_read).length}
                 </span>
               )}
             </button>
@@ -1000,7 +996,7 @@ export default function TrainingApp() {
                   alignItems: 'center'
                 }}>
                   <strong style={{ fontSize: '14px' }}>Notifiche</strong>
-                  {notifications.some(n => !n.Is_read) && (
+                  {notifications.some(n => !n.is_read) && (
                     <button
                       onClick={markAllNotificationsAsRead}
                       style={{
@@ -1031,18 +1027,18 @@ export default function TrainingApp() {
                   notifications.map(notification => (
                     <div
                       key={notification.id}
-                      onClick={() => !notification.Is_read && markNotificationAsRead(notification.id)}
+                      onClick={() => !notification.is_read && markNotificationAsRead(notification.id)}
                       style={{
                         padding: '12px 14px',
                         borderBottom: '1px solid #f1f5f9',
-                        background: notification.Is_read ? '#ffffff' : '#ecfdf5',
-                        cursor: notification.Is_read ? 'default' : 'pointer'
+                        background: notification.is_read ? '#ffffff' : '#ecfdf5',
+                        cursor: notification.is_read ? 'default' : 'pointer'
                       }}
                     >
                       <div style={{
                         fontWeight: 'bold',
                         fontSize: '13px',
-                        color: notification.Is_read ? '#334155' : '#047857',
+                        color: notification.is_read ? '#334155' : '#047857',
                         marginBottom: '4px'
                       }}>
                         {notification.title}
