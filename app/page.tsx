@@ -30,6 +30,19 @@ const STRENGTH_EXERCISES = [
 const REP_SCHEMES = [1, 3, 5, 10];
 
 export default function TrainingApp() {
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registrato:', registration.scope);
+        })
+        .catch(error => {
+          console.error('Errore registrazione Service Worker:', error);
+        });
+    }
+  }, []);
   const [session, setSession] = useState<any>(null);
   const [role, setRole] = useState<'coach' | 'athlete'>('athlete');
   const [loading, setLoading] = useState(true);
