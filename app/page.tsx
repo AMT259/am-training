@@ -123,7 +123,7 @@ export default function TrainingApp() {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('id,user_id,title,message,notification_type,read,created_at')
+      .select('id,user_id,title,message,notification_type,is_read,created_at')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -142,7 +142,7 @@ export default function TrainingApp() {
   const createNotificationIfMissing = async (
     title: string,
     message: string,
-    notification_type: string
+    type: string
   ) => {
     if (!session?.user?.id) return;
 
@@ -165,7 +165,7 @@ export default function TrainingApp() {
       user_id: session.user.id,
       title,
       message,
-      notification_type,
+      type,
       is_read: false
     }]);
 
@@ -748,7 +748,7 @@ export default function TrainingApp() {
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(), name: '', notification_type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setProgramWeeks(updated);
   };
@@ -823,7 +823,7 @@ export default function TrainingApp() {
     const updated = { ...editingProgram };
     if (!updated.weeks[wIdx].days[dayIndex].blocks) updated.weeks[wIdx].days[dayIndex].blocks = [];
     updated.weeks[wIdx].days[dayIndex].blocks.push({
-      id: Date.now(), name: '', notification_type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
     setEditingProgram(updated);
   };
