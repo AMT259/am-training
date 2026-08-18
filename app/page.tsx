@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -123,7 +123,7 @@ export default function TrainingApp() {
 
     const { data, error } = await supabase
       .from('notifications')
-      .select('id,user_id,title,message,type,read,created_at')
+      .select('id,user_id,title,message,Is_read,created_at,program_id,notification_type')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -142,7 +142,8 @@ export default function TrainingApp() {
   const createNotificationIfMissing = async (
     title: string,
     message: string,
-    type: string
+    notificationType: string,
+    programId?: string
   ) => {
     if (!session?.user?.id) return;
 
@@ -150,7 +151,7 @@ export default function TrainingApp() {
       .from('notifications')
       .select('id')
       .eq('user_id', session.user.id)
-      .eq('type', type)
+      .eq('notification_type', notificationType)
       .limit(1);
 
     if (checkError) {
@@ -165,8 +166,9 @@ export default function TrainingApp() {
       user_id: session.user.id,
       title,
       message,
-      type,
-      read: false
+      notification_type: notificationType,
+      Is_read: false,
+      program_id: programId || null
     }]);
 
     if (error) {
@@ -190,7 +192,8 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Nuovo programma assegnato',
           `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
-          `program_assigned_${prog.id}`
+          `program_assigned_${prog.id}`,
+          prog.id
         );
       }
       return;
@@ -211,7 +214,8 @@ export default function TrainingApp() {
         await createNotificationIfMissing(
           'Scadenza programma',
           `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
-          `program_deadline_${prog.id}_${daysRemaining}`
+          `program_deadline_${prog.id}_${daysRemaining}`,
+          prog.id
         );
       }
     }
@@ -220,12 +224,12 @@ export default function TrainingApp() {
   const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ Is_read: true })
       .eq('id', notificationId)
       .eq('user_id', session?.user?.id);
 
     setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      prev.map(n => n.id === notificationId ? { ...n, Is_read: true } : n)
     );
   };
 
@@ -234,11 +238,11 @@ export default function TrainingApp() {
 
     await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ Is_read: true })
       .eq('user_id', session.user.id)
-      .eq('read', false);
+      .eq('Is_read', false);
 
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, Is_read: true })));
   };
 
   useEffect(() => {
@@ -949,7 +953,7 @@ export default function TrainingApp() {
               }}
             >
               🔔
-              {notifications.some(n => !n.read) && (
+              {notifications.some(n => !n.Is_read) && (
                 <span style={{
                   position: 'absolute',
                   top: '-4px',
@@ -967,7 +971,7 @@ export default function TrainingApp() {
                   justifyContent: 'center',
                   border: '2px solid #0b0f19'
                 }}>
-                  {notifications.filter(n => !n.read).length}
+                  {notifications.filter(n => !n.Is_read).length}
                 </span>
               )}
             </button>
@@ -996,7 +1000,7 @@ export default function TrainingApp() {
                   alignItems: 'center'
                 }}>
                   <strong style={{ fontSize: '14px' }}>Notifiche</strong>
-                  {notifications.some(n => !n.read) && (
+                  {notifications.some(n => !n.Is_read) && (
                     <button
                       onClick={markAllNotificationsAsRead}
                       style={{
@@ -1027,18 +1031,18 @@ export default function TrainingApp() {
                   notifications.map(notification => (
                     <div
                       key={notification.id}
-                      onClick={() => !notification.read && markNotificationAsRead(notification.id)}
+                      onClick={() => !notification.Is_read && markNotificationAsRead(notification.id)}
                       style={{
                         padding: '12px 14px',
                         borderBottom: '1px solid #f1f5f9',
-                        background: notification.read ? '#ffffff' : '#ecfdf5',
-                        cursor: notification.read ? 'default' : 'pointer'
+                        background: notification.Is_read ? '#ffffff' : '#ecfdf5',
+                        cursor: notification.Is_read ? 'default' : 'pointer'
                       }}
                     >
                       <div style={{
                         fontWeight: 'bold',
                         fontSize: '13px',
-                        color: notification.read ? '#334155' : '#047857',
+                        color: notification.Is_read ? '#334155' : '#047857',
                         marginBottom: '4px'
                       }}>
                         {notification.title}
