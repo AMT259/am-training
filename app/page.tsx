@@ -7,6 +7,19 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Funzione di utilità per formattare la data da aaaa-mm-gg a gg\mm\aaaa
+const formatDateToIT = (dateString: string) => {
+  if (!dateString) return 'N/D';
+  // Gestisce sia il formato 'yyyy-mm-dd' che 'yyyy-mm-ddTHH:mm:ss...'
+  const cleanDate = dateString.split('T')[0];
+  const parts = cleanDate.split('-');
+  if (parts.length === 3) {
+    const [year, month, day] = parts;
+    return `${day}\\${month}\\${year}`;
+  }
+  return dateString;
+};
+
 const STRENGTH_EXERCISES = [
   'Back Squat', 'Deadlift', 'Front Squat', 'OHS', 'Press', 'Push Press', 
   'Push Jerk', 'Split Jerk', 'Power Snatch', 'Squat Snatch', 'Hang Power Snatch', 
@@ -1388,7 +1401,7 @@ export default function TrainingApp() {
                                 </span>
                                 {(prog.startDate || prog.endDate) && (
                                   <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
-                                    📅 {prog.startDate || 'N/D'} → {prog.endDate || 'N/D'}
+                                    📅 {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}
                                   </span>
                                 )}
                               </div>
@@ -1556,7 +1569,7 @@ export default function TrainingApp() {
                         <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (
                           <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
-                            📅 Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}
+                            📅 Dal {formatDateToIT(prog.startDate)} al {formatDateToIT(prog.endDate)}
                           </span>
                         )}
                       </div>
@@ -1678,7 +1691,7 @@ export default function TrainingApp() {
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
-                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
+                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                   </div>
                                                 </div>
@@ -1706,3 +1719,4 @@ export default function TrainingApp() {
     </div>
   );
 }
+
