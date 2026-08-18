@@ -32,17 +32,20 @@ export default function TrainingApp() {
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
-  const [programEndDate, setProgramEndDate, setProgramEndDate] = useState('');
+  const [programEndDate, setProgramEndDate] = useState('');
 
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
+  const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
+
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
+  
+  const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
+  const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
 
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
-
-  const [notifications, setNotifications] = useState<any[]>([]);
 
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
@@ -57,8 +60,8 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
 
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner' | 'notifications'>('create');
-  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner' | 'notifications'>('programs');
+  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
 
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
@@ -106,8 +109,6 @@ export default function TrainingApp() {
       fetchProgramLibrary();
       fetchExerciseLibrary();
       fetchBanner();
-      fetchNotifications();
-
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -152,29 +153,12 @@ export default function TrainingApp() {
         })
         .subscribe();
 
-      const notifChannel = supabase
-        .channel('realtime-notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${session.user.id}`
-          },
-          (payload) => {
-            setNotifications((prev) => [payload.new, ...prev]);
-          }
-        )
-        .subscribe();
-
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(bannerChannel);
         supabase.removeChannel(exChannel);
         supabase.removeChannel(resultsChannel);
         supabase.removeChannel(maxesChannel);
-        supabase.removeChannel(notifChannel);
       };
     }
   }, [session, role]);
@@ -215,24 +199,6 @@ export default function TrainingApp() {
     if (data && data.value) {
       setBannerData(data.value);
     }
-  };
-
-  const fetchNotifications = async () => {
-    if (!session) return;
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setNotifications(data);
-    }
-  };
-
-  const markNotificationAsRead = async (id: string) => {
-    await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const saveBanner = async (e: React.FormEvent) => {
@@ -424,6 +390,13 @@ export default function TrainingApp() {
     setCollapsedBlocks(prev => {
       const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
       return { ...prev, [blockKey]: !currentValue };
+    });
+  };
+
+  const toggleProgramDayCollapse = (key: string) => {
+    setCollapsedProgramDays(prev => {
+      const currentValue = prev[key] === undefined ? true : prev[key];
+      return { ...prev, [key]: !currentValue };
     });
   };
 
@@ -634,15 +607,6 @@ export default function TrainingApp() {
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
-      if (selectedAthleteIds.length > 0) {
-        const notificationsData = selectedAthleteIds.map(athId => ({
-          user_id: athId,
-          title: 'Nuovo Programma Assegnato',
-          message: `Ti è stato assegnato un nuovo programma: "${programTitle}"`
-        }));
-        await supabase.from('notifications').insert(notificationsData);
-      }
-
       setSaveMessage('Programma salvato con successo!');
       setTimeout(() => setSaveMessage(''), 3000);
       setProgramTitle('');
@@ -722,13 +686,13 @@ export default function TrainingApp() {
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
       await supabase.from('programs').delete().eq('id', id);
-      fetchProgramLibrary();
     }
   };
 
   if (loading) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
+        <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -737,9 +701,11 @@ export default function TrainingApp() {
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
-          <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>Improve Your Fitness</div>
+          <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px' }} />
+          <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
+          <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
         </div>
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
@@ -780,55 +746,30 @@ export default function TrainingApp() {
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
-        <div>
-          <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h2>
-          <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+          <div>
+            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h2>
+            <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
+            <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button onClick={() => role === 'coach' ? setCoachSubView('notifications') : setActiveTab('notifications')} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', position: 'relative' }}>
-            🔔 {unreadCount > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: '50%', padding: '2px 6px', fontSize: '10px', position: 'absolute', top: '-5px', right: '-5px' }}>{unreadCount}</span>}
-          </button>
-          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
-        </div>
+        <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
       </header>
 
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
-            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti 🏋️‍♂️</button>
-            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Banner 📢</button>
-            <button onClick={() => setCoachSubView('notifications')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'notifications' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Notifiche 🔔</button>
+            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
+            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
           </div>
 
-          {coachSubView === 'notifications' ? (
-            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Le tue Notifiche</h3>
-              {notifications.length === 0 ? (
-                <p style={{ color: '#64748b' }}>Nessuna notifica presente.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {notifications.map((n) => (
-                    <div key={n.id} style={{ background: n.is_read ? '#f8fafc' : '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '4px' }}>{n.title}</div>
-                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px' }}>{n.message}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>{new Date(n.created_at).toLocaleString()}</div>
-                      </div>
-                      {!n.is_read && (
-                        <button onClick={() => markNotificationAsRead(n.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Segna come letta</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : coachSubView === 'banner' ? (
+          {coachSubView === 'banner' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
               <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -897,6 +838,7 @@ export default function TrainingApp() {
               )}
             </div>
           ) : editingProgram ? (
+            /* --- EDITING PROGRAMMA --- */
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
@@ -906,6 +848,7 @@ export default function TrainingApp() {
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
 
+              {/* DATE INIZIO E FINE (MODIFICA) */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -941,6 +884,7 @@ export default function TrainingApp() {
                 </div>
               </div>
 
+              {/* SELEZIONE E GESTIONE SETTIMANE (MODIFICA) */}
               <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -962,6 +906,7 @@ export default function TrainingApp() {
                 </div>
               </div>
 
+              {/* DETTAGLIO SETTIMANA SELEZIONATA (MODIFICA) */}
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
 
@@ -992,6 +937,7 @@ export default function TrainingApp() {
                       )}
                     </div>
 
+                    {/* SELEZIONE E GESTIONE GIORNI (MODIFICA) */}
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
@@ -1011,6 +957,7 @@ export default function TrainingApp() {
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                     </div>
 
+                    {/* BLOCCO GIORNO SELEZIONATO (MODIFICA) */}
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                       const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                       return (
@@ -1175,11 +1122,13 @@ export default function TrainingApp() {
                   </div>
                 </div>
               ) : activeTab === 'create' ? (
+                /* --- CREAZIONE NUOVO PROGRAMMA --- */
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
                 
+                  {/* DATE INIZIO E FINE (CREAZIONE) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                     <div>
                       <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -1192,7 +1141,7 @@ export default function TrainingApp() {
                   </div>
 
                   <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti (e invia notifica):</label>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
                         <span style={{ fontSize: '12px', color: '#64748b' }}>Nessun atleta disponibile.</span>
@@ -1211,6 +1160,7 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
+                  {/* SELEZIONE E GESTIONE SETTIMANE (CREAZIONE) */}
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -1233,6 +1183,7 @@ export default function TrainingApp() {
                     </div>
                   </div>
 
+                  {/* DETTAGLIO SETTIMANA SELEZIONATA (CREAZIONE) */}
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
                     const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
 
@@ -1263,6 +1214,7 @@ export default function TrainingApp() {
                           )}
                         </div>
 
+                        {/* SELEZIONE GIORNI PER SETTIMANA (CREAZIONE) */}
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
@@ -1282,6 +1234,7 @@ export default function TrainingApp() {
                           <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                         </div>
 
+                        {/* DETTAGLIO GIORNO SELEZIONATO (CREAZIONE) */}
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                           const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                           return (
@@ -1409,246 +1362,358 @@ export default function TrainingApp() {
                     );
                   })}
 
-                  <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Programma nella Libreria</button>
-                  {saveMessage && <p style={{ color: '#10b981', textAlign: 'center', marginTop: '10px', fontWeight: 'bold' }}>{saveMessage}</p>}
+                  {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
+                  <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
-              ) : activeTab === 'library' ? (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Libreria Programmi</h3>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Filtra per Atleta Assegnato:</label>
-                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#000', fontSize: '13px' }}>
-                      <option value="">Tutti gli atleti</option>
-                      {athletes.map(a => (
+              ) : (
+                /* --- LIBRERIA PROGRAMMI (COACH) --- */
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
+                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                      <option value="">Filtra per utente (Tutti)</option>
+                      {athletes.map((a) => (
                         <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
                       ))}
                     </select>
                   </div>
+
                   {filteredLibraryPrograms.length === 0 ? (
-                    <p style={{ color: '#64748b' }}>Nessun programma trovato.</p>
+                    <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {filteredLibraryPrograms.map((prog) => (
-                        <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    filteredLibraryPrograms.map((prog) => {
+                      const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
+                      const progResultsByAthlete = coachAllResults[prog.id] || {};
+                      
+                      const weeks = normalizeProgramWeeks(prog);
+                      const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
+                      const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
+                      const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
+
+                      return (
+                        <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                             <div>
-                              <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#000' }}>{prog.title}</h4>
-                              <span style={{ fontSize: '11px', color: '#64748b' }}>Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}</span>
+                              <h4 style={{ margin: '0 0 4px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
+                                <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                                  Assegnato: {assignedList.length > 0 ? assignedList.map(a => a.full_name || a.email).join(', ') : 'Tutti (Generale)'}
+                                </span>
+                                {(prog.startDate || prog.endDate) && (
+                                  <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
+                                    📅 {prog.startDate || 'N/D'} → {prog.endDate || 'N/D'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => setEditingProgram(JSON.parse(JSON.stringify(prog)))} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Modifica</button>
-                              <button onClick={() => duplicateProgram(prog)} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Duplica</button>
-                              <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                              <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                              <button onClick={() => {
+                                const progToEdit = JSON.parse(JSON.stringify(prog));
+                                progToEdit.weeks = normalizeProgramWeeks(progToEdit);
+                                setEditingProgram(progToEdit);
+                                if (progToEdit.weeks.length > 0) {
+                                  setSelectedWeekView(progToEdit.weeks[0].weekName);
+                                  if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
+                                }
+                              }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                              <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                            </div>
+                          </div>
+
+                          <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
+                            
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
+                              {weeks.map((w: any) => (
+                                <button
+                                  key={w.weekName}
+                                  onClick={() => {
+                                    setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
+                                    if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
+                                  }}
+                                  style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#cbd5e1', color: '#fff', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  {w.weekName}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                              {activeWeekObj?.days?.map((day: any) => (
+                                <button
+                                  key={day.dayName}
+                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeDay === day.dayName ? '#10b981' : '#e2e8f0', color: activeDay === day.dayName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  {day.dayName}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                              {Object.keys(progResultsByAthlete).length === 0 ? (
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
+                              ) : (
+                                (() => {
+                                  const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                                  const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay);
+                                  if (wIndex === -1 || dayIndex === -1) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona un giorno valido.</span>;
+                                  
+                                  const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
+                                  
+                                  return athletes.map((ath) => {
+                                    const resObj = progResultsByAthlete[ath.id];
+                                    if (!resObj) return null;
+
+                                    const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
+                                      const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
+                                    });
+
+                                    if (!hasResultsForThisDay) return null;
+                                    const athName = ath.full_name || ath.email;
+
+                                    return (
+                                      <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                                        <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
+                                        <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
+                                          {blocksOfActiveDay.map((blk: any, bIdx: number) => {
+                                            const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                            const blockData = resObj[blockKey];
+                                            if (!blockData || (!blockData.score && !blockData.notes)) return null;
+
+                                            return (
+                                              <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
+                                                <span>
+                                                  <strong style={{ color: '#10b981' }}>Score:</strong> {blockData.score || '-'} 
+                                                  {blockData.notes && <span style={{ color: '#64748b', marginLeft: '6px' }}>(Note: {blockData.notes})</span>}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  });
+                                })()
+                              )}
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })
                   )}
                 </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
       ) : (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          {activeTab === 'notifications' ? (
-            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Le tue Notifiche</h3>
-                <button onClick={() => setActiveTab('create')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Torna ai Programmi</button>
-              </div>
-              {notifications.length === 0 ? (
-                <p style={{ color: '#64748b' }}>Nessuna notifica presente.</p>
+        /* --- VISTA ATLETA --- */
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+
+          {bannerData.image_url && (
+            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+              {bannerData.link_url ? (
+                <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b', cursor: 'pointer' }} />
+                </a>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {notifications.map((n) => (
-                    <div key={n.id} style={{ background: n.is_read ? '#f8fafc' : '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '4px' }}>{n.title}</div>
-                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px' }}>{n.message}</div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>{new Date(n.created_at).toLocaleString()}</div>
-                      </div>
-                      {!n.is_read && (
-                        <button onClick={() => markNotificationAsRead(n.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Segna come letta</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b' }} />
               )}
             </div>
-          ) : activeTab === 'profile' ? (
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+            <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
+            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
+          </div>
+
+          {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>I tuoi Massimali (1-3-5-10 RM)</h3>
-                <button onClick={() => setActiveTab('create')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Torna ai Programmi</button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {STRENGTH_EXERCISES.map((exName) => {
-                  const exMaxes = athleteMaxes[exName] || {};
-                  return (
-                    <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-                        {REP_SCHEMES.map((reps) => (
-                          <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                            <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '2px' }}>{reps} RM (kg)</span>
-                            <input
-                              type="number"
-                              value={exMaxes[reps] || ''}
-                              onChange={(e) => handleMaxChange(exName, reps, e.target.value)}
-                              placeholder="-"
-                              style={{ width: '100%', padding: '4px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', color: '#10b981', fontSize: '13px' }}
-                            />
-                          </div>
-                        ))}
-                      </div>
+              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {STRENGTH_EXERCISES.map((exName) => (
+                  <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                      {REP_SCHEMES.map((reps) => (
+                        <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
+                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxChange(exName, reps, e.target.value)} style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
+                        </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-                <button onClick={() => setActiveTab('profile')} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I miei Massimali 🏋️‍♂️</button>
-              </div>
-
-              {bannerData.image_url && (
-                <div style={{ marginBottom: '20px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #1e293b' }}>
-                  {bannerData.link_url ? (
-                    <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
-                      <img src={bannerData.image_url} alt="Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', display: 'block' }} />
-                    </a>
-                  ) : (
-                    <img src={bannerData.image_url} alt="Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', display: 'block' }} />
-                  )}
-                </div>
-              )}
-
-              <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>I tuoi Programmi</h3>
+              <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
               {athletePrograms.length === 0 ? (
-                <p style={{ color: '#64748b' }}>Nessun programma assegnato al momento.</p>
+                <div style={{ background: '#ffffff', color: '#000', padding: '30px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  <p style={{ color: '#64748b', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
+                </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  {athletePrograms.map((prog) => {
-                    const weeks = normalizeProgramWeeks(prog);
-                    const currentWeekName = selectedWeeksByProgram[prog.id] || weeks[0]?.weekName;
-                    const activeWeek = weeks.find((w: any) => w.weekName === currentWeekName) || weeks[0];
-                    const currentDayName = selectedDaysByProgram[prog.id] || activeWeek?.days?.[0]?.dayName;
-                    const activeDay = activeWeek?.days?.find((d: any) => d.dayName === currentDayName) || activeWeek?.days?.[0];
+                athletePrograms.map((prog) => {
+                  const weeks = normalizeProgramWeeks(prog);
+                  const currentProgramActiveWeek = selectedWeeksByProgram[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
+                  const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || weeks[0];
+                  const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
 
-                    return (
-                      <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '18px', color: '#10b981' }}>{prog.title}</h4>
-                        <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '14px' }}>Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}</span>
-
-                        {weeks.length > 1 && (
-                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '4px' }}>
-                            {weeks.map((week: any, wIdx: number) => {
-                              const isSelected = week.weekName === currentWeekName;
-                              return (
-                                <button
-                                  key={wIdx}
-                                  onClick={() => {
-                                    setSelectedWeeksByProgram(prev => ({ ...prev, [prog.id]: week.weekName }));
-                                    if (week.days && week.days.length > 0) {
-                                      setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
-                                    }
-                                  }}
-                                  style={{ padding: '6px 12px', borderRadius: '6px', background: isSelected ? '#10b981' : '#f1f5f9', color: isSelected ? '#fff' : '#000', border: 'none', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {week.weekName}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {activeWeek?.days && activeWeek.days.length > 1 && (
-                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '4px' }}>
-                            {activeWeek.days.map((day: any, dIdx: number) => {
-                              const isSelected = day.dayName === currentDayName;
-                              return (
-                                <button
-                                  key={dIdx}
-                                  onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                  style={{ padding: '6px 10px', borderRadius: '6px', background: isSelected ? '#3b82f6' : '#f8fafc', color: isSelected ? '#fff' : '#000', border: '1px solid #cbd5e1', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {day.dayName}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {activeDay && (
-                          <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <h5 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#334155' }}>{activeDay.dayName}</h5>
-                            {activeDay.blocks?.map((block: any, bIdx: number) => {
-                              const blockKey = `${prog.id}_${activeWeek.weekNumber}_${activeDay.dayNumber}_${bIdx}`;
-                              const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-                              const progRes = athleteResults[prog.id] || {};
-                              const blockRes = progRes[blockKey] || { score: '', notes: '' };
-
-                              return (
-                                <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #cbd5e1' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ background: block.type === 'forza' ? '#10b981' : '#3b82f6', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 'bold' }}>{block.type?.toUpperCase()}</span>
-                                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{block.name || 'Esercizio'}</span>
-                                    </div>
-                                    <button onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                  </div>
-
-                                  {!isClosed && (
-                                    <div>
-                                      {block.videoUrl && (
-                                        <div style={{ marginBottom: '8px' }}>
-                                          <a href={block.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: '#3b82f6', textDecoration: 'underline' }}>🎥 Guarda video dimostrativo</a>
-                                        </div>
-                                      )}
-                                      {block.type === 'forza' ? (
-                                        <div style={{ fontSize: '12px', color: '#334155', marginBottom: '10px', background: '#f8fafc', padding: '8px', borderRadius: '6px' }}>
-                                          <div><strong>Set:</strong> {block.sets} | <strong>Rep:</strong> {block.reps} | <strong>Carico:</strong> {block.load} | <strong>Recupero:</strong> {block.rest}</div>
-                                          {block.notes && <div style={{ marginTop: '4px', fontStyle: 'italic' }}>Note: {block.notes}</div>}
-                                        </div>
-                                      ) : (
-                                        <div style={{ fontSize: '12px', color: '#334155', marginBottom: '10px', background: '#f8fafc', padding: '8px', borderRadius: '6px', whiteSpace: 'pre-wrap' }}>
-                                          {block.wodNotes || 'Nessun dettaglio WOD'}
-                                        </div>
-                                      )}
-
-                                      <div style={{ background: '#f1f5f9', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>I TUOI RISULTATI / NOTE</label>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                          <input
-                                            type="text"
-                                            placeholder="Score / Peso utilizzato (es. 100kg o 5:20)"
-                                            value={blockRes.score || ''}
-                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'score', e.target.value)}
-                                            style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12px', color: '#000', boxSizing: 'border-box' }}
-                                          />
-                                          <input
-                                            type="text"
-                                            placeholder="Note personali..."
-                                            value={blockRes.notes || ''}
-                                            onChange={(e) => handleResultChange(prog.id, blockKey, 'notes', e.target.value)}
-                                            style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12px', color: '#000', boxSizing: 'border-box' }}
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
+                  return (
+                    <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                        <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
+                        {(prog.startDate || prog.endDate) && (
+                          <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                            📅 Dal {prog.startDate || 'N/D'} al {prog.endDate || 'N/D'}
+                          </span>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
+                    
+                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                        {weeks.map((week: any) => (
+                          <button
+                            key={week.weekName}
+                            onClick={() => {
+                              setSelectedWeeksByProgram(prev => ({ ...prev, [prog.id]: week.weekName }));
+                              if (week.days && week.days.length > 0) {
+                                setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
+                              }
+                            }}
+                            style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: currentProgramActiveWeek === week.weekName ? '#0284c7' : '#e2e8f0', color: currentProgramActiveWeek === week.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            {week.weekName}
+                          </button>
+                        ))}
+                      </div>
+
+                      {currentWeekObj?.days ? (
+                        <div>
+                          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
+                            {currentWeekObj.days.map((day: any, idx: number) => (
+                              <button
+                                key={idx}
+                                onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: currentProgramActiveDay === day.dayName ? '#10b981' : '#f1f5f9', color: currentProgramActiveDay === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                              >
+                                {day.dayName}
+                              </button>
+                            ))}
+                          </div>
+
+                          {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
+                            const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
+                            const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
+                            const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
+                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
+
+                            return (
+                              <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
+                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#0f172a' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+                                  <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                                    {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
+                                  </button>
+                                </div>
+
+                                {!isDayClosed && (
+                                  <div>
+                                    {day.blocks?.length === 0 ? (
+                                      <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
+                                    ) : (
+                                      day.blocks?.map((blk: any, bIdx: number) => {
+                                        const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                        const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                        const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
+
+                                        return (
+                                          <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                {blk.videoUrl && (
+                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
+                                                    🎥 Video
+                                                  </a>
+                                                )}
+                                                <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                              </div>
+                                            </div>
+
+                                            {!isClosed && (
+                                              <div>
+                                                {blk.type === 'forza' ? (
+                                                  <div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
+                                                      </div>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
+                                                      </div>
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
+                                                      </div>
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
+                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
+                                                      </div>
+                                                    </div>
+                                                    {blk.notes && (
+                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
+                                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                                    <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
+                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                  </div>
+                                                )}
+
+                                                <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                                  <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                    <div>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                    <div>
+                                                      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note Personali</label>
+                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }} />
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ color: '#64748b', fontSize: '13px' }}>Nessun giorno disponibile.</p>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
           )}
@@ -1657,4 +1722,3 @@ export default function TrainingApp() {
     </div>
   );
 }
-
