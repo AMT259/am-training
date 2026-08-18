@@ -806,150 +806,150 @@ const fetchProgramLibrary = async () => {
         </div>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '10px' }}>
 
-  <button
-    onClick={() => setShowNotifications(!showNotifications)}
-    style={{
-      position: 'relative',
-      background: '#1e293b',
-      border: '1px solid #334151',
-      color: '#fff',
-      width: '40px',
-      height: '40px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}
-  >
-    🔔
-
-    {notifications.filter(n => !n.is_read).length > 0 && (
-      <span
-        style={{
-          position: 'absolute',
-          top: '-5px',
-          right: '-5px',
-          background: '#ef4444',
-          color: '#fff',
-          width: '18px',
-          height: '18px',
-          borderRadius: '50%',
-          fontSize: '10px',
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        {notifications.filter(n => !n.is_read).length}
-      </span>
-    )}
-  </button>
-
-  {showNotifications && (
-    <div
-      style={{
-        position: 'absolute',
-        top: '48px',
-        right: '0',
-        width: '320px',
-        maxHeight: '400px',
-        overflowY: 'auto',
-        background: '#fff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-        zIndex: 9999,
-        color: '#000'
-      }}
-    >
-      <div
-        style={{
-          padding: '14px',
-          borderBottom: '1px solid #e2e8f0',
-          fontWeight: 'bold',
-          fontSize: '15px'
-        }}
-      >
-        🔔 Notifiche
-      </div>
-
-      {notifications.length === 0 ? (
-        <div
-          style={{
-            padding: '25px 15px',
-            textAlign: 'center',
-            color: '#64748b',
-            fontSize: '13px'
-          }}
-        >
-          Nessuna notifica
-        </div>
-      ) : (
-        notifications.map((notification) => (
-          <div
-            key={notification.id}
-            onClick={() => markNotificationAsRead(notification.id)}
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
             style={{
-              padding: '14px',
-              borderBottom: '1px solid #f1f5f9',
+              position: 'relative',
+              background: '#1e293b',
+              border: '1px solid #334151',
+              color: '#fff',
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              background: notification.is_read ? '#fff' : '#f0fdf4'
+              fontSize: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
           >
+            🔔
+
+            {notifications.filter(n => !n.is_read).length > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  background: '#ef4444',
+                  color: '#fff',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {notifications.filter(n => !n.is_read).length}
+              </span>
+            )}
+          </button>
+
+          {showNotifications && (
             <div
               style={{
-                fontWeight: notification.is_read ? 'normal' : 'bold',
-                fontSize: '13px',
-                marginBottom: '5px'
+                position: 'absolute',
+                top: '48px',
+                right: '0',
+                width: '320px',
+                maxHeight: '400px',
+                overflowY: 'auto',
+                background: '#fff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                zIndex: 9999,
+                color: '#000'
               }}
             >
-              {notification.title}
+              <div
+                style={{
+                  padding: '14px',
+                  borderBottom: '1px solid #e2e8f0',
+                  fontWeight: 'bold',
+                  fontSize: '15px'
+                }}
+              >
+                🔔 Notifiche
+              </div>
+
+              {notifications.length === 0 ? (
+                <div
+                  style={{
+                    padding: '25px 15px',
+                    textAlign: 'center',
+                    color: '#64748b',
+                    fontSize: '13px'
+                  }}
+                >
+                  Nessuna notifica
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => markNotificationAsRead(notification.id)}
+                    style={{
+                      padding: '14px',
+                      borderBottom: '1px solid #f1f5f9',
+                      cursor: 'pointer',
+                      background: notification.is_read ? '#fff' : '#f0fdf4'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: notification.is_read ? 'normal' : 'bold',
+                        fontSize: '13px',
+                        marginBottom: '5px'
+                      }}
+                    >
+                      {notification.title}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: '#64748b',
+                        lineHeight: '1.4'
+                      }}
+                    >
+                      {notification.message}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '10px',
+                        color: '#94a3b8',
+                        marginTop: '6px'
+                      }}
+                    >
+                      {new Date(notification.created_at).toLocaleString('it-IT')}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
+          )}
 
-            <div
-              style={{
-                fontSize: '12px',
-                color: '#64748b',
-                lineHeight: '1.4'
-              }}
-            >
-              {notification.message}
-            </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: '#1e293b',
+              border: '1px solid #334151',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '13px'
+            }}
+          >
+            Esci
+          </button>
 
-            <div
-              style={{
-                fontSize: '10px',
-                color: '#94a3b8',
-                marginTop: '6px'
-              }}
-            >
-              {new Date(notification.created_at).toLocaleString('it-IT')}
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  )}
-
-  <button
-    onClick={handleLogout}
-    style={{
-      background: '#1e293b',
-      border: '1px solid #334151',
-      color: '#fff',
-      padding: '8px 16px',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontSize: '13px'
-    }}
-  >
-    Esci
-  </button>
-
-</div>
+        </div>
       </header>
 
       {role === 'coach' ? (
