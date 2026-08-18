@@ -39,15 +39,11 @@ export default function TrainingApp() {
 
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
-  
-  const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
-  const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
 
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
 
-  // STATO NOTIFICHE
   const [notifications, setNotifications] = useState<any[]>([]);
 
   const [programWeeks, setProgramWeeks] = useState<any[]>([
@@ -433,13 +429,6 @@ export default function TrainingApp() {
     });
   };
 
-  const toggleProgramDayCollapse = (key: string) => {
-    setCollapsedProgramDays(prev => {
-      const currentValue = prev[key] === undefined ? true : prev[key];
-      return { ...prev, [key]: !currentValue };
-    });
-  };
-
   const toggleAthleteSelection = (athleteId: string, currentList: string[], setListFn: (list: string[]) => void) => {
     if (currentList.includes(athleteId)) {
       setListFn(currentList.filter(id => id !== athleteId));
@@ -642,7 +631,7 @@ export default function TrainingApp() {
       days: programWeeks[0]?.days || []
     };
 
-    const { data: insertedProg, error } = await supabase.from('programs').insert([newProgram]).select().single();
+    const { error } = await supabase.from('programs').insert([newProgram]);
 
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
@@ -735,13 +724,13 @@ export default function TrainingApp() {
   const deleteProgram = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo programma?')) {
       await supabase.from('programs').delete().eq('id', id);
+      fetchProgramLibrary();
     }
   };
 
   if (loading) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -750,11 +739,9 @@ export default function TrainingApp() {
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px' }} />
-          <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
-          <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
+          <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
+          <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>Improve Your Fitness</div>
         </div>
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
@@ -799,15 +786,10 @@ export default function TrainingApp() {
 
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
-          <div>
-            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h2>
-            <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
-            <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
-          </div>
+        <div>
+          <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h2>
+          <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button onClick={() => role === 'coach' ? setCoachSubView('notifications') : setActiveTab('notifications')} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', position: 'relative' }}>
@@ -1486,7 +1468,7 @@ export default function TrainingApp() {
                     <div key={n.id} style={{ background: n.is_read ? '#f8fafc' : '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
                         <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', marginBottom: '4px' }}>{n.title}</div>
-                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px'}>{n.message}</div>
+                        <div style={{ fontSize: '13px', color: '#334155', marginBottom: '6px' }}>{n.message}</div>
                         <div style={{ fontSize: '10px', color: '#64748b' }}>{new Date(n.created_at).toLocaleString()}</div>
                       </div>
                       {!n.is_read && (
