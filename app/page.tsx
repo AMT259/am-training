@@ -140,17 +140,18 @@ export default function TrainingApp() {
   };
 
   const createNotificationIfMissing = async (
-    title: string,
-    message: string,
-    type: string
-  ) => {
+  title: string,
+  message: string,
+  notificationType: string,
+  programId?: string
+) => {
     if (!session?.user?.id) return;
 
     const { data: existing, error: checkError } = await supabase
       .from('notifications')
       .select('id')
       .eq('user_id', session.user.id)
-      .eq('notification_type', type)
+      .eq('notification_type', notificationType)
       .limit(1);
 
     if (checkError) {
@@ -162,12 +163,13 @@ export default function TrainingApp() {
     if (existing && existing.length > 0) return;
 
     const { error } = await supabase.from('notifications').insert([{
-      user_id: session.user.id,
-      title,
-      message,
-      type,
-      is_read: false
-    }]);
+  user_id: session.user.id,
+  title,
+  message,
+  notification_type: notificationType,
+  is_read: false,
+  program_id: programId || null
+}]);
 
     if (error) {
       console.error('Errore creazione notifica:', error);
@@ -188,10 +190,11 @@ export default function TrainingApp() {
 
       for (const prog of assignedPrograms) {
         await createNotificationIfMissing(
-          'Nuovo programma assegnato',
-          `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
-          `program_assigned_${prog.id}`
-        );
+  'Nuovo programma assegnato',
+  `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
+  `program_assigned_${prog.id}`,
+  prog.id
+);
       }
       return;
     }
