@@ -119,10 +119,9 @@ export default function TrainingApp() {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
   if (session) {
     fetchNotifications();
-
     fetchProgramLibrary();
     fetchExerciseLibrary();
     fetchBanner();
@@ -133,65 +132,53 @@ export default function TrainingApp() {
       fetchAllAthleteMaxesForCoach();
     } else {
       fetchAthleteResults();
+      fetchAthleteMaxes(session.user.id);
     }
+
+    const channel = supabase
+      .channel('realtime-programs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
+        fetchProgramLibrary();
+      })
+      .subscribe();
+
+    const bannerChannel = supabase
+      .channel('realtime-banner')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
+        fetchBanner();
+      })
+      .subscribe();
+
+    const exChannel = supabase
+      .channel('realtime-exercises')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
+        fetchExerciseLibrary();
+      })
+      .subscribe();
+
+    const resultsChannel = supabase
+      .channel('realtime-results')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
+        if (role === 'coach') fetchAllAthleteResultsForCoach();
+      })
+      .subscribe();
+
+    const maxesChannel = supabase
+      .channel('realtime-maxes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
+        if (role === 'coach') fetchAllAthleteMaxesForCoach();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(bannerChannel);
+      supabase.removeChannel(exChannel);
+      supabase.removeChannel(resultsChannel);
+      supabase.removeChannel(maxesChannel);
+    };
   }
 }, [session, role]);
-      fetchProgramLibrary();
-      fetchExerciseLibrary();
-      fetchBanner();
-      if (role === 'coach') {
-        fetchAthletes();
-        fetchAllAthleteResultsForCoach();
-        fetchAllAthleteMaxesForCoach();
-      } else {
-        fetchAthleteResults();
-        fetchAthleteMaxes(session.user.id);
-      }
-
-      const channel = supabase
-        .channel('realtime-programs')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
-          fetchProgramLibrary();
-        })
-        .subscribe();
-
-      const bannerChannel = supabase
-        .channel('realtime-banner')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
-          fetchBanner();
-        })
-        .subscribe();
-
-      const exChannel = supabase
-        .channel('realtime-exercises')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
-          fetchExerciseLibrary();
-        })
-        .subscribe();
-
-      const resultsChannel = supabase
-        .channel('realtime-results')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
-          if (role === 'coach') fetchAllAthleteResultsForCoach();
-        })
-        .subscribe();
-
-      const maxesChannel = supabase
-        .channel('realtime-maxes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
-          if (role === 'coach') fetchAllAthleteMaxesForCoach();
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-        supabase.removeChannel(bannerChannel);
-        supabase.removeChannel(exChannel);
-        supabase.removeChannel(resultsChannel);
-        supabase.removeChannel(maxesChannel);
-      };
-    }
-  }, [session, role]);
 
   useEffect(() => {
     if (programLibrary.length > 0) {
