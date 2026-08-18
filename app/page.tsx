@@ -220,6 +220,28 @@ export default function TrainingApp() {
     }
   };
 
+  const deleteNotification = async (notificationId: string) => {
+  if (!session?.user?.id) return;
+
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('id', notificationId)
+    .eq('user_id', session.user.id);
+
+  if (error) {
+    console.error('Errore eliminazione notifica:', error);
+    setNotificationError(error.message);
+    return;
+  }
+
+  setNotifications(prev =>
+    prev.filter(n => n.id !== notificationId)
+  );
+
+  setNotificationError('');
+};
+
   const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
@@ -1029,15 +1051,17 @@ export default function TrainingApp() {
                 ) : (
                   notifications.map(notification => (
                     <div
-                      key={notification.id}
-                      onClick={() => !notification.is_read && markNotificationAsRead(notification.id)}
-                      style={{
-                        padding: '12px 14px',
-                        borderBottom: '1px solid #f1f5f9',
-                        background: notification.is_read ? '#ffffff' : '#ecfdf5',
-                        cursor: notification.is_read ? 'default' : 'pointer'
-                      }}
-                    >
+  key={notification.id}
+  onClick={() => !notification.is_read && markNotificationAsRead(notification.id)}
+  style={{
+    padding: '12px 14px',
+    borderBottom: '1px solid #f1f5f9',
+    background: notification.is_read ? '#ffffff' : '#ecfdf5',
+    cursor: notification.is_read ? 'default' : 'pointer',
+    position: 'relative',
+    paddingRight: '42px'
+  }}
+>
                       <div style={{
                         fontWeight: 'bold',
                         fontSize: '13px',
@@ -1046,6 +1070,26 @@ export default function TrainingApp() {
                       }}>
                         {notification.title}
                       </div>
+                      <button
+  onClick={(e) => {
+    e.stopPropagation();
+    deleteNotification(notification.id);
+  }}
+  title="Elimina notifica"
+  style={{
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    border: 'none',
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: '15px',
+    padding: '2px',
+    color: '#94a3b8'
+  }}
+>
+  🗑️
+</button>
                       <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.4 }}>
                         {notification.message}
                       </div>
