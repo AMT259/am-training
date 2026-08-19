@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
@@ -466,6 +466,7 @@ const [notificationError, setNotificationError] = useState('');
         startDate: item.start_date || '',
         endDate: item.end_date || '',
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
+        isDeleted: item.is_deleted === true,
         weeks: normalizeProgramWeeks(item)
       }));
       setProgramLibrary(formatted);
@@ -895,9 +896,23 @@ const [notificationError, setNotificationError] = useState('');
   };
 
   const deleteProgram = async (id: string) => {
-    if (confirm('Sei sicuro di voler eliminare questo programma?')) {
-      await supabase.from('programs').delete().eq('id', id);
+    if (!confirm('Sei sicuro di voler eliminare questo programma?')) return;
+    const { error } = await supabase.from('programs').update({ is_deleted: true }).eq('id', id);
+    if (error) {
+      alert('Errore durante l\'eliminazione: ' + error.message);
+      return;
     }
+    await fetchProgramLibrary();
+  };
+
+  const restoreProgram = async (id: string) => {
+    if (!confirm('Vuoi ripristinare questo programma?')) return;
+    const { error } = await supabase.from('programs').update({ is_deleted: false }).eq('id', id);
+    if (error) {
+      alert('Errore durante il ripristino: ' + error.message);
+      return;
+    }
+    await fetchProgramLibrary();
   };
 
   if (loading) {
@@ -949,10 +964,15 @@ const [notificationError, setNotificationError] = useState('');
   }
 
   const athletePrograms = programLibrary.filter(
-    (prog) => !prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session?.user?.id)
+    (prog) => !prog.isDeleted && (!prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session?.user?.id))
   );
 
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
+    if (showDeletedPrograms) {
+      if (!prog.isDeleted) return false;
+    } else if (prog.isDeleted) {
+      return false;
+    }
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
@@ -1759,21 +1779,23 @@ const [notificationError, setNotificationError] = useState('');
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
-                              <button onClick={() => {
-                                const progToEdit = JSON.parse(JSON.stringify(prog));
-                                progToEdit.weeks = normalizeProgramWeeks(progToEdit);
-                                setEditingProgram(progToEdit);
-                                if (progToEdit.weeks.length > 0) {
-                                  setSelectedWeekView(progToEdit.weeks[0].weekName);
-                                  if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
-                                }
-                              }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
                               {showDeletedPrograms ? (
-  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-) : (
-  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
-)}
+                                <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                              ) : (
+                                <>
+                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                  <button onClick={() => {
+                                    const progToEdit = JSON.parse(JSON.stringify(prog));
+                                    progToEdit.weeks = normalizeProgramWeeks(progToEdit);
+                                    setEditingProgram(progToEdit);
+                                    if (progToEdit.weeks.length > 0) {
+                                      setSelectedWeekView(progToEdit.weeks[0].weekName);
+                                      if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
+                                    }
+                                  }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                                </>
+                              )}
                             </div>
                           </div>
 
@@ -2075,4 +2097,3 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
-
