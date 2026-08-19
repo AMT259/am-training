@@ -20,105 +20,6 @@ const formatDateToIT = (dateString: string) => {
   return dateString;
 };
 
-
-// Genera un PDF direttamente dai dati del programma, senza upload o servizi esterni.
-const generateProgramPDF = (program: any, athleteName?: string) => {
-  const normalizeForPdf = (value: any) => String(value ?? '')
-    .replace(/[àáâä]/gi, 'a').replace(/[èéêë]/gi, 'e').replace(/[ìíîï]/gi, 'i')
-    .replace(/[òóôö]/gi, 'o').replace(/[ùúûü]/gi, 'u').replace(/ç/gi, 'c')
-    .replace(/[“”«»]/g, '"').replace(/[’‘]/g, "'").replace(/[–—]/g, '-');
-
-  const wrap = (text: string, max = 88) => {
-    const words = normalizeForPdf(text).split(/\s+/).filter(Boolean);
-    const lines: string[] = [];
-    let line = '';
-    for (const word of words) {
-      if ((line + ' ' + word).trim().length <= max) line = (line + ' ' + word).trim();
-      else { if (line) lines.push(line); line = word; }
-    }
-    if (line) lines.push(line);
-    return lines.length ? lines : [''];
-  };
-
-  const weeks = program.weeks?.length ? program.weeks : (program.days?.length ? [{ weekNumber: 1, weekName: 'Settimana 1', days: program.days }] : [{ weekNumber: 1, weekName: 'Settimana 1', days: [] }]);
-  const lines: string[] = [];
-  lines.push('AMTRAINING');
-  lines.push(program.title || 'Programma di allenamento');
-  if (athleteName) lines.push(`Atleta: ${athleteName}`);
-  if (program.startDate || program.endDate) lines.push(`Periodo: ${formatDateToIT(program.startDate)} - ${formatDateToIT(program.endDate)}`);
-  lines.push('');
-
-  weeks.forEach((week: any, wi: number) => {
-    lines.push(`SETTIMANA ${week.weekNumber ?? wi + 1} - ${week.weekName || ''}`.trim());
-    (week.days || []).forEach((day: any, di: number) => {
-      lines.push(`  GIORNO ${day.dayNumber ?? di + 1} - ${day.dayName || ''}`.trim());
-      (day.blocks || []).forEach((block: any, bi: number) => {
-        lines.push(`    ${bi + 1}. ${block.name || 'Esercizio'}`);
-        if (block.type === 'forza') {
-          lines.push(`       Serie: ${block.sets ?? '-'} | Ripetizioni: ${block.reps ?? '-'} | Carico/RPE: ${block.load ?? '-'} | Recupero: ${block.rest ?? '-'}`);
-        } else if (block.wodNotes) {
-          wrap(`       WOD: ${block.wodNotes}`, 82).forEach(l => lines.push(l));
-        }
-        if (block.notes) wrap(`       Note coach: ${block.notes}`, 82).forEach(l => lines.push(l));
-        if (block.videoUrl) lines.push(`       Video: ${block.videoUrl}`);
-      });
-      lines.push('');
-    });
-  });
-
-  // PDF minimale e autonomo: usa Helvetica e crea automaticamente piu pagine.
-  const pageWidth = 595, pageHeight = 842, margin = 42, lineHeight = 13;
-  const maxLines = 55;
-  const pages: string[][] = [];
-  for (let i = 0; i < lines.length; i += maxLines) pages.push(lines.slice(i, i + maxLines));
-  if (!pages.length) pages.push(['Programma vuoto']);
-
-  const objects: string[] = [];
-  const addObj = (body: string) => { objects.push(body); return objects.length; };
-  const catalogId = addObj('');
-  const pagesId = addObj('');
-  const fontId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-  const pageIds: number[] = [];
-
-  pages.forEach((pageLines, pageIndex) => {
-    let content = 'BT\n/F1 10 Tf\n';
-    pageLines.forEach((line, idx) => {
-      const y = pageHeight - margin - idx * lineHeight;
-      const safe = normalizeForPdf(line).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-      const size = idx === 0 ? 14 : (pageIndex === 0 && idx < 4 ? 11 : 10);
-      content += `/F1 ${size} Tf\n${margin} ${y} Td\n(${safe}) Tj\n${-margin} ${-y} Td\n`;
-    });
-    content += 'ET';
-    const contentId = addObj(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
-    const pageId = addObj(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${contentId} 0 R >>`);
-    pageIds.push(pageId);
-  });
-
-  objects[pagesId - 1] = `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pageIds.length} >>`;
-  objects[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
-
-  let pdf = '%PDF-1.4\n';
-  const offsets = [0];
-  objects.forEach((obj, index) => {
-    offsets[index + 1] = pdf.length;
-    pdf += `${index + 1} 0 obj\n${obj}\nendobj\n`;
-  });
-  const xref = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
-  for (let i = 1; i <= objects.length; i++) pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
-
-  const blob = new Blob([pdf], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${normalizeForPdf(program.title || 'AMTraining_programma').replace(/[^a-zA-Z0-9_-]+/g, '_')}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
-
 const STRENGTH_EXERCISES = [
   'Back Squat', 'Deadlift', 'Front Squat', 'OHS', 'Press', 'Push Press', 
   'Push Jerk', 'Split Jerk', 'Power Snatch', 'Squat Snatch', 'Hang Power Snatch', 
@@ -209,7 +110,6 @@ export default function TrainingApp() {
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
   const [showDeletedPrograms, setShowDeletedPrograms] = useState(false);
-  const [coachSelectedAthleteByProgram, setCoachSelectedAthleteByProgram] = useState<{ [programId: string]: string }>({});
 
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -253,13 +153,6 @@ const [notificationError, setNotificationError] = useState('');
     setNotifications(data || []);
   };
 
-  const wasNotificationDismissed = async (notificationType: string) => {
-    if (!session?.user?.id) return false;
-    const { data, error } = await supabase.from('notification_dismissals').select('id').eq('user_id', session.user.id).eq('notification_type', notificationType).limit(1);
-    if (error) { console.warn('Controllo dismiss notifica:', error.message); return false; }
-    return !!data?.length;
-  };
-
   const createNotificationIfMissing = async (
   title: string,
   message: string,
@@ -267,7 +160,6 @@ const [notificationError, setNotificationError] = useState('');
   programId?: string
 ) => {
     if (!session?.user?.id) return;
-    if (await wasNotificationDismissed(notificationType)) return;
 
     const { data: existing, error: checkError } = await supabase
       .from('notifications')
@@ -307,7 +199,7 @@ const [notificationError, setNotificationError] = useState('');
 
     if (role === 'athlete') {
       const assignedPrograms = programLibrary.filter(
-        (prog) => !prog.isDeleted && prog.assignedAthleteIds?.includes(session.user.id)
+        (prog) => prog.assignedAthleteIds?.includes(session.user.id)
       );
 
       for (const prog of assignedPrograms) {
@@ -344,18 +236,6 @@ const [notificationError, setNotificationError] = useState('');
 
   const deleteNotification = async (notificationId: string) => {
   if (!session?.user?.id) return;
-  const target = notifications.find(n => n.id === notificationId);
-  if (!target) return;
-
-  const { error: dismissalError } = await supabase.from('notification_dismissals').upsert({
-    user_id: session.user.id,
-    notification_type: target.notification_type
-  }, { onConflict: 'user_id,notification_type' });
-  if (dismissalError) {
-    console.error('Errore salvataggio eliminazione notifica:', dismissalError);
-    setNotificationError(dismissalError.message);
-    return;
-  }
 
   const { error } = await supabase
     .from('notifications')
@@ -919,24 +799,6 @@ const [notificationError, setNotificationError] = useState('');
     setProgramWeeks(updated);
   };
 
-  const handleCoachResultChange = async (programId: string, athleteId: string, blockKey: string, field: 'score' | 'notes', value: string) => {
-    const currentProgram = coachAllResults[programId] || {};
-    const currentAthlete = currentProgram[athleteId] || {};
-    const updatedAthlete = { ...currentAthlete, [blockKey]: { ...(currentAthlete[blockKey] || {}), [field]: value } };
-    const updatedProgram = { ...currentProgram, [athleteId]: updatedAthlete };
-    setCoachAllResults(prev => ({ ...prev, [programId]: updatedProgram }));
-    const { error } = await supabase.from('program_results').upsert({
-      program_id: programId,
-      athlete_id: athleteId,
-      results: updatedAthlete,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'program_id, athlete_id' });
-    if (error) {
-      console.error('Errore salvataggio risultato coach:', error);
-      alert('Errore salvataggio risultato: ' + error.message);
-    }
-  };
-
   const saveProgramToLibrary = async () => {
     if (!programTitle) {
       alert('Inserisci un titolo per il programma');
@@ -949,11 +811,10 @@ const [notificationError, setNotificationError] = useState('');
       end_date: programEndDate || null,
       assigned_athlete_ids: selectedAthleteIds,
       weeks: programWeeks,
-      days: programWeeks[0]?.days || [],
-      is_deleted: false
+      days: programWeeks[0]?.days || []
     };
 
-    const { data: inserted, error } = await supabase.from('programs').insert([newProgram]).select('id').single();
+    const { error } = await supabase.from('programs').insert([newProgram]);
 
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
@@ -964,7 +825,11 @@ const [notificationError, setNotificationError] = useState('');
       setProgramStartDate('');
       setProgramEndDate('');
       setSelectedAthleteIds([]);
-      setProgramWeeks([{ weekNumber: 1, weekName: 'Settimana 1', days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }]);
+      setProgramWeeks([{
+        weekNumber: 1,
+        weekName: 'Settimana 1',
+        days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
+      }]);
       fetchProgramLibrary();
     }
   };
@@ -975,8 +840,7 @@ const [notificationError, setNotificationError] = useState('');
       start_date: prog.startDate || null,
       end_date: prog.endDate || null,
       assigned_athlete_ids: prog.assignedAthleteIds || [],
-      weeks: prog.weeks || normalizeProgramWeeks(prog),
-      is_deleted: false
+      weeks: prog.weeks || normalizeProgramWeeks(prog)
     };
 
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
@@ -1018,7 +882,7 @@ const [notificationError, setNotificationError] = useState('');
         end_date: editingProgram.endDate || null,
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         weeks: editingProgram.weeks,
-        days: editingProgram.weeks[0]?.days || [],
+        days: editingProgram.weeks[0]?.days || []
       })
       .eq('id', editingProgram.id);
 
@@ -1602,6 +1466,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 );
               })}
+
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -1918,8 +1783,7 @@ const [notificationError, setNotificationError] = useState('');
                                 <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
                               ) : (
                                 <>
-                                  <button onClick={() => generateProgramPDF(prog, assignedList.map((a) => a.full_name || a.email).join(', '))} style={{ background: '#dc2626', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>PDF</button>
-                          <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                                   <button onClick={() => {
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
@@ -1935,31 +1799,8 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                           </div>
 
-                          <div style={{ marginTop: '12px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ fontSize: '12px', color: '#0f172a', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📋 PROGRAMMA — {activeWeekObj?.weekName || ''} / {activeDay || ''}</span>
-                            {activeWeekObj?.days?.find((d: any) => d.dayName === activeDay)?.blocks?.map((blk: any, bIdx: number) => (
-                              <div key={bIdx} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#10b981', fontSize: '13px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
-                                {blk.type === 'forza' ? (
-                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginTop: '7px' }}>
-                                    <span style={{ fontSize: '10px', color: '#334155' }}>Set: <b>{blk.sets ?? '-'}</b></span>
-                                    <span style={{ fontSize: '10px', color: '#334155' }}>Rep: <b>{blk.reps ?? '-'}</b></span>
-                                    <span style={{ fontSize: '10px', color: '#334155' }}>Carico/RPE: <b>{blk.load ?? '-'}</b></span>
-                                    <span style={{ fontSize: '10px', color: '#334155' }}>Rec: <b>{blk.rest ?? '-'}</b></span>
-                                  </div>
-                                ) : <div style={{ fontSize: '11px', color: '#334155', marginTop: '6px', whiteSpace: 'pre-wrap' }}>{blk.wodNotes || '-'}</div>}
-                                {blk.notes && <div style={{ fontSize: '11px', color: '#64748b', marginTop: '6px' }}>Nota coach: {blk.notes}</div>}
-                              </div>
-                            ))}
-                          </div>
-
                           <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI / GESTIONE COACH:</span>
-                            <div style={{ marginBottom: '10px' }}>
-                              <select value={coachSelectedAthleteByProgram[prog.id] || (assignedList[0]?.id || '')} onChange={(e) => setCoachSelectedAthleteByProgram(prev => ({ ...prev, [prog.id]: e.target.value }))} style={{ width: '100%', padding: '7px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#000', fontSize: '12px' }}>
-                                {assignedList.length === 0 ? <option value="">Nessun atleta assegnato</option> : assignedList.map((ath) => <option key={ath.id} value={ath.id}>{ath.full_name || ath.email}</option>)}
-                              </select>
-                            </div>
+                            <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
                               {weeks.map((w: any) => (
@@ -1976,8 +1817,7 @@ const [notificationError, setNotificationError] = useState('');
                               ))}
                             </div>
 
-                            <button onClick={() => generateProgramPDF(prog, session?.user?.user_metadata?.full_name || session?.user?.email)} style={{ display: 'inline-block', marginBottom: '10px', background: '#dc2626', color: '#fff', padding: '8px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>📄 Genera / Scarica PDF</button>
-                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                               {activeWeekObj?.days?.map((day: any) => (
                                 <button
                                   key={day.dayName}
@@ -1990,28 +1830,53 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
 
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                              {(() => {
-                                const selectedAthleteId = coachSelectedAthleteByProgram[prog.id] || assignedList[0]?.id || '';
-                                const selectedResults = progResultsByAthlete[selectedAthleteId] || {};
-                                const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
-                                const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay) ?? -1;
-                                const blocksOfActiveDay = dayIndex >= 0 ? (activeWeekObj?.days?.[dayIndex]?.blocks || []) : [];
-                                if (!selectedAthleteId) return <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun atleta assegnato a questo programma.</span>;
-                                if (wIndex < 0 || dayIndex < 0) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona settimana e giorno.</span>;
-                                return blocksOfActiveDay.length === 0 ? <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun esercizio in questo giorno.</span> : blocksOfActiveDay.map((blk: any, bIdx: number) => {
-                                  const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                  const data = selectedResults[blockKey] || { score: '', notes: '' };
-                                  return (
-                                    <div key={blockKey} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                                      <div style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '12px', marginBottom: '7px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                        <input type="text" placeholder="Score / carico" value={data.score || ''} onChange={(e) => handleCoachResultChange(prog.id, selectedAthleteId, blockKey, 'score', e.target.value)} style={{ width: '100%', padding: '7px', border: '1px solid #cbd5e1', borderRadius: '5px', boxSizing: 'border-box', color: '#000', background: '#fff' }} />
-                                        <input type="text" placeholder="Note atleta / coach" value={data.notes || ''} onChange={(e) => handleCoachResultChange(prog.id, selectedAthleteId, blockKey, 'notes', e.target.value)} style={{ width: '100%', padding: '7px', border: '1px solid #cbd5e1', borderRadius: '5px', boxSizing: 'border-box', color: '#000', background: '#fff' }} />
+                              {Object.keys(progResultsByAthlete).length === 0 ? (
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
+                              ) : (
+                                (() => {
+                                  const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                                  const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay);
+                                  if (wIndex === -1 || dayIndex === -1) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona un giorno valido.</span>;
+                                  
+                                  const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
+                                  
+                                  return athletes.map((ath) => {
+                                    const resObj = progResultsByAthlete[ath.id];
+                                    if (!resObj) return null;
+
+                                    const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
+                                      const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
+                                    });
+
+                                    if (!hasResultsForThisDay) return null;
+                                    const athName = ath.full_name || ath.email;
+
+                                    return (
+                                      <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                                        <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
+                                        <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
+                                          {blocksOfActiveDay.map((blk: any, bIdx: number) => {
+                                            const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
+                                            const blockData = resObj[blockKey];
+                                            if (!blockData || (!blockData.score && !blockData.notes)) return null;
+
+                                            return (
+                                              <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
+                                                <span>
+                                                  <strong style={{ color: '#10b981' }}>Score:</strong> {blockData.score || '-'} 
+                                                  {blockData.notes && <span style={{ color: '#64748b', marginLeft: '6px' }}>(Note: {blockData.notes})</span>}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                });
-                              })()}
+                                    );
+                                  });
+                                })()
+                              )}
                             </div>
                           </div>
                         </div>
@@ -2079,16 +1944,14 @@ const [notificationError, setNotificationError] = useState('');
                   return (
                     <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
-                          <button type="button" onClick={() => generateProgramPDF(prog, session?.user?.user_metadata?.full_name || session?.user?.email)} style={{ alignSelf: 'flex-start', background: '#dc2626', border: 'none', color: '#fff', padding: '7px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>📄 Genera / Scarica PDF</button>
-                        </div>
+                        <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (
                           <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
                             📅 Dal {formatDateToIT(prog.startDate)} al {formatDateToIT(prog.endDate)}
                           </span>
                         )}
                       </div>
+                    
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                         {weeks.map((week: any) => (
                           <button
