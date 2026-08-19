@@ -108,7 +108,8 @@ export default function TrainingApp() {
   const [saveMessage, setSaveMessage] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationError, setNotificationError] = useState('');
+const [notificationError, setNotificationError] = useState('');
+  const [showDeletedPrograms, setShowDeletedPrograms] = useState(false);
 
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -1717,7 +1718,10 @@ export default function TrainingApp() {
               ) : (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', margin: 0 }}>Libreria Programmi</h3>
+                    <h3 style={{ fontSize: '18px', margin: 0 }}>{showDeletedPrograms ? 'Cestino Programmi' : 'Libreria Programmi'}</h3>
+  <button onClick={() => setShowDeletedPrograms(!showDeletedPrograms)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedPrograms ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+    {showDeletedPrograms ? 'Torna ai programmi' : '🗑️ Cestino'}
+  </button>
                     <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
                       <option value="">Filtra per utente (Tutti)</option>
                       {athletes.map((a) => (
@@ -1765,7 +1769,11 @@ export default function TrainingApp() {
                                   if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
                                 }
                               }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
-                              <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                              {showDeletedPrograms ? (
+  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+) : (
+  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+)}
                             </div>
                           </div>
 
@@ -2067,3 +2075,4 @@ export default function TrainingApp() {
     </div>
   );
 }
+
