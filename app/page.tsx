@@ -1,12 +1,12 @@
 'use client';
-
+ 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
-
+ 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+ 
 // Funzione di utilità per formattare la data da aaaa-mm-gg a gg\mm\aaaa
 const formatDateToIT = (dateString: string) => {
   if (!dateString) return 'N/D';
@@ -19,18 +19,18 @@ const formatDateToIT = (dateString: string) => {
   }
   return dateString;
 };
-
+ 
 const STRENGTH_EXERCISES = [
   'Back Squat', 'Deadlift', 'Front Squat', 'OHS', 'Press', 'Push Press', 
   'Push Jerk', 'Split Jerk', 'Power Snatch', 'Squat Snatch', 'Hang Power Snatch', 
   'Hang Squat Snatch', 'Power Clean', 'Squat Clean', 'Hang Power Clean', 
   'Hang Squat Clean', 'Clean & Jerk', 'Panca Piana'
 ];
-
+ 
 const REP_SCHEMES = [1, 3, 5, 10];
-
+ 
 export default function TrainingApp() {
-
+ 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -53,26 +53,26 @@ export default function TrainingApp() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
-
+ 
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
   const [programEndDate, setProgramEndDate] = useState('');
-
+ 
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
   const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
-
+ 
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
   
   const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
-
+ 
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerSaving, setBannerSaving] = useState(false);
-
+ 
   const [programWeeks, setProgramWeeks] = useState<any[]>([
     {
       weekNumber: 1,
@@ -82,35 +82,35 @@ export default function TrainingApp() {
       ]
     }
   ]);
-
+ 
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
-
+ 
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
-
+ 
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
   const [selectedDayView, setSelectedDayView] = useState('Giorno 1');
   
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
-
+ 
   const [newExName, setNewExName] = useState('');
   const [newExVideo, setNewExVideo] = useState('');
-
+ 
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
-
+ 
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: { [reps: number]: string } }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
-
+ 
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
   const [showDeletedPrograms, setShowDeletedPrograms] = useState(false);
-
+ 
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
     if (prog.days && prog.days.length > 0) {
@@ -118,41 +118,42 @@ const [notificationError, setNotificationError] = useState('');
     }
     return [{ weekNumber: 1, weekName: 'Settimana 1', days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }];
   };
-
+ 
   const getCalendarDaysDifference = (dateString: string) => {
     if (!dateString) return null;
     const cleanDate = dateString.split('T')[0];
     const [year, month, day] = cleanDate.split('-').map(Number);
     if (!year || !month || !day) return null;
-
+ 
     const target = Date.UTC(year, month - 1, day);
     const today = new Date();
     const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-
+ 
     return Math.round((target - todayUTC) / 86400000);
   };
-
+ 
   const fetchNotifications = async () => {
     if (!session?.user?.id) return;
-
+ 
     const { data, error } = await supabase
       .from('notifications')
       .select('id,user_id,title,message,notification_type,is_read,created_at')
       .eq('user_id', session.user.id)
+      .eq('dismissed', false)
       .order('created_at', { ascending: false })
       .limit(50);
-
+ 
     if (error) {
       console.error('Errore caricamento notifiche:', error);
       setNotificationError(error.message);
       return;
     }
-
+ 
     setNotificationError('');
-
+ 
     setNotifications(data || []);
   };
-
+ 
   const createNotificationIfMissing = async (
   title: string,
   message: string,
@@ -160,22 +161,22 @@ const [notificationError, setNotificationError] = useState('');
   programId?: string
 ) => {
     if (!session?.user?.id) return;
-
+ 
     const { data: existing, error: checkError } = await supabase
       .from('notifications')
       .select('id')
       .eq('user_id', session.user.id)
       .eq('notification_type', notificationType)
       .limit(1);
-
+ 
     if (checkError) {
       console.error('Errore controllo notifica:', checkError);
       setNotificationError(checkError.message);
       return;
     }
-
+ 
     if (existing && existing.length > 0) return;
-
+ 
     const { error } = await supabase.from('notifications').insert([{
   user_id: session.user.id,
   title,
@@ -184,24 +185,34 @@ const [notificationError, setNotificationError] = useState('');
   is_read: false,
   program_id: programId || null
 }]);
-
+ 
     if (error) {
       console.error('Errore creazione notifica:', error);
       setNotificationError(error.message);
       return;
     }
-
+ 
     await fetchNotifications();
+ 
+    fetch('/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: session.user.id,
+        title,
+        message,
+      }),
+    }).catch(pushErr => console.error('Errore invio push:', pushErr));
   };
-
+ 
   const syncProgramNotifications = async () => {
     if (!session?.user?.id || !programLibrary.length) return;
-
+ 
     if (role === 'athlete') {
       const assignedPrograms = programLibrary.filter(
         (prog) => prog.assignedAthleteIds?.includes(session.user.id)
       );
-
+ 
       for (const prog of assignedPrograms) {
         await createNotificationIfMissing(
   'Nuovo programma assegnato',
@@ -212,19 +223,19 @@ const [notificationError, setNotificationError] = useState('');
       }
       return;
     }
-
+ 
     if (role === 'coach') {
       for (const prog of programLibrary) {
         if (!prog.endDate || !prog.assignedAthleteIds?.length) continue;
-
+ 
         const daysRemaining = getCalendarDaysDifference(prog.endDate);
         if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
-
+ 
         const dayText =
           daysRemaining === 0
             ? 'scade oggi'
             : `scade tra ${daysRemaining} giorni`;
-
+ 
         await createNotificationIfMissing(
           'Scadenza programma',
           `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
@@ -233,68 +244,127 @@ const [notificationError, setNotificationError] = useState('');
       }
     }
   };
-
+ 
   const deleteNotification = async (notificationId: string) => {
   if (!session?.user?.id) return;
-
+ 
   const { error } = await supabase
     .from('notifications')
-    .delete()
+    .update({ dismissed: true })
     .eq('id', notificationId)
     .eq('user_id', session.user.id);
-
+ 
   if (error) {
     console.error('Errore eliminazione notifica:', error);
     setNotificationError(error.message);
     return;
   }
-
+ 
   setNotifications(prev =>
     prev.filter(n => n.id !== notificationId)
   );
-
+ 
   setNotificationError('');
 };
-
+ 
+  // ---- PUSH NOTIFICATIONS ----
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+ 
+  const subscribeToPush = async () => {
+    if (!session?.user?.id) return;
+ 
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setNotificationError('Le notifiche push non sono supportate su questo dispositivo/browser.');
+      return;
+    }
+ 
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      setNotificationError('Permesso notifiche negato.');
+      return;
+    }
+ 
+    const registration = await navigator.serviceWorker.ready;
+ 
+    const existing = await registration.pushManager.getSubscription();
+    const subscription =
+      existing ||
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
+        ),
+      }));
+ 
+    const subJson = subscription.toJSON();
+ 
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      {
+        user_id: session.user.id,
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys?.p256dh,
+        auth: subJson.keys?.auth,
+      },
+      { onConflict: 'endpoint' }
+    );
+ 
+    if (error) {
+      console.error('Errore salvataggio sottoscrizione push:', error);
+      setNotificationError(error.message);
+      return;
+    }
+ 
+    setNotificationError('');
+  };
+ 
   const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId)
       .eq('user_id', session?.user?.id);
-
+ 
     setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
     );
   };
-
+ 
   const markAllNotificationsAsRead = async () => {
     if (!session?.user?.id) return;
-
+ 
     await supabase
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', session.user.id)
       .eq('is_read', false);
-
+ 
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
-
+ 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) fetchUserProfile(session.user.id);
       setLoading(false);
     });
-
+ 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) fetchUserProfile(session.user.id);
     });
-
+ 
     return () => subscription.unsubscribe();
   }, []);
-
+ 
   useEffect(() => {
     if (session) {
       fetchProgramLibrary();
@@ -309,42 +379,42 @@ const [notificationError, setNotificationError] = useState('');
         fetchAthleteResults();
         fetchAthleteMaxes(session.user.id);
       }
-
+ 
       const channel = supabase
         .channel('realtime-programs')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => {
           fetchProgramLibrary();
         })
         .subscribe();
-
+ 
       const bannerChannel = supabase
         .channel('realtime-banner')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, () => {
           fetchBanner();
         })
         .subscribe();
-
+ 
       const exChannel = supabase
         .channel('realtime-exercises')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'exercises_library' }, () => {
           fetchExerciseLibrary();
         })
         .subscribe();
-
+ 
       const resultsChannel = supabase
         .channel('realtime-results')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'program_results' }, () => {
           if (role === 'coach') fetchAllAthleteResultsForCoach();
         })
         .subscribe();
-
+ 
       const maxesChannel = supabase
         .channel('realtime-maxes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_maxes' }, () => {
           if (role === 'coach') fetchAllAthleteMaxesForCoach();
         })
         .subscribe();
-
+ 
       const notificationsChannel = supabase
         .channel('realtime-notifications')
         .on('postgres_changes', {
@@ -356,7 +426,7 @@ const [notificationError, setNotificationError] = useState('');
           fetchNotifications();
         })
         .subscribe();
-
+ 
       return () => {
         supabase.removeChannel(channel);
         supabase.removeChannel(bannerChannel);
@@ -367,13 +437,13 @@ const [notificationError, setNotificationError] = useState('');
       };
     }
   }, [session, role]);
-
+ 
   useEffect(() => {
     if (session && programLibrary.length > 0) {
       syncProgramNotifications();
     }
   }, [session, role, programLibrary]);
-
+ 
   useEffect(() => {
     if (programLibrary.length > 0) {
       const initialWeeks: { [id: string]: string } = {};
@@ -394,59 +464,59 @@ const [notificationError, setNotificationError] = useState('');
       }
     }
   }, [programLibrary]);
-
+ 
   const fetchUserProfile = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
     if (data) setRole(data.role);
   };
-
+ 
   const fetchAthletes = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('role', 'athlete');
     if (data) setAthletes(data);
   };
-
+ 
   const fetchBanner = async () => {
     const { data } = await supabase.from('settings').select('*').eq('key', 'app_banner').single();
     if (data && data.value) {
       setBannerData(data.value);
     }
   };
-
+ 
   const saveBanner = async (e: React.FormEvent) => {
     e.preventDefault();
     setBannerSaving(true);
-
+ 
     let imageUrl = bannerData.image_url;
-
+ 
     try {
       if (bannerImageFile) {
         const fileExt = bannerImageFile.name.split('.').pop();
         const fileName = `banner_${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
-
+ 
         const { error: uploadError } = await supabase.storage
           .from('banners')
           .upload(filePath, bannerImageFile);
-
+ 
         if (uploadError) throw uploadError;
-
+ 
         const { data: publicURLData } = supabase.storage
           .from('banners')
           .getPublicUrl(filePath);
-
+ 
         imageUrl = publicURLData.publicUrl;
       }
-
+ 
       const newBannerValue = { image_url: imageUrl, link_url: bannerData.link_url };
-
+ 
       const { error } = await supabase.from('settings').upsert({
         key: 'app_banner',
         value: newBannerValue,
         updated_at: new Date().toISOString()
       }, { onConflict: 'key' });
-
+ 
       if (error) throw error;
-
+ 
       setBannerData(newBannerValue);
       setBannerImageFile(null);
       alert('Banner aggiornato con successo!');
@@ -456,7 +526,7 @@ const [notificationError, setNotificationError] = useState('');
       setBannerSaving(false);
     }
   };
-
+ 
   const fetchProgramLibrary = async () => {
     const { data } = await supabase.from('programs').select('*');
     if (data) {
@@ -472,12 +542,12 @@ const [notificationError, setNotificationError] = useState('');
       setProgramLibrary(formatted);
     }
   };
-
+ 
   const fetchExerciseLibrary = async () => {
     const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
     if (data) setExerciseLibrary(data);
   };
-
+ 
   const fetchAthleteResults = async () => {
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
     if (data) {
@@ -488,7 +558,7 @@ const [notificationError, setNotificationError] = useState('');
       setAthleteResults(resultsMap);
     }
   };
-
+ 
   const fetchAllAthleteResultsForCoach = async () => {
     const { data } = await supabase.from('program_results').select('*');
     if (data) {
@@ -500,7 +570,7 @@ const [notificationError, setNotificationError] = useState('');
       setCoachAllResults(map);
     }
   };
-
+ 
   const fetchAthleteMaxes = async (athleteId: string) => {
     const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
     if (data && data.maxes) {
@@ -509,7 +579,7 @@ const [notificationError, setNotificationError] = useState('');
       setAthleteMaxes({});
     }
   };
-
+ 
   const fetchAllAthleteMaxesForCoach = async () => {
     const { data } = await supabase.from('athlete_maxes').select('*');
     if (data) {
@@ -520,12 +590,12 @@ const [notificationError, setNotificationError] = useState('');
       setCoachAthleteMaxes(map);
     }
   };
-
+ 
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
     const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
     const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
     setAthleteMaxes(updatedAll);
-
+ 
     await supabase.from('athlete_maxes').upsert(
       {
         athlete_id: session.user.id,
@@ -535,16 +605,16 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'athlete_id' }
     );
   };
-
+ 
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string) => {
     const currentProgResults = athleteResults[programId] || {};
     const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
-
+ 
     const updatedBlockResults = { ...currentBlockResults, [field]: value };
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
-
+ 
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
-
+ 
     await supabase.from('program_results').upsert(
       {
         program_id: programId,
@@ -555,14 +625,14 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'program_id, athlete_id' }
     );
   };
-
+ 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setAuthError(error.message);
   };
-
+ 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -578,7 +648,7 @@ const [notificationError, setNotificationError] = useState('');
       setIsRegistering(false);
     }
   };
-
+ 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -592,26 +662,26 @@ const [notificationError, setNotificationError] = useState('');
       setResetMessage('Controlla la tua email per il link di recupero.');
     }
   };
-
+ 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
   };
-
+ 
   const toggleBlockCollapse = (blockKey: string) => {
     setCollapsedBlocks(prev => {
       const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
       return { ...prev, [blockKey]: !currentValue };
     });
   };
-
+ 
   const toggleProgramDayCollapse = (key: string) => {
     setCollapsedProgramDays(prev => {
       const currentValue = prev[key] === undefined ? true : prev[key];
       return { ...prev, [key]: !currentValue };
     });
   };
-
+ 
   const toggleAthleteSelection = (athleteId: string, currentList: string[], setListFn: (list: string[]) => void) => {
     if (currentList.includes(athleteId)) {
       setListFn(currentList.filter(id => id !== athleteId));
@@ -619,7 +689,7 @@ const [notificationError, setNotificationError] = useState('');
       setListFn([...currentList, athleteId]);
     }
   };
-
+ 
   const addWeek = () => {
     const nextNumber = programWeeks.length + 1;
     const newName = `Settimana ${nextNumber}`;
@@ -630,7 +700,7 @@ const [notificationError, setNotificationError] = useState('');
     setSelectedWeekView(newName);
     setSelectedDayView('Giorno 1');
   };
-
+ 
   const cloneWeek = (weekToClone: any) => {
     const nextNumber = programWeeks.length + 1;
     const clonedName = `${weekToClone.weekName} (Copia)`;
@@ -639,7 +709,7 @@ const [notificationError, setNotificationError] = useState('');
     setSelectedWeekView(clonedName);
     if (clonedDays.length > 0) setSelectedDayView(clonedDays[0].dayName);
   };
-
+ 
   const moveWeekOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= programWeeks.length) return;
@@ -649,7 +719,7 @@ const [notificationError, setNotificationError] = useState('');
     updated[newIndex] = temp;
     setProgramWeeks(updated);
   };
-
+ 
   const addDay = (wIdx: number) => {
     const updated = [...programWeeks];
     const targetWeek = updated[wIdx];
@@ -659,7 +729,7 @@ const [notificationError, setNotificationError] = useState('');
     setProgramWeeks(updated);
     setSelectedDayView(newName);
   };
-
+ 
   const cloneDay = (wIdx: number, dayToClone: any) => {
     const updated = [...programWeeks];
     const targetWeek = updated[wIdx];
@@ -670,7 +740,7 @@ const [notificationError, setNotificationError] = useState('');
     setProgramWeeks(updated);
     setSelectedDayView(clonedName);
   };
-
+ 
   const moveDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
     const updated = [...programWeeks];
@@ -681,7 +751,7 @@ const [notificationError, setNotificationError] = useState('');
     days[newIndex] = temp;
     setProgramWeeks(updated);
   };
-
+ 
   const cloneEditingWeek = (weekToClone: any) => {
     const updated = { ...editingProgram };
     if (!updated.weeks) updated.weeks = [];
@@ -692,7 +762,7 @@ const [notificationError, setNotificationError] = useState('');
     setSelectedWeekView(clonedName);
     if (clonedDays.length > 0) setSelectedDayView(clonedDays[0].dayName);
   };
-
+ 
   const moveEditingWeekOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
     const updated = { ...editingProgram };
@@ -702,7 +772,7 @@ const [notificationError, setNotificationError] = useState('');
     updated.weeks[newIndex] = temp;
     setEditingProgram(updated);
   };
-
+ 
   const addEditingDay = (wIdx: number) => {
     const updated = { ...editingProgram };
     const targetWeek = updated.weeks[wIdx];
@@ -713,7 +783,7 @@ const [notificationError, setNotificationError] = useState('');
     setEditingProgram(updated);
     setSelectedDayView(newName);
   };
-
+ 
   const cloneEditingDay = (wIdx: number, dayToClone: any) => {
     const updated = { ...editingProgram };
     const targetWeek = updated.weeks[wIdx];
@@ -723,7 +793,7 @@ const [notificationError, setNotificationError] = useState('');
     setEditingProgram(updated);
     setSelectedDayView(clonedName);
   };
-
+ 
   const moveEditingDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
     const updated = { ...editingProgram };
@@ -734,13 +804,13 @@ const [notificationError, setNotificationError] = useState('');
     days[newIndex] = temp;
     setEditingProgram(updated);
   };
-
+ 
   const removeBlockFromFreeDay = (wIdx: number, dayIndex: number, blockIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.splice(blockIndex, 1);
     setProgramWeeks(updated);
   };
-
+ 
   const moveFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
     const updated = [...programWeeks];
     const blocks = [...updated[wIdx].days[dayIndex].blocks];
@@ -752,7 +822,7 @@ const [notificationError, setNotificationError] = useState('');
     updated[wIdx].days[dayIndex].blocks = blocks;
     setProgramWeeks(updated);
   };
-
+ 
   const moveEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
     const updated = { ...editingProgram };
     const blocks = [...updated.weeks[wIdx].days[dayIndex].blocks];
@@ -764,7 +834,7 @@ const [notificationError, setNotificationError] = useState('');
     updated.weeks[wIdx].days[dayIndex].blocks = blocks;
     setEditingProgram(updated);
   };
-
+ 
   const addGlobalExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName) return;
@@ -777,14 +847,14 @@ const [notificationError, setNotificationError] = useState('');
       fetchExerciseLibrary();
     }
   };
-
+ 
   const deleteGlobalExercise = async (id: string) => {
     if (confirm('Vuoi eliminare questo esercizio?')) {
       await supabase.from('exercises_library').delete().eq('id', id);
       fetchExerciseLibrary();
     }
   };
-
+ 
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks.push({
@@ -792,19 +862,19 @@ const [notificationError, setNotificationError] = useState('');
     });
     setProgramWeeks(updated);
   };
-
+ 
   const updateFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
     const updated = [...programWeeks];
     updated[wIdx].days[dayIndex].blocks[blockIndex][field] = value;
     setProgramWeeks(updated);
   };
-
+ 
   const saveProgramToLibrary = async () => {
     if (!programTitle) {
       alert('Inserisci un titolo per il programma');
       return;
     }
-
+ 
     const newProgram = {
       title: programTitle,
       start_date: programStartDate || null,
@@ -813,9 +883,9 @@ const [notificationError, setNotificationError] = useState('');
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
     };
-
+ 
     const { error } = await supabase.from('programs').insert([newProgram]);
-
+ 
     if (error) {
       alert('Errore durante il salvataggio: ' + error.message);
     } else {
@@ -833,7 +903,7 @@ const [notificationError, setNotificationError] = useState('');
       fetchProgramLibrary();
     }
   };
-
+ 
   const duplicateProgram = async (prog: any) => {
     const duplicatedProgram = {
       title: `${prog.title} (Copia)`,
@@ -842,9 +912,9 @@ const [notificationError, setNotificationError] = useState('');
       assigned_athlete_ids: prog.assignedAthleteIds || [],
       weeks: prog.weeks || normalizeProgramWeeks(prog)
     };
-
+ 
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
-
+ 
     if (error) {
       alert('Errore: ' + error.message);
     } else {
@@ -852,13 +922,13 @@ const [notificationError, setNotificationError] = useState('');
       fetchProgramLibrary();
     }
   };
-
+ 
   const updateEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
     const updated = { ...editingProgram };
     updated.weeks[wIdx].days[dayIndex].blocks[blockIndex][field] = value;
     setEditingProgram(updated);
   };
-
+ 
   const addBlockToEditingDay = (wIdx: number, dayIndex: number) => {
     const updated = { ...editingProgram };
     if (!updated.weeks[wIdx].days[dayIndex].blocks) updated.weeks[wIdx].days[dayIndex].blocks = [];
@@ -867,13 +937,13 @@ const [notificationError, setNotificationError] = useState('');
     });
     setEditingProgram(updated);
   };
-
+ 
   const saveEditedProgram = async () => {
     if (!editingProgram.title) {
       alert('Il titolo non può essere vuoto');
       return;
     }
-
+ 
     const { error } = await supabase
       .from('programs')
       .update({
@@ -885,7 +955,7 @@ const [notificationError, setNotificationError] = useState('');
         days: editingProgram.weeks[0]?.days || []
       })
       .eq('id', editingProgram.id);
-
+ 
     if (error) {
       alert('Errore: ' + error.message);
     } else {
@@ -894,7 +964,7 @@ const [notificationError, setNotificationError] = useState('');
       fetchProgramLibrary();
     }
   };
-
+ 
   const deleteProgram = async (id: string) => {
     if (!confirm('Sei sicuro di voler eliminare questo programma?')) return;
     const { error } = await supabase.from('programs').update({ is_deleted: true }).eq('id', id);
@@ -904,7 +974,7 @@ const [notificationError, setNotificationError] = useState('');
     }
     await fetchProgramLibrary();
   };
-
+ 
   const restoreProgram = async (id: string) => {
     if (!confirm('Vuoi ripristinare questo programma?')) return;
     const { error } = await supabase.from('programs').update({ is_deleted: false }).eq('id', id);
@@ -914,7 +984,7 @@ const [notificationError, setNotificationError] = useState('');
     }
     await fetchProgramLibrary();
   };
-
+ 
   if (loading) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
@@ -923,7 +993,7 @@ const [notificationError, setNotificationError] = useState('');
       </div>
     );
   }
-
+ 
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
@@ -948,7 +1018,7 @@ const [notificationError, setNotificationError] = useState('');
             {isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi')}
           </button>
         </form>
-
+ 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
           {!isResettingPassword && (
             <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
@@ -962,11 +1032,11 @@ const [notificationError, setNotificationError] = useState('');
       </div>
     );
   }
-
+ 
   const athletePrograms = programLibrary.filter(
     (prog) => !prog.isDeleted && (!prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session?.user?.id))
   );
-
+ 
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
     if (showDeletedPrograms) {
       if (!prog.isDeleted) return false;
@@ -976,7 +1046,7 @@ const [notificationError, setNotificationError] = useState('');
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
-
+ 
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
@@ -989,7 +1059,7 @@ const [notificationError, setNotificationError] = useState('');
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
         </div>
-
+ 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ position: 'relative' }}>
             <button
@@ -1030,7 +1100,7 @@ const [notificationError, setNotificationError] = useState('');
                 </span>
               )}
             </button>
-
+ 
             {showNotifications && (
               <div style={{
                 position: 'fixed',
@@ -1055,29 +1125,45 @@ const [notificationError, setNotificationError] = useState('');
                   alignItems: 'center'
                 }}>
                   <strong style={{ fontSize: '14px' }}>Notifiche</strong>
-                  {notifications.some(n => !n.is_read) && (
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <button
-                      onClick={markAllNotificationsAsRead}
+                      onClick={subscribeToPush}
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#10b981',
+                        color: '#2563eb',
                         fontSize: '11px',
                         cursor: 'pointer',
                         fontWeight: 'bold'
                       }}
+                      title="Ricevi notifiche anche ad app chiusa"
                     >
-                      Segna tutte come lette
+                      Attiva notifiche push
                     </button>
-                  )}
+                    {notifications.some(n => !n.is_read) && (
+                      <button
+                        onClick={markAllNotificationsAsRead}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#10b981',
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        Segna tutte come lette
+                      </button>
+                    )}
+                  </div>
                 </div>
-
+ 
                 {notificationError && (
                   <div style={{ padding: '10px 14px', background: '#fef2f2', color: '#b91c1c', fontSize: '11px', borderBottom: '1px solid #fecaca', lineHeight: 1.4 }}>
                     Errore notifiche: {notificationError}
                   </div>
                 )}
-
+ 
                 {notifications.length === 0 ? (
                   <div style={{ padding: '24px 14px', color: '#64748b', textAlign: 'center', fontSize: '13px' }}>
                     Nessuna notifica.
@@ -1138,11 +1224,11 @@ const [notificationError, setNotificationError] = useState('');
               </div>
             )}
           </div>
-
+ 
           <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
         </div>
       </header>
-
+ 
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
@@ -1150,7 +1236,7 @@ const [notificationError, setNotificationError] = useState('');
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
             <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
           </div>
-
+ 
           {coachSubView === 'banner' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
@@ -1225,10 +1311,10 @@ const [notificationError, setNotificationError] = useState('');
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
                 <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
               </div>
-
+ 
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
-
+ 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -1239,7 +1325,7 @@ const [notificationError, setNotificationError] = useState('');
                   <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
                 </div>
               </div>
-
+ 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
@@ -1263,7 +1349,7 @@ const [notificationError, setNotificationError] = useState('');
                   })}
                 </div>
               </div>
-
+ 
               <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -1284,10 +1370,10 @@ const [notificationError, setNotificationError] = useState('');
                   })}
                 </div>
               </div>
-
+ 
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
-
+ 
                 return (
                   <div key={actualWIdx} style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
@@ -1314,7 +1400,7 @@ const [notificationError, setNotificationError] = useState('');
                         }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                       )}
                     </div>
-
+ 
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
@@ -1333,7 +1419,7 @@ const [notificationError, setNotificationError] = useState('');
                       })}
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                     </div>
-
+ 
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                       const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                       return (
@@ -1361,11 +1447,11 @@ const [notificationError, setNotificationError] = useState('');
                               }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                             )}
                           </div>
-
+ 
                           {day.blocks?.map((block: any, bIdx: number) => {
                             const blockKey = `edit_${actualWIdx}_${actualDIdx}_${bIdx}`;
                             const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
+ 
                             return (
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1384,7 +1470,7 @@ const [notificationError, setNotificationError] = useState('');
                                     }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
                                   </div>
                                 </div>
-
+ 
                                 <div style={{ marginBottom: '10px' }}>
                                   {block.type === 'forza' ? (
                                     <div>
@@ -1415,7 +1501,7 @@ const [notificationError, setNotificationError] = useState('');
                                     <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                   )}
                                 </div>
-
+ 
                                 {!isClosed && (
                                   <div>
                                     <div style={{ marginBottom: '10px' }}>
@@ -1466,7 +1552,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 );
               })}
-
+ 
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -1476,7 +1562,7 @@ const [notificationError, setNotificationError] = useState('');
                 <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
                 <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
-
+ 
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
@@ -1513,7 +1599,7 @@ const [notificationError, setNotificationError] = useState('');
                       <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
                     </div>
                   </div>
-
+ 
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
@@ -1533,7 +1619,7 @@ const [notificationError, setNotificationError] = useState('');
                       )}
                     </div>
                   </div>
-
+ 
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -1555,10 +1641,10 @@ const [notificationError, setNotificationError] = useState('');
                       <button onClick={addWeek} style={{ padding: '6px 12px', background: '#10b981', border: 'none', color: '#ffffff', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Settimana</button>
                     </div>
                   </div>
-
+ 
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
                     const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
-
+ 
                     return (
                       <div key={actualWIdx} style={{ marginBottom: '16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
@@ -1585,7 +1671,7 @@ const [notificationError, setNotificationError] = useState('');
                             }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                           )}
                         </div>
-
+ 
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
@@ -1604,7 +1690,7 @@ const [notificationError, setNotificationError] = useState('');
                           })}
                           <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                         </div>
-
+ 
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                           const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
                           return (
@@ -1632,11 +1718,11 @@ const [notificationError, setNotificationError] = useState('');
                                   }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                                 )}
                               </div>
-
+ 
                               {day.blocks.map((block: any, bIdx: number) => {
                                 const blockKey = `prog_${actualWIdx}_${actualDIdx}_${bIdx}`;
                                 const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
+ 
                                 return (
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -1651,7 +1737,7 @@ const [notificationError, setNotificationError] = useState('');
                                         <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
                                       </div>
                                     </div>
-
+ 
                                     <div style={{ marginBottom: '10px' }}>
                                       {block.type === 'forza' ? (
                                         <div>
@@ -1680,7 +1766,7 @@ const [notificationError, setNotificationError] = useState('');
                                         <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                       )}
                                     </div>
-
+ 
                                     {!isClosed && (
                                       <div>
                                         <div style={{ marginBottom: '10px' }}>
@@ -1731,7 +1817,7 @@ const [notificationError, setNotificationError] = useState('');
                       </div>
                     );
                   })}
-
+ 
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
@@ -1749,7 +1835,7 @@ const [notificationError, setNotificationError] = useState('');
                       ))}
                     </select>
                   </div>
-
+ 
                   {filteredLibraryPrograms.length === 0 ? (
                     <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
                   ) : (
@@ -1761,7 +1847,7 @@ const [notificationError, setNotificationError] = useState('');
                       const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
                       const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
-
+ 
                       return (
                         <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
@@ -1798,7 +1884,7 @@ const [notificationError, setNotificationError] = useState('');
                               )}
                             </div>
                           </div>
-
+ 
                           <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
                             
@@ -1816,7 +1902,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </button>
                               ))}
                             </div>
-
+ 
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                               {activeWeekObj?.days?.map((day: any) => (
                                 <button
@@ -1828,7 +1914,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </button>
                               ))}
                             </div>
-
+ 
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                               {Object.keys(progResultsByAthlete).length === 0 ? (
                                 <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
@@ -1843,15 +1929,15 @@ const [notificationError, setNotificationError] = useState('');
                                   return athletes.map((ath) => {
                                     const resObj = progResultsByAthlete[ath.id];
                                     if (!resObj) return null;
-
+ 
                                     const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
                                       const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
                                       return resObj[blockKey]?.score || resObj[blockKey]?.notes;
                                     });
-
+ 
                                     if (!hasResultsForThisDay) return null;
                                     const athName = ath.full_name || ath.email;
-
+ 
                                     return (
                                       <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
                                         <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
@@ -1860,7 +1946,7 @@ const [notificationError, setNotificationError] = useState('');
                                             const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
                                             const blockData = resObj[blockKey];
                                             if (!blockData || (!blockData.score && !blockData.notes)) return null;
-
+ 
                                             return (
                                               <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
@@ -1890,7 +1976,7 @@ const [notificationError, setNotificationError] = useState('');
         </div>
       ) : (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-
+ 
           {bannerData.image_url && (
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
@@ -1902,12 +1988,12 @@ const [notificationError, setNotificationError] = useState('');
               )}
             </div>
           )}
-
+ 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
             <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il tuo Profilo & Massimali 🏋️‍♂️</button>
           </div>
-
+ 
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
@@ -1940,7 +2026,7 @@ const [notificationError, setNotificationError] = useState('');
                   const currentProgramActiveWeek = selectedWeeksByProgram[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
                   const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || weeks[0];
                   const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
-
+ 
                   return (
                     <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -1968,7 +2054,7 @@ const [notificationError, setNotificationError] = useState('');
                           </button>
                         ))}
                       </div>
-
+ 
                       {currentWeekObj?.days ? (
                         <div>
                           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
@@ -1982,13 +2068,13 @@ const [notificationError, setNotificationError] = useState('');
                               </button>
                             ))}
                           </div>
-
+ 
                           {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
                             const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
                             const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
                             const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
                             const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
-
+ 
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
@@ -1997,7 +2083,7 @@ const [notificationError, setNotificationError] = useState('');
                                     {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
                                   </button>
                                 </div>
-
+ 
                                 {!isDayClosed && (
                                   <div>
                                     {day.blocks?.length === 0 ? (
@@ -2007,7 +2093,7 @@ const [notificationError, setNotificationError] = useState('');
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
-
+ 
                                         return (
                                           <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -2021,7 +2107,7 @@ const [notificationError, setNotificationError] = useState('');
                                                 <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                               </div>
                                             </div>
-
+ 
                                             {!isClosed && (
                                               <div>
                                                 {blk.type === 'forza' ? (
@@ -2059,7 +2145,7 @@ const [notificationError, setNotificationError] = useState('');
                                                     <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
                                                   </div>
                                                 )}
-
+ 
                                                 <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
@@ -2097,3 +2183,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
+ 

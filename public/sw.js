@@ -1,44 +1,50 @@
-self.addEventListener('push', event => {
-  if (!event.data) return;
-
-  const data = event.data.json();
-
-  const title = data.title || 'AMTRAINING';
-
-  const options = {
-    body: data.message || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    data: {
-      url: data.url || '/'
-    }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    payload = { title: 'Nuova notifica', body: event.data.text() };
+  }
+
+  const title = payload.title || 'AM Training';
+  const options = {
+    body: payload.body || payload.message || '',
+    icon: payload.icon || '/icon-192.png',
+    badge: payload.badge || '/icon-192.png',
+    data: {
+      url: payload.url || '/',
+    },
+    tag: payload.tag,
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const url = event.notification.data?.url || '/';
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
 
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    }).then(clientList => {
-
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.navigate(url);
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      for (const client of clientsArr) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(targetUrl);
           return client.focus();
         }
       }
-
-      if (clients.openWindow) {
-        return clients.openWindow(url);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
       }
     })
   );
