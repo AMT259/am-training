@@ -1,6 +1,6 @@
 'use client';
  
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
  
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -82,6 +82,29 @@ export default function TrainingApp() {
       ]
     }
   ]);
+  const [programWeeksHistory, setProgramWeeksHistory] = useState<any[]>([]);
+  const isUndoingCreateRef = useRef(false);
+  const prevProgramWeeksRef = useRef<any>(null);
+ 
+  useEffect(() => {
+    if (isUndoingCreateRef.current) {
+      isUndoingCreateRef.current = false;
+      prevProgramWeeksRef.current = programWeeks;
+      return;
+    }
+    if (prevProgramWeeksRef.current !== null) {
+      setProgramWeeksHistory((prev) => [...prev, prevProgramWeeksRef.current].slice(-30));
+    }
+    prevProgramWeeksRef.current = programWeeks;
+  }, [programWeeks]);
+ 
+  const handleUndoCreate = () => {
+    if (programWeeksHistory.length === 0) return;
+    const last = programWeeksHistory[programWeeksHistory.length - 1];
+    isUndoingCreateRef.current = true;
+    setProgramWeeksHistory((prev) => prev.slice(0, -1));
+    setProgramWeeks(last);
+  };
  
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
@@ -113,6 +136,35 @@ export default function TrainingApp() {
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
+  const [editingProgramHistory, setEditingProgramHistory] = useState<any[]>([]);
+  const isUndoingRef = useRef(false);
+  const prevEditingProgramRef = useRef<any>(null);
+ 
+  useEffect(() => {
+    if (editingProgram === null) {
+      setEditingProgramHistory([]);
+      prevEditingProgramRef.current = null;
+      return;
+    }
+    if (isUndoingRef.current) {
+      isUndoingRef.current = false;
+      prevEditingProgramRef.current = editingProgram;
+      return;
+    }
+    if (prevEditingProgramRef.current !== null) {
+      setEditingProgramHistory((prev) => [...prev, prevEditingProgramRef.current].slice(-30));
+    }
+    prevEditingProgramRef.current = editingProgram;
+  }, [editingProgram]);
+ 
+  const handleUndoEdit = () => {
+    if (editingProgramHistory.length === 0) return;
+    const last = editingProgramHistory[editingProgramHistory.length - 1];
+    isUndoingRef.current = true;
+    setEditingProgramHistory((prev) => prev.slice(0, -1));
+    setEditingProgram(last);
+  };
+ 
   const [saveMessage, setSaveMessage] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -984,6 +1036,8 @@ const [notificationError, setNotificationError] = useState('');
         weekName: 'Settimana 1',
         days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
       }]);
+      setProgramWeeksHistory([]);
+      prevProgramWeeksRef.current = null;
       fetchProgramLibrary();
     }
   };
@@ -1853,6 +1907,9 @@ const [notificationError, setNotificationError] = useState('');
                 );
               })}
  
+              {editingProgramHistory.length > 0 && (
+                <button onClick={handleUndoEdit} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '13px', marginTop: '10px' }}>↩️ Annulla ultima modifica ({editingProgramHistory.length})</button>
+              )}
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -2119,6 +2176,9 @@ const [notificationError, setNotificationError] = useState('');
                   })}
  
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
+                  {programWeeksHistory.length > 0 && (
+                    <button onClick={handleUndoCreate} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '13px', marginBottom: '10px' }}>↩️ Annulla ultima modifica ({programWeeksHistory.length})</button>
+                  )}
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
