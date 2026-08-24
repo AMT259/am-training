@@ -170,6 +170,7 @@ export default function TrainingApp() {
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
   const [showDeletedPrograms, setShowDeletedPrograms] = useState(false);
+  const [showDeletedExercises, setShowDeletedExercises] = useState(false);
  
   const normalizeProgramWeeks = (prog: any) => {
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -692,6 +693,16 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
+  const permanentlyDeleteMaxExercise = async (id: string) => {
+    if (!confirm('Eliminare DEFINITIVAMENTE questo esercizio? Non sarà più possibile recuperarlo.')) return;
+    const { error } = await supabase.from('custom_max_exercises').delete().eq('id', id);
+    if (!error) {
+      setCustomMaxExercises(customMaxExercises.filter((e) => e.id !== id));
+    } else {
+      alert('Errore durante l\'eliminazione definitiva: ' + error.message);
+    }
+  };
+ 
   const fetchAllAthleteMaxesForCoach = async () => {
     const { data } = await supabase.from('athlete_maxes').select('*');
     if (data) {
@@ -985,10 +996,21 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const deleteGlobalExercise = async (id: string) => {
-    if (confirm('Vuoi eliminare questo esercizio?')) {
-      await supabase.from('exercises_library').delete().eq('id', id);
+    if (confirm('Vuoi spostare questo esercizio nel cestino?')) {
+      await supabase.from('exercises_library').update({ dismissed: true }).eq('id', id);
       fetchExerciseLibrary();
     }
+  };
+ 
+  const restoreGlobalExercise = async (id: string) => {
+    await supabase.from('exercises_library').update({ dismissed: false }).eq('id', id);
+    fetchExerciseLibrary();
+  };
+ 
+  const permanentlyDeleteGlobalExercise = async (id: string) => {
+    if (!confirm('Eliminare DEFINITIVAMENTE questo esercizio (incluso il video)? Non sarà più possibile recuperarlo.')) return;
+    await supabase.from('exercises_library').delete().eq('id', id);
+    fetchExerciseLibrary();
   };
  
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
@@ -1118,6 +1140,16 @@ const [notificationError, setNotificationError] = useState('');
     const { error } = await supabase.from('programs').update({ is_deleted: false }).eq('id', id);
     if (error) {
       alert('Errore durante il ripristino: ' + error.message);
+      return;
+    }
+    await fetchProgramLibrary();
+  };
+ 
+  const permanentlyDeleteProgram = async (id: string) => {
+    if (!confirm('Eliminare DEFINITIVAMENTE questo programma? Non sarà più possibile recuperarlo.')) return;
+    const { error } = await supabase.from('programs').delete().eq('id', id);
+    if (error) {
+      alert('Errore durante l\'eliminazione definitiva: ' + error.message);
       return;
     }
     await fetchProgramLibrary();
@@ -1447,7 +1479,10 @@ const [notificationError, setNotificationError] = useState('');
                                     <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
                                   </>
                                 ) : (
-                                  <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <>
+                                    <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                    <button onClick={() => permanentlyDeleteMaxExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
+                                  </>
                                 )}
                               </>
                             )}
@@ -1846,7 +1881,7 @@ const [notificationError, setNotificationError] = useState('');
                                         style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
                                       />
                                       <datalist id={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                        {exerciseLibrary.map((ex) => (
+                                        {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
                                           <option key={ex.id} value={ex.name} />
                                         ))}
                                       </datalist>
@@ -1922,22 +1957,42 @@ const [notificationError, setNotificationError] = useState('');
  
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Gestione Libreria Esercizi</h3>
-                  <form onSubmit={addGlobalExercise} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #e2e8f0' }}>
-                    <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
-                    <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
-                    <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
-                  </form>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
+                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedExercises ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                      {showDeletedExercises ? 'Torna agli esercizi' : '🗑️ Cestino'}
+                    </button>
+                  </div>
+ 
+                  {!showDeletedExercises && (
+                    <form onSubmit={addGlobalExercise} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #e2e8f0' }}>
+                      <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
+                      <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
+                      <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
+                    </form>
+                  )}
+ 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {exerciseLibrary.map((ex) => (
-                      <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
-                        <div>
-                          <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
+                    {exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed).length === 0 ? (
+                      <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>{showDeletedExercises ? 'Cestino vuoto.' : 'Nessun esercizio in libreria.'}</p>
+                    ) : (
+                      exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed).map((ex) => (
+                        <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
+                          <div>
+                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
+                            <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
+                          </div>
+                          {showDeletedExercises ? (
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                              <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
+                            </div>
+                          ) : (
+                            <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                          )}
                         </div>
-                        <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               ) : activeTab === 'create' ? (
@@ -2114,7 +2169,7 @@ const [notificationError, setNotificationError] = useState('');
                                             style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
                                           />
                                           <datalist id={`ex_list_create_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                            {exerciseLibrary.map((ex) => (
+                                            {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
                                               <option key={ex.id} value={ex.name} />
                                             ))}
                                           </datalist>
@@ -2226,7 +2281,10 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               {showDeletedPrograms ? (
-                                <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                <>
+                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>🗑️ Elimina definitivamente</button>
+                                </>
                               ) : (
                                 <>
                                   <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
