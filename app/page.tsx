@@ -87,7 +87,11 @@ export default function TrainingApp() {
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
  
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
-  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
+  const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
+  const [personalSelectedProgramId, setPersonalSelectedProgramId] = useState('');
+  const [personalSelectedWeekName, setPersonalSelectedWeekName] = useState('');
+  const [personalSelectedDayName, setPersonalSelectedDayName] = useState('');
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'maxes' | 'schede'>('maxes');
   const [customMaxExercises, setCustomMaxExercises] = useState<{ id: string; name: string; dismissed: boolean }[]>([]);
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
@@ -1316,6 +1320,7 @@ const [notificationError, setNotificationError] = useState('');
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
             <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profili Atleti & Massimali 🏋️‍♂️</button>
+            <button onClick={() => setCoachSubView('personal')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'personal' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Personal 📝</button>
             <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
           </div>
  
@@ -1344,74 +1349,71 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           ) : coachSubView === 'athletes' ? (
             <div>
+              <div style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>🏋️ Elenco Esercizi Massimali (valido per tutti gli atleti)</span>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="Nuovo esercizio (es. Bench Press)"
+                    value={newMaxExerciseName}
+                    onChange={(e) => setNewMaxExerciseName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') addCustomMaxExercise(); }}
+                    style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                  />
+                  <button onClick={addCustomMaxExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                </div>
+ 
+                {customMaxExercises.length > 0 && (
+                  <div>
+                    <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                      {showExerciseManager ? '▲ Nascondi gestione esercizi aggiunti' : '▼ Gestisci esercizi aggiunti'}
+                    </button>
+ 
+                    {showExerciseManager && (
+                      <div style={{ marginTop: '10px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {customMaxExercises.map((ex) => (
+                          <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: ex.dismissed ? 0.5 : 1 }}>
+                            {editingExerciseId === ex.id ? (
+                              <>
+                                <input
+                                  type="text"
+                                  value={editingExerciseName}
+                                  onChange={(e) => setEditingExerciseName(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') renameCustomMaxExercise(ex.id, editingExerciseName); }}
+                                  style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
+                                  autoFocus
+                                />
+                                <button onClick={() => renameCustomMaxExercise(ex.id, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
+                                <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
+                              </>
+                            ) : (
+                              <>
+                                <span style={{ flex: 1, fontSize: '13px', color: '#000', textDecoration: ex.dismissed ? 'line-through' : 'none' }}>{ex.name}{ex.dismissed ? ' (eliminato)' : ''}</span>
+                                {!ex.dismissed ? (
+                                  <>
+                                    <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
+                                    <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
+                                  </>
+                                ) : (
+                                  <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+ 
               {selectedCoachAthlete ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
+                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Massimali di: {selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
  
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('schede')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'schede' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'schede' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Schede & Personal 📝</button>
-                  </div>
- 
-                  {coachAthleteDetailTab === 'maxes' && (
-                  <div>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                      <input
-                        type="text"
-                        placeholder="Nuovo esercizio (es. Bench Press)"
-                        value={newMaxExerciseName}
-                        onChange={(e) => setNewMaxExerciseName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') addCustomMaxExercise(); }}
-                        style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
-                      />
-                      <button onClick={addCustomMaxExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
-                    </div>
- 
-                    {customMaxExercises.length > 0 && (
-                      <div style={{ marginBottom: '14px' }}>
-                        <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
-                          {showExerciseManager ? '▲ Nascondi gestione esercizi aggiunti' : '▼ Gestisci esercizi aggiunti'}
-                        </button>
- 
-                        {showExerciseManager && (
-                          <div style={{ marginTop: '10px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {customMaxExercises.map((ex) => (
-                              <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: ex.dismissed ? 0.5 : 1 }}>
-                                {editingExerciseId === ex.id ? (
-                                  <>
-                                    <input
-                                      type="text"
-                                      value={editingExerciseName}
-                                      onChange={(e) => setEditingExerciseName(e.target.value)}
-                                      onKeyDown={(e) => { if (e.key === 'Enter') renameCustomMaxExercise(ex.id, editingExerciseName); }}
-                                      style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
-                                      autoFocus
-                                    />
-                                    <button onClick={() => renameCustomMaxExercise(ex.id, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
-                                    <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span style={{ flex: 1, fontSize: '13px', color: '#000', textDecoration: ex.dismissed ? 'line-through' : 'none' }}>{ex.name}{ex.dismissed ? ' (eliminato)' : ''}</span>
-                                    {!ex.dismissed ? (
-                                      <>
-                                        <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
-                                        <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
-                                      </>
-                                    ) : (
-                                      <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
@@ -1430,121 +1432,6 @@ const [notificationError, setNotificationError] = useState('');
                       );
                     })}
                   </div>
-                  </div>
-                  )}
- 
-                  {coachAthleteDetailTab === 'schede' && (
-                    <div>
-                      {(() => {
-                        const athletePersonalPrograms = programLibrary.filter(
-                          (p) => !p.isDeleted && p.assignedAthleteIds?.includes(selectedCoachAthlete.id)
-                        );
- 
-                        if (athletePersonalPrograms.length === 0) {
-                          return <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessuna scheda assegnata a questo atleta.</p>;
-                        }
- 
-                        return athletePersonalPrograms.map((prog: any) => {
-                          const weeks = normalizeProgramWeeks(prog);
-                          const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
-                          const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
-                          const activeDayName = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
-                          const realWeekIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
-                          const activeDayObj = activeWeekObj?.days?.find((d: any) => d.dayName === activeDayName);
-                          const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
- 
-                          return (
-                            <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                              <h4 style={{ margin: '0 0 12px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
- 
-                              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
-                                {weeks.map((w: any) => (
-                                  <button
-                                    key={w.weekName}
-                                    onClick={() => {
-                                      setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
-                                      if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
-                                    }}
-                                    style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#e2e8f0', color: activeWeekName === w.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                  >
-                                    {w.weekName}
-                                  </button>
-                                ))}
-                              </div>
- 
-                              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
-                                {activeWeekObj?.days?.map((day: any) => (
-                                  <button
-                                    key={day.dayName}
-                                    onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                    style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: activeDayName === day.dayName ? '#10b981' : '#f1f5f9', color: activeDayName === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                  >
-                                    {day.dayName}
-                                  </button>
-                                ))}
-                              </div>
- 
-                              {(!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) ? (
-                                <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
-                              ) : (
-                                activeDayObj.blocks.map((blk: any, bIdx: number) => {
-                                  const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                  const currentScore = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.score || '';
-                                  const currentNotes = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.notes || '';
- 
-                                  return (
-                                    <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
-                                      <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
- 
-                                      {blk.type === 'forza' ? (
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
-                                          <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                            <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
-                                            <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
-                                          </div>
-                                          <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                            <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REP</span>
-                                            <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
-                                          </div>
-                                          <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                            <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
-                                            <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
-                                          </div>
-                                          <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                            <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
-                                            <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
-                                          <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
-                                          <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
-                                        </div>
-                                      )}
- 
-                                      <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                        <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
-                                          <div>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                            <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, selectedCoachAthlete.id)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                          </div>
-                                          <div>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
-                                            <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, selectedCoachAthlete.id)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -1563,6 +1450,179 @@ const [notificationError, setNotificationError] = useState('');
                   )}
                 </div>
               )}
+            </div>
+          ) : coachSubView === 'personal' ? (
+            <div>
+              <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Personal Training 📝</h3>
+ 
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Atleta</label>
+                    <select
+                      value={personalSelectedAthleteId}
+                      onChange={(e) => {
+                        setPersonalSelectedAthleteId(e.target.value);
+                        setPersonalSelectedProgramId('');
+                        setPersonalSelectedWeekName('');
+                        setPersonalSelectedDayName('');
+                      }}
+                      style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                    >
+                      <option value="">Seleziona un atleta...</option>
+                      {athletes.map((a) => (
+                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
+                      ))}
+                    </select>
+                  </div>
+ 
+                  {personalSelectedAthleteId && (() => {
+                    const athletePersonalPrograms = programLibrary.filter(
+                      (p) => !p.isDeleted && p.assignedAthleteIds?.includes(personalSelectedAthleteId)
+                    );
+                    return (
+                      <div>
+                        <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Scheda</label>
+                        <select
+                          value={personalSelectedProgramId}
+                          onChange={(e) => {
+                            setPersonalSelectedProgramId(e.target.value);
+                            setPersonalSelectedWeekName('');
+                            setPersonalSelectedDayName('');
+                          }}
+                          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                        >
+                          <option value="">Seleziona una scheda...</option>
+                          {athletePersonalPrograms.map((p: any) => (
+                            <option key={p.id} value={p.id}>{p.title}</option>
+                          ))}
+                        </select>
+                        {athletePersonalPrograms.length === 0 && (
+                          <p style={{ color: '#64748b', fontSize: '12px', marginTop: '6px' }}>Nessuna scheda assegnata a questo atleta.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+ 
+                  {personalSelectedProgramId && (() => {
+                    const prog = programLibrary.find((p: any) => p.id === personalSelectedProgramId);
+                    if (!prog) return null;
+                    const weeks = normalizeProgramWeeks(prog);
+                    return (
+                      <div>
+                        <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Settimana</label>
+                        <select
+                          value={personalSelectedWeekName || weeks[0]?.weekName || ''}
+                          onChange={(e) => { setPersonalSelectedWeekName(e.target.value); setPersonalSelectedDayName(''); }}
+                          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                        >
+                          {weeks.map((w: any) => (
+                            <option key={w.weekName} value={w.weekName}>{w.weekName}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })()}
+ 
+                  {personalSelectedProgramId && (() => {
+                    const prog = programLibrary.find((p: any) => p.id === personalSelectedProgramId);
+                    if (!prog) return null;
+                    const weeks = normalizeProgramWeeks(prog);
+                    const activeWeekName = personalSelectedWeekName || weeks[0]?.weekName || '';
+                    const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
+                    if (!activeWeekObj?.days?.length) return null;
+                    return (
+                      <div>
+                        <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Giorno</label>
+                        <select
+                          value={personalSelectedDayName || activeWeekObj.days[0]?.dayName || ''}
+                          onChange={(e) => setPersonalSelectedDayName(e.target.value)}
+                          style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                        >
+                          {activeWeekObj.days.map((day: any) => (
+                            <option key={day.dayName} value={day.dayName}>{day.dayName}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })()}
+                </div>
+ 
+                {personalSelectedProgramId && (() => {
+                  const prog = programLibrary.find((p: any) => p.id === personalSelectedProgramId);
+                  if (!prog) return null;
+                  const weeks = normalizeProgramWeeks(prog);
+                  const activeWeekName = personalSelectedWeekName || weeks[0]?.weekName || '';
+                  const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
+                  const realWeekIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                  const activeDayName = personalSelectedDayName || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
+                  const activeDayObj = activeWeekObj?.days?.find((d: any) => d.dayName === activeDayName);
+                  const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
+ 
+                  if (!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) {
+                    return <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>;
+                  }
+ 
+                  return activeDayObj.blocks.map((blk: any, bIdx: number) => {
+                    const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                    const currentScore = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.score || '';
+                    const currentNotes = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.notes || '';
+ 
+                    return (
+                      <div key={bIdx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
+ 
+                        {blk.type === 'forza' ? (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                            <div style={{ background: '#ffffff', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                              <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
+                            </div>
+                            <div style={{ background: '#ffffff', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                              <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REP</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
+                            </div>
+                            <div style={{ background: '#ffffff', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                              <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
+                            </div>
+                            <div style={{ background: '#ffffff', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                              <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                          </div>
+                        )}
+ 
+                        {blk.type === 'forza' && blk.notes && (
+                          <div style={{ background: '#fffbeb', padding: '8px', borderRadius: '6px', border: '1px solid #fde68a', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                          </div>
+                        )}
+ 
+                        <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                          <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                            <div>
+                              <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                              <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
+                              <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, personalSelectedAthleteId)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </div>
           ) : editingProgram ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
