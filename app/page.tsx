@@ -89,6 +89,7 @@ export default function TrainingApp() {
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
+  const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'maxes' | 'schede'>('maxes');
   const [customMaxExercises, setCustomMaxExercises] = useState<{ id: string; name: string; dismissed: boolean }[]>([]);
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
@@ -1479,8 +1480,16 @@ const [notificationError, setNotificationError] = useState('');
  
                         return (
                           <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                            <h4 style={{ margin: '0 0 12px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                            <div
+                              onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+                            >
+                              <h4 style={{ margin: 0, color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                              <span style={{ fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
+                            </div>
  
+                            {personalExpandedProgramId === prog.id && (
+                            <>
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                               {weeks.map((w: any) => (
                                 <button
@@ -1569,6 +1578,8 @@ const [notificationError, setNotificationError] = useState('');
                                   </div>
                                 );
                               })
+                            )}
+                            </>
                             )}
                           </div>
                         );
