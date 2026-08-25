@@ -840,10 +840,9 @@ const [notificationError, setNotificationError] = useState('');
   const addWeek = () => {
     const nextNumber = programWeeks.length + 1;
     const newName = `Settimana ${nextNumber}`;
-    setProgramWeeks([
-      ...programWeeks,
-      { weekNumber: nextNumber, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }
-    ]);
+    const updated = JSON.parse(JSON.stringify(programWeeks));
+    updated.push({ weekNumber: nextNumber, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] });
+    setProgramWeeks(updated);
     setSelectedWeekView(newName);
     setSelectedDayView('Giorno 1');
   };
@@ -852,7 +851,9 @@ const [notificationError, setNotificationError] = useState('');
     const nextNumber = programWeeks.length + 1;
     const clonedName = `${weekToClone.weekName} (Copia)`;
     const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
-    setProgramWeeks([...programWeeks, { weekNumber: nextNumber, weekName: clonedName, days: clonedDays }]);
+    const updated = JSON.parse(JSON.stringify(programWeeks));
+    updated.push({ weekNumber: nextNumber, weekName: clonedName, days: clonedDays });
+    setProgramWeeks(updated);
     setSelectedWeekView(clonedName);
     if (clonedDays.length > 0) setSelectedDayView(clonedDays[0].dayName);
   };
@@ -2030,6 +2031,10 @@ const [notificationError, setNotificationError] = useState('');
                         ))
                       )}
                     </div>
+                  </div>
+ 
+                  <div style={{ marginBottom: '16px', background: '#fef3c7', border: '2px solid #f59e0b', padding: '10px', borderRadius: '8px', fontSize: '11px', color: '#000', fontFamily: 'monospace' }}>
+                    DEBUG — programWeeks.length: {programWeeks.length} | Nomi: {programWeeks.map((w: any) => w.weekName).join(', ')} | Storico (programWeeksHistory.length): {programWeeksHistory.length}
                   </div>
  
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
