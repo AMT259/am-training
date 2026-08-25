@@ -860,7 +860,7 @@ const [notificationError, setNotificationError] = useState('');
   const moveWeekOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= programWeeks.length) return;
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     const temp = updated[index];
     updated[index] = updated[newIndex];
     updated[newIndex] = temp;
@@ -868,7 +868,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const addDay = (wIdx: number) => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     const targetWeek = updated[wIdx];
     const nextNumber = targetWeek.days.length + 1;
     const newName = `Giorno ${nextNumber}`;
@@ -878,7 +878,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const cloneDay = (wIdx: number, dayToClone: any) => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     const targetWeek = updated[wIdx];
     const nextNumber = targetWeek.days.length + 1;
     const clonedName = `${dayToClone.dayName} (Copia)`;
@@ -890,7 +890,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const moveDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     const days = updated[wIdx].days;
     if (newIndex < 0 || newIndex >= days.length) return;
     const temp = days[dayIdx];
@@ -900,7 +900,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const cloneEditingWeek = (weekToClone: any) => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     if (!updated.weeks) updated.weeks = [];
     const clonedName = `${weekToClone.weekName} (Copia)`;
     const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
@@ -912,7 +912,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const moveEditingWeekOrder = (index: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? index - 1 : index + 1;
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     if (newIndex < 0 || newIndex >= updated.weeks.length) return;
     const temp = updated.weeks[index];
     updated.weeks[index] = updated.weeks[newIndex];
@@ -921,7 +921,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const addEditingDay = (wIdx: number) => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     const targetWeek = updated.weeks[wIdx];
     if (!targetWeek.days) targetWeek.days = [];
     const nextNumber = targetWeek.days.length + 1;
@@ -932,7 +932,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const cloneEditingDay = (wIdx: number, dayToClone: any) => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     const targetWeek = updated.weeks[wIdx];
     const clonedName = `${dayToClone.dayName} (Copia)`;
     const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
@@ -943,7 +943,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const moveEditingDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     const days = updated.weeks[wIdx].days;
     if (newIndex < 0 || newIndex >= days.length) return;
     const temp = days[dayIdx];
@@ -953,13 +953,13 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const removeBlockFromFreeDay = (wIdx: number, dayIndex: number, blockIndex: number) => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     updated[wIdx].days[dayIndex].blocks.splice(blockIndex, 1);
     setProgramWeeks(updated);
   };
  
   const moveFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     const blocks = [...updated[wIdx].days[dayIndex].blocks];
     const newIndex = direction === 'up' ? blockIndex - 1 : blockIndex + 1;
     if (newIndex < 0 || newIndex >= blocks.length) return;
@@ -971,7 +971,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const moveEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     const blocks = [...updated.weeks[wIdx].days[dayIndex].blocks];
     const newIndex = direction === 'up' ? blockIndex - 1 : blockIndex + 1;
     if (newIndex < 0 || newIndex >= blocks.length) return;
@@ -1014,7 +1014,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     updated[wIdx].days[dayIndex].blocks.push({
       id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
     });
@@ -1022,7 +1022,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const updateFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
-    const updated = [...programWeeks];
+    const updated = JSON.parse(JSON.stringify(programWeeks));
     updated[wIdx].days[dayIndex].blocks[blockIndex][field] = value;
     setProgramWeeks(updated);
   };
@@ -1084,13 +1084,13 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const updateEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     updated.weeks[wIdx].days[dayIndex].blocks[blockIndex][field] = value;
     setEditingProgram(updated);
   };
  
   const addBlockToEditingDay = (wIdx: number, dayIndex: number) => {
-    const updated = { ...editingProgram };
+    const updated = JSON.parse(JSON.stringify(editingProgram));
     if (!updated.weeks[wIdx].days[dayIndex].blocks) updated.weeks[wIdx].days[dayIndex].blocks = [];
     updated.weeks[wIdx].days[dayIndex].blocks.push({
       id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
@@ -1770,7 +1770,7 @@ const [notificationError, setNotificationError] = useState('');
                         type="text"
                         value={week.weekName}
                         onChange={(e) => {
-                          const updated = { ...editingProgram };
+                          const updated = JSON.parse(JSON.stringify(editingProgram));
                           updated.weeks[actualWIdx].weekName = e.target.value;
                           setSelectedWeekView(e.target.value);
                           setEditingProgram(updated);
@@ -1779,7 +1779,7 @@ const [notificationError, setNotificationError] = useState('');
                       />
                       {editingProgram.weeks.length > 1 && (
                         <button onClick={() => {
-                          const updated = { ...editingProgram };
+                          const updated = JSON.parse(JSON.stringify(editingProgram));
                           updated.weeks.splice(actualWIdx, 1);
                           setEditingProgram(updated);
                           if (updated.weeks.length > 0) {
@@ -1819,7 +1819,7 @@ const [notificationError, setNotificationError] = useState('');
                                 type="text"
                                 value={day.dayName}
                                 onChange={(e) => {
-                                  const updated = { ...editingProgram };
+                                  const updated = JSON.parse(JSON.stringify(editingProgram));
                                   updated.weeks[actualWIdx].days[actualDIdx].dayName = e.target.value;
                                   setSelectedDayView(e.target.value);
                                   setEditingProgram(updated);
@@ -1829,7 +1829,7 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                             {week.days.length > 1 && (
                               <button onClick={() => {
-                                const updated = { ...editingProgram };
+                                const updated = JSON.parse(JSON.stringify(editingProgram));
                                 updated.weeks[actualWIdx].days.splice(actualDIdx, 1);
                                 setEditingProgram(updated);
                                 if (updated.weeks[actualWIdx].days.length > 0) setSelectedDayView(updated.weeks[actualWIdx].days[0].dayName);
@@ -1853,7 +1853,7 @@ const [notificationError, setNotificationError] = useState('');
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
                                     <button type="button" onClick={() => {
-                                      const updated = { ...editingProgram };
+                                      const updated = JSON.parse(JSON.stringify(editingProgram));
                                       updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
                                       setEditingProgram(updated);
                                     }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
@@ -1869,7 +1869,7 @@ const [notificationError, setNotificationError] = useState('');
                                         value={block.name || ''}
                                         onChange={(e) => {
                                           const val = e.target.value;
-                                          const updated = { ...editingProgram };
+                                          const updated = JSON.parse(JSON.stringify(editingProgram));
                                           updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx].name = val;
                                           const foundEx = exerciseLibrary.find(ex => ex.name === val);
                                           if (foundEx && foundEx.video_url) {
@@ -2064,7 +2064,7 @@ const [notificationError, setNotificationError] = useState('');
                             type="text"
                             value={week.weekName}
                             onChange={(e) => {
-                              const upd = [...programWeeks];
+                              const upd = JSON.parse(JSON.stringify(programWeeks));
                               upd[actualWIdx].weekName = e.target.value;
                               setSelectedWeekView(e.target.value);
                               setProgramWeeks(upd);
@@ -2073,7 +2073,7 @@ const [notificationError, setNotificationError] = useState('');
                           />
                           {programWeeks.length > 1 && (
                             <button onClick={() => {
-                              const upd = [...programWeeks];
+                              const upd = JSON.parse(JSON.stringify(programWeeks));
                               upd.splice(actualWIdx, 1);
                               setProgramWeeks(upd);
                               if (upd.length > 0) {
@@ -2113,7 +2113,7 @@ const [notificationError, setNotificationError] = useState('');
                                     type="text"
                                     value={day.dayName}
                                     onChange={(e) => {
-                                      const upd = [...programWeeks];
+                                      const upd = JSON.parse(JSON.stringify(programWeeks));
                                       upd[actualWIdx].days[actualDIdx].dayName = e.target.value;
                                       setSelectedDayView(e.target.value);
                                       setProgramWeeks(upd);
@@ -2123,7 +2123,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </div>
                                 {week.days.length > 1 && (
                                   <button onClick={() => {
-                                    const upd = [...programWeeks];
+                                    const upd = JSON.parse(JSON.stringify(programWeeks));
                                     upd[actualWIdx].days.splice(actualDIdx, 1);
                                     setProgramWeeks(upd);
                                     if (upd[actualWIdx].days.length > 0) setSelectedDayView(upd[actualWIdx].days[0].dayName);
