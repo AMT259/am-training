@@ -1445,67 +1445,6 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           ) : coachSubView === 'athletes' ? (
             <div>
-              <div style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>🏋️ Elenco Esercizi Massimali (valido per tutti gli atleti)</span>
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                  <input
-                    type="text"
-                    placeholder="Nuovo esercizio (es. Bench Press)"
-                    value={newMaxExerciseName}
-                    onChange={(e) => setNewMaxExerciseName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') addCustomMaxExercise(); }}
-                    style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
-                  />
-                  <button onClick={addCustomMaxExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
-                </div>
- 
-                {customMaxExercises.length > 0 && (
-                  <div>
-                    <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
-                      {showExerciseManager ? '▲ Nascondi gestione esercizi aggiunti' : '▼ Gestisci esercizi aggiunti'}
-                    </button>
- 
-                    {showExerciseManager && (
-                      <div style={{ marginTop: '10px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {customMaxExercises.map((ex) => (
-                          <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: ex.dismissed ? 0.5 : 1 }}>
-                            {editingExerciseId === ex.id ? (
-                              <>
-                                <input
-                                  type="text"
-                                  value={editingExerciseName}
-                                  onChange={(e) => setEditingExerciseName(e.target.value)}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') renameCustomMaxExercise(ex.id, editingExerciseName); }}
-                                  style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
-                                  autoFocus
-                                />
-                                <button onClick={() => renameCustomMaxExercise(ex.id, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
-                                <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
-                              </>
-                            ) : (
-                              <>
-                                <span style={{ flex: 1, fontSize: '13px', color: '#000', textDecoration: ex.dismissed ? 'line-through' : 'none' }}>{ex.name}{ex.dismissed ? ' (eliminato)' : ''}</span>
-                                {!ex.dismissed ? (
-                                  <>
-                                    <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
-                                    <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                                    <button onClick={() => permanentlyDeleteMaxExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
-                                  </>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
- 
               {selectedCoachAthlete ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -1519,6 +1458,68 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
  
                   {coachAthleteDetailTab === 'maxes' && (
+                  <div>
+                    <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                      <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>🏋️ Elenco Esercizi Massimali (valido per tutti gli atleti)</span>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                        <input
+                          type="text"
+                          placeholder="Nuovo esercizio (es. Bench Press)"
+                          value={newMaxExerciseName}
+                          onChange={(e) => setNewMaxExerciseName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') addCustomMaxExercise(); }}
+                          style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                        />
+                        <button onClick={addCustomMaxExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      </div>
+ 
+                      {customMaxExercises.length > 0 && (
+                        <div>
+                          <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                            {showExerciseManager ? '▲ Nascondi gestione esercizi aggiunti' : '▼ Gestisci esercizi aggiunti'}
+                          </button>
+ 
+                          {showExerciseManager && (
+                            <div style={{ marginTop: '10px', background: '#ffffff', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              {customMaxExercises.map((ex) => (
+                                <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: ex.dismissed ? 0.5 : 1 }}>
+                                  {editingExerciseId === ex.id ? (
+                                    <>
+                                      <input
+                                        type="text"
+                                        value={editingExerciseName}
+                                        onChange={(e) => setEditingExerciseName(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') renameCustomMaxExercise(ex.id, editingExerciseName); }}
+                                        style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
+                                        autoFocus
+                                      />
+                                      <button onClick={() => renameCustomMaxExercise(ex.id, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
+                                      <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span style={{ flex: 1, fontSize: '13px', color: '#000', textDecoration: ex.dismissed ? 'line-through' : 'none' }}>{ex.name}{ex.dismissed ? ' (eliminato)' : ''}</span>
+                                      {!ex.dismissed ? (
+                                        <>
+                                          <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
+                                          <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                          <button onClick={() => permanentlyDeleteMaxExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
+                                        </>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+ 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
@@ -1536,6 +1537,7 @@ const [notificationError, setNotificationError] = useState('');
                         </div>
                       );
                     })}
+                  </div>
                   </div>
                   )}
  
