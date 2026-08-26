@@ -29,6 +29,59 @@ const STRENGTH_EXERCISES = [
  
 const REP_SCHEMES = [1, 3, 5, 10];
  
+const PRIVACY_VERSION = '1.0';
+ 
+function PrivacyPolicyContent() {
+  const hStyle: React.CSSProperties = { color: '#10b981', fontSize: '14px', margin: '14px 0 4px 0' };
+  const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.5, color: '#334155' };
+  return (
+    <div>
+      <p style={{ ...pStyle, fontSize: '12px', color: '#64748b' }}>Versione {PRIVACY_VERSION} — Informativa ai sensi degli artt. 13 e 14 del Regolamento UE 2016/679 (GDPR)</p>
+ 
+      <h4 style={hStyle}>1. Titolare del trattamento</h4>
+      <p style={pStyle}>AM Training. Per qualsiasi richiesta relativa ai tuoi dati puoi scrivere all&apos;indirizzo email del titolare, che trovi nei contatti dell&apos;attività.</p>
+ 
+      <h4 style={hStyle}>2. Quali dati raccogliamo</h4>
+      <p style={pStyle}><strong>Dati identificativi e di contatto:</strong> nome e cognome, indirizzo email, data di nascita. La password è gestita e cifrata dal fornitore di autenticazione e non è mai visibile né al coach né a chi gestisce l&apos;app.</p>
+      <p style={pStyle}><strong>Dati relativi alla salute:</strong> peso, altezza e il contenuto del campo &quot;problematiche fisiche o sistemiche&quot; dell&apos;anamnesi, in cui puoi indicare patologie, infortuni, limitazioni funzionali o terapie in corso.</p>
+      <p style={pStyle}><strong>Dati di allenamento:</strong> obiettivi, numero e durata degli allenamenti settimanali, attrezzatura disponibile, programmi assegnati, punteggi e note inserite da te o dal coach, massimali di forza.</p>
+      <p style={pStyle}><strong>Dati tecnici:</strong> se attivi le notifiche push, un identificativo tecnico del dispositivo; log di accesso generati automaticamente dai fornitori dell&apos;infrastruttura (indirizzo IP, data e ora).</p>
+ 
+      <h4 style={hStyle}>3. Dati sanitari: trattamento specifico</h4>
+      <p style={pStyle}>Peso, altezza e le problematiche fisiche o sistemiche che dichiari sono <strong>dati relativi alla salute</strong> e rientrano nelle categorie particolari di dati previste dall&apos;art. 9 del GDPR. Ricevono una tutela rafforzata.</p>
+      <p style={pStyle}><strong>Base giuridica:</strong> il tuo consenso esplicito, ai sensi dell&apos;art. 9, par. 2, lett. a) del GDPR. Senza questo consenso non possiamo trattarli.</p>
+      <p style={pStyle}><strong>Finalità:</strong> esclusivamente permettere al coach di valutare la tua condizione fisica e programmare allenamenti adeguati e sicuri, adattandoli a eventuali limitazioni. Non vengono usati per altri scopi.</p>
+      <p style={pStyle}><strong>Chi vi accede:</strong> soltanto tu e il coach. Nessun altro atleta può vederli. Non vengono comunicati a terzi, né usati per profilazione commerciale o assicurativa.</p>
+      <p style={pStyle}><strong>Facoltatività:</strong> l&apos;inserimento delle problematiche fisiche è una tua libera scelta. Puoi lasciare il campo vuoto: il servizio resta utilizzabile, ma il coach non potrà tenere conto di condizioni che non conosce. Per questo motivo ti invitiamo a segnalare quanto rilevante per la tua sicurezza.</p>
+      <p style={pStyle}><strong>Nota importante:</strong> l&apos;app non è uno strumento medico e il coach non svolge attività sanitaria. I programmi proposti non sostituiscono in alcun modo il parere di un medico. Se hai patologie in corso, consulta il tuo medico prima di iniziare o modificare un programma di allenamento.</p>
+ 
+      <h4 style={hStyle}>4. Basi giuridiche degli altri trattamenti</h4>
+      <p style={pStyle}>I dati identificativi e di allenamento sono trattati per l&apos;esecuzione del rapporto tra te e il coach (art. 6, par. 1, lett. b). Le notifiche push si basano sul consenso che presti attivandole dal dispositivo.</p>
+ 
+      <h4 style={hStyle}>5. Dove sono conservati i dati</h4>
+      <p style={pStyle}>I dati sono conservati su infrastruttura Supabase (database e autenticazione) e Vercel (hosting), che agiscono come responsabili del trattamento e garantiscono misure di sicurezza adeguate. Qualora i dati transitino al di fuori dello Spazio Economico Europeo, il trasferimento avviene sulla base delle clausole contrattuali standard approvate dalla Commissione Europea.</p>
+ 
+      <h4 style={hStyle}>6. Per quanto tempo</h4>
+      <p style={pStyle}>I dati sono conservati per tutta la durata del rapporto e per il tempo successivamente necessario ad adempiere a obblighi di legge. Puoi richiedere la cancellazione in qualsiasi momento, anche direttamente dall&apos;app.</p>
+ 
+      <h4 style={hStyle}>7. I tuoi diritti</h4>
+      <p style={pStyle}>Puoi in qualsiasi momento: accedere ai tuoi dati e ottenerne copia; chiederne la rettifica o la cancellazione; limitarne od opporti al trattamento; ottenerne la portabilità in formato leggibile; revocare il consenso prestato.</p>
+      <p style={pStyle}>Dalla sezione &quot;Privacy&quot; del tuo profilo puoi scaricare tutti i tuoi dati e richiedere l&apos;eliminazione dell&apos;account. Per le altre richieste scrivi al titolare, che risponderà entro 30 giorni.</p>
+      <p style={pStyle}>Hai inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it).</p>
+ 
+      <h4 style={hStyle}>8. Revoca del consenso</h4>
+      <p style={pStyle}>La revoca del consenso ai dati sanitari non pregiudica la liceità del trattamento effettuato prima della revoca. Comporta però la cancellazione dei dati di salute già inseriti e l&apos;impossibilità, per il coach, di continuare a tenerne conto nella programmazione.</p>
+ 
+      <h4 style={hStyle}>9. Minori</h4>
+      <p style={pStyle}>Se hai meno di 18 anni, la registrazione e il consenso al trattamento dei dati di salute devono essere autorizzati da chi esercita la responsabilità genitoriale. In tal caso contatta direttamente il coach prima di proseguire.</p>
+ 
+      <h4 style={hStyle}>10. Processo decisionale automatizzato</h4>
+      <p style={pStyle}>Non viene effettuato alcun processo decisionale automatizzato né profilazione: i programmi di allenamento sono elaborati dal coach.</p>
+    </div>
+  );
+}
+ 
+ 
 export default function TrainingApp() {
  
   useEffect(() => {
@@ -58,6 +111,11 @@ export default function TrainingApp() {
   const [personalData, setPersonalData] = useState<any>(emptyPersonalData);
   const [coachAllPersonalData, setCoachAllPersonalData] = useState<{ [athleteId: string]: any }>({});
   const [personalDataSaving, setPersonalDataSaving] = useState(false);
+  const [privacyConsentAt, setPrivacyConsentAt] = useState<string | null>(null);
+  const [showConsentGate, setShowConsentGate] = useState(false);
+  const [consentGateChecked, setConsentGateChecked] = useState(false);
+  const [consentSaving, setConsentSaving] = useState(false);
+  const [accountActionLoading, setAccountActionLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -124,7 +182,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy'>('anagrafici');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -396,6 +454,7 @@ const [notificationError, setNotificationError] = useState('');
       fetchBanner();
       fetchNotifications();
       fetchCustomMaxExercises();
+      checkPrivacyConsent(session.user.id);
       if (role === 'coach') {
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
@@ -679,6 +738,101 @@ const [notificationError, setNotificationError] = useState('');
       });
       setCoachAthleteMaxes(map);
     }
+  };
+ 
+  const checkPrivacyConsent = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('privacy_consent_at').eq('id', userId).maybeSingle();
+    const consent = data?.privacy_consent_at || session?.user?.user_metadata?.privacy_consent_at || null;
+    setPrivacyConsentAt(consent);
+ 
+    if (!consent) {
+      setShowConsentGate(true);
+    } else if (!data?.privacy_consent_at) {
+      await supabase.from('profiles').update({ privacy_consent_at: consent }).eq('id', userId);
+    }
+  };
+ 
+  const acceptPrivacyConsent = async () => {
+    if (!consentGateChecked || !session?.user?.id) return;
+    setConsentSaving(true);
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('profiles').update({ privacy_consent_at: now }).eq('id', session.user.id);
+    setConsentSaving(false);
+    if (error) {
+      alert('Errore durante il salvataggio del consenso: ' + error.message);
+      return;
+    }
+    setPrivacyConsentAt(now);
+    setShowConsentGate(false);
+    setConsentGateChecked(false);
+  };
+ 
+  const downloadMyData = async () => {
+    if (!session?.user?.id) return;
+    setAccountActionLoading(true);
+    try {
+      const uid = session.user.id;
+      const [prof, anam, maxes, results, subs, notifs] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
+        supabase.from('athlete_anamnesis').select('*').eq('athlete_id', uid).maybeSingle(),
+        supabase.from('athlete_maxes').select('*').eq('athlete_id', uid).maybeSingle(),
+        supabase.from('program_results').select('*').eq('athlete_id', uid),
+        supabase.from('push_subscriptions').select('endpoint,created_at').eq('user_id', uid),
+        supabase.from('notifications').select('title,message,created_at').eq('user_id', uid),
+      ]);
+ 
+      const assigned = programLibrary
+        .filter((p: any) => p.assignedAthleteIds?.includes(uid))
+        .map((p: any) => ({ titolo: p.title, dataInizio: p.startDate, dataFine: p.endDate, settimane: p.weeks }));
+ 
+      const payload = {
+        esportato_il: new Date().toISOString(),
+        account: { email: session.user.email, id: uid },
+        dati_anagrafici: prof.data || null,
+        anamnesi: anam.data || null,
+        massimali: maxes.data || null,
+        risultati_allenamenti: results.data || [],
+        programmi_assegnati: assigned,
+        dispositivi_notifiche: subs.data || [],
+        notifiche_ricevute: notifs.data || [],
+      };
+ 
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `AMTraining_miei_dati_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert('Errore durante l\'esportazione: ' + (err.message || err));
+    }
+    setAccountActionLoading(false);
+  };
+ 
+  const deleteMyAccount = async () => {
+    if (!session?.user?.id) return;
+    if (!confirm('Vuoi eliminare definitivamente il tuo account e tutti i dati associati? L\'operazione non è reversibile.')) return;
+    if (!confirm('Conferma finale: verranno cancellati anagrafica, anamnesi, massimali e risultati. Procedere?')) return;
+ 
+    setAccountActionLoading(true);
+    try {
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: session.user.id }),
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error || 'Errore sconosciuto');
+      alert('Account eliminato. Verrai disconnesso.');
+      await supabase.auth.signOut();
+      setSession(null);
+    } catch (err: any) {
+      alert('Errore durante l\'eliminazione: ' + (err.message || err));
+    }
+    setAccountActionLoading(false);
   };
  
   const fetchPersonalData = async (userId: string) => {
@@ -1370,15 +1524,7 @@ const [notificationError, setNotificationError] = useState('');
           <div onClick={() => setShowPrivacyPolicy(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', color: '#000', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto', fontSize: '13px', lineHeight: 1.5 }}>
               <h3 style={{ marginTop: 0, color: '#10b981' }}>Informativa sul trattamento dei dati personali</h3>
-              <p><strong>Titolare del trattamento:</strong> AM Training. Per esercitare i tuoi diritti puoi scrivere al contatto indicato in app.</p>
-              <p><strong>Quali dati raccogliamo:</strong> nome e cognome, email, data di nascita, peso, altezza; i dati di allenamento (schede assegnate, punteggi, note, massimali di forza); i dati dell'anamnesi, tra cui obiettivi, disponibilità settimanale, attrezzatura e problematiche fisiche o sistemiche.</p>
-              <p><strong>Dati particolari (salute):</strong> peso, altezza e soprattutto il campo "problematiche fisiche o sistemiche" costituiscono dati relativi alla salute ai sensi dell'art. 9 GDPR. Vengono trattati esclusivamente sulla base del tuo consenso esplicito, che presti spuntando la casella in fase di registrazione, e al solo scopo di permettere al coach di programmare allenamenti adeguati e sicuri.</p>
-              <p><strong>Finalità:</strong> creazione e gestione del tuo account; assegnazione e monitoraggio dei programmi di allenamento; comunicazioni di servizio tramite notifiche (anche push).</p>
-              <p><strong>Chi può vedere i tuoi dati:</strong> tu e il coach titolare dell'attività. I dati non vengono ceduti a terzi per finalità commerciali.</p>
-              <p><strong>Dove sono conservati:</strong> su infrastruttura Supabase e Vercel, fornitori che agiscono come responsabili del trattamento. I dati sono conservati finché il tuo account resta attivo e, successivamente, per il tempo necessario ad adempiere a obblighi di legge.</p>
-              <p><strong>Notifiche push:</strong> se attivi le notifiche, memorizziamo un identificativo tecnico del tuo dispositivo al solo fine di recapitarti gli avvisi. Puoi revocare il permesso in qualsiasi momento dalle impostazioni del browser o del telefono.</p>
-              <p><strong>I tuoi diritti:</strong> puoi chiedere in qualsiasi momento l'accesso, la rettifica, la cancellazione o la limitazione dei tuoi dati, opporti al trattamento, revocare il consenso e richiedere la portabilità. Hai inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali.</p>
-              <p><strong>Revoca del consenso:</strong> la revoca non pregiudica la liceità del trattamento effettuato prima della revoca stessa; comporta però l'impossibilità di continuare a fornirti il servizio di programmazione personalizzata.</p>
+              <PrivacyPolicyContent />
               <button onClick={() => setShowPrivacyPolicy(false)} style={{ marginTop: '10px', padding: '10px 16px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Chiudi</button>
             </div>
           </div>
@@ -1404,6 +1550,37 @@ const [notificationError, setNotificationError] = useState('');
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
+ 
+      {showConsentGate && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 2000 }}>
+          <div style={{ background: '#ffffff', color: '#000', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0, color: '#10b981' }}>Aggiornamento privacy</h3>
+            <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
+              Abbiamo aggiornato l&apos;informativa sul trattamento dei dati personali. Poiché l&apos;app raccoglie anche dati relativi alla tua salute (peso, altezza, problematiche fisiche), la legge richiede un tuo consenso esplicito. Leggi l&apos;informativa e conferma per continuare a usare l&apos;app.
+            </p>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', maxHeight: '35vh', overflowY: 'auto', marginBottom: '14px' }}>
+              <PrivacyPolicyContent />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#334155', lineHeight: 1.4, marginBottom: '14px' }}>
+              <input type="checkbox" checked={consentGateChecked} onChange={(e) => setConsentGateChecked(e.target.checked)} style={{ marginTop: '3px', flexShrink: 0 }} />
+              <span>Ho letto l&apos;informativa e acconsento al trattamento dei miei dati personali, inclusi i dati relativi allo stato di salute, per la programmazione degli allenamenti.</span>
+            </label>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={acceptPrivacyConsent}
+                disabled={!consentGateChecked || consentSaving}
+                style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '8px', background: consentGateChecked ? '#10b981' : '#cbd5e1', color: '#fff', fontWeight: 'bold', border: 'none', cursor: consentGateChecked ? 'pointer' : 'not-allowed', fontSize: '14px' }}
+              >
+                {consentSaving ? 'Salvataggio...' : 'Accetto e continuo'}
+              </button>
+              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '14px' }}>
+                Esci
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+ 
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
@@ -2697,9 +2874,10 @@ const [notificationError, setNotificationError] = useState('');
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
+                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi 📋</button>
+                <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy 🔒</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
@@ -2798,6 +2976,52 @@ const [notificationError, setNotificationError] = useState('');
                   >
                     {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
                   </button>
+                </div>
+              )}
+ 
+              {athleteProfileTab === 'privacy' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>Privacy e dati personali</h3>
+ 
+                  <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#166534', display: 'block', marginBottom: '4px' }}>Stato del consenso</span>
+                    <span style={{ fontSize: '13px', color: '#334155' }}>
+                      {privacyConsentAt
+                        ? `Consenso prestato il ${new Date(privacyConsentAt).toLocaleDateString('it-IT')} (informativa v${PRIVACY_VERSION})`
+                        : 'Consenso non ancora registrato.'}
+                    </span>
+                  </div>
+ 
+                  <div>
+                    <button onClick={() => setShowPrivacyPolicy(!showPrivacyPolicy)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                      {showPrivacyPolicy ? '▲ Nascondi informativa' : '▼ Leggi l\'informativa completa'}
+                    </button>
+                    {showPrivacyPolicy && (
+                      <div style={{ marginTop: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', maxHeight: '400px', overflowY: 'auto' }}>
+                        <PrivacyPolicyContent />
+                      </div>
+                    )}
+                  </div>
+ 
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>📥 Scarica i tuoi dati</span>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>Ottieni una copia completa di tutti i dati che ti riguardano (anagrafica, anamnesi, massimali, risultati, programmi assegnati) in un file leggibile.</p>
+                    <button onClick={downloadMyData} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '8px', background: '#0284c7', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
+                      {accountActionLoading ? 'Attendere...' : 'Scarica i miei dati'}
+                    </button>
+                  </div>
+ 
+                  <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#991b1b', display: 'block', marginBottom: '6px' }}>🗑️ Elimina il tuo account</span>
+                    <p style={{ fontSize: '12px', color: '#7f1d1d', margin: '0 0 10px 0', lineHeight: 1.4 }}>Cancella definitivamente l&apos;account e tutti i dati associati: anagrafica, anamnesi, massimali e risultati. L&apos;operazione non è reversibile.</p>
+                    <button onClick={deleteMyAccount} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '8px', background: '#dc2626', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
+                      {accountActionLoading ? 'Attendere...' : 'Elimina account'}
+                    </button>
+                  </div>
+ 
+                  <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4, margin: 0 }}>
+                    Per rettificare i dati, limitare o opporti al trattamento, revocare il consenso o per qualsiasi altra richiesta, contatta il coach. Hai diritto di proporre reclamo al Garante per la protezione dei dati personali.
+                  </p>
                 </div>
               )}
             </div>
