@@ -49,6 +49,15 @@ export default function TrainingApp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [signupBirthDate, setSignupBirthDate] = useState('');
+  const [signupWeight, setSignupWeight] = useState('');
+  const [signupHeight, setSignupHeight] = useState('');
+  const [privacyConsent, setPrivacyConsent] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const emptyPersonalData = { full_name: '', birth_date: '', weight: '', height: '' };
+  const [personalData, setPersonalData] = useState<any>(emptyPersonalData);
+  const [coachAllPersonalData, setCoachAllPersonalData] = useState<{ [athleteId: string]: any }>({});
+  const [personalDataSaving, setPersonalDataSaving] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -90,7 +99,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'maxes' | 'anamnesi'>('maxes');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
   const [customMaxExercises, setCustomMaxExercises] = useState<{ id: string; name: string; dismissed: boolean }[]>([]);
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
@@ -115,7 +124,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'maxes' | 'anamnesi'>('maxes');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -392,10 +401,12 @@ const [notificationError, setNotificationError] = useState('');
         fetchAllAthleteResultsForCoach();
         fetchAllAthleteMaxesForCoach();
         fetchAllAnamnesisForCoach();
+        fetchAllPersonalDataForCoach();
       } else {
         fetchAthleteResults();
         fetchAthleteMaxes(session.user.id);
         fetchOwnAnamnesis(session.user.id);
+        fetchPersonalData(session.user.id);
       }
  
       const channel = supabase
@@ -670,8 +681,72 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
-  const fetchAllAnamnesisForCoach = async () => {
-    const { data } = await supabase.from('athlete_anamnesis').select('*');
+  const fetchPersonalData = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('full_name,birth_date,weight,height').eq('id', userId).maybeSingle();
+ 
+    const meta = session?.user?.user_metadata || {};
+    const merged = {
+      full_name: data?.full_name || meta.full_name || '',
+      birth_date: data?.birth_date || meta.birth_date || '',
+      weight: data?.weight ?? meta.weight ?? '',
+      height: data?.height ?? meta.height ?? ''
+    };
+    setPersonalData(merged);
+ 
+    const needsSync =
+      (!data?.birth_date && meta.birth_date) ||
+      (data?.weight === null && meta.weight) ||
+      (data?.height === null && meta.height) ||
+      (!data?.full_name && meta.full_name);
+ 
+    if (needsSync) {
+      await supabase.from('profiles').update({
+        full_name: merged.full_name,
+        birth_date: merged.birth_date || null,
+        weight: merged.weight ? parseFloat(merged.weight) : null,
+        height: merged.height ? parseFloat(merged.height) : null
+      }).eq('id', userId);
+    }
+  };
+ 
+  const fetchAllPersonalDataForCoach = async () => {
+    const { data } = await supabase.from('profiles').select('id,full_name,birth_date,weight,height').eq('role', 'athlete');
+    if (data) {
+      const map: { [key: string]: any } = {};
+      data.forEach((item: any) => {
+        map[item.id] = {
+          full_name: item.full_name || '',
+          birth_date: item.birth_date || '',
+          weight: item.weight ?? '',
+          height: item.height ?? ''
+        };
+      });
+      setCoachAllPersonalData(map);
+    }
+  };
+ 
+  const savePersonalData = async (userId: string, data: any, isCoachEditing: boolean) => {
+    setPersonalDataSaving(true);
+    const { error } = await supabase.from('profiles').update({
+      full_name: data.full_name,
+      birth_date: data.birth_date || null,
+      weight: data.weight ? parseFloat(data.weight) : null,
+      height: data.height ? parseFloat(data.height) : null
+    }).eq('id', userId);
+    setPersonalDataSaving(false);
+ 
+    if (error) {
+      alert('Errore durante il salvataggio: ' + error.message);
+      return;
+    }
+    if (isCoachEditing) {
+      setCoachAllPersonalData({ ...coachAllPersonalData, [userId]: data });
+      fetchAthletes();
+    }
+    alert('Dati anagrafici salvati con successo!');
+  };
+ 
+  const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
     if (data) {
       const map: { [key: string]: any } = {};
       data.forEach((item: any) => {
@@ -723,6 +798,17 @@ const [notificationError, setNotificationError] = useState('');
     }
     if (isCoachEditing) {
       setCoachAllAnamnesis({ ...coachAllAnamnesis, [athleteId]: data });
+    }
+    if (!isCoachEditing) {
+      fetch('/api/notify-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'anamnesi',
+          title: 'Anamnesi aggiornata',
+          message: `${personalData.full_name || session.user.email} ha compilato/aggiornato la sua anamnesi.`
+        }),
+      }).catch(err => console.error('Errore notifica anamnesi:', err));
     }
     alert('Anamnesi salvata con successo!');
   };
@@ -796,16 +882,44 @@ const [notificationError, setNotificationError] = useState('');
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+ 
+    if (!privacyConsent) {
+      setAuthError('Devi accettare l\'informativa sul trattamento dei dati personali per registrarti.');
+      return;
+    }
+ 
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } }
+      options: {
+        data: {
+          full_name: fullName,
+          birth_date: signupBirthDate || null,
+          weight: signupWeight || null,
+          height: signupHeight || null,
+          privacy_consent_at: new Date().toISOString()
+        }
+      }
     });
     if (error) {
       setAuthError(error.message);
     } else {
+      fetch('/api/notify-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'new_user',
+          title: 'Nuovo utente registrato',
+          message: `${fullName || email} si è appena registrato all'app.`
+        }),
+      }).catch(err => console.error('Errore notifica nuovo utente:', err));
+ 
       alert('Registrazione effettuata con successo!');
       setIsRegistering(false);
+      setSignupBirthDate('');
+      setSignupWeight('');
+      setSignupHeight('');
+      setPrivacyConsent(false);
     }
   };
  
@@ -1170,7 +1284,18 @@ const [notificationError, setNotificationError] = useState('');
   if (loading) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
-        <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+        <style>{`
+          @keyframes logoPop {
+            0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+            60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+          }
+          @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+          }
+        `}</style>
+        <img src="/logo.png" alt="AMT Logo" style={{ width: '80px', height: '80px', objectFit: 'contain', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -1179,11 +1304,22 @@ const [notificationError, setNotificationError] = useState('');
   if (!session) {
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
+          @keyframes logoPop {
+            0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+            60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+          }
+          @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(14px); }
+            100% { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px' }} />
-          <h1 style={{ color: '#10b981', margin: 0, fontSize: '28px', fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h1>
-          <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
+          <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', opacity: 0 }} />
+          <h1 style={{ color: '#10b981', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
+          <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
         </div>
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
@@ -1192,7 +1328,25 @@ const [notificationError, setNotificationError] = useState('');
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
           )}
           {isRegistering && !isResettingPassword && (
-            <input type="text" placeholder="Nome Completo" value={fullName} onChange={(e) => setFullName(e.target.value)} style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+            <>
+              <input type="text" placeholder="Nome e Cognome" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                <input type="date" value={signupBirthDate} onChange={(e) => setSignupBirthDate(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>
+                <input type="checkbox" checked={privacyConsent} onChange={(e) => setPrivacyConsent(e.target.checked)} style={{ marginTop: '2px', flexShrink: 0 }} />
+                <span>
+                  Ho letto e accetto l'
+                  <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: '#10b981', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
+                  {' '}e acconsento al trattamento dei miei dati, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.
+                </span>
+              </label>
+            </>
           )}
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
           {resetMessage && <p style={{ color: '#10b981', fontSize: '14px' }}>{resetMessage}</p>}
@@ -1211,6 +1365,24 @@ const [notificationError, setNotificationError] = useState('');
             {isResettingPassword ? 'Torna al Login' : 'Password dimenticata?'}
           </button>
         </div>
+ 
+        {showPrivacyPolicy && (
+          <div onClick={() => setShowPrivacyPolicy(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', color: '#000', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto', fontSize: '13px', lineHeight: 1.5 }}>
+              <h3 style={{ marginTop: 0, color: '#10b981' }}>Informativa sul trattamento dei dati personali</h3>
+              <p><strong>Titolare del trattamento:</strong> AM Training. Per esercitare i tuoi diritti puoi scrivere al contatto indicato in app.</p>
+              <p><strong>Quali dati raccogliamo:</strong> nome e cognome, email, data di nascita, peso, altezza; i dati di allenamento (schede assegnate, punteggi, note, massimali di forza); i dati dell'anamnesi, tra cui obiettivi, disponibilità settimanale, attrezzatura e problematiche fisiche o sistemiche.</p>
+              <p><strong>Dati particolari (salute):</strong> peso, altezza e soprattutto il campo "problematiche fisiche o sistemiche" costituiscono dati relativi alla salute ai sensi dell'art. 9 GDPR. Vengono trattati esclusivamente sulla base del tuo consenso esplicito, che presti spuntando la casella in fase di registrazione, e al solo scopo di permettere al coach di programmare allenamenti adeguati e sicuri.</p>
+              <p><strong>Finalità:</strong> creazione e gestione del tuo account; assegnazione e monitoraggio dei programmi di allenamento; comunicazioni di servizio tramite notifiche (anche push).</p>
+              <p><strong>Chi può vedere i tuoi dati:</strong> tu e il coach titolare dell'attività. I dati non vengono ceduti a terzi per finalità commerciali.</p>
+              <p><strong>Dove sono conservati:</strong> su infrastruttura Supabase e Vercel, fornitori che agiscono come responsabili del trattamento. I dati sono conservati finché il tuo account resta attivo e, successivamente, per il tempo necessario ad adempiere a obblighi di legge.</p>
+              <p><strong>Notifiche push:</strong> se attivi le notifiche, memorizziamo un identificativo tecnico del tuo dispositivo al solo fine di recapitarti gli avvisi. Puoi revocare il permesso in qualsiasi momento dalle impostazioni del browser o del telefono.</p>
+              <p><strong>I tuoi diritti:</strong> puoi chiedere in qualsiasi momento l'accesso, la rettifica, la cancellazione o la limitazione dei tuoi dati, opporti al trattamento, revocare il consenso e richiedere la portabilità. Hai inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali.</p>
+              <p><strong>Revoca del consenso:</strong> la revoca non pregiudica la liceità del trattamento effettuato prima della revoca stessa; comporta però l'impossibilità di continuare a fornirti il servizio di programmazione personalizzata.</p>
+              <button onClick={() => setShowPrivacyPolicy(false)} style={{ marginTop: '10px', padding: '10px 16px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Chiudi</button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1231,12 +1403,12 @@ const [notificationError, setNotificationError] = useState('');
  
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,800;1,800&family=Permanent+Marker&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
           <div>
-            <h2 style={{ fontSize: '20px', color: '#10b981', margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontStyle: 'italic', letterSpacing: '1px' }}>AMTraining</h2>
+            <h2 style={{ fontSize: '26px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px' }}>AMTraining</h2>
             <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
             <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
           </div>
@@ -1453,9 +1625,53 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
  
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Anamnesi 📋</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
                   </div>
+ 
+                  {coachAthleteDetailTab === 'anagrafici' && (() => {
+                    const athData = coachAllPersonalData[selectedCoachAthlete.id] || emptyPersonalData;
+                    const updateField = (field: string, value: string) => {
+                      setCoachAllPersonalData({
+                        ...coachAllPersonalData,
+                        [selectedCoachAthlete.id]: { ...athData, [field]: value }
+                      });
+                    };
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
+                          <input type="text" value={athData.full_name} onChange={(e) => updateField('full_name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Email</label>
+                          <input type="text" value={selectedCoachAthlete.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#64748b', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                          <input type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
+                            <input type="number" step="0.1" min="0" value={athData.weight} onChange={(e) => updateField('weight', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
+                            <input type="number" step="0.1" min="0" value={athData.height} onChange={(e) => updateField('height', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                          </div>
+                        </div>
+                        <button
+                          disabled={personalDataSaving}
+                          onClick={() => savePersonalData(selectedCoachAthlete.id, athData, true)}
+                          style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                        >
+                          {personalDataSaving ? 'Salvataggio...' : 'Salva Dati Anagrafici'}
+                        </button>
+                      </div>
+                    );
+                  })()}
  
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
@@ -2481,9 +2697,45 @@ const [notificationError, setNotificationError] = useState('');
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali</button>
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Anamnesi 📋</button>
+                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
               </div>
+ 
+              {athleteProfileTab === 'anagrafici' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>Dati Anagrafici</h3>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
+                    <input type="text" value={personalData.full_name} onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Email</label>
+                    <input type="text" value={session.user.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#64748b', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                    <input type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
+                      <input type="number" step="0.1" min="0" value={personalData.weight} onChange={(e) => setPersonalData({ ...personalData, weight: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
+                      <input type="number" step="0.1" min="0" value={personalData.height} onChange={(e) => setPersonalData({ ...personalData, height: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+                  <button
+                    disabled={personalDataSaving}
+                    onClick={() => savePersonalData(session.user.id, personalData, false)}
+                    style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                  >
+                    {personalDataSaving ? 'Salvataggio...' : 'Salva Dati Anagrafici'}
+                  </button>
+                </div>
+              )}
  
               {athleteProfileTab === 'maxes' && (
               <>
@@ -2719,4 +2971,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
