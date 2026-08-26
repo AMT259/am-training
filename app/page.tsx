@@ -1,6 +1,6 @@
 'use client';
  
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
  
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -82,29 +82,6 @@ export default function TrainingApp() {
       ]
     }
   ]);
-  const [programWeeksHistory, setProgramWeeksHistory] = useState<any[]>([]);
-  const isUndoingCreateRef = useRef(false);
-  const prevProgramWeeksRef = useRef<any>(null);
- 
-  useEffect(() => {
-    if (isUndoingCreateRef.current) {
-      isUndoingCreateRef.current = false;
-      prevProgramWeeksRef.current = programWeeks;
-      return;
-    }
-    if (prevProgramWeeksRef.current !== null) {
-      setProgramWeeksHistory((prev) => [...prev, prevProgramWeeksRef.current].slice(-30));
-    }
-    prevProgramWeeksRef.current = programWeeks;
-  }, [programWeeks]);
- 
-  const handleUndoCreate = () => {
-    if (programWeeksHistory.length === 0) return;
-    const last = programWeeksHistory[programWeeksHistory.length - 1];
-    isUndoingCreateRef.current = true;
-    setProgramWeeksHistory((prev) => prev.slice(0, -1));
-    setProgramWeeks(last);
-  };
  
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
@@ -113,7 +90,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'maxes' | 'schede'>('maxes');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'maxes' | 'anamnesi'>('maxes');
   const [customMaxExercises, setCustomMaxExercises] = useState<{ id: string; name: string; dismissed: boolean }[]>([]);
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
@@ -134,36 +111,13 @@ export default function TrainingApp() {
  
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: { [reps: number]: string } }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
+  const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
+  const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
+  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
+  const [anamnesisSaving, setAnamnesisSaving] = useState(false);
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'maxes' | 'anamnesi'>('maxes');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
-  const [editingProgramHistory, setEditingProgramHistory] = useState<any[]>([]);
-  const isUndoingRef = useRef(false);
-  const prevEditingProgramRef = useRef<any>(null);
- 
-  useEffect(() => {
-    if (editingProgram === null) {
-      setEditingProgramHistory([]);
-      prevEditingProgramRef.current = null;
-      return;
-    }
-    if (isUndoingRef.current) {
-      isUndoingRef.current = false;
-      prevEditingProgramRef.current = editingProgram;
-      return;
-    }
-    if (prevEditingProgramRef.current !== null) {
-      setEditingProgramHistory((prev) => [...prev, prevEditingProgramRef.current].slice(-30));
-    }
-    prevEditingProgramRef.current = editingProgram;
-  }, [editingProgram]);
- 
-  const handleUndoEdit = () => {
-    if (editingProgramHistory.length === 0) return;
-    const last = editingProgramHistory[editingProgramHistory.length - 1];
-    isUndoingRef.current = true;
-    setEditingProgramHistory((prev) => prev.slice(0, -1));
-    setEditingProgram(last);
-  };
  
   const [saveMessage, setSaveMessage] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -437,9 +391,11 @@ const [notificationError, setNotificationError] = useState('');
         fetchAthletes();
         fetchAllAthleteResultsForCoach();
         fetchAllAthleteMaxesForCoach();
+        fetchAllAnamnesisForCoach();
       } else {
         fetchAthleteResults();
         fetchAthleteMaxes(session.user.id);
+        fetchOwnAnamnesis(session.user.id);
       }
  
       const channel = supabase
@@ -712,6 +668,63 @@ const [notificationError, setNotificationError] = useState('');
       });
       setCoachAthleteMaxes(map);
     }
+  };
+ 
+  const fetchAllAnamnesisForCoach = async () => {
+    const { data } = await supabase.from('athlete_anamnesis').select('*');
+    if (data) {
+      const map: { [key: string]: any } = {};
+      data.forEach((item: any) => {
+        map[item.athlete_id] = {
+          goal: item.goal || '',
+          weekly_sessions: item.weekly_sessions || '',
+          session_duration: item.session_duration || '',
+          equipment: item.equipment || '',
+          physical_issues: item.physical_issues || ''
+        };
+      });
+      setCoachAllAnamnesis(map);
+    }
+  };
+ 
+  const fetchOwnAnamnesis = async (athleteId: string) => {
+    const { data } = await supabase.from('athlete_anamnesis').select('*').eq('athlete_id', athleteId).maybeSingle();
+    if (data) {
+      setAnamnesis({
+        goal: data.goal || '',
+        weekly_sessions: data.weekly_sessions || '',
+        session_duration: data.session_duration || '',
+        equipment: data.equipment || '',
+        physical_issues: data.physical_issues || ''
+      });
+    } else {
+      setAnamnesis(emptyAnamnesis);
+    }
+  };
+ 
+  const saveAnamnesis = async (athleteId: string, data: any, isCoachEditing: boolean) => {
+    setAnamnesisSaving(true);
+    const { error } = await supabase.from('athlete_anamnesis').upsert(
+      {
+        athlete_id: athleteId,
+        goal: data.goal,
+        weekly_sessions: data.weekly_sessions ? parseInt(data.weekly_sessions) : null,
+        session_duration: data.session_duration,
+        equipment: data.equipment,
+        physical_issues: data.physical_issues,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'athlete_id' }
+    );
+    setAnamnesisSaving(false);
+    if (error) {
+      alert('Errore durante il salvataggio: ' + error.message);
+      return;
+    }
+    if (isCoachEditing) {
+      setCoachAllAnamnesis({ ...coachAllAnamnesis, [athleteId]: data });
+    }
+    alert('Anamnesi salvata con successo!');
   };
  
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
@@ -1060,7 +1073,6 @@ const [notificationError, setNotificationError] = useState('');
         days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
       }]);
       setProgramWeeksHistory([]);
-      prevProgramWeeksRef.current = null;
       fetchProgramLibrary();
     }
   };
@@ -1122,6 +1134,7 @@ const [notificationError, setNotificationError] = useState('');
     } else {
       alert('Programma aggiornato con successo!');
       setEditingProgram(null);
+      setEditingProgramHistory([]);
       fetchProgramLibrary();
     }
   };
@@ -1403,7 +1416,7 @@ const [notificationError, setNotificationError] = useState('');
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
+            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); setEditingProgramHistory([]); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali 🏋️‍♂️</button>
             <button onClick={() => setCoachSubView('personal')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'personal' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Personal 📝</button>
             <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
@@ -1498,10 +1511,16 @@ const [notificationError, setNotificationError] = useState('');
               {selectedCoachAthlete ? (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Massimali di: {selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
+                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
  
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Anamnesi 📋</button>
+                  </div>
+ 
+                  {coachAthleteDetailTab === 'maxes' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
@@ -1520,6 +1539,58 @@ const [notificationError, setNotificationError] = useState('');
                       );
                     })}
                   </div>
+                  )}
+ 
+                  {coachAthleteDetailTab === 'anamnesi' && (() => {
+                    const athAnamnesi = coachAllAnamnesis[selectedCoachAthlete.id] || emptyAnamnesis;
+                    const updateField = (field: string, value: string) => {
+                      setCoachAllAnamnesis({
+                        ...coachAllAnamnesis,
+                        [selectedCoachAthlete.id]: { ...athAnamnesi, [field]: value }
+                      });
+                    };
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
+                          <textarea value={athAnamnesi.goal} onChange={(e) => updateField('goal', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
+                          <select value={athAnamnesi.weekly_sessions} onChange={(e) => updateField('weekly_sessions', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                            <option value="">Seleziona...</option>
+                            {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
+                          <select value={athAnamnesi.session_duration} onChange={(e) => updateField('session_duration', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                            <option value="">Seleziona...</option>
+                            <option value="30'">30'</option>
+                            <option value="1 ora">1 ora</option>
+                            <option value="1 ora e 30'">1 ora e 30'</option>
+                            <option value="2 ore">2 ore</option>
+                            <option value="più di 2 ore">più di 2 ore</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
+                          <textarea value={athAnamnesi.equipment} onChange={(e) => updateField('equipment', e.target.value)} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
+                          <textarea value={athAnamnesi.physical_issues} onChange={(e) => updateField('physical_issues', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <button
+                          disabled={anamnesisSaving}
+                          onClick={() => saveAnamnesis(selectedCoachAthlete.id, athAnamnesi, true)}
+                          style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                        >
+                          {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -1699,7 +1770,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
-                <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
+                <button onClick={() => { setEditingProgram(null); setEditingProgramHistory([]); }} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
               </div>
  
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
@@ -1943,9 +2014,6 @@ const [notificationError, setNotificationError] = useState('');
                 );
               })}
  
-              {editingProgramHistory.length > 0 && (
-                <button onClick={handleUndoEdit} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '13px', marginTop: '10px' }}>↩️ Annulla ultima modifica ({editingProgramHistory.length})</button>
-              )}
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -2031,10 +2099,6 @@ const [notificationError, setNotificationError] = useState('');
                         ))
                       )}
                     </div>
-                  </div>
- 
-                  <div style={{ marginBottom: '16px', background: '#fef3c7', border: '2px solid #f59e0b', padding: '10px', borderRadius: '8px', fontSize: '11px', color: '#000', fontFamily: 'monospace' }}>
-                    DEBUG — programWeeks.length: {programWeeks.length} | Nomi: {programWeeks.map((w: any) => w.weekName).join(', ')} | Storico (programWeeksHistory.length): {programWeeksHistory.length}
                   </div>
  
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
@@ -2236,9 +2300,6 @@ const [notificationError, setNotificationError] = useState('');
                   })}
  
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
-                  {programWeeksHistory.length > 0 && (
-                    <button onClick={handleUndoCreate} style={{ width: '100%', padding: '10px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '13px', marginBottom: '10px' }}>↩️ Annulla ultima modifica ({programWeeksHistory.length})</button>
-                  )}
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
@@ -2297,6 +2358,7 @@ const [notificationError, setNotificationError] = useState('');
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
                                     setEditingProgram(progToEdit);
+                                    setEditingProgramHistory([]);
                                     if (progToEdit.weeks.length > 0) {
                                       setSelectedWeekView(progToEdit.weeks[0].weekName);
                                       if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
@@ -2419,6 +2481,13 @@ const [notificationError, setNotificationError] = useState('');
  
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Anamnesi 📋</button>
+              </div>
+ 
+              {athleteProfileTab === 'maxes' && (
+              <>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => (
@@ -2435,6 +2504,51 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 ))}
               </div>
+              </>
+              )}
+ 
+              {athleteProfileTab === 'anamnesi' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>Anamnesi</h3>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
+                    <textarea value={anamnesis.goal} onChange={(e) => setAnamnesis({ ...anamnesis, goal: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
+                    <select value={anamnesis.weekly_sessions} onChange={(e) => setAnamnesis({ ...anamnesis, weekly_sessions: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                      <option value="">Seleziona...</option>
+                      {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
+                    <select value={anamnesis.session_duration} onChange={(e) => setAnamnesis({ ...anamnesis, session_duration: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                      <option value="">Seleziona...</option>
+                      <option value="30'">30'</option>
+                      <option value="1 ora">1 ora</option>
+                      <option value="1 ora e 30'">1 ora e 30'</option>
+                      <option value="2 ore">2 ore</option>
+                      <option value="più di 2 ore">più di 2 ore</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
+                    <textarea value={anamnesis.equipment} onChange={(e) => setAnamnesis({ ...anamnesis, equipment: e.target.value })} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
+                    <textarea value={anamnesis.physical_issues} onChange={(e) => setAnamnesis({ ...anamnesis, physical_issues: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <button
+                    disabled={anamnesisSaving}
+                    onClick={() => saveAnamnesis(session.user.id, anamnesis, false)}
+                    style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                  >
+                    {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div>
