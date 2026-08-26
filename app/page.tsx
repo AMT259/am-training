@@ -1072,7 +1072,6 @@ const [notificationError, setNotificationError] = useState('');
         weekName: 'Settimana 1',
         days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
       }]);
-      setProgramWeeksHistory([]);
       fetchProgramLibrary();
     }
   };
@@ -1134,7 +1133,6 @@ const [notificationError, setNotificationError] = useState('');
     } else {
       alert('Programma aggiornato con successo!');
       setEditingProgram(null);
-      setEditingProgramHistory([]);
       fetchProgramLibrary();
     }
   };
@@ -1416,7 +1414,7 @@ const [notificationError, setNotificationError] = useState('');
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); setEditingProgramHistory([]); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
+            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
             <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Massimali 🏋️‍♂️</button>
             <button onClick={() => setCoachSubView('personal')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'personal' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Personal 📝</button>
             <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
@@ -1770,7 +1768,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
-                <button onClick={() => { setEditingProgram(null); setEditingProgramHistory([]); }} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
+                <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
               </div>
  
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
@@ -2358,7 +2356,6 @@ const [notificationError, setNotificationError] = useState('');
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
                                     setEditingProgram(progToEdit);
-                                    setEditingProgramHistory([]);
                                     if (progToEdit.weeks.length > 0) {
                                       setSelectedWeekView(progToEdit.weeks[0].weekName);
                                       if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
