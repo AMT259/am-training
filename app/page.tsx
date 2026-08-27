@@ -544,7 +544,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'strength' | 'metcon' | 'gym' | 'anamnesi'>('anagrafici');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
@@ -568,7 +568,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'strength' | 'metcon' | 'gym' | 'anamnesi' | 'privacy'>('anagrafici');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -2454,7 +2454,9 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('strength')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'strength' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'strength' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                    <button onClick={() => setCoachAthleteDetailTab('metcon')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'metcon' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'metcon' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gym')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'gym' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'gym' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
                     <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
                   </div>
  
@@ -2501,7 +2503,7 @@ const [notificationError, setNotificationError] = useState('');
                     );
                   })()}
  
-                  {coachAthleteDetailTab === 'maxes' && (
+                  {coachAthleteDetailTab === 'strength' && (
                   <div>
                     <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
                       <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
@@ -2597,7 +2599,12 @@ const [notificationError, setNotificationError] = useState('');
                     })}
                   </div>
  
-                  <h4 style={{ fontSize: '15px', margin: '20px 0 8px 0', color: '#10b981' }}>⏱️ Massimali Metabolici</h4>
+                  </div>
+                  )}
+ 
+                  {coachAthleteDetailTab === 'metcon' && (
+                  <div>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>⏱️ Metcon PR</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {METABOLIC_EXERCISES.map((exName) => (
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -2615,7 +2622,12 @@ const [notificationError, setNotificationError] = useState('');
                     ))}
                   </div>
  
-                  <h4 style={{ fontSize: '15px', margin: '20px 0 8px 0', color: '#10b981' }}>🤸 Massimali Ginnastica</h4>
+                  </div>
+                  )}
+ 
+                  {coachAthleteDetailTab === 'gym' && (
+                  <div>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {GYMNASTICS_EXERCISES.map((exName) => (
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -3608,7 +3620,9 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('strength')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'strength' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'strength' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Strength PR</button>
+                <button onClick={() => setAthleteProfileTab('metcon')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'metcon' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'metcon' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Metcon PR</button>
+                <button onClick={() => setAthleteProfileTab('gym')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'gym' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'gym' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Gymnastics PR</button>
                 <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi 📋</button>
                 <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy 🔒</button>
               </div>
@@ -3648,9 +3662,9 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
               )}
  
-              {athleteProfileTab === 'maxes' && (
+              {athleteProfileTab === 'strength' && (
               <>
-              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
+              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>Strength PR</h3>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {maxExerciseNames.map((exName) => (
@@ -3679,7 +3693,12 @@ const [notificationError, setNotificationError] = useState('');
                 ))}
               </div>
  
-              <h3 style={{ fontSize: '18px', margin: '24px 0 4px 0', color: '#10b981' }}>⏱️ Massimali Metabolici</h3>
+              </>
+              )}
+ 
+              {athleteProfileTab === 'metcon' && (
+              <>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#10b981' }}>⏱️ Metcon PR</h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {METABOLIC_EXERCISES.map((exName) => (
@@ -3704,7 +3723,12 @@ const [notificationError, setNotificationError] = useState('');
                 ))}
               </div>
  
-              <h3 style={{ fontSize: '18px', margin: '24px 0 4px 0', color: '#10b981' }}>🤸 Massimali Ginnastica</h3>
+              </>
+              )}
+ 
+              {athleteProfileTab === 'gym' && (
+              <>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#10b981' }}>🤸 Gymnastics PR</h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {GYMNASTICS_EXERCISES.map((exName) => (
@@ -4008,4 +4032,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
