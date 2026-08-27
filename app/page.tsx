@@ -20,6 +20,7 @@ const formatDateToIT = (dateString: string) => {
   return dateString;
 };
  
+// Elenco storico di riferimento: gli esercizi dei massimali ora arrivano dalla Libreria Esercizi
 const STRENGTH_EXERCISES = [
   'Back Squat', 'Deadlift', 'Front Squat', 'OHS', 'Press', 'Push Press', 
   'Push Jerk', 'Split Jerk', 'Power Snatch', 'Squat Snatch', 'Hang Power Snatch', 
@@ -133,6 +134,75 @@ function getDailyQuote() {
 function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+ 
+function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: string) => void }) {
+  if (!points) {
+    return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Caricamento...</p>;
+  }
+  if (points.length === 0) {
+    return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio. Si registra automaticamente quando il massimale viene aggiornato o superato in scheda.</p>;
+  }
+ 
+  const blocks = REP_SCHEMES.map((r) => {
+    const pts = points.filter((h: any) => h.reps === r);
+    if (pts.length < 1) return null;
+    const vals = pts.map((p: any) => Number(p.value));
+    const minV = Math.min(...vals);
+    const maxV = Math.max(...vals);
+    const range = maxV - minV || 1;
+    const W = 300, H = 70;
+    const step = pts.length > 1 ? W / (pts.length - 1) : 0;
+    const xy = (p: any, i: number) => {
+      const x = pts.length > 1 ? i * step : W / 2;
+      const y = H - ((Number(p.value) - minV) / range) * (H - 14) - 7;
+      return { x, y };
+    };
+    const coords = pts.map((p: any, i: number) => {
+      const { x, y } = xy(p, i);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const first = Number(pts[0].value);
+    const last = Number(pts[pts.length - 1].value);
+    const delta = Math.round((last - first) * 10) / 10;
+ 
+    return (
+      <div key={r} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000' }}>{r} RM</span>
+          <span style={{ fontSize: '12px', fontWeight: 'bold', color: delta > 0 ? '#10b981' : '#64748b' }}>
+            {last} kg{delta > 0 ? ` (+${delta})` : ''}
+          </span>
+        </div>
+        {pts.length > 1 ? (
+          <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
+            <polyline points={coords.join(' ')} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+            {pts.map((p: any, i: number) => {
+              const { x, y } = xy(p, i);
+              return <circle key={i} cx={x} cy={y} r="3.5" fill="#10b981" />;
+            })}
+          </svg>
+        ) : (
+          <p style={{ fontSize: '11px', color: '#94a3b8', margin: '4px 0' }}>Un solo valore registrato: il grafico comparirà dal secondo aggiornamento.</p>
+        )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
+          {pts.map((p: any, i: number) => (
+            <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: '#475569' }}>
+              {new Date(p.recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}: <strong>{p.value}</strong>
+              {onDelete && p.id && (
+                <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
+              )}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }).filter(Boolean);
+ 
+  if (blocks.length === 0) {
+    return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio.</p>;
+  }
+  return <div style={{ marginTop: '10px' }}>{blocks}</div>;
 }
  
 const PRIVACY_VERSION = '1.0';
@@ -322,8 +392,8 @@ export default function TrainingApp() {
   const [showSplash, setShowSplash] = useState(true);
   const [dailyQuote, setDailyQuote] = useState('');
   const [prBadge, setPrBadge] = useState<{ exercise: string; reps: number; weight: number; previous: number | null } | null>(null);
-  const [maxHistory, setMaxHistory] = useState<any[]>([]);
-  const [historyExercise, setHistoryExercise] = useState('');
+  const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
+  const [historyCache, setHistoryCache] = useState<{ [key: string]: any[] }>({});
  
   useEffect(() => {
     const t = setTimeout(() => setShowSplash(false), 2800);
@@ -379,13 +449,16 @@ export default function TrainingApp() {
  
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
+  // Gli esercizi dei massimali sono gli stessi della libreria video, marcati con "track_max"
+  const maxExerciseNames = exerciseLibrary
+    .filter((e: any) => !e.dismissed && e.track_max)
+    .map((e: any) => e.name);
  
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
-  const [customMaxExercises, setCustomMaxExercises] = useState<{ id: string; name: string; dismissed: boolean }[]>([]);
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
@@ -680,7 +753,6 @@ const [notificationError, setNotificationError] = useState('');
       fetchExerciseLibrary();
       fetchBanner();
       fetchNotifications();
-      fetchCustomMaxExercises();
       checkPrivacyConsent(session.user.id);
       if (role === 'coach') {
         fetchAthletes();
@@ -895,66 +967,7 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
-  const fetchCustomMaxExercises = async () => {
-    const { data } = await supabase.from('custom_max_exercises').select('id,name,dismissed').order('created_at', { ascending: true });
-    if (data) {
-      setCustomMaxExercises(data.map((item: any) => ({ id: item.id, name: item.name, dismissed: !!item.dismissed })));
-    }
-  };
  
-  const addCustomMaxExercise = async () => {
-    const name = newMaxExerciseName.trim();
-    if (!name) return;
- 
-    if (STRENGTH_EXERCISES.includes(name)) {
-      setNewMaxExerciseName('');
-      return;
-    }
- 
-    const existing = customMaxExercises.find((e) => e.name.toLowerCase() === name.toLowerCase());
-    if (existing) {
-      if (existing.dismissed) {
-        await toggleDismissCustomMaxExercise(existing.id, false);
-      }
-      setNewMaxExerciseName('');
-      return;
-    }
- 
-    const { data, error } = await supabase.from('custom_max_exercises').insert([{ name }]).select('id,name,dismissed').single();
-    if (!error && data) {
-      setCustomMaxExercises([...customMaxExercises, { id: data.id, name: data.name, dismissed: false }]);
-      setNewMaxExerciseName('');
-    }
-  };
- 
-  const renameCustomMaxExercise = async (id: string, newName: string) => {
-    const name = newName.trim();
-    if (!name) return;
- 
-    const { error } = await supabase.from('custom_max_exercises').update({ name }).eq('id', id);
-    if (!error) {
-      setCustomMaxExercises(customMaxExercises.map((e) => (e.id === id ? { ...e, name } : e)));
-      setEditingExerciseId(null);
-      setEditingExerciseName('');
-    }
-  };
- 
-  const toggleDismissCustomMaxExercise = async (id: string, dismissed: boolean) => {
-    const { error } = await supabase.from('custom_max_exercises').update({ dismissed }).eq('id', id);
-    if (!error) {
-      setCustomMaxExercises(customMaxExercises.map((e) => (e.id === id ? { ...e, dismissed } : e)));
-    }
-  };
- 
-  const permanentlyDeleteMaxExercise = async (id: string) => {
-    if (!confirm('Eliminare DEFINITIVAMENTE questo esercizio? Non sarà più possibile recuperarlo.')) return;
-    const { error } = await supabase.from('custom_max_exercises').delete().eq('id', id);
-    if (!error) {
-      setCustomMaxExercises(customMaxExercises.filter((e) => e.id !== id));
-    } else {
-      alert('Errore durante l\'eliminazione definitiva: ' + error.message);
-    }
-  };
  
   const fetchAllAthleteMaxesForCoach = async () => {
     const { data } = await supabase.from('athlete_maxes').select('*');
@@ -1215,25 +1228,125 @@ const [notificationError, setNotificationError] = useState('');
  
     const w = parseWeightValue(value);
     if (w) {
-      await supabase.from('athlete_max_history').insert([{
-        athlete_id: session.user.id,
-        exercise,
-        reps,
-        value: w,
-        source: 'manuale'
-      }]);
-      if (historyExercise === exercise) fetchMaxHistory(session.user.id, exercise);
+      await recordMaxHistory(session.user.id, exercise, reps, w, 'manuale');
     }
   };
  
-  const fetchMaxHistory = async (athleteId: string, exercise: string) => {
+  // Registra un valore nello storico. Se esiste già un valore per lo stesso
+  // esercizio/ripetizioni nello stesso giorno, lo sostituisce: così le correzioni
+  // di un dato sbagliato non lasciano tracce nel grafico.
+  const recordMaxHistory = async (athleteId: string, exercise: string, reps: number, value: number, source: string) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+ 
+    const { data: existing } = await supabase
+      .from('athlete_max_history')
+      .select('id')
+      .eq('athlete_id', athleteId)
+      .eq('exercise', exercise)
+      .eq('reps', reps)
+      .gte('recorded_at', startOfDay.toISOString())
+      .order('recorded_at', { ascending: false })
+      .limit(1);
+ 
+    if (existing && existing.length > 0) {
+      await supabase.from('athlete_max_history')
+        .update({ value, source, recorded_at: new Date().toISOString() })
+        .eq('id', existing[0].id);
+    } else {
+      await supabase.from('athlete_max_history').insert([{ athlete_id: athleteId, exercise, reps, value, source }]);
+    }
+ 
+    setHistoryCache((prev) => {
+      const copy = { ...prev };
+      delete copy[`${athleteId}|${exercise}`];
+      return copy;
+    });
+  };
+ 
+  const addMaxTrackedExercise = async () => {
+    const name = newMaxExerciseName.trim();
+    if (!name) return;
+ 
+    const existing = exerciseLibrary.find((e: any) => e.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      await supabase.from('exercises_library').update({ track_max: true, dismissed: false }).eq('id', existing.id);
+    } else {
+      await supabase.from('exercises_library').insert([{ name, video_url: '', track_max: true }]);
+    }
+    setNewMaxExerciseName('');
+    fetchExerciseLibrary();
+  };
+ 
+  const toggleTrackMax = async (id: string, value: boolean) => {
+    await supabase.from('exercises_library').update({ track_max: value }).eq('id', id);
+    fetchExerciseLibrary();
+  };
+ 
+  // Rinomina l'esercizio ovunque: libreria, massimali degli atleti e storico
+  const renameExerciseEverywhere = async (id: string, oldName: string, newNameRaw: string) => {
+    const newName = newNameRaw.trim();
+    if (!newName || newName === oldName) {
+      setEditingExerciseId(null);
+      setEditingExerciseName('');
+      return;
+    }
+ 
+    await supabase.from('exercises_library').update({ name: newName }).eq('id', id);
+    await supabase.from('athlete_max_history').update({ exercise: newName }).eq('exercise', oldName);
+ 
+    const { data: allMaxes } = await supabase.from('athlete_maxes').select('athlete_id,maxes');
+    if (allMaxes) {
+      for (const row of allMaxes) {
+        const m = row.maxes || {};
+        if (m[oldName] === undefined) continue;
+        const updated: any = {};
+        Object.keys(m).forEach((k) => {
+          updated[k === oldName ? newName : k] = m[k];
+        });
+        await supabase.from('athlete_maxes')
+          .upsert({ athlete_id: row.athlete_id, maxes: updated, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
+      }
+    }
+ 
+    setEditingExerciseId(null);
+    setEditingExerciseName('');
+    setHistoryCache({});
+    fetchExerciseLibrary();
+    if (role === 'coach') fetchAllAthleteMaxesForCoach();
+    else fetchAthleteMaxes(session.user.id);
+  };
+ 
+  const deleteHistoryPoint = async (pointId: string, cacheKey: string) => {
+    if (!confirm('Eliminare questo valore dallo storico? Utile se era stato inserito per errore.')) return;
+    const { error } = await supabase.from('athlete_max_history').delete().eq('id', pointId);
+    if (error) {
+      alert('Errore: ' + error.message);
+      return;
+    }
+    setHistoryCache((prev) => ({
+      ...prev,
+      [cacheKey]: (prev[cacheKey] || []).filter((p: any) => p.id !== pointId),
+    }));
+  };
+ 
+  const toggleMaxHistory = async (athleteId: string, exercise: string) => {
+    const key = `${athleteId}|${exercise}`;
+    if (openHistoryKey === key) {
+      setOpenHistoryKey(null);
+      return;
+    }
+    setOpenHistoryKey(key);
+    if (historyCache[key]) return;
+ 
     const { data } = await supabase
       .from('athlete_max_history')
-      .select('reps,value,recorded_at')
+      .select('id,reps,value,recorded_at')
       .eq('athlete_id', athleteId)
       .eq('exercise', exercise)
       .order('recorded_at', { ascending: true });
-    setMaxHistory(data || []);
+ 
+    setHistoryCache((prev) => ({ ...prev, [key]: data || [] }));
   };
  
   // Aggiorna il massimale se il peso inserito nella scheda supera quello registrato
@@ -1245,7 +1358,7 @@ const [notificationError, setNotificationError] = useState('');
     const repsInt = Math.round(reps);
     if (!REP_SCHEMES.includes(repsInt)) return;
  
-    const allNames = [...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)];
+    const allNames = maxExerciseNames;
     const match = allNames.find((n) => n.toLowerCase() === String(exerciseName || '').trim().toLowerCase());
     if (!match) return;
  
@@ -1253,7 +1366,23 @@ const [notificationError, setNotificationError] = useState('');
     const currentEx = currentAll[match] || {};
     const previous = parseWeightValue(currentEx[repsInt]);
  
-    if (previous !== null && weight <= previous) return;
+    // Se oggi il massimale è già stato registrato da questa stessa scheda, quello che
+    // sto scrivendo è una correzione: lascio che il valore possa anche scendere.
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const { data: todayRows } = await supabase
+      .from('athlete_max_history')
+      .select('id,value')
+      .eq('athlete_id', athleteId)
+      .eq('exercise', match)
+      .eq('reps', repsInt)
+      .eq('source', 'scheda')
+      .gte('recorded_at', startOfDay.toISOString())
+      .limit(1);
+    const isCorrection = !!(todayRows && todayRows.length > 0);
+ 
+    if (!isCorrection && previous !== null && weight <= previous) return;
+    if (isCorrection && previous !== null && weight === previous) return;
  
     const updatedEx = { ...currentEx, [repsInt]: String(weight) };
     const updatedAll = { ...currentAll, [match]: updatedEx };
@@ -1264,13 +1393,7 @@ const [notificationError, setNotificationError] = useState('');
     );
     if (error) return;
  
-    await supabase.from('athlete_max_history').insert([{
-      athlete_id: athleteId,
-      exercise: match,
-      reps: repsInt,
-      value: weight,
-      source: 'scheda'
-    }]);
+    await recordMaxHistory(athleteId, match, repsInt, weight, 'scheda');
  
     if (isCoachEditing) {
       setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
@@ -1278,7 +1401,9 @@ const [notificationError, setNotificationError] = useState('');
       setAthleteMaxes(updatedAll);
     }
  
-    setPrBadge({ exercise: match, reps: repsInt, weight, previous });
+    if (!isCorrection) {
+      setPrBadge({ exercise: match, reps: repsInt, weight, previous });
+    }
   };
  
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string, blockInfo?: { name?: string; reps?: any; type?: string }) => {
@@ -2207,68 +2332,71 @@ const [notificationError, setNotificationError] = useState('');
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
                     <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                      <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>🏋️ Elenco Esercizi Massimali (valido per tutti gli atleti)</span>
+                      <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
+                      <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                        Sono gli stessi esercizi della Libreria Esercizi: stesso nome ovunque, così i record dalle schede si agganciano da soli. Vale per tutti gli atleti.
+                      </p>
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                         <input
                           type="text"
                           placeholder="Nuovo esercizio (es. Bench Press)"
                           value={newMaxExerciseName}
                           onChange={(e) => setNewMaxExerciseName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') addCustomMaxExercise(); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') addMaxTrackedExercise(); }}
+                          list="max_ex_suggestions"
                           style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
                         />
-                        <button onClick={addCustomMaxExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                        <datalist id="max_ex_suggestions">
+                          {exerciseLibrary.filter((e: any) => !e.dismissed && !e.track_max).map((e: any) => (
+                            <option key={e.id} value={e.name} />
+                          ))}
+                        </datalist>
+                        <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                       </div>
  
-                      {customMaxExercises.length > 0 && (
-                        <div>
-                          <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
-                            {showExerciseManager ? '▲ Nascondi gestione esercizi aggiunti' : '▼ Gestisci esercizi aggiunti'}
-                          </button>
+                      <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                        {showExerciseManager ? '\u25b2 Nascondi gestione esercizi' : '\u25bc Gestisci esercizi'}
+                      </button>
  
-                          {showExerciseManager && (
-                            <div style={{ marginTop: '10px', background: '#ffffff', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                              {customMaxExercises.map((ex) => (
-                                <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: ex.dismissed ? 0.5 : 1 }}>
-                                  {editingExerciseId === ex.id ? (
-                                    <>
-                                      <input
-                                        type="text"
-                                        value={editingExerciseName}
-                                        onChange={(e) => setEditingExerciseName(e.target.value)}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') renameCustomMaxExercise(ex.id, editingExerciseName); }}
-                                        style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
-                                        autoFocus
-                                      />
-                                      <button onClick={() => renameCustomMaxExercise(ex.id, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
-                                      <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span style={{ flex: 1, fontSize: '13px', color: '#000', textDecoration: ex.dismissed ? 'line-through' : 'none' }}>{ex.name}{ex.dismissed ? ' (eliminato)' : ''}</span>
-                                      {!ex.dismissed ? (
-                                        <>
-                                          <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
-                                          <button onClick={() => toggleDismissCustomMaxExercise(ex.id, true)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>🗑️ Elimina</button>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <button onClick={() => toggleDismissCustomMaxExercise(ex.id, false)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                                          <button onClick={() => permanentlyDeleteMaxExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
-                                        </>
-                                      )}
-                                    </>
-                                  )}
-                                </div>
-                              ))}
+                      {showExerciseManager && (
+                        <div style={{ marginTop: '10px', background: '#ffffff', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {exerciseLibrary.filter((e: any) => !e.dismissed).length === 0 ? (
+                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Nessun esercizio in libreria.</p>
+                          ) : exerciseLibrary.filter((e: any) => !e.dismissed).map((ex: any) => (
+                            <div key={ex.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {editingExerciseId === ex.id ? (
+                                <>
+                                  <input
+                                    type="text"
+                                    value={editingExerciseName}
+                                    onChange={(e) => setEditingExerciseName(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') renameExerciseEverywhere(ex.id, ex.name, editingExerciseName); }}
+                                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
+                                    autoFocus
+                                  />
+                                  <button onClick={() => renameExerciseEverywhere(ex.id, ex.name, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
+                                  <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
+                                </>
+                              ) : (
+                                <>
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
+                                    <span style={{ fontSize: '13px', color: '#000' }}>{ex.name}</span>
+                                  </label>
+                                  <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>\u270f\ufe0f Rinomina</button>
+                                </>
+                              )}
                             </div>
-                          )}
+                          ))}
+                          <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                            La spunta indica se l&apos;esercizio compare tra i massimali. Rinominandolo, il nome cambia anche nella Libreria Esercizi, nei massimali di tutti gli atleti e nello storico.
+                          </p>
                         </div>
                       )}
                     </div>
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => {
+                    {maxExerciseNames.map((exName) => {
                       const exMaxes = coachAthleteMaxes[selectedCoachAthlete.id]?.[exName] || {};
                       return (
                         <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -2281,6 +2409,17 @@ const [notificationError, setNotificationError] = useState('');
                               </div>
                             ))}
                           </div>
+ 
+                          <button
+                            onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)}
+                            style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
+                          >
+                            {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                          </button>
+ 
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
+                            <MaxHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
+                          )}
                         </div>
                       );
                     })}
@@ -2801,6 +2940,12 @@ const [notificationError, setNotificationError] = useState('');
                           <div>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
+                            {!showDeletedExercises && (
+                              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '5px', cursor: 'pointer' }}>
+                                <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
+                                <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 'bold' }}>Traccia massimali</span>
+                              </label>
+                            )}
                           </div>
                           {showDeletedExercises ? (
                             <div style={{ display: 'flex', gap: '6px' }}>
@@ -3277,72 +3422,8 @@ const [notificationError, setNotificationError] = useState('');
               <>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
  
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📈 Storico progressione</span>
-                <select
-                  value={historyExercise}
-                  onChange={(e) => {
-                    setHistoryExercise(e.target.value);
-                    if (e.target.value) fetchMaxHistory(session.user.id, e.target.value);
-                    else setMaxHistory([]);
-                  }}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
-                >
-                  <option value="">Scegli un esercizio...</option>
-                  {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((n) => (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
- 
-                {historyExercise && (maxHistory.length === 0 ? (
-                  <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Nessuno storico ancora per questo esercizio. Verrà registrato ogni volta che aggiorni un massimale o batti un record dalla scheda.</p>
-                ) : (
-                  <div>
-                    {REP_SCHEMES.map((r) => {
-                      const pts = maxHistory.filter((h: any) => h.reps === r);
-                      if (pts.length < 1) return null;
-                      const vals = pts.map((p: any) => p.value);
-                      const minV = Math.min(...vals);
-                      const maxV = Math.max(...vals);
-                      const range = maxV - minV || 1;
-                      const W = 300, H = 70;
-                      const step = pts.length > 1 ? W / (pts.length - 1) : 0;
-                      const coords = pts.map((p: any, i: number) => {
-                        const x = pts.length > 1 ? i * step : W / 2;
-                        const y = H - ((p.value - minV) / range) * (H - 12) - 6;
-                        return `${x.toFixed(1)},${y.toFixed(1)}`;
-                      });
-                      const first = pts[0].value;
-                      const last = pts[pts.length - 1].value;
-                      const delta = Math.round((last - first) * 10) / 10;
-                      return (
-                        <div key={r} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000' }}>{r} RM</span>
-                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: delta > 0 ? '#10b981' : '#64748b' }}>
-                              {last} kg {delta > 0 ? `(+${delta})` : ''}
-                            </span>
-                          </div>
-                          <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
-                            <polyline points={coords.join(' ')} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-                            {pts.map((p: any, i: number) => {
-                              const x = pts.length > 1 ? i * step : W / 2;
-                              const y = H - ((p.value - minV) / range) * (H - 12) - 6;
-                              return <circle key={i} cx={x} cy={y} r="3.5" fill="#10b981" />;
-                            })}
-                          </svg>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
-                            <span>{new Date(pts[0].recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>
-                            <span>{new Date(pts[pts.length - 1].recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => (
+                {maxExerciseNames.map((exName) => (
                   <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -3353,6 +3434,17 @@ const [notificationError, setNotificationError] = useState('');
                         </div>
                       ))}
                     </div>
+ 
+                    <button
+                      onClick={() => toggleMaxHistory(session.user.id, exName)}
+                      style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
+                    >
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                    </button>
+ 
+                    {openHistoryKey === `${session.user.id}|${exName}` && (
+                      <MaxHistoryChart points={historyCache[`${session.user.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
+                    )}
                   </div>
                 ))}
               </div>
