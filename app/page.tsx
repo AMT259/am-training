@@ -31,6 +31,14 @@ const REP_SCHEMES = [1, 3, 5, 10];
  
 const PRIVACY_VERSION = '1.0';
  
+function AmtLogo({ style }: { style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 802 538" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AMT" style={style}>
+      <path fill="currentColor" fillRule="evenodd" d="M468.0,523.5L467.5,521.0L469.5,517.0L471.5,506.0L479.5,480.0L495.5,417.0L503.5,391.0L505.5,380.0L508.5,372.0L508.0,370.5L378.0,370.5L383.5,347.0L369.0,346.5L367.5,348.0L367.5,351.0L357.5,362.0L291.5,430.0L290.5,477.0L289.5,478.0L289.5,514.0L288.0,516.5L166.5,344.0L166.0,338.5L151.0,369.5L12.5,369.0L158.5,84.0L107.5,20.0L104.5,16.0L105.0,14.5L302.0,14.5L303.0,16.5L438.0,16.5L439.5,22.0L442.5,77.0L444.0,79.5L482.0,16.5L549.0,16.5L551.0,12.5L789.5,13.0L725.5,258.0L723.5,257.0L720.5,245.0L715.5,232.0L715.5,229.0L711.5,219.0L711.5,216.0L706.5,203.0L706.5,200.0L702.5,190.0L702.5,187.0L698.5,177.0L698.5,174.0L695.5,165.0L694.5,165.0L645.5,348.0L468.0,523.5Z M542.5,396.0L611.5,328.0L613.5,317.0L618.5,302.0L620.5,291.0L622.5,287.0L624.5,276.0L629.5,261.0L631.5,250.0L633.5,246.0L635.5,235.0L640.5,220.0L642.5,209.0L644.5,205.0L646.5,194.0L651.5,179.0L653.5,168.0L655.5,164.0L657.5,153.0L659.5,149.0L674.5,91.0L712.0,90.5L720.5,118.0L722.0,119.5L737.5,58.0L739.5,54.0L739.0,50.5L579.5,51.0L571.5,82.0L569.5,86.0L568.5,93.0L566.5,97.0L565.5,104.0L563.5,108.0L562.5,115.0L560.5,119.0L561.0,122.5L596.0,90.5L623.0,90.5L623.5,93.0L621.5,97.0L609.5,145.0L604.5,160.0L603.5,168.0L601.5,172.0L598.5,187.0L596.5,191.0L574.5,277.0L566.5,303.0L564.5,314.0L561.5,320.0L554.5,349.0L546.5,375.0L544.5,386.0L541.5,394.0L541.5,396.0L542.5,396.0Z M253.5,399.0L253.5,394.0L254.5,393.0L254.5,357.0L255.5,356.0L255.5,321.0L256.5,320.0L256.5,284.0L257.5,283.0L257.5,247.0L258.5,246.0L258.5,211.0L259.5,210.0L259.5,174.0L260.5,173.0L260.5,138.0L261.5,137.0L261.5,101.0L262.5,100.0L263.5,54.0L185.0,53.5L184.5,55.0L200.5,74.0L203.5,78.0L203.5,80.0L74.5,331.0L127.0,331.5L143.5,298.0L143.5,296.0L155.0,274.5L208.0,274.5L205.5,332.0L250.5,397.0L253.5,399.0Z M264.5,403.0L332.5,332.0L367.0,204.5L368.5,209.0L368.5,219.0L369.5,220.0L369.5,229.0L370.5,230.0L376.5,305.0L378.0,308.5L397.0,308.5L398.5,307.0L457.5,212.0L459.5,211.0L457.5,222.0L455.5,226.0L453.5,237.0L451.5,241.0L449.5,252.0L447.5,256.0L445.5,267.0L443.5,271.0L441.5,282.0L439.5,286.0L427.5,332.0L476.5,332.0L489.5,282.0L491.5,278.0L493.5,267.0L495.5,263.0L496.5,256.0L498.5,252.0L499.5,245.0L501.5,241.0L503.5,230.0L505.5,226.0L506.5,219.0L508.5,215.0L510.5,204.0L512.5,200.0L514.5,189.0L519.5,174.0L521.5,163.0L523.5,159.0L525.5,148.0L530.5,133.0L532.5,122.0L537.5,107.0L543.5,81.0L548.5,66.0L550.5,58.0L550.0,54.5L503.5,55.0L414.0,203.5L413.5,195.0L412.5,194.0L412.5,181.0L411.5,180.0L411.5,167.0L410.5,166.0L410.5,153.0L409.5,152.0L409.5,139.0L408.5,138.0L408.5,125.0L407.5,124.0L407.5,111.0L406.5,110.0L406.5,97.0L405.5,96.0L405.5,83.0L404.5,82.0L404.5,69.0L403.5,68.0L403.5,56.0L402.0,54.5L321.5,55.0L348.5,88.0L348.5,90.0L343.5,105.0L341.5,116.0L339.5,120.0L323.5,183.0L321.5,187.0L302.5,261.0L297.5,276.0L291.5,302.0L289.5,306.0L270.5,380.0L265.5,395.0L263.5,403.0L264.5,403.0Z M210.0,234.5L173.5,234.0L214.0,151.5L211.5,225.0L210.5,226.0L210.0,234.5Z" />
+    </svg>
+  );
+}
+ 
 function PrivacyPolicyContent() {
   const hStyle: React.CSSProperties = { color: '#10b981', fontSize: '14px', margin: '14px 0 4px 0' };
   const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.5, color: '#334155' };
@@ -1459,7 +1467,7 @@ const [notificationError, setNotificationError] = useState('');
             50% { transform: scale(1.06); }
           }
         `}</style>
-        <img src="/logo-app.png" alt="AMT Logo" style={{ width: '150px', height: '100px', objectFit: 'contain', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
+        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -1481,7 +1489,7 @@ const [notificationError, setNotificationError] = useState('');
           }
         `}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <img src="/logo-app.png" alt="AMT Logo" style={{ width: '130px', height: '88px', objectFit: 'contain', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', opacity: 0 }} />
+          <AmtLogo style={{ width: '140px', height: 'auto', color: '#ffffff', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', opacity: 0 }} />
           <h1 style={{ color: '#10b981', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
           <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
         </div>
@@ -1593,7 +1601,7 @@ const [notificationError, setNotificationError] = useState('');
  
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo-app.png" alt="AMT Logo" style={{ width: '58px', height: '40px', objectFit: 'contain' }} />
+          <AmtLogo style={{ width: '58px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
           <div>
             <h2 style={{ fontSize: '26px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px' }}>AMTraining</h2>
             <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
