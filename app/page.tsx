@@ -116,6 +116,7 @@ export default function TrainingApp() {
   const [consentGateChecked, setConsentGateChecked] = useState(false);
   const [consentSaving, setConsentSaving] = useState(false);
   const [accountActionLoading, setAccountActionLoading] = useState(false);
+  const [needsAnamnesis, setNeedsAnamnesis] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -928,6 +929,10 @@ const [notificationError, setNotificationError] = useState('');
       });
     } else {
       setAnamnesis(emptyAnamnesis);
+      // Prima volta: porta subito l'atleta a compilare l'anamnesi
+      setNeedsAnamnesis(true);
+      setActiveTab('profile');
+      setAthleteProfileTab('anamnesi');
     }
   };
  
@@ -954,6 +959,7 @@ const [notificationError, setNotificationError] = useState('');
       setCoachAllAnamnesis({ ...coachAllAnamnesis, [athleteId]: data });
     }
     if (!isCoachEditing) {
+      setNeedsAnamnesis(false);
       fetch('/api/notify-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1453,7 +1459,7 @@ const [notificationError, setNotificationError] = useState('');
             50% { transform: scale(1.06); }
           }
         `}</style>
-        <img src="/logo.png" alt="AMT Logo" style={{ width: '80px', height: '80px', objectFit: 'contain', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
+        <img src="/logo-app.png" alt="AMT Logo" style={{ width: '150px', height: '100px', objectFit: 'contain', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -1475,7 +1481,7 @@ const [notificationError, setNotificationError] = useState('');
           }
         `}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <img src="/logo.png" alt="AMT Logo" style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', opacity: 0 }} />
+          <img src="/logo-app.png" alt="AMT Logo" style={{ width: '130px', height: '88px', objectFit: 'contain', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards', opacity: 0 }} />
           <h1 style={{ color: '#10b981', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
           <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
         </div>
@@ -1587,7 +1593,7 @@ const [notificationError, setNotificationError] = useState('');
  
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo.png" alt="AMT Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
+          <img src="/logo-app.png" alt="AMT Logo" style={{ width: '58px', height: '40px', objectFit: 'contain' }} />
           <div>
             <h2 style={{ fontSize: '26px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px' }}>AMTraining</h2>
             <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
@@ -2942,6 +2948,14 @@ const [notificationError, setNotificationError] = useState('');
  
               {athleteProfileTab === 'anamnesi' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {needsAnamnesis && (
+                    <div style={{ background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: '8px', padding: '14px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e40af', display: 'block', marginBottom: '4px' }}>👋 Benvenuto in AM Training!</span>
+                      <span style={{ fontSize: '13px', color: '#1e3a8a', lineHeight: 1.4 }}>
+                        Prima di iniziare, compila la tua anamnesi: serve al coach per costruire un programma adatto a te e sicuro. Ci vuole un minuto.
+                      </span>
+                    </div>
+                  )}
                   <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>Anamnesi</h3>
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
@@ -3199,4 +3213,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
