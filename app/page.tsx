@@ -20,6 +20,40 @@ const formatDateToIT = (dateString: string) => {
   return dateString;
 };
  
+const METABOLIC_EXERCISES = [
+  '500mt Row', '1000mt Row', '2000mt Row',
+  '500mt Run', '1000mt Run', '2000mt Run',
+  '500mt Ski', '1000mt Ski', '2000mt Ski',
+  '1000mt Bike Erg', '2000mt Bike Erg',
+  '10 cal Assault Bike', '20 cal Assault Bike', '50 cal Assault Bike',
+];
+ 
+const GYMNASTICS_EXERCISES = [
+  'Pull Up', 'C2B', 'BMU', 'RMU', 'HSPU', 'Wall Facing HSPU',
+  'Strict Pull Up', 'Strict RMU', 'Strict HSPU',
+];
+ 
+// Converte "1:45" o "1.45" o "105" in secondi
+function timeToSeconds(txt: any): number | null {
+  if (!txt) return null;
+  const s = String(txt).trim().replace(',', ':').replace('.', ':');
+  if (s.includes(':')) {
+    const parts = s.split(':').map((p) => parseFloat(p));
+    if (parts.some((p) => isNaN(p))) return null;
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return null;
+  }
+  const v = parseFloat(s);
+  return isNaN(v) ? null : v;
+}
+ 
+function secondsToTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+ 
 // Elenco storico di riferimento: gli esercizi dei massimali ora arrivano dalla Libreria Esercizi
 const STRENGTH_EXERCISES = [
   'Back Squat', 'Deadlift', 'Front Squat', 'OHS', 'Press', 'Push Press', 
@@ -203,6 +237,58 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
     return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio.</p>;
   }
   return <div style={{ marginTop: '10px' }}>{blocks}</div>;
+}
+ 
+function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points: any[]; lowerIsBetter?: boolean; unit: string; onDelete?: (id: string) => void }) {
+  if (!points) return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Caricamento...</p>;
+  if (points.length === 0) return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
+ 
+  const fmt = (v: number) => (unit === 'tempo' ? secondsToTime(v) : `${v} rep`);
+  const vals = points.map((p: any) => Number(p.value));
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+  const W = 300, H = 70;
+  const step = points.length > 1 ? W / (points.length - 1) : 0;
+  const xy = (p: any, i: number) => {
+    const x = points.length > 1 ? i * step : W / 2;
+    const raw = (Number(p.value) - minV) / range;
+    const norm = lowerIsBetter ? 1 - raw : raw;
+    return { x, y: H - norm * (H - 14) - 7 };
+  };
+  const first = Number(points[0].value);
+  const last = Number(points[points.length - 1].value);
+  const diff = Math.round((last - first) * 10) / 10;
+  const improved = lowerIsBetter ? diff < 0 : diff > 0;
+ 
+  return (
+    <div style={{ marginTop: '10px', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000' }}>Record attuale</span>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: improved ? '#10b981' : '#64748b' }}>
+          {fmt(lowerIsBetter ? minV : maxV)}
+        </span>
+      </div>
+      {points.length > 1 ? (
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
+          <polyline points={points.map((p: any, i: number) => { const { x, y } = xy(p, i); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ')} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          {points.map((p: any, i: number) => { const { x, y } = xy(p, i); return <circle key={i} cx={x} cy={y} r="3.5" fill="#10b981" />; })}
+        </svg>
+      ) : (
+        <p style={{ fontSize: '11px', color: '#94a3b8', margin: '4px 0' }}>Il grafico comparirà dal secondo valore registrato.</p>
+      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
+        {points.map((p: any, i: number) => (
+          <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: '#475569' }}>
+            {new Date(p.recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}: <strong>{fmt(Number(p.value))}</strong>
+            {onDelete && p.id && (
+              <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
  
 const PRIVACY_VERSION = '1.0';
@@ -391,7 +477,7 @@ export default function TrainingApp() {
   const [needsAnamnesis, setNeedsAnamnesis] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [dailyQuote, setDailyQuote] = useState('');
-  const [prBadge, setPrBadge] = useState<{ exercise: string; reps: number; weight: number; previous: number | null } | null>(null);
+  const [prBadge, setPrBadge] = useState<{ exercise: string; headline: string; subtitle: string } | null>(null);
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
   const [historyCache, setHistoryCache] = useState<{ [key: string]: any[] }>({});
  
@@ -1212,6 +1298,13 @@ const [notificationError, setNotificationError] = useState('');
     alert('Anamnesi salvata con successo!');
   };
  
+  // Aggiorna solo a schermo mentre si digita (nessun salvataggio, nessun record)
+  const handleMaxTyping = (exercise: string, reps: number, value: string) => {
+    const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
+    setAthleteMaxes({ ...athleteMaxes, [exercise]: updatedEx });
+  };
+ 
+  // Salva davvero solo quando si esce dal campo o si preme Invio
   const handleMaxChange = async (exercise: string, reps: number, value: string) => {
     const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
     const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
@@ -1330,6 +1423,29 @@ const [notificationError, setNotificationError] = useState('');
     }));
   };
  
+  // Salva un massimale metabolico (tempo) o di ginnastica (ripetizioni)
+  const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string) => {
+    const key = kind === 'tempo' ? 'time' : 'reps';
+    setAthleteMaxes({ ...athleteMaxes, [exercise]: { ...(athleteMaxes[exercise] || {}), [key]: raw } });
+  };
+ 
+  const handleSpecialMaxChange = async (exercise: string, kind: 'tempo' | 'rep', raw: string) => {
+    const key = kind === 'tempo' ? 'time' : 'reps';
+    const updatedEx = { ...(athleteMaxes[exercise] || {}), [key]: raw };
+    const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
+    setAthleteMaxes(updatedAll);
+ 
+    await supabase.from('athlete_maxes').upsert(
+      { athlete_id: session.user.id, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { onConflict: 'athlete_id' }
+    );
+ 
+    const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
+    if (numeric && numeric > 0) {
+      await recordMaxHistory(session.user.id, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
+    }
+  };
+ 
   const toggleMaxHistory = async (athleteId: string, exercise: string) => {
     const key = `${athleteId}|${exercise}`;
     if (openHistoryKey === key) {
@@ -1350,63 +1466,129 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Aggiorna il massimale se il peso inserito nella scheda supera quello registrato
-  const maybeUpdateMaxFromScore = async (athleteId: string, exerciseName: string, repsText: any, scoreText: string, isCoachEditing: boolean) => {
-    const weight = parseWeightValue(scoreText);
-    const reps = parseWeightValue(repsText);
-    if (!weight || !reps) return;
- 
-    const repsInt = Math.round(reps);
-    if (!REP_SCHEMES.includes(repsInt)) return;
- 
-    const allNames = maxExerciseNames;
-    const match = allNames.find((n) => n.toLowerCase() === String(exerciseName || '').trim().toLowerCase());
-    if (!match) return;
+  const maybeUpdateMaxFromScore = async (athleteId: string, exerciseName: string, repsText: any, scoreText: string, isCoachEditing: boolean, blockType?: string) => {
+    const nameTrim = String(exerciseName || '').trim();
+    if (!nameTrim) return;
  
     const currentAll = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
-    const currentEx = currentAll[match] || {};
-    const previous = parseWeightValue(currentEx[repsInt]);
  
-    // Se oggi il massimale è già stato registrato da questa stessa scheda, quello che
-    // sto scrivendo è una correzione: lascio che il valore possa anche scendere.
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
-    const { data: todayRows } = await supabase
-      .from('athlete_max_history')
-      .select('id,value')
-      .eq('athlete_id', athleteId)
-      .eq('exercise', match)
-      .eq('reps', repsInt)
-      .eq('source', 'scheda')
-      .gte('recorded_at', startOfDay.toISOString())
-      .limit(1);
-    const isCorrection = !!(todayRows && todayRows.length > 0);
+ 
+    const saveMax = async (updatedAll: any) => {
+      const { error } = await supabase.from('athlete_maxes').upsert(
+        { athlete_id: athleteId, maxes: updatedAll, updated_at: new Date().toISOString() },
+        { onConflict: 'athlete_id' }
+      );
+      if (error) return false;
+      if (isCoachEditing) setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
+      else setAthleteMaxes(updatedAll);
+      return true;
+    };
+ 
+    const wasRecordedToday = async (exercise: string, repsKey: number, source: string) => {
+      const { data } = await supabase
+        .from('athlete_max_history')
+        .select('id')
+        .eq('athlete_id', athleteId)
+        .eq('exercise', exercise)
+        .eq('reps', repsKey)
+        .eq('source', source)
+        .gte('recorded_at', startOfDay.toISOString())
+        .limit(1);
+      return !!(data && data.length > 0);
+    };
+ 
+    // --- 1. Esercizio metabolico: il risultato è un tempo, più basso è meglio ---
+    const met = METABOLIC_EXERCISES.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
+    if (met) {
+      const seconds = timeToSeconds(scoreText);
+      if (!seconds || seconds <= 0) return;
+      const prevSec = timeToSeconds(currentAll[met]?.time);
+      const isCorrection = await wasRecordedToday(met, -1, 'scheda');
+ 
+      if (!isCorrection && prevSec !== null && seconds >= prevSec) return;
+      if (isCorrection && prevSec !== null && seconds === prevSec) return;
+ 
+      const updatedAll = { ...currentAll, [met]: { ...(currentAll[met] || {}), time: secondsToTime(seconds) } };
+      if (!(await saveMax(updatedAll))) return;
+      await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
+ 
+      if (!isCorrection) {
+        setPrBadge({
+          exercise: met,
+          headline: `${secondsToTime(seconds)}`,
+          subtitle: prevSec !== null
+            ? `Hai migliorato il tuo tempo di ${secondsToTime(prevSec - seconds)}!`
+            : 'Primo tempo registrato su questo test!',
+        });
+      }
+      return;
+    }
+ 
+    // --- 2. Esercizio di ginnastica: il risultato sono le ripetizioni ---
+    const gym = GYMNASTICS_EXERCISES.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
+    if (gym) {
+      const reps = parseWeightValue(scoreText);
+      if (!reps || reps <= 0) return;
+      const prevReps = parseWeightValue(currentAll[gym]?.reps);
+      const isCorrection = await wasRecordedToday(gym, -2, 'scheda');
+ 
+      if (!isCorrection && prevReps !== null && reps <= prevReps) return;
+      if (isCorrection && prevReps !== null && reps === prevReps) return;
+ 
+      const updatedAll = { ...currentAll, [gym]: { ...(currentAll[gym] || {}), reps: String(reps) } };
+      if (!(await saveMax(updatedAll))) return;
+      await recordMaxHistory(athleteId, gym, -2, reps, 'scheda');
+ 
+      if (!isCorrection) {
+        setPrBadge({
+          exercise: gym,
+          headline: `${reps} ripetizioni`,
+          subtitle: prevReps !== null
+            ? `Hai superato il tuo record di ${Math.round((reps - prevReps) * 10) / 10} rip.!`
+            : 'Primo record registrato su questo esercizio!',
+        });
+      }
+      return;
+    }
+ 
+    // --- 3. Esercizio di forza: il risultato è un peso ---
+    if (blockType && blockType !== 'forza') return;
+ 
+    const weight = parseWeightValue(scoreText);
+    const repsNum = parseWeightValue(repsText);
+    if (!weight || !repsNum) return;
+ 
+    const repsInt = Math.round(repsNum);
+    if (!REP_SCHEMES.includes(repsInt)) return;
+ 
+    const match = maxExerciseNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
+    if (!match) return;
+ 
+    const currentEx = currentAll[match] || {};
+    const previous = parseWeightValue(currentEx[repsInt]);
+    const isCorrection = await wasRecordedToday(match, repsInt, 'scheda');
  
     if (!isCorrection && previous !== null && weight <= previous) return;
     if (isCorrection && previous !== null && weight === previous) return;
  
-    const updatedEx = { ...currentEx, [repsInt]: String(weight) };
-    const updatedAll = { ...currentAll, [match]: updatedEx };
- 
-    const { error } = await supabase.from('athlete_maxes').upsert(
-      { athlete_id: athleteId, maxes: updatedAll, updated_at: new Date().toISOString() },
-      { onConflict: 'athlete_id' }
-    );
-    if (error) return;
- 
+    const updatedAll = { ...currentAll, [match]: { ...currentEx, [repsInt]: String(weight) } };
+    if (!(await saveMax(updatedAll))) return;
     await recordMaxHistory(athleteId, match, repsInt, weight, 'scheda');
  
-    if (isCoachEditing) {
-      setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
-    } else {
-      setAthleteMaxes(updatedAll);
-    }
- 
     if (!isCorrection) {
-      setPrBadge({ exercise: match, reps: repsInt, weight, previous });
+      setPrBadge({
+        exercise: match,
+        headline: `${weight} kg × ${repsInt}`,
+        subtitle: previous !== null
+          ? `Hai superato il tuo ${repsInt}RM precedente di ${Math.round((weight - previous) * 10) / 10} kg!`
+          : `Primo ${repsInt}RM registrato su questo esercizio!`,
+      });
     }
   };
  
-  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string, blockInfo?: { name?: string; reps?: any; type?: string }) => {
+  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string) => {
     if (athleteIdOverride) {
       // Il coach sta inserendo un risultato per conto di un atleto (es. durante il personal)
       const currentProgResults = coachAllResults[programId] || {};
@@ -1429,9 +1611,6 @@ const [notificationError, setNotificationError] = useState('');
         { onConflict: 'program_id, athlete_id' }
       );
  
-      if (field === 'score' && blockInfo?.type === 'forza') {
-        maybeUpdateMaxFromScore(athleteIdOverride, blockInfo.name || '', blockInfo.reps, value, true);
-      }
       return;
     }
  
@@ -1453,9 +1632,6 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'program_id, athlete_id' }
     );
  
-    if (field === 'score' && blockInfo?.type === 'forza') {
-      maybeUpdateMaxFromScore(session.user.id, blockInfo.name || '', blockInfo.reps, value, false);
-    }
   };
  
   const handleLogin = async (e: React.FormEvent) => {
@@ -2003,13 +2179,9 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏆</div>
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.9, marginBottom: '10px', fontWeight: 'bold' }}>Nuovo record personale</div>
             <p style={{ fontSize: '19px', lineHeight: 1.4, margin: '0 0 6px 0', fontWeight: 'bold' }}>
-              {prBadge.exercise} — {prBadge.weight} kg × {prBadge.reps}
+              {prBadge.exercise} — {prBadge.headline}
             </p>
-            <p style={{ fontSize: '14px', margin: '0 0 20px 0', opacity: 0.95 }}>
-              {prBadge.previous !== null
-                ? `Hai superato il tuo ${prBadge.reps}RM precedente di ${Math.round((prBadge.weight - prBadge.previous) * 10) / 10} kg!`
-                : `Primo ${prBadge.reps}RM registrato su questo esercizio!`}
-            </p>
+            <p style={{ fontSize: '14px', margin: '0 0 20px 0', opacity: 0.95 }}>{prBadge.subtitle}</p>
             <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '10px', background: '#ffffff', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
               Grande! 💪
             </button>
@@ -2424,6 +2596,42 @@ const [notificationError, setNotificationError] = useState('');
                       );
                     })}
                   </div>
+ 
+                  <h4 style={{ fontSize: '15px', margin: '20px 0 8px 0', color: '#10b981' }}>⏱️ Massimali Metabolici</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {METABOLIC_EXERCISES.map((exName) => (
+                      <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.time || '-'}</span>
+                        </div>
+                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                        </button>
+                        {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
+                          <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+ 
+                  <h4 style={{ fontSize: '15px', margin: '20px 0 8px 0', color: '#10b981' }}>🤸 Massimali Ginnastica</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {GYMNASTICS_EXERCISES.map((exName) => (
+                      <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.reps ? `${coachAthleteMaxes[selectedCoachAthlete.id][exName].reps} rep` : '-'}</span>
+                        </div>
+                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                        </button>
+                        {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
+                          <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                   </div>
                   )}
  
@@ -2576,7 +2784,12 @@ const [notificationError, setNotificationError] = useState('');
                                   <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
  
-                                    {blk.type === 'forza' ? (
+                                    {blk.type === 'test' ? (
+                                      <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>TEST</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#1e3a8a' }}>{blk.target || '\u2014'}</span>
+                                      </div>
+                                    ) : blk.type === 'forza' ? (
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
@@ -2618,7 +2831,7 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                          <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId, { name: blk.name, reps: blk.reps, type: blk.type })} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                          <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId)} onBlur={(e) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, e.target.value, true, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                         </div>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
@@ -2809,6 +3022,7 @@ const [notificationError, setNotificationError] = useState('');
                                   <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
+                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -2823,7 +3037,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </div>
  
                                 <div style={{ marginBottom: '10px' }}>
-                                  {block.type === 'forza' ? (
+                                  {(block.type === 'forza' || block.type === 'test') ? (
                                     <div>
                                       <input
                                         type="text"
@@ -2858,7 +3072,13 @@ const [notificationError, setNotificationError] = useState('');
                                     <div style={{ marginBottom: '10px' }}>
                                       <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                     </div>
-                                    {block.type === 'forza' ? (
+                                    {block.type === 'test' ? (
+                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
+                                        <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                        <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero. L&apos;atleta scrive il risultato nello score.</p>
+                                      </div>
+                                    ) : block.type === 'forza' ? (
                                       <div>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
@@ -3106,6 +3326,7 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
+                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -3116,7 +3337,13 @@ const [notificationError, setNotificationError] = useState('');
                                     </div>
  
                                     <div style={{ marginBottom: '10px' }}>
-                                      {block.type === 'forza' ? (
+                                      {block.type === 'test' ? (
+                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
+                                          <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                          <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero. L&apos;atleta scrive il risultato nello score.</p>
+                                        </div>
+                                      ) : block.type === 'forza' ? (
                                         <div>
                                           <input
                                             type="text"
@@ -3124,11 +3351,14 @@ const [notificationError, setNotificationError] = useState('');
                                             value={block.name || ''}
                                             onChange={(e) => {
                                               const val = e.target.value;
-                                              updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', val);
+                                              const upd = JSON.parse(JSON.stringify(programWeeks));
+                                              const target = upd[actualWIdx].days[actualDIdx].blocks[bIdx];
+                                              target.name = val;
                                               const foundEx = exerciseLibrary.find(ex => ex.name === val);
                                               if (foundEx && foundEx.video_url) {
-                                                updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', foundEx.video_url);
+                                                target.videoUrl = foundEx.video_url;
                                               }
+                                              setProgramWeeks(upd);
                                             }}
                                             placeholder="Inserisci o seleziona esercizio..."
                                             style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
@@ -3430,7 +3660,7 @@ const [notificationError, setNotificationError] = useState('');
                       {REP_SCHEMES.map((reps) => (
                         <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
-                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxChange(exName, reps, e.target.value)} style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
+                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxTyping(exName, reps, e.target.value)} onBlur={(e) => handleMaxChange(exName, reps, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
                         </div>
                       ))}
                     </div>
@@ -3444,6 +3674,57 @@ const [notificationError, setNotificationError] = useState('');
  
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <MaxHistoryChart points={historyCache[`${session.user.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
+                    )}
+                  </div>
+                ))}
+              </div>
+ 
+              <h3 style={{ fontSize: '18px', margin: '24px 0 4px 0', color: '#10b981' }}>⏱️ Massimali Metabolici</h3>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {METABOLIC_EXERCISES.map((exName) => (
+                  <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
+                      <input
+                        type="text"
+                        placeholder="mm:ss"
+                        value={athleteMaxes[exName]?.time || ''}
+                        onChange={(e) => handleSpecialMaxTyping(exName, 'tempo', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'tempo', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        style={{ width: '90px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                      />
+                    </div>
+                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                    </button>
+                    {openHistoryKey === `${session.user.id}|${exName}` && (
+                      <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
+                    )}
+                  </div>
+                ))}
+              </div>
+ 
+              <h3 style={{ fontSize: '18px', margin: '24px 0 4px 0', color: '#10b981' }}>🤸 Massimali Ginnastica</h3>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {GYMNASTICS_EXERCISES.map((exName) => (
+                  <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="rep"
+                        value={athleteMaxes[exName]?.reps || ''}
+                        onChange={(e) => handleSpecialMaxTyping(exName, 'rep', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'rep', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        style={{ width: '90px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                      />
+                    </div>
+                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                    </button>
+                    {openHistoryKey === `${session.user.id}|${exName}` && (
+                      <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
                     )}
                   </div>
                 ))}
@@ -3645,7 +3926,12 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {!isClosed && (
                                               <div>
-                                                {blk.type === 'forza' ? (
+                                                {blk.type === 'test' ? (
+                                                  <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>TEST</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '17px', color: '#1e3a8a' }}>{blk.target || '\u2014'}</span>
+                                                  </div>
+                                                ) : blk.type === 'forza' ? (
                                                   <div>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
@@ -3690,7 +3976,7 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, undefined, { name: blk.name, reps: blk.reps, type: blk.type })} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} onBlur={(e) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, e.target.value, false, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
