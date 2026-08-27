@@ -465,6 +465,7 @@ export default function TrainingApp() {
   const [signupHeight, setSignupHeight] = useState('');
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [policyScrolledToEnd, setPolicyScrolledToEnd] = useState(false);
   const emptyPersonalData = { full_name: '', birth_date: '', weight: '', height: '' };
   const [personalData, setPersonalData] = useState<any>(emptyPersonalData);
   const [coachAllPersonalData, setCoachAllPersonalData] = useState<{ [athleteId: string]: any }>({});
@@ -536,6 +537,12 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
   // Gli esercizi dei massimali sono gli stessi della libreria video, marcati con "track_max"
+  const metconPRNames = exerciseLibrary
+    .filter((e: any) => !e.dismissed && e.pr_kind === 'metcon')
+    .map((e: any) => e.name);
+  const gymPRNames = exerciseLibrary
+    .filter((e: any) => !e.dismissed && e.pr_kind === 'gym')
+    .map((e: any) => e.name);
   const maxExerciseNames = exerciseLibrary
     .filter((e: any) => !e.dismissed && e.track_max)
     .map((e: any) => e.name);
@@ -544,7 +551,8 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'strength' | 'metcon' | 'gym' | 'anamnesi'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
+  const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
@@ -568,7 +576,8 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'strength' | 'metcon' | 'gym' | 'anamnesi' | 'privacy'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy'>('anagrafici');
+  const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -1357,6 +1366,29 @@ const [notificationError, setNotificationError] = useState('');
     });
   };
  
+  const [newPrName, setNewPrName] = useState('');
+ 
+  const addPrExercise = async (kind: 'metcon' | 'gym') => {
+    const name = newPrName.trim();
+    if (!name) return;
+    const existing = exerciseLibrary.find((e: any) => e.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      await supabase.from('exercises_library').update({ pr_kind: kind, dismissed: false }).eq('id', existing.id);
+    } else {
+      await supabase.from('exercises_library').insert([{ name, video_url: '', pr_kind: kind }]);
+    }
+    setNewPrName('');
+    fetchExerciseLibrary();
+  };
+ 
+  const removePrExercise = async (name: string) => {
+    if (!confirm(`Togliere "${name}" dall'elenco dei PR? I dati già registrati restano nello storico.`)) return;
+    const ex = exerciseLibrary.find((e: any) => e.name === name);
+    if (!ex) return;
+    await supabase.from('exercises_library').update({ pr_kind: null }).eq('id', ex.id);
+    fetchExerciseLibrary();
+  };
+ 
   const addMaxTrackedExercise = async () => {
     const name = newMaxExerciseName.trim();
     if (!name) return;
@@ -1500,7 +1532,7 @@ const [notificationError, setNotificationError] = useState('');
     };
  
     // --- 1. Esercizio metabolico: il risultato è un tempo, più basso è meglio ---
-    const met = METABOLIC_EXERCISES.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
+    const met = metconPRNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
     if (met) {
       const seconds = timeToSeconds(scoreText);
       if (!seconds || seconds <= 0) return;
@@ -1527,7 +1559,7 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     // --- 2. Esercizio di ginnastica: il risultato sono le ripetizioni ---
-    const gym = GYMNASTICS_EXERCISES.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
+    const gym = gymPRNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
     if (gym) {
       const reps = parseWeightValue(scoreText);
       if (!reps || reps <= 0) return;
@@ -2115,7 +2147,19 @@ const [notificationError, setNotificationError] = useState('');
                 <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
               </div>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>
-                <input type="checkbox" checked={privacyConsent} onChange={(e) => setPrivacyConsent(e.target.checked)} style={{ marginTop: '2px', flexShrink: 0 }} />
+                <input
+                  type="checkbox"
+                  checked={privacyConsent}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setPolicyScrolledToEnd(false);
+                      setShowPrivacyPolicy(true);
+                    } else {
+                      setPrivacyConsent(false);
+                    }
+                  }}
+                  style={{ marginTop: '2px', flexShrink: 0 }}
+                />
                 <span>
                   Ho letto e accetto l'
                   <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: '#10b981', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
@@ -2143,11 +2187,35 @@ const [notificationError, setNotificationError] = useState('');
         </div>
  
         {showPrivacyPolicy && (
-          <div onClick={() => setShowPrivacyPolicy(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#ffffff', color: '#000', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '80vh', overflowY: 'auto', fontSize: '13px', lineHeight: 1.5 }}>
-              <h3 style={{ marginTop: 0, color: '#10b981' }}>Informativa sul trattamento dei dati personali</h3>
-              <PrivacyPolicyContent />
-              <button onClick={() => setShowPrivacyPolicy(false)} style={{ marginTop: '10px', padding: '10px 16px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>Chiudi</button>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
+            <div style={{ background: '#ffffff', color: '#000', borderRadius: '12px', maxWidth: '560px', width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: '18px 20px 10px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: 0, color: '#10b981', fontSize: '17px' }}>Informativa sul trattamento dei dati personali</h3>
+                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b' }}>Scorri fino in fondo per poter proseguire.</p>
+              </div>
+ 
+              <div
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 40) setPolicyScrolledToEnd(true);
+                }}
+                style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', fontSize: '13px', lineHeight: 1.5 }}
+              >
+                <PrivacyPolicyContent />
+                <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid #10b981' }}>
+                  <p style={{ fontSize: '13px', color: '#334155', margin: 0, fontWeight: 'bold' }}>Hai raggiunto la fine dell&apos;informativa. Puoi chiudere e proseguire con la registrazione.</p>
+                </div>
+              </div>
+ 
+              <div style={{ padding: '14px 20px', borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                <button
+                  disabled={!policyScrolledToEnd}
+                  onClick={() => { setPrivacyConsent(true); setShowPrivacyPolicy(false); }}
+                  style={{ width: '100%', padding: '13px', borderRadius: '8px', background: policyScrolledToEnd ? '#10b981' : '#cbd5e1', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
+                >
+                  {policyScrolledToEnd ? 'Ho letto e accetto — Chiudi' : 'Scorri fino in fondo per continuare'}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -2454,9 +2522,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
-                    <button onClick={() => setCoachAthleteDetailTab('strength')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'strength' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'strength' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
-                    <button onClick={() => setCoachAthleteDetailTab('metcon')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'metcon' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'metcon' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
-                    <button onClick={() => setCoachAthleteDetailTab('gym')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'gym' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'gym' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
                     <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
                   </div>
  
@@ -2503,7 +2569,15 @@ const [notificationError, setNotificationError] = useState('');
                     );
                   })()}
  
-                  {coachAthleteDetailTab === 'strength' && (
+                  {coachAthleteDetailTab === 'maxes' && (
+                  <div>
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                  </div>
+ 
+                  {coachMaxSubTab === 'strength' && (
                   <div>
                     <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
                       <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
@@ -2602,15 +2676,25 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                   )}
  
-                  {coachAthleteDetailTab === 'metcon' && (
+                  {coachMaxSubTab === 'metcon' && (
                   <div>
                   <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>⏱️ Metcon PR</h4>
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Metcon PR</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                    </div>
+                  </div>
+ 
+ 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {METABOLIC_EXERCISES.map((exName) => (
+                    {metconPRNames.map((exName) => (
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
                           <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.time || '-'}</span>
+                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
@@ -2625,15 +2709,25 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                   )}
  
-                  {coachAthleteDetailTab === 'gym' && (
+                  {coachMaxSubTab === 'gym' && (
                   <div>
                   <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                    </div>
+                  </div>
+ 
+ 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {GYMNASTICS_EXERCISES.map((exName) => (
+                    {gymPRNames.map((exName) => (
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
                           <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.reps ? `${coachAthleteMaxes[selectedCoachAthlete.id][exName].reps} rep` : '-'}</span>
+                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
@@ -2644,6 +2738,9 @@ const [notificationError, setNotificationError] = useState('');
                       </div>
                     ))}
                   </div>
+                  </div>
+                  )}
+ 
                   </div>
                   )}
  
@@ -2843,7 +2940,15 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                                          {metconPRNames.includes(blk.name) ? (
+                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                              <input type="number" min="0" placeholder="min" value={String(currentScore || '').split(':')[0] || ''} onChange={(e) => { const sec = String(currentScore || '').split(':')[1] || ''; ((v: string) => { handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId); maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type); })(`${e.target.value || '0'}:${sec || '00'}`); }} style={{ width: '55px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
+                                              <span style={{ fontWeight: 'bold', color: '#64748b' }}>:</span>
+                                              <input type="number" min="0" max="59" placeholder="sec" value={String(currentScore || '').split(':')[1] || ''} onChange={(e) => { const min = String(currentScore || '').split(':')[0] || '0'; ((v: string) => { handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId); maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type); })(`${min}:${String(e.target.value || '0').padStart(2, '0')}`); }} style={{ width: '55px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
+                                            </div>
+                                          ) : (
                                           <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId)} onBlur={(e) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, e.target.value, true, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                          )}
                                         </div>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
@@ -3049,7 +3154,17 @@ const [notificationError, setNotificationError] = useState('');
                                 </div>
  
                                 <div style={{ marginBottom: '10px' }}>
-                                  {(block.type === 'forza' || block.type === 'test') ? (
+                                  {block.type === 'test' ? (
+                                    <select value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '8px' }}>
+                                      <option value="">Scegli un test...</option>
+                                      <optgroup label="Metcon">
+                                        {metconPRNames.map((n: string) => <option key={n} value={n}>{`Max Effort ${n}`}</option>)}
+                                      </optgroup>
+                                      <optgroup label="Gymnastics">
+                                        {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
+                                      </optgroup>
+                                    </select>
+                                  ) : block.type === 'forza' ? (
                                     <div>
                                       <input
                                         type="text"
@@ -3350,11 +3465,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <div style={{ marginBottom: '10px' }}>
                                       {block.type === 'test' ? (
-                                        <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
-                                          <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                          <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero. L&apos;atleta scrive il risultato nello score.</p>
-                                        </div>
+                                        <select value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '8px' }}>
+                                          <option value="">Scegli un test...</option>
+                                          <optgroup label="Metcon">
+                                            {metconPRNames.map((n: string) => <option key={n} value={n}>{`Max Effort ${n}`}</option>)}
+                                          </optgroup>
+                                          <optgroup label="Gymnastics">
+                                            {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
+                                          </optgroup>
+                                        </select>
                                       ) : block.type === 'forza' ? (
                                         <div>
                                           <input
@@ -3391,7 +3510,13 @@ const [notificationError, setNotificationError] = useState('');
                                         <div style={{ marginBottom: '10px' }}>
                                           <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                         </div>
-                                        {block.type === 'forza' ? (
+                                        {block.type === 'test' ? (
+                                          <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
+                                            <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                          </div>
+                                        ) : block.type === 'forza' ? (
                                           <div>
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
                                               <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
@@ -3620,9 +3745,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
-                <button onClick={() => setAthleteProfileTab('strength')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'strength' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'strength' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Strength PR</button>
-                <button onClick={() => setAthleteProfileTab('metcon')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'metcon' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'metcon' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Metcon PR</button>
-                <button onClick={() => setAthleteProfileTab('gym')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'gym' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'gym' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '10px' }}>Gymnastics PR</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Massimali</button>
                 <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi 📋</button>
                 <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy 🔒</button>
               </div>
@@ -3662,7 +3785,15 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
               )}
  
-              {athleteProfileTab === 'strength' && (
+              {athleteProfileTab === 'maxes' && (
+              <>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+              </div>
+ 
+              {athleteMaxSubTab === 'strength' && (
               <>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>Strength PR</h3>
  
@@ -3696,12 +3827,12 @@ const [notificationError, setNotificationError] = useState('');
               </>
               )}
  
-              {athleteProfileTab === 'metcon' && (
+              {athleteMaxSubTab === 'metcon' && (
               <>
               <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#10b981' }}>⏱️ Metcon PR</h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {METABOLIC_EXERCISES.map((exName) => (
+                {metconPRNames.map((exName) => (
                   <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
@@ -3726,12 +3857,12 @@ const [notificationError, setNotificationError] = useState('');
               </>
               )}
  
-              {athleteProfileTab === 'gym' && (
+              {athleteMaxSubTab === 'gym' && (
               <>
               <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#10b981' }}>🤸 Gymnastics PR</h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {GYMNASTICS_EXERCISES.map((exName) => (
+                {gymPRNames.map((exName) => (
                   <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
@@ -3753,6 +3884,9 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 ))}
               </div>
+              </>
+              )}
+ 
               </>
               )}
  
@@ -4000,7 +4134,15 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                                                      {metconPRNames.includes(blk.name) ? (
+                                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                          <input type="number" min="0" placeholder="min" value={String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[0] || ''} onChange={(e) => { const sec = String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[1] || ''; ((v: string) => { handleResultChange(prog.id, resultKey, 'score', v); maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, v, false, blk.type); })(`${e.target.value || '0'}:${sec || '00'}`); }} style={{ width: '55px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
+                                                          <span style={{ fontWeight: 'bold', color: '#64748b' }}>:</span>
+                                                          <input type="number" min="0" max="59" placeholder="sec" value={String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[1] || ''} onChange={(e) => { const min = String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[0] || '0'; ((v: string) => { handleResultChange(prog.id, resultKey, 'score', v); maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, v, false, blk.type); })(`${min}:${String(e.target.value || '0').padStart(2, '0')}`); }} style={{ width: '55px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
+                                                        </div>
+                                                      ) : (
                                                       <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} onBlur={(e) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, e.target.value, false, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                      )}
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
