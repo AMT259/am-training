@@ -1058,15 +1058,19 @@ const [notificationError, setNotificationError] = useState('');
     if (error) {
       setAuthError(error.message);
     } else {
-      fetch('/api/notify-coach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'new_user',
-          title: 'Nuovo utente registrato',
-          message: `${fullName || email} si è appena registrato all'app.`
-        }),
-      }).catch(err => console.error('Errore notifica nuovo utente:', err));
+      try {
+        await fetch('/api/notify-coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'new_user',
+            title: 'Nuovo utente registrato',
+            message: `${fullName || email} si è appena registrato all'app.`
+          }),
+        });
+      } catch (err) {
+        console.error('Errore notifica nuovo utente:', err);
+      }
  
       alert('Registrazione effettuata con successo!');
       setIsRegistering(false);
@@ -3195,4 +3199,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
