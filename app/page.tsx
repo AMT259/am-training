@@ -2352,7 +2352,14 @@ const [notificationError, setNotificationError] = useState('');
             </button>
  
             {showNotifications && (
-              <div style={{
+              <div
+                onClick={() => setShowNotifications(false)}
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
+              />
+            )}
+ 
+            {showNotifications && (
+              <div onClick={(e) => e.stopPropagation()} style={{
                 position: 'fixed',
                 top: '72px',
                 right: '12px',
@@ -2895,9 +2902,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {blk.type === 'test' ? (
                                       <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#1e3a8a' }}>
-                                          {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                        <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
+                                            {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
                                         </span>
                                         {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                       </div>
@@ -4089,9 +4096,9 @@ const [notificationError, setNotificationError] = useState('');
                                               <div>
                                                 {blk.type === 'test' ? (
                                                   <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
-                                                    <span style={{ fontWeight: 'bold', fontSize: '17px', color: '#1e3a8a' }}>
-                                                      {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                                    <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
+                                                        {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
                                                     </span>
                                                     {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                                   </div>
