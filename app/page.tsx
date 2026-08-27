@@ -1462,12 +1462,16 @@ const [notificationError, setNotificationError] = useState('');
             60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
             100% { opacity: 1; transform: scale(1) rotate(0deg); }
           }
-          @keyframes logoPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.06); }
+          @keyframes logoHeartbeat {
+            0%   { transform: scale(1); }
+            8%   { transform: scale(1.16); }
+            16%  { transform: scale(1); }
+            26%  { transform: scale(1.11); }
+            36%  { transform: scale(1); }
+            100% { transform: scale(1); }
           }
         `}</style>
-        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoPulse 1.6s ease-in-out infinite 0.7s' }} />
+        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoHeartbeat 1.3s ease-in-out infinite 0.7s' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
