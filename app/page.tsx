@@ -562,7 +562,7 @@ export default function TrainingApp() {
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
  
-  const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: { [reps: number]: string } }>({});
+  const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
@@ -4008,5 +4008,4 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
- 
  
