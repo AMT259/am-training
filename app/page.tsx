@@ -2895,8 +2895,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {blk.type === 'test' ? (
                                       <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>TEST</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#1e3a8a' }}>{blk.target || '\u2014'}</span>
+                                        <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#1e3a8a' }}>
+                                          {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                        </span>
+                                        {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                       </div>
                                     ) : blk.type === 'forza' ? (
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
@@ -3201,9 +3204,9 @@ const [notificationError, setNotificationError] = useState('');
                                     </div>
                                     {block.type === 'test' ? (
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
-                                        <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
-                                        <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero. L&apos;atleta scrive il risultato nello score.</p>
+                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE DEL COACH</label>
+                                        <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
                                       </div>
                                     ) : block.type === 'forza' ? (
                                       <div>
@@ -3512,8 +3515,8 @@ const [notificationError, setNotificationError] = useState('');
                                         </div>
                                         {block.type === 'test' ? (
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>DISTANZA / CALORIE / REP</label>
-                                            <input type="text" placeholder="es. 500 mt, 20 cal, max rep" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE DEL COACH</label>
+                                            <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                             <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
                                           </div>
                                         ) : block.type === 'forza' ? (
@@ -4086,8 +4089,11 @@ const [notificationError, setNotificationError] = useState('');
                                               <div>
                                                 {blk.type === 'test' ? (
                                                   <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>TEST</span>
-                                                    <span style={{ fontWeight: 'bold', fontSize: '17px', color: '#1e3a8a' }}>{blk.target || '\u2014'}</span>
+                                                    <span style={{ fontSize: '10px', color: '#1e40af', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '17px', color: '#1e3a8a' }}>
+                                                      {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                                    </span>
+                                                    {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                                   </div>
                                                 ) : blk.type === 'forza' ? (
                                                   <div>
