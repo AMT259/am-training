@@ -1457,11 +1457,6 @@ const [notificationError, setNotificationError] = useState('');
     return (
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
         <style>{`
-          @keyframes logoPop {
-            0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
-            60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
-          }
           @keyframes logoHeartbeat {
             0%   { transform: scale(1); }
             8%   { transform: scale(1.16); }
@@ -1471,7 +1466,7 @@ const [notificationError, setNotificationError] = useState('');
             100% { transform: scale(1); }
           }
         `}</style>
-        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoHeartbeat 1.3s ease-in-out 0.7s infinite' }} />
+        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', animation: 'logoHeartbeat 1.3s ease-in-out infinite' }} />
         <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
       </div>
     );
@@ -1482,11 +1477,6 @@ const [notificationError, setNotificationError] = useState('');
       <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
-          @keyframes logoPop {
-            0% { opacity: 0; transform: scale(0.4) rotate(-20deg); }
-            60% { opacity: 1; transform: scale(1.15) rotate(6deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
-          }
           @keyframes fadeInUp {
             0% { opacity: 0; transform: translateY(14px); }
             100% { opacity: 1; transform: translateY(0); }
@@ -1501,7 +1491,7 @@ const [notificationError, setNotificationError] = useState('');
           }
         `}</style>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <AmtLogo style={{ width: '140px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', marginBottom: '12px', animation: 'logoPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, logoHeartbeat 1.3s ease-in-out 0.7s infinite', opacity: 0 }} />
+          <AmtLogo style={{ width: '140px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', marginBottom: '12px', animation: 'logoHeartbeat 1.3s ease-in-out infinite' }} />
           <h1 style={{ color: '#10b981', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
           <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
         </div>
