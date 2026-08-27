@@ -29,6 +29,112 @@ const STRENGTH_EXERCISES = [
  
 const REP_SCHEMES = [1, 3, 5, 10];
  
+const MOTIVATIONAL_QUOTES = [
+  'Non devi essere il migliore. Devi solo essere meglio di ieri.',
+  'La costanza batte l\'intensità. Sempre.',
+  'Il corpo raggiunge ciò che la mente crede possibile.',
+  'Ogni allenamento fatto è un mattone. La forza è la casa.',
+  'Presentarsi è già metà del lavoro.',
+  'I progressi non si vedono ogni giorno, ma si vedono ogni anno.',
+  'Non contare i giorni: fai in modo che i giorni contino.',
+  'La disciplina è ricordarsi cosa vuoi davvero.',
+  'Allenati per come vuoi sentirti, non solo per come vuoi apparire.',
+  'Il riposo fa parte del programma, non è una pausa dal programma.',
+  'Piccoli passi ogni giorno battono grandi salti ogni tanto.',
+  'La fatica di oggi è la facilità di domani.',
+  'Sii paziente con i risultati e ostinato con le abitudini.',
+  'Nessuno si è mai pentito di un allenamento fatto.',
+  'La forza non arriva da ciò che sai fare, ma da ciò che superi.',
+  'Concentrati sul processo: i risultati vengono da soli.',
+  'Un buon allenamento oggi vale più di uno perfetto domani.',
+  'Il tuo unico avversario è la versione di te di ieri.',
+  'Ascolta il tuo corpo: sa quando spingere e quando fermarsi.',
+  'La motivazione ti fa iniziare, l\'abitudine ti fa continuare.',
+  'Non serve essere perfetti, serve essere presenti.',
+  'Il progresso è progresso, per quanto piccolo.',
+  'Ogni ripetizione conta, anche quella che non senti.',
+  'Trasforma "devo allenarmi" in "posso allenarmi".',
+  'La tecnica prima del carico. Sempre.',
+  'Fidati del processo, anche quando i numeri non si muovono.',
+  'Il recupero è dove avviene la crescita.',
+  'Meglio costante al 70% che perfetto una volta al mese.',
+  'Fatti trovare pronto: allenati anche quando non ne hai voglia.',
+  'La versione più forte di te si costruisce un giorno alla volta.',
+  'I muscoli crescono nel riposo, il carattere sotto il bilanciere.',
+  'Chi si allena con metodo arriva più lontano di chi si allena con rabbia.',
+  'Non sei in ritardo. Sei esattamente al chilometro che hai percorso.',
+  'La prima serie è la più difficile: dopo decide il corpo.',
+  'Un chilo in più sul bilanciere vale meno di una ripetizione fatta bene.',
+  'Allenarsi è un privilegio, non una punizione.',
+  'Il piano funziona solo se lo segui anche nei giorni storti.',
+  'Meglio finire stanchi che iniziare perfetti e mollare.',
+  'La forza è un\'abitudine travestita da talento.',
+  'Rispetta i giorni di scarico: servono a farti spingere meglio dopo.',
+  'Non paragonarti a chi si allena da dieci anni al suo primo mese.',
+  'Il bilanciere non mente: ti dice sempre a che punto sei.',
+  'Fai la cosa noiosa, ripetutamente. Lì stanno i risultati.',
+  'Non è debolezza fermarsi: è intelligenza.',
+  'Il mese che stai per mollare è spesso quello prima del salto.',
+  'Chi migliora la mobilità, migliora tutto il resto.',
+  'La scheda migliore è quella che riesci a seguire davvero.',
+  'Dormire bene è allenamento invisibile.',
+  'Ogni grande massimale è stato prima un riscaldamento.',
+  'Il talento apre la porta, l\'abitudine ci abita dentro.',
+  'Se oggi hai dato il 60%, è comunque più di zero.',
+  'Il progresso non è lineare: sono scalini, non una rampa.',
+  'La testa cede molto prima delle gambe.',
+  'Impara ad amare il lavoro, non solo il risultato.',
+  'Mangi, dormi, ti alleni: tre gambe dello stesso sgabello.',
+  'La pazienza è il carico più pesante da sollevare.',
+  'Il tuo record di oggi era il tuo sogno di un anno fa.',
+  'Non allenarti per stancarti: allenati per migliorare.',
+  'Chi conta le scuse non conta le serie.',
+  'La forma segue la funzione: allena bene e il resto arriva.',
+  'Torna sempre alle basi quando ti senti perso.',
+  'Il tuo corpo è l\'unico posto in cui devi vivere per sempre.',
+  'Una settimana storta non cancella tre mesi di lavoro.',
+  'L\'allenamento migliore è quello che hai fatto.',
+  'Costruisci la base larga: la punta verrà da sola.',
+  'Fatica condivisa, risultati moltiplicati.',
+  'Se fa male in modo sbagliato, fermati e chiedi.',
+  'Nessun massimale vale un infortunio.',
+  'La respirazione è il primo attrezzo che hai.',
+  'Le grandi trasformazioni sono fatte di giorni ordinari.',
+  'Non serve motivazione tutti i giorni: serve un piano.',
+  'Il riscaldamento non è tempo perso, è tempo investito.',
+  'Migliora l\'1% oggi. Fallo per un anno.',
+  'La versione svogliata di te che si allena batte quella motivata che rimanda.',
+  'Il peso che sollevi cambia. La testa che ci metti resta.',
+  'Non allenare l\'ego: allena il movimento.',
+  'Il tuo corpo si adatta a ciò che gli chiedi con costanza.',
+  'Le scorciatoie portano dove non volevi andare.',
+  'Vinci la giornata, poi pensa alla settimana.',
+  'Chi impara ad ascoltarsi non si ferma mai troppo a lungo.',
+  'Anche il recupero attivo è allenamento.',
+  'Ogni serie è una conversazione tra te e il tuo limite.',
+  'Non devi sentirti pronto: devi solo cominciare.',
+  'Il progresso silenzioso è quello che dura.',
+  'Meglio due allenamenti fatti bene che quattro fatti a metà.',
+  'La forza gentile è comunque forza.',
+  'Non c\'è una versione finale di te: solo la prossima.',
+  'Alza il livello dell\'abitudine, non solo del carico.',
+  'La differenza la fanno i giorni in cui non avevi voglia.',
+  'Allenati oggi per potertelo permettere anche a 70 anni.',
+];
+ 
+function getDailyQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+  const seed = dayOfYear + now.getFullYear() * 7;
+  return MOTIVATIONAL_QUOTES[seed % MOTIVATIONAL_QUOTES.length];
+}
+ 
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+ 
 const PRIVACY_VERSION = '1.0';
  
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
@@ -125,6 +231,27 @@ export default function TrainingApp() {
   const [consentSaving, setConsentSaving] = useState(false);
   const [accountActionLoading, setAccountActionLoading] = useState(false);
   const [needsAnamnesis, setNeedsAnamnesis] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [dailyQuote, setDailyQuote] = useState('');
+ 
+  useEffect(() => {
+    const t = setTimeout(() => setShowSplash(false), 2800);
+    return () => clearTimeout(t);
+  }, []);
+ 
+  useEffect(() => {
+    if (showSplash || !session) return;
+    try {
+      const seen = localStorage.getItem('amt_quote_shown');
+      if (seen !== todayKey()) {
+        setDailyQuote(getDailyQuote());
+        localStorage.setItem('amt_quote_shown', todayKey());
+      }
+    } catch (e) {
+      // Se il salvataggio locale non è disponibile, mostro comunque la frase
+      setDailyQuote(getDailyQuote());
+    }
+  }, [showSplash, session]);
   const [authError, setAuthError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -1453,10 +1580,11 @@ const [notificationError, setNotificationError] = useState('');
     await fetchProgramLibrary();
   };
  
-  if (loading) {
+  if (showSplash || loading) {
     return (
-      <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
+      <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
           @keyframes logoHeartbeat {
             0%   { transform: scale(1); }
             8%   { transform: scale(1.16); }
@@ -1465,9 +1593,16 @@ const [notificationError, setNotificationError] = useState('');
             36%  { transform: scale(1); }
             100% { transform: scale(1); }
           }
+          @keyframes splashFade {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
         `}</style>
-        <AmtLogo style={{ width: '150px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', animation: 'logoHeartbeat 1.3s ease-in-out infinite' }} />
-        <div style={{ color: '#10b981', fontWeight: 'bold' }}>Caricamento...</div>
+        <AmtLogo style={{ width: '170px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', animation: 'logoHeartbeat 1.3s ease-in-out infinite' }} />
+        <div style={{ textAlign: 'center', animation: 'splashFade 1s ease-out 0.4s both' }}>
+          <div style={{ color: '#10b981', fontSize: '34px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '3px', lineHeight: 1 }}>AMTraining</div>
+          <div style={{ color: '#94a3b8', fontSize: '13px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
+        </div>
       </div>
     );
   }
@@ -1570,6 +1705,19 @@ const [notificationError, setNotificationError] = useState('');
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
+ 
+      {dailyQuote && !showConsentGate && (
+        <div onClick={() => setDailyQuote('')} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1500 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}>💪</div>
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.85, marginBottom: '12px', fontWeight: 'bold' }}>Frase del giorno</div>
+            <p style={{ fontSize: '18px', lineHeight: 1.45, margin: '0 0 22px 0', fontWeight: 'bold' }}>{dailyQuote}</p>
+            <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '10px', background: '#ffffff', color: '#059669', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+              Iniziamo
+            </button>
+          </div>
+        </div>
+      )}
  
       {showConsentGate && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 2000 }}>
