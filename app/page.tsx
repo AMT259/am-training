@@ -137,6 +137,94 @@ function todayKey() {
  
 const PRIVACY_VERSION = '1.0';
  
+// ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
+ 
+const RPE_TABLE: { [rpe: string]: number[] } = {
+  // indice 0 = 1 rep, indice 9 = 10 reps — percentuali del massimale (1RM)
+  '10':  [100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9],
+  '9.5': [97.8, 93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3],
+  '9':   [95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7],
+  '8.5': [93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4],
+  '8':   [92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0],
+  '7.5': [90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7],
+  '7':   [89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3],
+  '6.5': [87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7, 64.0],
+  '6':   [86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3, 62.6],
+};
+ 
+function parseWeightValue(s: any): number | null {
+  if (s === null || s === undefined) return null;
+  const m = String(s).replace(',', '.').match(/(\d+(?:\.\d+)?)/);
+  if (!m) return null;
+  const v = parseFloat(m[1]);
+  return isNaN(v) ? null : v;
+}
+ 
+// Stima il massimale su 1 ripetizione partendo dai massimali inseriti (formula di Epley)
+function estimate1RM(exMaxes: any): number | null {
+  if (!exMaxes) return null;
+  const direct = parseWeightValue(exMaxes[1]);
+  if (direct) return direct;
+  const candidates: number[] = [];
+  [3, 5, 10].forEach((r) => {
+    const w = parseWeightValue(exMaxes[r]);
+    if (w) candidates.push(w * (1 + r / 30));
+  });
+  if (candidates.length === 0) return null;
+  return candidates.reduce((a, b) => a + b, 0) / candidates.length;
+}
+ 
+function roundLoad(kg: number): number {
+  return Math.round(kg / 2.5) * 2.5;
+}
+ 
+// Legge il campo "carico" e calcola il peso consigliato in kg
+function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
+  if (!loadText) return null;
+  const txt = String(loadText).trim();
+  const reps = parseWeightValue(repsText) || 1;
+  const oneRM = estimate1RM(exMaxes);
+  const hasDirect1RM = exMaxes && parseWeightValue(exMaxes[1]);
+ 
+  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"
+  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  if (pctMatch) {
+    const pct = parseFloat(pctMatch[1].replace(',', '.'));
+    const baseReps = pctMatch[2] ? parseInt(pctMatch[2]) : 1;
+    let base: number | null = null;
+    if (baseReps === 1) {
+      base = oneRM;
+    } else {
+      base = parseWeightValue(exMaxes?.[baseReps]);
+      if (!base && oneRM) {
+        // se manca quel massimale, lo ricavo dal 1RM stimato
+        base = oneRM / (1 + baseReps / 30);
+      }
+    }
+    if (!base) return null;
+    const kg = roundLoad((base * pct) / 100);
+    const note = hasDirect1RM || baseReps !== 1 ? '' : ' (stimato)';
+    return `≈ ${kg} kg${note}`;
+  }
+ 
+  // Caso 2: RPE, es. "RPE 8", "@8", "rpe8.5"
+  const rpeMatch = txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)/i);
+  if (rpeMatch && oneRM) {
+    const rpeRaw = rpeMatch[1].replace(',', '.');
+    const rpeVal = Math.min(10, Math.max(6, parseFloat(rpeRaw)));
+    const key = (Math.round(rpeVal * 2) / 2).toString();
+    const row = RPE_TABLE[key];
+    if (!row) return null;
+    const idx = Math.min(10, Math.max(1, Math.round(reps))) - 1;
+    const pct = row[idx];
+    const kg = roundLoad((oneRM * pct) / 100);
+    return `≈ ${kg} kg indicativi (RPE ${rpeVal} × ${Math.round(reps)} rip.)`;
+  }
+ 
+  return null;
+}
+ 
+ 
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 802 538" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AMT" style={style}>
@@ -233,6 +321,9 @@ export default function TrainingApp() {
   const [needsAnamnesis, setNeedsAnamnesis] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [dailyQuote, setDailyQuote] = useState('');
+  const [prBadge, setPrBadge] = useState<{ exercise: string; reps: number; weight: number; previous: number | null } | null>(null);
+  const [maxHistory, setMaxHistory] = useState<any[]>([]);
+  const [historyExercise, setHistoryExercise] = useState('');
  
   useEffect(() => {
     const t = setTimeout(() => setShowSplash(false), 2800);
@@ -1121,9 +1212,76 @@ const [notificationError, setNotificationError] = useState('');
       },
       { onConflict: 'athlete_id' }
     );
+ 
+    const w = parseWeightValue(value);
+    if (w) {
+      await supabase.from('athlete_max_history').insert([{
+        athlete_id: session.user.id,
+        exercise,
+        reps,
+        value: w,
+        source: 'manuale'
+      }]);
+      if (historyExercise === exercise) fetchMaxHistory(session.user.id, exercise);
+    }
   };
  
-  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string) => {
+  const fetchMaxHistory = async (athleteId: string, exercise: string) => {
+    const { data } = await supabase
+      .from('athlete_max_history')
+      .select('reps,value,recorded_at')
+      .eq('athlete_id', athleteId)
+      .eq('exercise', exercise)
+      .order('recorded_at', { ascending: true });
+    setMaxHistory(data || []);
+  };
+ 
+  // Aggiorna il massimale se il peso inserito nella scheda supera quello registrato
+  const maybeUpdateMaxFromScore = async (athleteId: string, exerciseName: string, repsText: any, scoreText: string, isCoachEditing: boolean) => {
+    const weight = parseWeightValue(scoreText);
+    const reps = parseWeightValue(repsText);
+    if (!weight || !reps) return;
+ 
+    const repsInt = Math.round(reps);
+    if (!REP_SCHEMES.includes(repsInt)) return;
+ 
+    const allNames = [...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)];
+    const match = allNames.find((n) => n.toLowerCase() === String(exerciseName || '').trim().toLowerCase());
+    if (!match) return;
+ 
+    const currentAll = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
+    const currentEx = currentAll[match] || {};
+    const previous = parseWeightValue(currentEx[repsInt]);
+ 
+    if (previous !== null && weight <= previous) return;
+ 
+    const updatedEx = { ...currentEx, [repsInt]: String(weight) };
+    const updatedAll = { ...currentAll, [match]: updatedEx };
+ 
+    const { error } = await supabase.from('athlete_maxes').upsert(
+      { athlete_id: athleteId, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { onConflict: 'athlete_id' }
+    );
+    if (error) return;
+ 
+    await supabase.from('athlete_max_history').insert([{
+      athlete_id: athleteId,
+      exercise: match,
+      reps: repsInt,
+      value: weight,
+      source: 'scheda'
+    }]);
+ 
+    if (isCoachEditing) {
+      setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
+    } else {
+      setAthleteMaxes(updatedAll);
+    }
+ 
+    setPrBadge({ exercise: match, reps: repsInt, weight, previous });
+  };
+ 
+  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string, blockInfo?: { name?: string; reps?: any; type?: string }) => {
     if (athleteIdOverride) {
       // Il coach sta inserendo un risultato per conto di un atleto (es. durante il personal)
       const currentProgResults = coachAllResults[programId] || {};
@@ -1145,6 +1303,10 @@ const [notificationError, setNotificationError] = useState('');
         },
         { onConflict: 'program_id, athlete_id' }
       );
+ 
+      if (field === 'score' && blockInfo?.type === 'forza') {
+        maybeUpdateMaxFromScore(athleteIdOverride, blockInfo.name || '', blockInfo.reps, value, true);
+      }
       return;
     }
  
@@ -1165,6 +1327,10 @@ const [notificationError, setNotificationError] = useState('');
       },
       { onConflict: 'program_id, athlete_id' }
     );
+ 
+    if (field === 'score' && blockInfo?.type === 'forza') {
+      maybeUpdateMaxFromScore(session.user.id, blockInfo.name || '', blockInfo.reps, value, false);
+    }
   };
  
   const handleLogin = async (e: React.FormEvent) => {
@@ -1705,6 +1871,26 @@ const [notificationError, setNotificationError] = useState('');
   return (
     <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
+ 
+      {prBadge && (
+        <div onClick={() => setPrBadge(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1800 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, #f59e0b 0%, #d97706 100%)', color: '#fff', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+            <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏆</div>
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.9, marginBottom: '10px', fontWeight: 'bold' }}>Nuovo record personale</div>
+            <p style={{ fontSize: '19px', lineHeight: 1.4, margin: '0 0 6px 0', fontWeight: 'bold' }}>
+              {prBadge.exercise} — {prBadge.weight} kg × {prBadge.reps}
+            </p>
+            <p style={{ fontSize: '14px', margin: '0 0 20px 0', opacity: 0.95 }}>
+              {prBadge.previous !== null
+                ? `Hai superato il tuo ${prBadge.reps}RM precedente di ${Math.round((prBadge.weight - prBadge.previous) * 10) / 10} kg!`
+                : `Primo ${prBadge.reps}RM registrato su questo esercizio!`}
+            </p>
+            <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '10px', background: '#ffffff', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+              Grande! 💪
+            </button>
+          </div>
+        </div>
+      )}
  
       {dailyQuote && !showConsentGate && (
         <div onClick={() => setDailyQuote('')} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1500 }}>
@@ -2264,6 +2450,10 @@ const [notificationError, setNotificationError] = useState('');
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
+                                          {(() => {
+                                            const hint = computeLoadHint(blk.load, blk.reps, coachAthleteMaxes[personalSelectedAthleteId]?.[blk.name]);
+                                            return hint ? <span style={{ display: 'block', fontSize: '10px', color: '#0284c7', fontWeight: 'bold', marginTop: '2px' }}>{hint}</span> : null;
+                                          })()}
                                         </div>
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
@@ -2289,7 +2479,7 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                          <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                          <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId, { name: blk.name, reps: blk.reps, type: blk.type })} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                         </div>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
@@ -3086,6 +3276,71 @@ const [notificationError, setNotificationError] = useState('');
               {athleteProfileTab === 'maxes' && (
               <>
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#10b981' }}>I tuoi Massimali di Forza</h3>
+ 
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📈 Storico progressione</span>
+                <select
+                  value={historyExercise}
+                  onChange={(e) => {
+                    setHistoryExercise(e.target.value);
+                    if (e.target.value) fetchMaxHistory(session.user.id, e.target.value);
+                    else setMaxHistory([]);
+                  }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
+                >
+                  <option value="">Scegli un esercizio...</option>
+                  {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+ 
+                {historyExercise && (maxHistory.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Nessuno storico ancora per questo esercizio. Verrà registrato ogni volta che aggiorni un massimale o batti un record dalla scheda.</p>
+                ) : (
+                  <div>
+                    {REP_SCHEMES.map((r) => {
+                      const pts = maxHistory.filter((h: any) => h.reps === r);
+                      if (pts.length < 1) return null;
+                      const vals = pts.map((p: any) => p.value);
+                      const minV = Math.min(...vals);
+                      const maxV = Math.max(...vals);
+                      const range = maxV - minV || 1;
+                      const W = 300, H = 70;
+                      const step = pts.length > 1 ? W / (pts.length - 1) : 0;
+                      const coords = pts.map((p: any, i: number) => {
+                        const x = pts.length > 1 ? i * step : W / 2;
+                        const y = H - ((p.value - minV) / range) * (H - 12) - 6;
+                        return `${x.toFixed(1)},${y.toFixed(1)}`;
+                      });
+                      const first = pts[0].value;
+                      const last = pts[pts.length - 1].value;
+                      const delta = Math.round((last - first) * 10) / 10;
+                      return (
+                        <div key={r} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000' }}>{r} RM</span>
+                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: delta > 0 ? '#10b981' : '#64748b' }}>
+                              {last} kg {delta > 0 ? `(+${delta})` : ''}
+                            </span>
+                          </div>
+                          <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
+                            <polyline points={coords.join(' ')} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                            {pts.map((p: any, i: number) => {
+                              const x = pts.length > 1 ? i * step : W / 2;
+                              const y = H - ((p.value - minV) / range) * (H - 12) - 6;
+                              return <circle key={i} cx={x} cy={y} r="3.5" fill="#10b981" />;
+                            })}
+                          </svg>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
+                            <span>{new Date(pts[0].recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>
+                            <span>{new Date(pts[pts.length - 1].recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {[...STRENGTH_EXERCISES, ...customMaxExercises.filter((e) => !e.dismissed).map((e) => e.name)].map((exName) => (
                   <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -3314,6 +3569,10 @@ const [notificationError, setNotificationError] = useState('');
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
+                                                        {(() => {
+                                                          const hint = computeLoadHint(blk.load, blk.reps, athleteMaxes[blk.name]);
+                                                          return hint ? <span style={{ display: 'block', fontSize: '11px', color: '#0284c7', fontWeight: 'bold', marginTop: '3px' }}>{hint}</span> : null;
+                                                        })()}
                                                       </div>
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
@@ -3339,7 +3598,7 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, undefined, { name: blk.name, reps: blk.reps, type: blk.type })} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
