@@ -527,6 +527,7 @@ export default function TrainingApp() {
  
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
+  const [programVisibility, setProgramVisibility] = useState<'none' | 'all' | 'selected'>('selected');
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
   const [programEndDate, setProgramEndDate] = useState('');
@@ -1040,6 +1041,7 @@ const [notificationError, setNotificationError] = useState('');
         startDate: item.start_date || '',
         endDate: item.end_date || '',
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
+        visibility: item.visibility || 'all',
         isDeleted: item.is_deleted === true,
         weeks: normalizeProgramWeeks(item)
       }));
@@ -2034,6 +2036,7 @@ const [notificationError, setNotificationError] = useState('');
       start_date: programStartDate || null,
       end_date: programEndDate || null,
       assigned_athlete_ids: selectedAthleteIds,
+      visibility: programVisibility,
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
     };
@@ -2049,6 +2052,7 @@ const [notificationError, setNotificationError] = useState('');
       setProgramStartDate('');
       setProgramEndDate('');
       setSelectedAthleteIds([]);
+      setProgramVisibility('selected');
       setProgramWeeks([{
         weekNumber: 1,
         weekName: 'Settimana 1',
@@ -2105,6 +2109,7 @@ const [notificationError, setNotificationError] = useState('');
         start_date: editingProgram.startDate || null,
         end_date: editingProgram.endDate || null,
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
+        visibility: editingProgram.visibility || 'selected',
         weeks: editingProgram.weeks,
         days: editingProgram.weeks[0]?.days || []
       })
@@ -2127,6 +2132,18 @@ const [notificationError, setNotificationError] = useState('');
       return;
     }
     await fetchProgramLibrary();
+  };
+ 
+  const toggleProgramVisibility = async (prog: any) => {
+    const next = prog.visibility === 'none'
+      ? (prog.assignedAthleteIds?.length > 0 ? 'selected' : 'all')
+      : 'none';
+    const { error } = await supabase.from('programs').update({ visibility: next }).eq('id', prog.id);
+    if (error) {
+      alert('Errore: ' + error.message);
+      return;
+    }
+    fetchProgramLibrary();
   };
  
   const restoreProgram = async (id: string) => {
@@ -2293,9 +2310,12 @@ const [notificationError, setNotificationError] = useState('');
     );
   }
  
-  const athletePrograms = programLibrary.filter(
-    (prog) => !prog.isDeleted && (!prog.assignedAthleteIds || prog.assignedAthleteIds.length === 0 || prog.assignedAthleteIds.includes(session?.user?.id))
-  );
+  const athletePrograms = programLibrary.filter((prog) => {
+    if (prog.isDeleted) return false;
+    if (prog.visibility === 'none') return false;            // bozza: solo il coach
+    if (prog.visibility === 'all') return true;              // visibile a tutti
+    return prog.assignedAthleteIds?.includes(session?.user?.id); // solo gli assegnati
+  });
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
     if (showDeletedPrograms) {
@@ -3110,6 +3130,12 @@ const [notificationError, setNotificationError] = useState('');
               </div>
  
               <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
+                <select value={editingProgram.visibility || 'selected'} onChange={(e) => (v: any) => setEditingProgram({ ...editingProgram, visibility: v })(e.target.value as any)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                  <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
+                  <option value="all">🌍 Tutti gli atleti</option>
+                  <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
+                </select>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                   {athletes.map((a) => {
@@ -3237,8 +3263,8 @@ const [notificationError, setNotificationError] = useState('');
  
                             return (
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                  <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
+                                  <div style={{ display: 'flex', gap: '6px', flex: '1 1 180px', minWidth: 0 }}>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
@@ -3432,6 +3458,12 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
  
                   <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
+                    <select value={programVisibility} onChange={(e) => setProgramVisibility(e.target.value as any)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                      <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
+                      <option value="all">🌍 Tutti gli atleti</option>
+                      <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
+                    </select>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
@@ -3556,8 +3588,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                 return (
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                                      <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
+                                      <div style={{ display: 'flex', gap: '6px', flex: '1 1 180px', minWidth: 0 }}>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
@@ -3700,10 +3732,15 @@ const [notificationError, setNotificationError] = useState('');
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
                       return (
-                        <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.visibility === 'none' ? '#fff8e6' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.visibility === 'none' ? '1px solid #f0c674' : '1px solid #d8dde3', marginBottom: '16px' }}>
                           <div style={{ marginBottom: '12px' }}>
                             <div>
-                              <h4 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
+                              <h4 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
+                              <div style={{ marginBottom: '8px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? '#fef3c7' : prog.visibility === 'all' ? '#e0f2fe' : '#dcfce7', color: prog.visibility === 'none' ? '#92400e' : prog.visibility === 'all' ? '#075985' : '#166534' }}>
+                                  {prog.visibility === 'none' ? '🔒 Bozza — non visibile' : prog.visibility === 'all' ? '🌍 Visibile a tutti' : '👥 Visibile agli assegnati'}
+                                </span>
+                              </div>
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
                                 <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
                                   Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
@@ -3723,6 +3760,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </>
                               ) : (
                                 <>
+                                  <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#fef3c7' : '#f4f4f5', border: prog.visibility === 'none' ? '1px solid #fcd34d' : '1px solid #d4d4d8', color: prog.visibility === 'none' ? '#92400e' : '#3f3f46', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>
                                   <button onClick={() => duplicateProgram(prog)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                                   <button onClick={() => {
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
