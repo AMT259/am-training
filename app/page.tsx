@@ -3131,11 +3131,16 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
-                <select value={editingProgram.visibility || 'selected'} onChange={(e) => setEditingProgram({ ...editingProgram, visibility: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                <select value={editingProgram.visibility || 'selected'} onChange={(e) => {
+                  const v = e.target.value;
+                  const ids = v === 'all' ? athletes.map((a: any) => a.id) : v === 'none' ? [] : (editingProgram.assignedAthleteIds || []);
+                  setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
+                }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                   <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                   <option value="all">🌍 Tutti gli atleti</option>
                   <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
                 </select>
+                {(editingProgram.visibility || 'selected') !== 'none' && (<>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                   {athletes.map((a) => {
@@ -3157,6 +3162,7 @@ const [notificationError, setNotificationError] = useState('');
                     );
                   })}
                 </div>
+                </>)}
               </div>
  
               <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
@@ -3459,11 +3465,17 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
-                    <select value={programVisibility} onChange={(e) => setProgramVisibility(e.target.value as any)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                    <select value={programVisibility} onChange={(e) => {
+                      const v = e.target.value as any;
+                      setProgramVisibility(v);
+                      if (v === 'all') setSelectedAthleteIds(athletes.map((a: any) => a.id));
+                      if (v === 'none') setSelectedAthleteIds([]);
+                    }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                       <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                       <option value="all">🌍 Tutti gli atleti</option>
                       <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
                     </select>
+                    {programVisibility !== 'none' && (<>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
@@ -3481,6 +3493,7 @@ const [notificationError, setNotificationError] = useState('');
                         ))
                       )}
                     </div>
+                    </>)}
                   </div>
  
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
