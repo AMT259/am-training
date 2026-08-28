@@ -2128,7 +2128,7 @@ const [notificationError, setNotificationError] = useState('');
  
   if (showSplash || loading) {
     return (
-      <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
+      <div style={{ background: '#18181b', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
           @keyframes logoHeartbeat {
@@ -2155,7 +2155,7 @@ const [notificationError, setNotificationError] = useState('');
  
   if (!session) {
     return (
-      <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
+      <div style={{ background: '#18181b', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
           @keyframes fadeInUp {
@@ -2285,7 +2285,7 @@ const [notificationError, setNotificationError] = useState('');
   });
  
   return (
-    <div style={{ background: '#0b0f19', color: '#fff', minHeight: '100vh', padding: '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
  
       {prBadge && (
@@ -2391,7 +2391,7 @@ const [notificationError, setNotificationError] = useState('');
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px solid #0b0f19'
+                  border: '2px solid #18181b'
                 }}>
                   {notifications.filter(n => !n.is_read).length}
                 </span>
@@ -2535,12 +2535,6 @@ const [notificationError, setNotificationError] = useState('');
  
       {role === 'coach' ? (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            <button onClick={() => { setCoachSubView('programs'); setEditingProgram(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'programs' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Programmi</button>
-            <button onClick={() => { setCoachSubView('athletes'); setSelectedCoachAthlete(null); }} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'athletes' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Profilo Utenti 👤</button>
-            <button onClick={() => setCoachSubView('personal')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'personal' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Personal 📝</button>
-            <button onClick={() => setCoachSubView('banner')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: coachSubView === 'banner' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Gestione Banner 📢</button>
-          </div>
  
           {coachSubView === 'banner' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -3801,10 +3795,6 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           )}
  
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>I tuoi Allenamenti</button>
-            <button onClick={() => setActiveTab('profile')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'profile' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Il mio Profilo 👤</button>
-          </div>
  
           {activeTab === 'profile' ? (
             <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -4247,6 +4237,65 @@ const [notificationError, setNotificationError] = useState('');
           )}
         </div>
       )}
+ 
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        background: 'rgba(24, 24, 27, 0.92)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderTop: '1px solid #2a2a2e',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        zIndex: 500
+      }}>
+        {(role === 'coach'
+          ? [
+              { key: 'programs', icon: '📋', label: 'Programmi' },
+              { key: 'athletes', icon: '👤', label: 'Profili' },
+              { key: 'personal', icon: '📝', label: 'Personal' },
+              { key: 'banner', icon: '📢', label: 'Banner' },
+            ]
+          : [
+              { key: 'create', icon: '🏋️', label: 'Allenamenti' },
+              { key: 'profile', icon: '👤', label: 'Profilo' },
+            ]
+        ).map((item) => {
+          const active = role === 'coach' ? coachSubView === item.key : activeTab === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => {
+                if (role === 'coach') {
+                  setCoachSubView(item.key as any);
+                  if (item.key === 'programs') setEditingProgram(null);
+                  if (item.key === 'athletes') setSelectedCoachAthlete(null);
+                } else {
+                  setActiveTab(item.key as any);
+                }
+              }}
+              style={{
+                flex: 1,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '9px 2px 11px 2px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '3px',
+                color: active ? '#10b981' : '#94a3b8',
+                borderTop: active ? '2px solid #10b981' : '2px solid transparent'
+              }}
+            >
+              <span style={{ fontSize: '19px', lineHeight: 1 }}>{item.icon}</span>
+              <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
