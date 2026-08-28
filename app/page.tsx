@@ -4125,8 +4125,8 @@ const [notificationError, setNotificationError] = useState('');
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                 <div
-                                  onClick={() => { if (isDayClosed) toggleProgramDayCollapse(dayCollapseKey); }}
-                                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: isDayClosed ? '0' : '12px', cursor: isDayClosed ? 'pointer' : 'default' }}
+                                  onClick={() => toggleProgramDayCollapse(dayCollapseKey)}
+                                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: isDayClosed ? '0' : '12px', cursor: 'pointer' }}
                                 >
                                   <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#141416' }}>{currentWeekObj.weekName} - {day.dayName}</span>
                                   <button
