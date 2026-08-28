@@ -4124,10 +4124,18 @@ const [notificationError, setNotificationError] = useState('');
  
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
+                                <div
+                                  onClick={() => { if (isDayClosed) toggleProgramDayCollapse(dayCollapseKey); }}
+                                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: isDayClosed ? '0' : '12px', cursor: isDayClosed ? 'pointer' : 'default' }}
+                                >
                                   <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#141416' }}>{currentWeekObj.weekName} - {day.dayName}</span>
-                                  <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
-                                    {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); toggleProgramDayCollapse(dayCollapseKey); }}
+                                    title={isDayClosed ? 'Apri' : 'Chiudi'}
+                                    style={{ background: 'transparent', border: 'none', color: '#10b981', padding: '4px 6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', lineHeight: 1, flexShrink: 0 }}
+                                  >
+                                    {isDayClosed ? '▼' : '▲'}
                                   </button>
                                 </div>
  
