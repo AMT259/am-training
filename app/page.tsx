@@ -15,7 +15,7 @@ const formatDateToIT = (dateString: string) => {
   const parts = cleanDate.split('-');
   if (parts.length === 3) {
     const [year, month, day] = parts;
-    return `${day}\\${month}\\${year}`;
+    return `${day}/${month}/${year}`;
   }
   return dateString;
 };
@@ -1415,10 +1415,15 @@ const [notificationError, setNotificationError] = useState('');
  
   const [newPrName, setNewPrName] = useState('');
  
+  // Confronto "morbido": ignora maiuscole, spazi e punteggiatura,
+  // così "10 cal Assault Bike" e "10cal assault-bike" sono lo stesso esercizio
+  const sameName = (a: string, b: string) =>
+    String(a).toLowerCase().replace(/[^a-z0-9]/g, '') === String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
+ 
   const addPrExercise = async (kind: 'metcon' | 'gym') => {
     const name = newPrName.trim();
     if (!name) return;
-    const existing = exerciseLibrary.find((e: any) => e.name.toLowerCase() === name.toLowerCase());
+    const existing = exerciseLibrary.find((e: any) => sameName(e.name, name));
     if (existing) {
       await supabase.from('exercises_library').update({ pr_kind: kind, dismissed: false }).eq('id', existing.id);
     } else {
@@ -1440,7 +1445,7 @@ const [notificationError, setNotificationError] = useState('');
     const name = newMaxExerciseName.trim();
     if (!name) return;
  
-    const existing = exerciseLibrary.find((e: any) => e.name.toLowerCase() === name.toLowerCase());
+    const existing = exerciseLibrary.find((e: any) => sameName(e.name, name));
     if (existing) {
       await supabase.from('exercises_library').update({ track_max: true, dismissed: false }).eq('id', existing.id);
     } else {
@@ -1958,6 +1963,24 @@ const [notificationError, setNotificationError] = useState('');
   const addGlobalExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName) return;
+ 
+    // Se un esercizio con lo stesso nome esiste già, lo aggiorno invece di duplicarlo
+    const existing = exerciseLibrary.find((ex: any) => sameName(ex.name, newExName));
+    if (existing) {
+      if (!confirm(`"${existing.name}" è già in libreria${existing.dismissed ? ' (nel cestino)' : ''}. Vuoi aggiornarlo invece di crearne uno nuovo?`)) return;
+      const payload: any = { dismissed: false };
+      if (newExVideo) payload.video_url = newExVideo;
+      const { error } = await supabase.from('exercises_library').update(payload).eq('id', existing.id);
+      if (error) {
+        alert('Errore: ' + error.message);
+        return;
+      }
+      setNewExName('');
+      setNewExVideo('');
+      fetchExerciseLibrary();
+      return;
+    }
+ 
     const { error } = await supabase.from('exercises_library').insert([{ name: newExName, video_url: newExVideo }]);
     if (error) {
       alert('Errore: ' + error.message);
@@ -2286,7 +2309,16 @@ const [notificationError, setNotificationError] = useState('');
  
   return (
     <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
+        button { transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .1s ease; }
+        button:active { transform: scale(0.97); }
+        input, select, textarea { transition: border-color .16s ease, box-shadow .16s ease; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16,185,129,0.18); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+      `}</style>
  
       {prBadge && (
         <div onClick={() => setPrBadge(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1800 }}>
@@ -2347,13 +2379,14 @@ const [notificationError, setNotificationError] = useState('');
         </div>
       )}
  
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #26262a', paddingBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <AmtLogo style={{ width: '58px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
-          <div>
-            <h2 style={{ fontSize: '26px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px' }}>AMTraining</h2>
-            <div style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Permanent Marker', cursive" }}>Improve Your Fitness</div>
-            <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '2px' }}>{session.user.email} ({role})</span>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #2e2e33', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+          <AmtLogo style={{ width: '46px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <h2 style={{ fontSize: '22px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px', lineHeight: 1.1 }}>AMTraining</h2>
+            <span style={{ fontSize: '11px', color: '#71717a', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {(personalData.full_name || session.user.email || '').trim()}{role === 'coach' ? ' · coach' : ''}
+            </span>
           </div>
         </div>
  
@@ -2537,7 +2570,7 @@ const [notificationError, setNotificationError] = useState('');
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
  
           {coachSubView === 'banner' ? (
-            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '18px', color: '#10b981', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
               <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
@@ -2562,7 +2595,7 @@ const [notificationError, setNotificationError] = useState('');
           ) : coachSubView === 'athletes' ? (
             <div>
               {selectedCoachAthlete ? (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
@@ -2571,7 +2604,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi 📋</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -2730,7 +2763,12 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Metcon PR</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} list="pr_suggestions" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <datalist id="pr_suggestions">
+                        {exerciseLibrary.filter((e: any) => !e.dismissed && !e.pr_kind).map((e: any) => (
+                          <option key={e.id} value={e.name} />
+                        ))}
+                      </datalist>
                       <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
@@ -2763,7 +2801,12 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                      <datalist id="pr_suggestions_gym">
+                        {exerciseLibrary.filter((e: any) => !e.dismissed && !e.pr_kind).map((e: any) => (
+                          <option key={e.id} value={e.name} />
+                        ))}
+                      </datalist>
                       <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
@@ -2844,7 +2887,7 @@ const [notificationError, setNotificationError] = useState('');
                   })()}
                 </div>
               ) : (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta</h3>
                   {athletes.length === 0 ? (
                     <p style={{ color: '#64748b' }}>Nessun atleta registrato.</p>
@@ -2891,7 +2934,7 @@ const [notificationError, setNotificationError] = useState('');
                         const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
  
                         return (
-                          <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                          <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '16px' }}>
                             <div
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
@@ -3028,7 +3071,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 );
               })() : (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta per il Personal</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {athletes.map((a: any) => (
@@ -3046,7 +3089,7 @@ const [notificationError, setNotificationError] = useState('');
               )}
             </div>
           ) : editingProgram ? (
-            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
                 <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
@@ -3315,13 +3358,13 @@ const [notificationError, setNotificationError] = useState('');
           ) : (
             <div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#2e2e33', color: activeTab === 'create' ? '#fff' : '#d4d4d8', border: activeTab === 'create' ? '1px solid #10b981' : '1px solid #3f3f46', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
-                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#2e2e33', color: activeTab === 'library' ? '#fff' : '#d4d4d8', border: activeTab === 'library' ? '1px solid #10b981' : '1px solid #3f3f46', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
-                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#2e2e33', color: activeTab === 'exercises' ? '#fff' : '#d4d4d8', border: activeTab === 'exercises' ? '1px solid #10b981' : '1px solid #3f3f46', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
+                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#2e2e33', color: activeTab === 'create' ? '#fff' : '#d4d4d8', border: activeTab === 'create' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
+                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#2e2e33', color: activeTab === 'library' ? '#fff' : '#d4d4d8', border: activeTab === 'library' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
+                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#2e2e33', color: activeTab === 'exercises' ? '#fff' : '#d4d4d8', border: activeTab === 'exercises' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
  
               {activeTab === 'exercises' ? (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
                     <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedExercises ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
@@ -3346,7 +3389,12 @@ const [notificationError, setNotificationError] = useState('');
                           <div>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
-                            {!showDeletedExercises && (
+                            {ex.pr_kind && (
+                              <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? '#dbeafe' : '#fce7f3', color: ex.pr_kind === 'metcon' ? '#1e40af' : '#9d174d', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
+                                {ex.pr_kind === 'metcon' ? 'Metcon PR' : 'Gymnastics PR'}
+                              </span>
+                            )}
+                            {!showDeletedExercises && !ex.pr_kind && (
                               <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '5px', cursor: 'pointer' }}>
                                 <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
                                 <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 'bold' }}>Traccia massimali</span>
@@ -3367,7 +3415,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                 </div>
               ) : activeTab === 'create' ? (
-                <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
                 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
@@ -3652,13 +3700,13 @@ const [notificationError, setNotificationError] = useState('');
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
                       return (
-                        <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '16px' }}>
+                          <div style={{ marginBottom: '12px' }}>
                             <div>
-                              <h4 style={{ margin: '0 0 4px 0', color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                              <h4 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
                                 <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
-                                  Assegnato: {assignedList.length > 0 ? assignedList.map(a => a.full_name || a.email).join(', ') : 'Tutti (Generale)'}
+                                  Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
                                 </span>
                                 {(prog.startDate || prog.endDate) && (
                                   <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
@@ -3670,12 +3718,12 @@ const [notificationError, setNotificationError] = useState('');
                             <div style={{ display: 'flex', gap: '6px' }}>
                               {showDeletedPrograms ? (
                                 <>
-                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
                                   <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>🗑️ Elimina definitivamente</button>
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                                   <button onClick={() => {
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
@@ -3684,8 +3732,8 @@ const [notificationError, setNotificationError] = useState('');
                                       setSelectedWeekView(progToEdit.weeks[0].weekName);
                                       if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
                                     }
-                                  }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
-                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                                  }} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                                 </>
                               )}
                             </div>
@@ -3797,12 +3845,12 @@ const [notificationError, setNotificationError] = useState('');
  
  
           {activeTab === 'profile' ? (
-            <div style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Massimali</button>
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi 📋</button>
-                <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy 🔒</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi</button>
+                <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
@@ -4057,7 +4105,7 @@ const [notificationError, setNotificationError] = useState('');
                   const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
  
                   return (
-                    <div key={prog.id} style={{ background: '#ffffff', color: '#000000', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                         <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (
