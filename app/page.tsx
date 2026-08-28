@@ -3131,7 +3131,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
-                <select value={editingProgram.visibility || 'selected'} onChange={(e) => (v: any) => setEditingProgram({ ...editingProgram, visibility: v })(e.target.value as any)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                <select value={editingProgram.visibility || 'selected'} onChange={(e) => setEditingProgram({ ...editingProgram, visibility: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                   <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                   <option value="all">🌍 Tutti gli atleti</option>
                   <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
@@ -4385,4 +4385,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
