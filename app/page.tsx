@@ -2178,20 +2178,20 @@ const [notificationError, setNotificationError] = useState('');
         </div>
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
           {!isResettingPassword && (
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
           )}
           {isRegistering && !isResettingPassword && (
             <>
-              <input type="text" placeholder="Nome e Cognome" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff' }} />
+              <input type="text" placeholder="Nome e Cognome" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
               <div>
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
-                <input type="date" value={signupBirthDate} onChange={(e) => setSignupBirthDate(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', boxSizing: 'border-box' }} />
+                <input type="date" value={signupBirthDate} onChange={(e) => setSignupBirthDate(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }} />
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
-                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334151', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
               </div>
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#94a3b8', lineHeight: 1.4 }}>
                 <input
@@ -2347,7 +2347,7 @@ const [notificationError, setNotificationError] = useState('');
         </div>
       )}
  
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #26262a', paddingBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <AmtLogo style={{ width: '58px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
           <div>
@@ -2364,8 +2364,8 @@ const [notificationError, setNotificationError] = useState('');
               title="Notifiche"
               style={{
                 position: 'relative',
-                background: '#1e293b',
-                border: '1px solid #334151',
+                background: '#26262a',
+                border: '1px solid #3a3a40',
                 color: '#fff',
                 width: '40px',
                 height: '40px',
@@ -2529,7 +2529,7 @@ const [notificationError, setNotificationError] = useState('');
             )}
           </div>
  
-          <button onClick={handleLogout} style={{ background: '#1e293b', border: '1px solid #334151', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+          <button onClick={handleLogout} style={{ background: '#26262a', border: '1px solid #3a3a40', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
         </div>
       </header>
  
@@ -3126,7 +3126,7 @@ const [notificationError, setNotificationError] = useState('');
                           setSelectedWeekView(e.target.value);
                           setEditingProgram(updated);
                         }}
-                        style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
+                        style={{ fontWeight: 'bold', color: '#141416', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
                       />
                       {editingProgram.weeks.length > 1 && (
                         <button onClick={() => {
@@ -3315,9 +3315,9 @@ const [notificationError, setNotificationError] = useState('');
           ) : (
             <div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
-                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
-                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#1e293b', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
+                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#26262a', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
+                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#26262a', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
+                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#26262a', color: '#fff', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
  
               {activeTab === 'exercises' ? (
@@ -3440,7 +3440,7 @@ const [notificationError, setNotificationError] = useState('');
                               setSelectedWeekView(e.target.value);
                               setProgramWeeks(upd);
                             }}
-                            style={{ fontWeight: 'bold', color: '#0f172a', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
+                            style={{ fontWeight: 'bold', color: '#141416', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
                           />
                           {programWeeks.length > 1 && (
                             <button onClick={() => {
@@ -3787,10 +3787,10 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
                 <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
-                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b', cursor: 'pointer' }} />
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a', cursor: 'pointer' }} />
                 </a>
               ) : (
-                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #1e293b' }} />
+                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a' }} />
               )}
             </div>
           )}
@@ -4107,7 +4107,7 @@ const [notificationError, setNotificationError] = useState('');
                             return (
                               <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isDayClosed ? '0' : '12px' }}>
-                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#0f172a' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#141416' }}>{currentWeekObj.weekName} - {day.dayName}</span>
                                   <button type="button" onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                                     {isDayClosed ? 'Apri Blocco Programma ▼' : 'Chiudi Blocco Programma ▲'}
                                   </button>
@@ -4281,7 +4281,7 @@ const [notificationError, setNotificationError] = useState('');
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                padding: '9px 2px 11px 2px',
+                padding: '10px 2px 20px 2px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -4299,4 +4299,5 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
  
