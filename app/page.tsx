@@ -3133,7 +3133,12 @@ const [notificationError, setNotificationError] = useState('');
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                 <select value={editingProgram.visibility || 'selected'} onChange={(e) => {
                   const v = e.target.value;
-                  const ids = v === 'all' ? athletes.map((a: any) => a.id) : v === 'none' ? [] : (editingProgram.assignedAthleteIds || []);
+                  const prev = editingProgram.visibility || 'selected';
+                  const ids = v === 'all'
+                    ? athletes.map((a: any) => a.id)
+                    : v === 'none' || (v === 'selected' && prev === 'all')
+                      ? []
+                      : (editingProgram.assignedAthleteIds || []);
                   setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
                 }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                   <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
@@ -3467,9 +3472,12 @@ const [notificationError, setNotificationError] = useState('');
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                     <select value={programVisibility} onChange={(e) => {
                       const v = e.target.value as any;
+                      const prev = programVisibility;
                       setProgramVisibility(v);
                       if (v === 'all') setSelectedAthleteIds(athletes.map((a: any) => a.id));
                       if (v === 'none') setSelectedAthleteIds([]);
+                      // arrivando da "tutti", riparto senza nessuna spunta
+                      if (v === 'selected' && prev === 'all') setSelectedAthleteIds([]);
                     }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                       <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                       <option value="all">🌍 Tutti gli atleti</option>
