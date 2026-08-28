@@ -291,6 +291,26 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
   );
 }
  
+const METCON_ORDER = ['run', 'row', 'ski', 'bike erg', 'assault bike'];
+ 
+function sortMetconNames(names: string[]): string[] {
+  const rank = (n: string): [number, number] => {
+    const low = n.toLowerCase();
+    let group = METCON_ORDER.findIndex((k) => low.includes(k));
+    if (group === -1) group = METCON_ORDER.length;
+    const m = low.match(/(\d+(?:[.,]\d+)?)/);
+    const num = m ? parseFloat(m[1].replace(',', '.')) : 0;
+    return [group, num];
+  };
+  return [...names].sort((a, b) => {
+    const [ga, na] = rank(a);
+    const [gb, nb] = rank(b);
+    if (ga !== gb) return ga - gb;
+    if (na !== nb) return na - nb;
+    return a.localeCompare(b);
+  });
+}
+ 
 const PRIVACY_VERSION = '1.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -537,9 +557,11 @@ export default function TrainingApp() {
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<any[]>([]);
   // Gli esercizi dei massimali sono gli stessi della libreria video, marcati con "track_max"
-  const metconPRNames = exerciseLibrary
-    .filter((e: any) => !e.dismissed && e.pr_kind === 'metcon')
-    .map((e: any) => e.name);
+  const metconPRNames = sortMetconNames(
+    exerciseLibrary
+      .filter((e: any) => !e.dismissed && e.pr_kind === 'metcon')
+      .map((e: any) => e.name)
+  );
   const gymPRNames = exerciseLibrary
     .filter((e: any) => !e.dismissed && e.pr_kind === 'gym')
     .map((e: any) => e.name);
@@ -1077,13 +1099,25 @@ const [notificationError, setNotificationError] = useState('');
  
   const checkPrivacyConsent = async (userId: string) => {
     const { data } = await supabase.from('profiles').select('privacy_consent_at').eq('id', userId).maybeSingle();
-    const consent = data?.privacy_consent_at || session?.user?.user_metadata?.privacy_consent_at || null;
+ 
+    // Rileggo i dati aggiornati dell'account: è la fonte più affidabile
+    const { data: userData } = await supabase.auth.getUser();
+    const metaConsent = userData?.user?.user_metadata?.privacy_consent_at || null;
+ 
+    const consent = data?.privacy_consent_at || metaConsent || null;
     setPrivacyConsentAt(consent);
  
     if (!consent) {
       setShowConsentGate(true);
-    } else if (!data?.privacy_consent_at) {
+      return;
+    }
+ 
+    // Allineo le due copie, senza bloccare nulla se l'aggiornamento non è permesso
+    if (!data?.privacy_consent_at) {
       await supabase.from('profiles').update({ privacy_consent_at: consent }).eq('id', userId);
+    }
+    if (!metaConsent) {
+      await supabase.auth.updateUser({ data: { privacy_consent_at: consent } });
     }
   };
  
@@ -1091,12 +1125,25 @@ const [notificationError, setNotificationError] = useState('');
     if (!consentGateChecked || !session?.user?.id) return;
     setConsentSaving(true);
     const now = new Date().toISOString();
-    const { error } = await supabase.from('profiles').update({ privacy_consent_at: now }).eq('id', session.user.id);
+ 
+    // Salvo il consenso nei dati dell'account: non dipende dai permessi della tabella
+    // profiles, quindi resta memorizzato anche se quell'aggiornamento non va a buon fine.
+    const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now } });
+ 
+    // Salvo anche sul profilo, verificando che la riga sia stata davvero aggiornata
+    const { data: updated, error: profError } = await supabase
+      .from('profiles')
+      .update({ privacy_consent_at: now })
+      .eq('id', session.user.id)
+      .select('privacy_consent_at');
+ 
     setConsentSaving(false);
-    if (error) {
-      alert('Errore durante il salvataggio del consenso: ' + error.message);
+ 
+    if (metaError && (profError || !updated || updated.length === 0)) {
+      alert('Non è stato possibile salvare il consenso. Riprova; se il problema persiste avvisa il coach.');
       return;
     }
+ 
     setPrivacyConsentAt(now);
     setShowConsentGate(false);
     setConsentGateChecked(false);
