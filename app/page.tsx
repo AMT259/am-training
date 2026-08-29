@@ -244,6 +244,212 @@ function getProgramDateStatus(startDate: any, endDate: any) {
   return { color: '#047857', bg: '#d1fae5', icon: '📅', label: '' };
 }
  
+// Mostra il testo di un WOD trasformando in link i nomi degli esercizi
+// che hanno un video in libreria. Il coach scrive normalmente: i link compaiono da soli.
+function WodText({ text, library, style }: { text: any; library: any[]; style?: React.CSSProperties }) {
+  const raw = String(text || '');
+  const items = (library || []).filter((e: any) => e && e.name && e.video_url && !e.dismissed);
+ 
+  if (!raw || items.length === 0) {
+    return <p style={style}>{raw}</p>;
+  }
+ 
+  // I nomi più lunghi hanno la precedenza: "Hang Power Clean" prima di "Power Clean"
+  const sorted = [...items].sort((a: any, b: any) => b.name.length - a.name.length);
+  const lower = raw.toLowerCase();
+  const isWordChar = (ch: string) => /[a-zA-Z0-9]/.test(ch || '');
+ 
+  const parts: any[] = [];
+  let i = 0;
+ 
+  while (i < raw.length) {
+    let match: any = null;
+ 
+    for (const ex of sorted) {
+      const n = String(ex.name).toLowerCase();
+      if (!n || !lower.startsWith(n, i)) continue;
+ 
+      const before = i === 0 ? ' ' : raw[i - 1];
+      if (isWordChar(before)) continue;
+ 
+      let len = n.length;
+      let after = raw[i + len] || ' ';
+      if (after === 's' || after === 'S') {          // accetta anche il plurale
+        const next = raw[i + len + 1] || ' ';
+        if (!isWordChar(next)) { len += 1; after = next; }
+      }
+      if (isWordChar(after)) continue;
+ 
+      match = { ex, len };
+      break;
+    }
+ 
+    if (match) {
+      parts.push({ kind: 'link', text: raw.substr(i, match.len), url: match.ex.video_url });
+      i += match.len;
+    } else {
+      const last = parts[parts.length - 1];
+      if (last && last.kind === 'text') last.text += raw[i];
+      else parts.push({ kind: 'text', text: raw[i] });
+      i += 1;
+    }
+  }
+ 
+  return (
+    <p style={style}>
+      {parts.map((p, idx) =>
+        p.kind === 'link' ? (
+          <a
+            key={idx}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            style={{ color: '#0284c7', fontWeight: 'bold', textDecoration: 'underline' }}
+          >
+            {p.text}
+          </a>
+        ) : (
+          <span key={idx}>{p.text}</span>
+        )
+      )}
+    </p>
+  );
+}
+ 
+const BENCHMARK_WODS = [
+  // ---- THE GIRLS — a tempo ----
+  { name: 'Fran', type: 'time', cat: 'Girls',
+    rx:  { d: '21-15-9\nThruster 43/30 kg\nPull Up', t: '3-6 min' },
+    int: { d: '21-15-9\nThruster 35/25 kg\nJumping Pull Up o banda', t: '5-8 min' },
+    beg: { d: '21-15-9\nThruster 20/15 kg\nRing Row', t: '6-10 min' } },
+ 
+  { name: 'Grace', type: 'time', cat: 'Girls',
+    rx:  { d: '30 Clean & Jerk 61/43 kg', t: '2-5 min' },
+    int: { d: '30 Clean & Jerk 43/30 kg', t: '3-6 min' },
+    beg: { d: '30 Clean & Jerk 30/20 kg', t: '4-8 min' } },
+ 
+  { name: 'Isabel', type: 'time', cat: 'Girls',
+    rx:  { d: '30 Snatch 61/43 kg', t: '2-5 min' },
+    int: { d: '30 Power Snatch 43/30 kg', t: '3-7 min' },
+    beg: { d: '30 Power Snatch 30/20 kg', t: '4-8 min' } },
+ 
+  { name: 'Elizabeth', type: 'time', cat: 'Girls',
+    rx:  { d: '21-15-9\nClean 61/43 kg\nRing Dip', t: '5-9 min' },
+    int: { d: '21-15-9\nClean 43/30 kg\nRing Dip con banda o Box Dip', t: '7-12 min' },
+    beg: { d: '21-15-9\nClean 30/20 kg\nPush Up', t: '8-14 min' } },
+ 
+  { name: 'Diane', type: 'time', cat: 'Girls',
+    rx:  { d: '21-15-9\nDeadlift 102/70 kg\nHSPU', t: '3-8 min' },
+    int: { d: '21-15-9\nDeadlift 80/55 kg\nHSPU con abmat', t: '6-12 min' },
+    beg: { d: '21-15-9\nDeadlift 60/40 kg\nPike Push Up o Push Press', t: '8-14 min' } },
+ 
+  { name: 'Karen', type: 'time', cat: 'Girls',
+    rx:  { d: '150 Wall Ball 9/6 kg', t: '6-12 min' },
+    int: { d: '150 Wall Ball 6/4 kg', t: '7-13 min' },
+    beg: { d: '100 Wall Ball 4/3 kg', t: '7-13 min' } },
+ 
+  { name: 'Annie', type: 'time', cat: 'Girls',
+    rx:  { d: '50-40-30-20-10\nDouble Under\nSit Up', t: '5-10 min' },
+    int: { d: '50-40-30-20-10\nSingle Under x2\nSit Up', t: '7-12 min' },
+    beg: { d: '30-25-20-15-10\nSingle Under\nSit Up', t: '6-11 min' } },
+ 
+  { name: 'Helen', type: 'time', cat: 'Girls',
+    rx:  { d: '3 round:\n400 m Run\n21 KB Swing 24/16 kg\n12 Pull Up', t: '8-12 min' },
+    int: { d: '3 round:\n400 m Run\n21 KB Swing 16/12 kg\n12 Jumping Pull Up', t: '10-14 min' },
+    beg: { d: '3 round:\n300 m Run\n15 KB Swing 12/8 kg\n12 Ring Row', t: '10-15 min' } },
+ 
+  { name: 'Jackie', type: 'time', cat: 'Girls',
+    rx:  { d: '1000 m Row\n50 Thruster 20 kg\n30 Pull Up', t: '6-11 min' },
+    int: { d: '1000 m Row\n50 Thruster 15 kg\n30 Jumping Pull Up', t: '8-13 min' },
+    beg: { d: '750 m Row\n40 Thruster 10 kg\n25 Ring Row', t: '9-14 min' } },
+ 
+  { name: 'Angie', type: 'time', cat: 'Girls',
+    rx:  { d: '100 Pull Up\n100 Push Up\n100 Sit Up\n100 Air Squat', t: '12-20 min' },
+    int: { d: '75 Pull Up con banda\n75 Push Up\n75 Sit Up\n75 Air Squat', t: '14-22 min' },
+    beg: { d: '50 Ring Row\n50 Push Up sulle ginocchia\n50 Sit Up\n50 Air Squat', t: '12-20 min' } },
+ 
+  { name: 'Nancy', type: 'time', cat: 'Girls',
+    rx:  { d: '5 round:\n400 m Run\n15 OHS 43/30 kg', t: '12-18 min' },
+    int: { d: '5 round:\n400 m Run\n15 OHS 30/20 kg', t: '14-20 min' },
+    beg: { d: '5 round:\n300 m Run\n12 Front Squat 15/10 kg', t: '14-20 min' } },
+ 
+  { name: 'Kelly', type: 'time', cat: 'Girls',
+    rx:  { d: '5 round:\n400 m Run\n30 Box Jump 24/20"\n30 Wall Ball 9/6 kg', t: '25-35 min' },
+    int: { d: '5 round:\n400 m Run\n30 Box Jump 20/16"\n30 Wall Ball 6/4 kg', t: '28-38 min' },
+    beg: { d: '4 round:\n300 m Run\n20 Box Step Up\n20 Wall Ball 4/3 kg', t: '25-35 min' } },
+ 
+  { name: 'Amanda', type: 'time', cat: 'Girls',
+    rx:  { d: '9-7-5\nRing Muscle Up\nSquat Snatch 61/43 kg', t: '5-12 min' },
+    int: { d: '9-7-5\nJumping Muscle Up o Pull Up + Ring Dip\nPower Snatch 43/30 kg', t: '8-15 min' },
+    beg: { d: '9-7-5\nRing Row + Push Up\nPower Snatch 30/20 kg', t: '8-15 min' } },
+ 
+  { name: 'Barbara', type: 'time', cat: 'Girls',
+    rx:  { d: '5 round (3 min rest tra i round):\n20 Pull Up\n30 Push Up\n40 Sit Up\n50 Air Squat', t: '25-35 min' },
+    int: { d: '3 round (3 min rest):\n20 Pull Up con banda\n30 Push Up\n40 Sit Up\n50 Air Squat', t: '18-26 min' },
+    beg: { d: '3 round (3 min rest):\n10 Ring Row\n15 Push Up sulle ginocchia\n20 Sit Up\n25 Air Squat', t: '15-25 min' } },
+ 
+  // ---- THE GIRLS — a round ----
+  { name: 'Cindy', type: 'rounds', cat: 'Girls',
+    rx:  { d: 'AMRAP 20 min:\n5 Pull Up\n10 Push Up\n15 Air Squat', t: '15-22 round' },
+    int: { d: 'AMRAP 20 min:\n5 Pull Up con banda\n10 Push Up\n15 Air Squat', t: '12-18 round' },
+    beg: { d: 'AMRAP 20 min:\n5 Ring Row\n10 Push Up sulle ginocchia\n15 Air Squat', t: '10-16 round' } },
+ 
+  { name: 'Mary', type: 'rounds', cat: 'Girls',
+    rx:  { d: 'AMRAP 20 min:\n5 HSPU\n10 Pistol\n15 Pull Up', t: '8-14 round' },
+    int: { d: 'AMRAP 20 min:\n5 HSPU con abmat\n10 Pistol su box\n15 Pull Up con banda', t: '6-11 round' },
+    beg: { d: 'AMRAP 20 min:\n5 Pike Push Up\n10 Squat su box a gamba singola\n15 Ring Row', t: '5-10 round' } },
+ 
+  { name: 'Nicole', type: 'reps', cat: 'Girls',
+    rx:  { d: 'AMRAP 20 min:\n400 m Run\nMax Pull Up unbroken\n(risultato = totale pull up)', t: '40-70 rep' },
+    int: { d: 'AMRAP 20 min:\n400 m Run\nMax Pull Up con banda', t: '40-70 rep' },
+    beg: { d: 'AMRAP 20 min:\n300 m Run\nMax Ring Row', t: '50-90 rep' } },
+ 
+  // ---- HERO WOD — a tempo ----
+  { name: 'Murph', type: 'time', cat: 'Hero',
+    rx:  { d: '1 miglio Run\n100 Pull Up\n200 Push Up\n300 Air Squat\n1 miglio Run\n(con giubbotto 9/6 kg)', t: '40-60 min' },
+    int: { d: '1 miglio Run\n100 Pull Up\n200 Push Up\n300 Air Squat\n1 miglio Run\n(senza zavorra, partizionato 20x 5-10-15)', t: '35-50 min' },
+    beg: { d: '800 m Run\n50 Ring Row\n100 Push Up sulle ginocchia\n150 Air Squat\n800 m Run', t: '30-45 min' } },
+ 
+  { name: 'DT', type: 'time', cat: 'Hero',
+    rx:  { d: '5 round:\n12 Deadlift\n9 Hang Power Clean\n6 Push Jerk\n70/47,5 kg', t: '8-14 min' },
+    int: { d: '5 round:\n12 Deadlift\n9 Hang Power Clean\n6 Push Jerk\n50/35 kg', t: '9-15 min' },
+    beg: { d: '4 round:\n12 Deadlift\n9 Hang Power Clean\n6 Push Jerk\n35/25 kg', t: '8-13 min' } },
+ 
+  { name: 'JT', type: 'time', cat: 'Hero',
+    rx:  { d: '21-15-9\nHSPU\nRing Dip\nPush Up', t: '8-16 min' },
+    int: { d: '21-15-9\nHSPU con abmat\nBox Dip\nPush Up', t: '10-18 min' },
+    beg: { d: '15-12-9\nPike Push Up\nBench Dip\nPush Up sulle ginocchia', t: '8-15 min' } },
+ 
+  { name: 'Michael', type: 'time', cat: 'Hero',
+    rx:  { d: '3 round:\n800 m Run\n50 Back Extension\n50 Sit Up', t: '25-35 min' },
+    int: { d: '3 round:\n600 m Run\n35 Back Extension\n35 Sit Up', t: '22-30 min' },
+    beg: { d: '3 round:\n400 m Run\n25 Superman\n25 Sit Up', t: '18-26 min' } },
+ 
+  { name: 'Randy', type: 'time', cat: 'Hero',
+    rx:  { d: '75 Power Snatch 34/25 kg', t: '4-9 min' },
+    int: { d: '75 Power Snatch 25/15 kg', t: '5-10 min' },
+    beg: { d: '50 Power Snatch 15/10 kg', t: '4-9 min' } },
+ 
+  { name: 'Jerry', type: 'time', cat: 'Hero',
+    rx:  { d: '1 miglio Run\n2000 m Row\n1 miglio Run', t: '22-32 min' },
+    int: { d: '1200 m Run\n1500 m Row\n1200 m Run', t: '20-28 min' },
+    beg: { d: '800 m Run\n1000 m Row\n800 m Run', t: '15-22 min' } },
+ 
+  { name: 'Daniel', type: 'time', cat: 'Hero',
+    rx:  { d: '50 Pull Up\n400 m Run\n21 Thruster 43 kg\n800 m Run\n21 Thruster 43 kg\n400 m Run\n50 Pull Up', t: '15-25 min' },
+    int: { d: '50 Pull Up con banda\n400 m Run\n21 Thruster 30 kg\n800 m Run\n21 Thruster 30 kg\n400 m Run\n50 Pull Up con banda', t: '18-28 min' },
+    beg: { d: '30 Ring Row\n300 m Run\n15 Thruster 20 kg\n600 m Run\n15 Thruster 20 kg\n300 m Run\n30 Ring Row', t: '16-25 min' } },
+ 
+  // ---- HERO WOD — a round ----
+  { name: 'Nate', type: 'rounds', cat: 'Hero',
+    rx:  { d: 'AMRAP 20 min:\n2 Muscle Up\n4 HSPU\n8 KB Swing 32/24 kg', t: '12-20 round' },
+    int: { d: 'AMRAP 20 min:\n4 Pull Up + 4 Ring Dip\n4 HSPU con abmat\n8 KB Swing 24/16 kg', t: '10-16 round' },
+    beg: { d: 'AMRAP 20 min:\n4 Ring Row + 4 Box Dip\n4 Pike Push Up\n8 KB Swing 16/12 kg', t: '9-15 round' } },
+];
+ 
+const BENCHMARK_NAMES = BENCHMARK_WODS.map((b) => b.name);
+ 
 const PRIVACY_VERSION = '1.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -508,7 +714,7 @@ export default function TrainingApp() {
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
-  const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym'>('strength');
+  const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
@@ -533,7 +739,7 @@ export default function TrainingApp() {
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy'>('anagrafici');
-  const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym'>('strength');
+  const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -1349,6 +1555,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const [newPrName, setNewPrName] = useState('');
+  const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
  
   // Confronto "morbido": ignora maiuscole, spazi e punteggiatura,
   // così "10 cal Assault Bike" e "10cal assault-bike" sono lo stesso esercizio
@@ -1443,6 +1650,25 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Salva un massimale metabolico (tempo) o di ginnastica (ripetizioni)
+  const handleBenchTyping = (name: string, raw: string, level: string) => {
+    setAthleteMaxes({ ...athleteMaxes, [name]: { ...(athleteMaxes[name] || {}), result: raw, level } });
+  };
+ 
+  const handleBenchSave = async (name: string, raw: string, level: string, type: string) => {
+    const updatedAll = { ...athleteMaxes, [name]: { ...(athleteMaxes[name] || {}), result: raw, level } };
+    setAthleteMaxes(updatedAll);
+ 
+    await supabase.from('athlete_maxes').upsert(
+      { athlete_id: session.user.id, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { onConflict: 'athlete_id' }
+    );
+ 
+    const numeric = type === 'time' ? timeToSeconds(raw) : parseWeightValue(raw);
+    if (numeric && numeric > 0) {
+      await recordMaxHistory(session.user.id, name, -3, numeric, 'benchmark');
+    }
+  };
+ 
   const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string) => {
     const key = kind === 'tempo' ? 'time' : 'reps';
     setAthleteMaxes({ ...athleteMaxes, [exercise]: { ...(athleteMaxes[exercise] || {}), [key]: raw } });
@@ -2609,6 +2835,7 @@ const [notificationError, setNotificationError] = useState('');
                     <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
                     <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
                     <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
                   </div>
  
                   {coachMaxSubTab === 'strength' && (
@@ -2781,6 +3008,40 @@ const [notificationError, setNotificationError] = useState('');
                         )}
                       </div>
                     ))}
+                  </div>
+                  </div>
+                  )}
+ 
+                  {coachMaxSubTab === 'bench' && (
+                  <div>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🏅 Benchmark WOD</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {BENCHMARK_WODS.map((b) => {
+                      const dato = coachAthleteMaxes[selectedCoachAthlete.id]?.[b.name];
+                      const lvl = dato?.level || 'rx';
+                      const spec = lvl === 'int' ? b.int : lvl === 'beg' ? b.beg : b.rx;
+                      return (
+                        <div key={b.name} style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 'bold', color: '#000', fontSize: '15px' }}>{b.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {dato?.result && (
+                                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '20px', background: '#e2e8f0', color: '#334155' }}>{String(lvl).toUpperCase()}</span>
+                              )}
+                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#10b981' }}>{dato?.result || '-'}</span>
+                            </div>
+                          </div>
+                          <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', whiteSpace: 'pre-line', lineHeight: 1.4 }}>{spec.d}</p>
+                          <div style={{ fontSize: '10px', color: '#b45309', marginTop: '4px', fontWeight: 'bold' }}>🎯 Target: {spec.t}</div>
+                          <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, b.name)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                            {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                          </button>
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` && (
+                            <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${b.name}`)} />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   </div>
                   )}
@@ -3235,6 +3496,9 @@ const [notificationError, setNotificationError] = useState('');
                                       <optgroup label="Gymnastics">
                                         {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
                                       </optgroup>
+                                      <optgroup label="Benchmark WOD">
+                                        {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
+                                      </optgroup>
                                     </select>
                                   ) : block.type === 'forza' ? (
                                     <div>
@@ -3566,6 +3830,9 @@ const [notificationError, setNotificationError] = useState('');
                                           <optgroup label="Gymnastics">
                                             {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
                                           </optgroup>
+                                          <optgroup label="Benchmark WOD">
+                                            {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
+                                          </optgroup>
                                         </select>
                                       ) : block.type === 'forza' ? (
                                         <div>
@@ -3888,6 +4155,7 @@ const [notificationError, setNotificationError] = useState('');
                 <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
                 <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
                 <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
               </div>
  
               {athleteMaxSubTab === 'strength' && (
@@ -3980,6 +4248,56 @@ const [notificationError, setNotificationError] = useState('');
                     )}
                   </div>
                 ))}
+              </div>
+              </>
+              )}
+ 
+              {athleteMaxSubTab === 'bench' && (
+              <>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#10b981' }}>🏅 Benchmark WOD</h3>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0' }}>Scegli il livello con cui l&apos;hai affrontato e registra il risultato.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {BENCHMARK_WODS.map((b) => {
+                  const lvl = benchLevel[b.name] || (athleteMaxes[b.name]?.level as any) || 'rx';
+                  const spec = lvl === 'int' ? b.int : lvl === 'beg' ? b.beg : b.rx;
+                  const saved = athleteMaxes[b.name]?.result || '';
+                  const unita = b.type === 'time' ? 'tempo (mm:ss)' : b.type === 'rounds' ? 'round + rep' : 'ripetizioni';
+                  return (
+                    <div key={b.name} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 'bold', color: '#000', fontSize: '16px' }}>{b.name}</span>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
+                            <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                          ))}
+                        </div>
+                      </div>
+ 
+                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{spec.d}</p>
+                      <div style={{ fontSize: '11px', color: '#b45309', background: '#fef3c7', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}>🎯 Target: {spec.t}</div>
+ 
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>Il tuo risultato — {unita}</span>
+                        <input
+                          type="text"
+                          placeholder={b.type === 'time' ? 'mm:ss' : b.type === 'rounds' ? 'es. 18+5' : 'es. 62'}
+                          value={saved}
+                          onChange={(e) => handleBenchTyping(b.name, e.target.value, lvl)}
+                          onBlur={(e) => handleBenchSave(b.name, e.target.value, lvl, b.type)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                          style={{ width: '100px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                        />
+                      </div>
+ 
+                      <button onClick={() => toggleMaxHistory(session.user.id, b.name)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                        {openHistoryKey === `${session.user.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                      </button>
+                      {openHistoryKey === `${session.user.id}|${b.name}` && (
+                        <SimpleHistoryChart points={historyCache[`${session.user.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${b.name}`)} />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               </>
               )}
