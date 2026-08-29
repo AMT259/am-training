@@ -222,6 +222,28 @@ function sortMetconNames(names: string[]): string[] {
   });
 }
  
+// Stato temporale di un programma, per colorare le date
+function getProgramDateStatus(startDate: any, endDate: any) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+ 
+  const end = endDate ? new Date(String(endDate).split('T')[0]) : null;
+  const start = startDate ? new Date(String(startDate).split('T')[0]) : null;
+ 
+  if (end && !isNaN(end.getTime())) {
+    const diff = Math.round((end.getTime() - today.getTime()) / 86400000);
+    if (diff < 0) return { color: '#b91c1c', bg: '#fee2e2', icon: '⛔', label: 'Scaduto' };
+    if (diff === 0) return { color: '#b91c1c', bg: '#fee2e2', icon: '⚠️', label: 'Scade oggi' };
+    if (diff <= 7) return { color: '#b45309', bg: '#fef3c7', icon: '⏳', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
+  }
+ 
+  if (start && !isNaN(start.getTime()) && start.getTime() > today.getTime()) {
+    return { color: '#1d4ed8', bg: '#dbeafe', icon: '🕒', label: 'Non ancora iniziato' };
+  }
+ 
+  return { color: '#047857', bg: '#d1fae5', icon: '📅', label: '' };
+}
+ 
 const PRIVACY_VERSION = '1.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -3677,11 +3699,13 @@ const [notificationError, setNotificationError] = useState('');
                                 <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
                                   Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
                                 </span>
-                                {(prog.startDate || prog.endDate) && (
-                                  <span style={{ fontSize: '11px', color: '#047857', background: '#d1fae5', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
-                                    📅 {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}
+                                {(prog.startDate || prog.endDate) && (() => {
+                                  const st = getProgramDateStatus(prog.startDate, prog.endDate);
+                                  return (
+                                  <span style={{ fontSize: '11px', color: st.color, background: st.bg, padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
+                                    {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
                                   </span>
-                                )}
+                                  ); })()}
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
@@ -4078,11 +4102,13 @@ const [notificationError, setNotificationError] = useState('');
                     <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                         <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
-                        {(prog.startDate || prog.endDate) && (
-                          <span style={{ fontSize: '12px', color: '#047857', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
-                            📅 Dal {formatDateToIT(prog.startDate)} al {formatDateToIT(prog.endDate)}
+                        {(prog.startDate || prog.endDate) && (() => {
+                          const st = getProgramDateStatus(prog.startDate, prog.endDate);
+                          return (
+                          <span style={{ fontSize: '12px', color: st.color, background: st.bg, padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
+                            {st.icon} Dal {formatDateToIT(prog.startDate)} al {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
                           </span>
-                        )}
+                          ); })()}
                       </div>
                     
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
