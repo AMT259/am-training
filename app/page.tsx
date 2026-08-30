@@ -727,6 +727,11 @@ export default function TrainingApp() {
   const [fullName, setFullName] = useState('');
   const [signupBirthDate, setSignupBirthDate] = useState('');
   const [signupGender, setSignupGender] = useState('');
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [newPassword2, setNewPassword2] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
   const [signupWeight, setSignupWeight] = useState('');
   const [signupHeight, setSignupHeight] = useState('');
   const [privacyConsent, setPrivacyConsent] = useState(false);
@@ -1124,7 +1129,13 @@ const [notificationError, setNotificationError] = useState('');
       setLoading(false);
     });
  
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Se l'indirizzo contiene il rimando dal link di recupero, apro subito il cambio password
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      setRecoveryMode(true);
+    }
+ 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
       setSession(session);
       if (session) fetchUserProfile(session.user.id);
     });
@@ -1640,6 +1651,7 @@ const [notificationError, setNotificationError] = useState('');
       (!data?.birth_date && meta.birth_date) ||
       (data?.weight === null && meta.weight) ||
       (data?.height === null && meta.height) ||
+      (!data?.gender && meta.gender) ||
       (!data?.full_name && meta.full_name);
  
     if (needsSync) {
@@ -1647,8 +1659,12 @@ const [notificationError, setNotificationError] = useState('');
         full_name: merged.full_name,
         birth_date: merged.birth_date || null,
         weight: merged.weight ? parseFloat(merged.weight) : null,
-        height: merged.height ? parseFloat(merged.height) : null
+        height: merged.height ? parseFloat(merged.height) : null,
+        gender: merged.gender || null
       }).eq('id', userId);
+ 
+      // Rileggo lo stato: il sesso serve a scegliere la scheda di prova giusta
+      if (!data?.gender && merged.gender) fetchSubscription(userId);
     }
   };
  
@@ -2329,6 +2345,35 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
+  const cambiaPassword = async () => {
+    if (newPassword.length < 6) {
+      alert('La password deve avere almeno 6 caratteri.');
+      return;
+    }
+    if (newPassword !== newPassword2) {
+      alert('Le due password non coincidono.');
+      return;
+    }
+ 
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordSaving(false);
+ 
+    if (error) {
+      alert('Errore: ' + error.message);
+      return;
+    }
+ 
+    setNewPassword('');
+    setNewPassword2('');
+    setRecoveryMode(false);
+    setShowChangePassword(false);
+    if (typeof window !== 'undefined' && window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    alert('Password aggiornata! Da ora accedi con quella nuova.');
+  };
+ 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -2759,6 +2804,48 @@ const [notificationError, setNotificationError] = useState('');
     await fetchProgramLibrary();
   };
  
+  // Rientro dal link di recupero: prima di tutto si imposta la nuova password
+  if (recoveryMode) {
+    return (
+      <div style={{ background: '#18181b', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`}</style>
+ 
+        <AmtLogo style={{ width: '110px', height: 'auto', color: '#ffffff', display: 'block', marginBottom: '18px' }} />
+        <h1 style={{ color: '#10b981', margin: '0 0 6px 0', fontSize: '28px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>Nuova password</h1>
+        <p style={{ color: '#a1a1aa', fontSize: '13px', textAlign: 'center', margin: '0 0 22px 0', maxWidth: '300px', lineHeight: 1.5 }}>
+          Scegli la password che userai d&apos;ora in avanti per accedere.
+        </p>
+ 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '320px' }}>
+          <input
+            type="password"
+            placeholder="Nuova password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }}
+          />
+          <input
+            type="password"
+            placeholder="Ripeti la nuova password"
+            value={newPassword2}
+            onChange={(e) => setNewPassword2(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') cambiaPassword(); }}
+            style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }}
+          />
+          <span style={{ fontSize: '11px', color: '#71717a' }}>Almeno 6 caratteri.</span>
+ 
+          <button
+            onClick={cambiaPassword}
+            disabled={passwordSaving}
+            style={{ padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: passwordSaving ? 0.6 : 1 }}
+          >
+            {passwordSaving ? 'Salvataggio...' : 'Salva e accedi'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+ 
   if (showSplash || loading) {
     return (
       <div style={{ background: '#18181b', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
@@ -2937,8 +3024,13 @@ const [notificationError, setNotificationError] = useState('');
     // I programmi della settimana di prova: solo a chi ce l'ha attiva e ha scelto quello stile
     if (prog.trialStyle) {
       if (!provaAttiva || trialChoice !== prog.trialStyle) return false;
-      // Sulla Sala Pesi la scheda cambia in base al sesso
-      if (prog.trialGender && athleteGender && prog.trialGender !== athleteGender) return false;
+ 
+      // Sulla Sala Pesi la scheda cambia in base al sesso: se la scheda ne indica uno,
+      // deve corrispondere. Senza sesso nel profilo si ripiega su quella maschile,
+      // per non mostrarne due o nessuna.
+      if (prog.trialGender) {
+        return prog.trialGender === (athleteGender || 'm');
+      }
       return true;
     }
  
@@ -5284,6 +5376,28 @@ const [notificationError, setNotificationError] = useState('');
                     {showPrivacyPolicy && (
                       <div style={{ marginTop: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', maxHeight: '400px', overflowY: 'auto' }}>
                         <PrivacyPolicyContent />
+                      </div>
+                    )}
+                  </div>
+ 
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>🔑 Cambia password</span>
+                    {!showChangePassword ? (
+                      <button onClick={() => setShowChangePassword(true)} style={{ padding: '10px 16px', borderRadius: '8px', background: '#475569', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                        Imposta una nuova password
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <input type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        <input type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={cambiaPassword} disabled={passwordSaving} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: passwordSaving ? 0.6 : 1 }}>
+                            {passwordSaving ? 'Salvataggio...' : 'Salva'}
+                          </button>
+                          <button onClick={() => { setShowChangePassword(false); setNewPassword(''); setNewPassword2(''); }} style={{ padding: '10px 16px', borderRadius: '8px', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                            Annulla
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
