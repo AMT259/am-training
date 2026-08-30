@@ -728,6 +728,7 @@ export default function TrainingApp() {
   const [signupBirthDate, setSignupBirthDate] = useState('');
   const [signupGender, setSignupGender] = useState('');
   const [recoveryMode, setRecoveryMode] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
@@ -2271,13 +2272,17 @@ const [notificationError, setNotificationError] = useState('');
  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authLoading) return;
     setAuthError('');
+    setAuthLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setAuthLoading(false);
     if (error) setAuthError(error.message);
   };
  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authLoading) return;   // evita doppi invii se si tocca più volte
     setAuthError('');
  
     if (!signupGender) {
@@ -2290,6 +2295,7 @@ const [notificationError, setNotificationError] = useState('');
       return;
     }
  
+    setAuthLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -2304,6 +2310,8 @@ const [notificationError, setNotificationError] = useState('');
         }
       }
     });
+    setAuthLoading(false);
+ 
     if (error) {
       setAuthError(error.message);
     } else {
@@ -2333,11 +2341,14 @@ const [notificationError, setNotificationError] = useState('');
  
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authLoading) return;
     setAuthError('');
     setResetMessage('');
+    setAuthLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
+    setAuthLoading(false);
     if (error) {
       setAuthError(error.message);
     } else {
@@ -2878,6 +2889,7 @@ const [notificationError, setNotificationError] = useState('');
       <div style={{ background: '#18181b', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
+          @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes fadeInUp {
             0% { opacity: 0; transform: translateY(14px); }
             100% { opacity: 1; transform: translateY(0); }
@@ -2954,8 +2966,17 @@ const [notificationError, setNotificationError] = useState('');
           )}
           {authError && <p style={{ color: '#ef4444', fontSize: '14px' }}>{authError}</p>}
           {resetMessage && <p style={{ color: '#10b981', fontSize: '14px' }}>{resetMessage}</p>}
-          <button type="submit" style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
-            {isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi')}
+          <button
+            type="submit"
+            disabled={authLoading}
+            style={{ padding: '12px', borderRadius: '8px', background: authLoading ? '#0e8f65' : '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: authLoading ? 'wait' : 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            {authLoading && (
+              <span style={{ width: '15px', height: '15px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+            )}
+            {authLoading
+              ? (isResettingPassword ? 'Invio in corso...' : (isRegistering ? 'Registrazione in corso...' : 'Accesso in corso...'))
+              : (isResettingPassword ? 'Invia Richiesta' : (isRegistering ? 'Registrati' : 'Accedi'))}
           </button>
         </form>
  
