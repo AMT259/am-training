@@ -756,6 +756,8 @@ export default function TrainingApp() {
   const [programTrainingTips, setProgramTrainingTips] = useState('');
   const [programNutritionTips, setProgramNutritionTips] = useState('');
   const [openTipsProgram, setOpenTipsProgram] = useState<string | null>(null);
+  const [tipsTab, setTipsTab] = useState<'training' | 'nutrition'>('training');
+  const [tipsReadAt, setTipsReadAt] = useState<{ [programId: string]: string }>({});
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
   const [programEndDate, setProgramEndDate] = useState('');
@@ -1286,6 +1288,7 @@ const [notificationError, setNotificationError] = useState('');
         visibility: item.visibility || 'all',
         trialStyle: item.trial_style || null,
         trainingTips: item.training_tips || '',
+        tipsUpdatedAt: item.tips_updated_at || null,
         nutritionTips: item.nutrition_tips || '',
         isDeleted: item.is_deleted === true,
         weeks: normalizeProgramWeeks(item)
@@ -1303,10 +1306,13 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
     if (data) {
       const resultsMap: { [key: string]: any } = {};
+      const lettureMap: { [key: string]: string } = {};
       data.forEach((item: any) => {
         resultsMap[item.program_id] = item.results || {};
+        if (item.tips_read_at) lettureMap[item.program_id] = item.tips_read_at;
       });
       setAthleteResults(resultsMap);
+      setTipsReadAt(lettureMap);
     }
   };
  
@@ -1545,6 +1551,28 @@ const [notificationError, setNotificationError] = useState('');
       alert('Errore: ' + error.message);
       fetchAthletes();
     }
+  };
+ 
+  // Apre i consigli e li segna come letti, così il pallino "nuovo" sparisce
+  const apriConsigli = async (programId: string, giaAperto: boolean) => {
+    if (giaAperto) { setOpenTipsProgram(null); return; }
+ 
+    setOpenTipsProgram(programId);
+    setTipsTab('training');
+ 
+    const ora = new Date().toISOString();
+    setTipsReadAt((prev) => ({ ...prev, [programId]: ora }));
+ 
+    await supabase.from('program_results').upsert(
+      { program_id: programId, athlete_id: session.user.id, tips_read_at: ora, updated_at: ora },
+      { onConflict: 'program_id, athlete_id' }
+    );
+  };
+ 
+  const consigliDaLeggere = (prog: any) => {
+    if (!prog?.tipsUpdatedAt) return false;
+    const letto = tipsReadAt[prog.id];
+    return !letto || new Date(letto).getTime() < new Date(prog.tipsUpdatedAt).getTime();
   };
  
   const chooseTrial = async (stile: string) => {
@@ -2513,6 +2541,7 @@ const [notificationError, setNotificationError] = useState('');
       trial_style: programTrialStyle || null,
       training_tips: programTrainingTips || null,
       nutrition_tips: programNutritionTips || null,
+      tips_updated_at: (programTrainingTips || programNutritionTips) ? new Date().toISOString() : null,
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
     };
@@ -2576,6 +2605,12 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const saveEditedProgram = async () => {
+    // Il pallino "nuovo" compare all'atleta solo se i consigli sono stati davvero modificati
+    const originale = programLibrary.find((p: any) => p.id === editingProgram?.id);
+    const consigliCambiati =
+      (originale?.trainingTips || '') !== (editingProgram?.trainingTips || '') ||
+      (originale?.nutritionTips || '') !== (editingProgram?.nutritionTips || '');
+ 
     if (!editingProgram.title) {
       alert('Il titolo non può essere vuoto');
       return;
@@ -2592,6 +2627,7 @@ const [notificationError, setNotificationError] = useState('');
         trial_style: editingProgram.trialStyle || null,
         training_tips: editingProgram.trainingTips || null,
         nutrition_tips: editingProgram.nutritionTips || null,
+        tips_updated_at: consigliCambiati ? new Date().toISOString() : (editingProgram.tipsUpdatedAt || null),
         weeks: editingProgram.weeks,
         days: editingProgram.weeks[0]?.days || []
       })
@@ -5066,30 +5102,42 @@ const [notificationError, setNotificationError] = useState('');
                           ); })()}
                       </div>
  
-                      {(prog.trainingTips || prog.nutritionTips) && (
+                      {(prog.trainingTips || prog.nutritionTips) && (() => {
+                        const aperto = openTipsProgram === prog.id;
+                        const daLeggere = consigliDaLeggere(prog);
+                        return (
                         <div style={{ marginBottom: '14px' }}>
                           <button
-                            onClick={() => setOpenTipsProgram(openTipsProgram === prog.id ? null : prog.id)}
+                            onClick={() => apriConsigli(prog.id, aperto)}
                             style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer' }}
                           >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ fontSize: '18px' }}>💡</span>
                               <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#92400e' }}>Consigli del coach</span>
+                              {daLeggere && !aperto && (
+                                <span style={{ background: '#ef4444', color: '#fff', fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '20px' }}>NUOVO</span>
+                              )}
                             </span>
-                            <span style={{ color: '#b45309', fontWeight: 'bold', fontSize: '14px' }}>
-                              {openTipsProgram === prog.id ? '▲' : '▼'}
-                            </span>
+                            <span style={{ color: '#b45309', fontWeight: 'bold', fontSize: '14px' }}>{aperto ? '▲' : '▼'}</span>
                           </button>
  
-                          {openTipsProgram === prog.id && (
-                            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                              {prog.trainingTips && (
+                          {aperto && (
+                            <div style={{ marginTop: '8px' }}>
+                              {prog.trainingTips && prog.nutritionTips && (
+                                <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: tipsTab === 'training' ? '#10b981' : '#f1f5f9', color: tipsTab === 'training' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
+                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : '#f1f5f9', color: tipsTab === 'nutrition' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
+                                </div>
+                              )}
+ 
+                              {prog.trainingTips && (!prog.nutritionTips || tipsTab === 'training') && (
                                 <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '14px' }}>
                                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#166534', marginBottom: '6px' }}>🏋️ Consigli di allenamento</span>
                                   <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.trainingTips}</p>
                                 </div>
                               )}
-                              {prog.nutritionTips && (
+ 
+                              {prog.nutritionTips && (!prog.trainingTips || tipsTab === 'nutrition') && (
                                 <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
                                   <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#1e40af', marginBottom: '6px' }}>🥗 Consigli nutrizionali</span>
                                   <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.nutritionTips}</p>
@@ -5098,7 +5146,7 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                           )}
                         </div>
-                      )}
+                        ); })()}
                     
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                         {weeks.map((week: any) => (
@@ -5281,6 +5329,14 @@ const [notificationError, setNotificationError] = useState('');
                                         );
                                       })
                                     )}
+                                  {(prog.trainingTips || prog.nutritionTips) && (
+                                    <button
+                                      onClick={() => { apriConsigli(prog.id, false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                      style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px dashed #fcd34d', background: '#fffbeb', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                                    >
+                                      💡 Rileggi i consigli del coach
+                                    </button>
+                                  )}
                                   </div>
                                 )}
                               </div>
