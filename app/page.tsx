@@ -801,6 +801,8 @@ export default function TrainingApp() {
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
+  const [newPrName, setNewPrName] = useState('');
+  const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
   const [showExerciseManager, setShowExerciseManager] = useState(false);
