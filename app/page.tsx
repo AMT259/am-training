@@ -535,6 +535,27 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
   );
 }
  
+// Ordina la libreria per categoria: Forza, Metcon, Ginnastica, poi i generici
+function sortExerciseLibrary(list: any[]) {
+  const gruppo = (ex: any) => {
+    if (ex.track_max) return 0;                    // forza
+    if (ex.pr_kind === 'metcon') return 1;         // metabolici
+    if (ex.pr_kind === 'gym') return 2;            // ginnastica
+    return 3;                                      // generici
+  };
+  return [...list].sort((a, b) => {
+    const ga = gruppo(a), gb = gruppo(b);
+    if (ga !== gb) return ga - gb;
+    if (ga === 1) {
+      // i metcon seguono l'ordine per attrezzo e distanza
+      const ordinati = sortMetconNames([a.name, b.name]);
+      if (ordinati[0] !== a.name) return 1;
+      if (ordinati[0] !== b.name) return -1;
+    }
+    return String(a.name).localeCompare(String(b.name), 'it');
+  });
+}
+ 
 const PRIVACY_VERSION = '1.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -826,6 +847,7 @@ export default function TrainingApp() {
  
   const [newExName, setNewExName] = useState('');
   const [newExVideo, setNewExVideo] = useState('');
+  const [newExType, setNewExType] = useState('');
  
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
@@ -2474,6 +2496,10 @@ const [notificationError, setNotificationError] = useState('');
       if (!confirm(`"${existing.name}" è già in libreria${existing.dismissed ? ' (nel cestino)' : ''}. Vuoi aggiornarlo invece di crearne uno nuovo?`)) return;
       const payload: any = { dismissed: false };
       if (newExVideo) payload.video_url = newExVideo;
+      if (newExType) {
+        payload.track_max = newExType === 'forza';
+        payload.pr_kind = newExType === 'metcon' || newExType === 'gym' ? newExType : null;
+      }
       const { error } = await supabase.from('exercises_library').update(payload).eq('id', existing.id);
       if (error) {
         alert('Errore: ' + error.message);
@@ -2485,12 +2511,18 @@ const [notificationError, setNotificationError] = useState('');
       return;
     }
  
-    const { error } = await supabase.from('exercises_library').insert([{ name: newExName, video_url: newExVideo }]);
+    const { error } = await supabase.from('exercises_library').insert([{
+      name: newExName,
+      video_url: newExVideo,
+      track_max: newExType === 'forza',
+      pr_kind: newExType === 'metcon' || newExType === 'gym' ? newExType : null,
+    }]);
     if (error) {
       alert('Errore: ' + error.message);
     } else {
       setNewExName('');
       setNewExVideo('');
+      setNewExType('');
       fetchExerciseLibrary();
     }
   };
@@ -4187,6 +4219,12 @@ const [notificationError, setNotificationError] = useState('');
                     <form onSubmit={addGlobalExercise} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #e2e8f0' }}>
                       <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
                       <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }} />
+                      <select value={newExType} onChange={(e) => setNewExType(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff', marginBottom: '10px' }}>
+                        <option value="">Esercizio generico (nessun massimale)</option>
+                        <option value="forza">🏋️ Forza — con massimali 1/3/5/10 RM</option>
+                        <option value="metcon">⏱️ Metcon — risultato a tempo</option>
+                        <option value="gym">🤸 Ginnastica — massimo di ripetizioni</option>
+                      </select>
                       <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
                     </form>
                   )}
@@ -4195,16 +4233,20 @@ const [notificationError, setNotificationError] = useState('');
                     {exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed).length === 0 ? (
                       <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>{showDeletedExercises ? 'Cestino vuoto.' : 'Nessun esercizio in libreria.'}</p>
                     ) : (
-                      exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed).map((ex) => (
+                      sortExerciseLibrary(exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed)).map((ex) => (
                         <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
                           <div>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
-                            {ex.pr_kind && (
+                            {ex.pr_kind ? (
                               <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? '#dbeafe' : '#fce7f3', color: ex.pr_kind === 'metcon' ? '#1e40af' : '#9d174d', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
-                                {ex.pr_kind === 'metcon' ? 'Metcon PR' : 'Gymnastics PR'}
+                                {ex.pr_kind === 'metcon' ? '⏱️ Metcon PR' : '🤸 Gymnastics PR'}
                               </span>
-                            )}
+                            ) : ex.track_max ? (
+                              <span style={{ display: 'inline-block', marginTop: '5px', background: '#dcfce7', color: '#166534', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
+                                🏋️ Forza — massimali
+                              </span>
+                            ) : null}
                             {!showDeletedExercises && !ex.pr_kind && (
                               <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '5px', cursor: 'pointer' }}>
                                 <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
