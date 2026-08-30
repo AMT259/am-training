@@ -1532,9 +1532,19 @@ const [notificationError, setNotificationError] = useState('');
  
   // Solo il coach può cambiare lo stile: la scadenza resta legata all'iscrizione
   const setAthleteTrialStyle = async (athleteId: string, stile: string) => {
-    const { error } = await supabase.from('profiles').update({ trial_choice: stile || null }).eq('id', athleteId);
-    if (error) { alert('Errore: ' + error.message); return; }
-    fetchAthletes();
+    const nuovo = stile || null;
+ 
+    // Aggiorno subito la scheda aperta, altrimenti il menu resterebbe sul valore vecchio
+    if (selectedCoachAthlete?.id === athleteId) {
+      setSelectedCoachAthlete({ ...selectedCoachAthlete, trial_choice: nuovo });
+    }
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a)));
+ 
+    const { error } = await supabase.from('profiles').update({ trial_choice: nuovo }).eq('id', athleteId);
+    if (error) {
+      alert('Errore: ' + error.message);
+      fetchAthletes();
+    }
   };
  
   const chooseTrial = async (stile: string) => {
