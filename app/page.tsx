@@ -753,6 +753,9 @@ export default function TrainingApp() {
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programVisibility, setProgramVisibility] = useState<'none' | 'all' | 'selected'>('selected');
   const [programTrialStyle, setProgramTrialStyle] = useState('');
+  const [programTrainingTips, setProgramTrainingTips] = useState('');
+  const [programNutritionTips, setProgramNutritionTips] = useState('');
+  const [openTipsProgram, setOpenTipsProgram] = useState<string | null>(null);
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
   const [programEndDate, setProgramEndDate] = useState('');
@@ -1282,6 +1285,8 @@ const [notificationError, setNotificationError] = useState('');
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
         visibility: item.visibility || 'all',
         trialStyle: item.trial_style || null,
+        trainingTips: item.training_tips || '',
+        nutritionTips: item.nutrition_tips || '',
         isDeleted: item.is_deleted === true,
         weeks: normalizeProgramWeeks(item)
       }));
@@ -1482,10 +1487,11 @@ const [notificationError, setNotificationError] = useState('');
   }, [session, role]);
  
   const fetchSubscription = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice,trial_started_at').eq('id', userId).maybeSingle();
+    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice,created_at').eq('id', userId).maybeSingle();
     setSubscriptionStatus(data?.subscription_status || 'prova');
     setTrialChoice(data?.trial_choice || null);
-    setTrialStartedAt(data?.trial_started_at || null);
+    // La settimana di prova parte dall'iscrizione, non dal momento della scelta
+    setTrialStartedAt(data?.created_at || null);
   };
  
   const fetchAllSubscriptionsForCoach = async () => {
@@ -1524,14 +1530,17 @@ const [notificationError, setNotificationError] = useState('');
     }).catch((err) => console.error('Errore notifica abbonamento:', err));
   };
  
+  // Solo il coach può cambiare lo stile: la scadenza resta legata all'iscrizione
+  const setAthleteTrialStyle = async (athleteId: string, stile: string) => {
+    const { error } = await supabase.from('profiles').update({ trial_choice: stile || null }).eq('id', athleteId);
+    if (error) { alert('Errore: ' + error.message); return; }
+    fetchAthletes();
+  };
+ 
   const chooseTrial = async (stile: string) => {
-    const ora = new Date().toISOString();
-    const { error } = await supabase.from('profiles')
-      .update({ trial_choice: stile, trial_started_at: ora })
-      .eq('id', session.user.id);
+    const { error } = await supabase.from('profiles').update({ trial_choice: stile }).eq('id', session.user.id);
     if (error) { alert('Errore: ' + error.message); return; }
     setTrialChoice(stile);
-    setTrialStartedAt(ora);
   };
  
   const fetchTrialCta = async () => {
@@ -2492,6 +2501,8 @@ const [notificationError, setNotificationError] = useState('');
       assigned_athlete_ids: selectedAthleteIds,
       visibility: programVisibility,
       trial_style: programTrialStyle || null,
+      training_tips: programTrainingTips || null,
+      nutrition_tips: programNutritionTips || null,
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
     };
@@ -2509,6 +2520,8 @@ const [notificationError, setNotificationError] = useState('');
       setSelectedAthleteIds([]);
       setProgramVisibility('selected');
       setProgramTrialStyle('');
+      setProgramTrainingTips('');
+      setProgramNutritionTips('');
       setProgramWeeks([{
         weekNumber: 1,
         weekName: 'Settimana 1',
@@ -2567,6 +2580,8 @@ const [notificationError, setNotificationError] = useState('');
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         visibility: editingProgram.visibility || 'selected',
         trial_style: editingProgram.trialStyle || null,
+        training_tips: editingProgram.trainingTips || null,
+        nutrition_tips: editingProgram.nutritionTips || null,
         weeks: editingProgram.weeks,
         days: editingProgram.weeks[0]?.days || []
       })
@@ -3475,12 +3490,19 @@ const [notificationError, setNotificationError] = useState('');
                         ))}
  
                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Settimana di prova scelta</span>
-                          <span style={{ fontSize: '13px', color: '#334155' }}>
-                            {selectedCoachAthlete.trial_choice === 'pesi' ? '\ud83c\udfcb\ufe0f Sala Pesi'
-                              : selectedCoachAthlete.trial_choice === 'hybrid' ? '\ud83c\udfc3 Hybrid'
-                              : selectedCoachAthlete.trial_choice === 'cross' ? '\ud83e\udd38 Cross Training'
-                              : 'Non ancora scelta'}
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
+                          <select
+                            value={selectedCoachAthlete.trial_choice || ''}
+                            onChange={(e) => setAthleteTrialStyle(selectedCoachAthlete.id, e.target.value)}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff', marginBottom: '6px' }}
+                          >
+                            <option value="">Non ancora scelta</option>
+                            <option value="pesi">🏋️ Sala Pesi</option>
+                            <option value="hybrid">🏃 Hybrid</option>
+                            <option value="cross">🤸 Cross Training</option>
+                          </select>
+                          <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.4, display: 'block' }}>
+                            Solo tu puoi cambiare lo stile: l'atleta lo sceglie una volta sola. La scadenza resta di sette giorni dall'iscrizione e non riparte.
                           </span>
                         </div>
                       </div>
@@ -4082,6 +4104,14 @@ const [notificationError, setNotificationError] = useState('');
                 );
               })}
  
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#10b981', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
+                <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={editingProgram.trainingTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trainingTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
+                <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+              </div>
+ 
               <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
@@ -4452,6 +4482,14 @@ const [notificationError, setNotificationError] = useState('');
                   })}
  
                   {saveMessage && <p style={{ color: '#10b981', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#10b981', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
+                    <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={programTrainingTips} onChange={(e) => setProgramTrainingTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
+                    <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                  </div>
+ 
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
@@ -5017,6 +5055,40 @@ const [notificationError, setNotificationError] = useState('');
                           </span>
                           ); })()}
                       </div>
+ 
+                      {(prog.trainingTips || prog.nutritionTips) && (
+                        <div style={{ marginBottom: '14px' }}>
+                          <button
+                            onClick={() => setOpenTipsProgram(openTipsProgram === prog.id ? null : prog.id)}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer' }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '18px' }}>💡</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#92400e' }}>Consigli del coach</span>
+                            </span>
+                            <span style={{ color: '#b45309', fontWeight: 'bold', fontSize: '14px' }}>
+                              {openTipsProgram === prog.id ? '▲' : '▼'}
+                            </span>
+                          </button>
+ 
+                          {openTipsProgram === prog.id && (
+                            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                              {prog.trainingTips && (
+                                <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '14px' }}>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#166534', marginBottom: '6px' }}>🏋️ Consigli di allenamento</span>
+                                  <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.trainingTips}</p>
+                                </div>
+                              )}
+                              {prog.nutritionTips && (
+                                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#1e40af', marginBottom: '6px' }}>🥗 Consigli nutrizionali</span>
+                                  <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.nutritionTips}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                         {weeks.map((week: any) => (
