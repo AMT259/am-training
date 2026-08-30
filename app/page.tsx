@@ -3590,10 +3590,10 @@ const [notificationError, setNotificationError] = useState('');
                       return (
                         <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                           <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
                             {REP_SCHEMES.map((reps) => (
-                              <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>{reps} RM</span>
+                              <div key={reps} style={{ background: '#ffffff', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                <span style={{ fontSize: '10px', color: '#64748b', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
                                 <input
                                   type="text"
                                   placeholder="kg"
@@ -5218,10 +5218,10 @@ const [notificationError, setNotificationError] = useState('');
                 {maxExerciseNames.map((exName) => (
                   <div key={exName} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <div style={{ fontWeight: 'bold', color: '#000000', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
                       {REP_SCHEMES.map((reps) => (
-                        <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px' }}>{reps} RM (kg)</label>
+                        <div key={reps} style={{ background: '#ffffff', padding: '8px 6px', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
+                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '4px', whiteSpace: 'nowrap' }}>{reps} RM</label>
                           <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxTyping(exName, reps, e.target.value)} onBlur={(e) => handleMaxChange(exName, reps, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
                         </div>
                       ))}
