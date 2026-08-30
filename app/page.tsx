@@ -154,7 +154,7 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
   if (!points) return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Caricamento...</p>;
   if (points.length === 0) return <p style={{ fontSize: '12px', color: '#64748b', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
  
-  const fmt = (v: number) => (unit === 'tempo' ? secondsToTime(v) : `${v} rep`);
+  const fmt = (v: number) => (unit === 'tempo' ? secondsToTime(v) : unit === 'round' ? `${numberToRounds(v)} round` : `${v} rep`);
   const vals = points.map((p: any) => Number(p.value));
   const minV = Math.min(...vals);
   const maxV = Math.max(...vals);
@@ -441,6 +441,75 @@ function benchTarget(b: any, lvl: string) {
  
 const BENCHMARK_NAMES = BENCHMARK_WODS.map((b) => b.name);
  
+// I risultati "a round" si scrivono 18+5 e si confrontano come numero unico
+function roundsToNumber(txt: any): number | null {
+  if (txt === null || txt === undefined) return null;
+  const s = String(txt).replace(/\s/g, '');
+  if (!s) return null;
+  const parts = s.split('+');
+  const r = parseFloat(parts[0]);
+  if (isNaN(r)) return null;
+  const rep = parts.length > 1 ? parseFloat(parts[1]) || 0 : 0;
+  return r * 1000 + rep;
+}
+ 
+function numberToRounds(n: number): string {
+  const r = Math.floor(n / 1000);
+  const rep = Math.round(n % 1000);
+  return rep > 0 ? `${r}+${rep}` : `${r}`;
+}
+ 
+// Campo per inserire un risultato, con il formato adatto al tipo di prova.
+// Il salvataggio scatta solo quando si esce DAVVERO dal campo: passando da
+// minuti a secondi (o da round a rep) non succede nulla, così si finisce di scrivere.
+function ScoreInput({ mode, value, onChange, onCommit }: any) {
+  const box: React.CSSProperties = { width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' };
+  const sep: React.CSSProperties = { fontWeight: 'bold', color: '#64748b' };
+  const enter = (e: any) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); };
+ 
+  // Se il fuoco passa all'altra casella dello stesso gruppo, non salvo ancora
+  const groupBlur = (e: any) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    onCommit(String(value || ''));
+  };
+ 
+  if (mode === 'time') {
+    const [m, s] = String(value || '').split(':');
+    return (
+      <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <input type="number" min="0" placeholder="min" value={m || ''} onChange={(e) => onChange(`${e.target.value || '0'}:${s || '00'}`)} onKeyDown={enter} style={box} />
+        <span style={sep}>:</span>
+        <input type="number" min="0" max="59" placeholder="sec" value={s || ''} onChange={(e) => onChange(`${m || '0'}:${String(e.target.value || '0').padStart(2, '0')}`)} onKeyDown={enter} style={box} />
+      </div>
+    );
+  }
+ 
+  if (mode === 'rounds') {
+    const [r, rep] = String(value || '').split('+');
+    return (
+      <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        <input type="number" min="0" placeholder="round" value={r || ''} onChange={(e) => onChange(`${e.target.value || '0'}+${rep || '0'}`)} onKeyDown={enter} style={box} />
+        <span style={sep}>+</span>
+        <input type="number" min="0" placeholder="rep" value={rep || ''} onChange={(e) => onChange(`${r || '0'}+${e.target.value || '0'}`)} onKeyDown={enter} style={box} />
+      </div>
+    );
+  }
+ 
+  if (mode === 'reps') {
+    return (
+      <div onBlur={groupBlur}>
+        <input type="number" min="0" placeholder="rep" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '80px' }} />
+      </div>
+    );
+  }
+ 
+  return (
+    <div onBlur={groupBlur} style={{ width: '100%' }}>
+      <input type="text" placeholder="es. 100kg" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '100%', boxSizing: 'border-box' }} />
+    </div>
+  );
+}
+ 
 const PRIVACY_VERSION = '1.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -724,6 +793,8 @@ export default function TrainingApp() {
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
  
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
+  // Copia dei valori già salvati: serve a capire se un nuovo dato è davvero un record
+  const [savedMaxes, setSavedMaxes] = useState<{ [exercise: string]: any }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
@@ -1211,8 +1282,10 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
     if (data && data.maxes) {
       setAthleteMaxes(data.maxes);
+      setSavedMaxes(data.maxes);
     } else {
       setAthleteMaxes({});
+      setSavedMaxes({});
     }
   };
  
@@ -1509,7 +1582,18 @@ const [notificationError, setNotificationError] = useState('');
  
     const w = parseWeightValue(value);
     if (w) {
+      const prima = parseWeightValue(savedMaxes[exercise]?.[reps]);
       await recordMaxHistory(session.user.id, exercise, reps, w, 'manuale');
+      setSavedMaxes(updatedAll);
+      if (prima === null || w > prima) {
+        setPrBadge({
+          exercise,
+          headline: `${w} kg × ${reps}`,
+          subtitle: prima !== null
+            ? `Hai superato il tuo ${reps}RM precedente di ${Math.round((w - prima) * 10) / 10} kg!`
+            : `Primo ${reps}RM registrato su questo esercizio!`,
+        });
+      }
     }
   };
  
@@ -1654,9 +1738,25 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'athlete_id' }
     );
  
-    const numeric = type === 'time' ? timeToSeconds(raw) : parseWeightValue(raw);
+    const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
     if (numeric && numeric > 0) {
+      const prevRaw = savedMaxes[name]?.result;
+      const prima = type === 'time' ? timeToSeconds(prevRaw) : type === 'rounds' ? roundsToNumber(prevRaw) : parseWeightValue(prevRaw);
       await recordMaxHistory(session.user.id, name, -3, numeric, 'benchmark');
+      setSavedMaxes(updatedAll);
+ 
+      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
+      if (migliore) {
+        setPrBadge({
+          exercise: name,
+          headline: type === 'time' ? secondsToTime(numeric) : type === 'rounds' ? `${numberToRounds(numeric)} round` : `${numeric} ripetizioni`,
+          subtitle: prima === null
+            ? 'Primo risultato registrato su questo benchmark!'
+            : type === 'time'
+              ? `Hai migliorato il tuo tempo di ${secondsToTime(prima - numeric)}!`
+              : 'Hai superato il tuo record precedente!',
+        });
+      }
     }
   };
  
@@ -1678,7 +1778,23 @@ const [notificationError, setNotificationError] = useState('');
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
     if (numeric && numeric > 0) {
+      const prevRaw = kind === 'tempo' ? savedMaxes[exercise]?.time : savedMaxes[exercise]?.reps;
+      const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
       await recordMaxHistory(session.user.id, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
+      setSavedMaxes(updatedAll);
+ 
+      const migliore = kind === 'tempo' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
+      if (migliore) {
+        setPrBadge({
+          exercise,
+          headline: kind === 'tempo' ? secondsToTime(numeric) : `${numeric} ripetizioni`,
+          subtitle: prima === null
+            ? 'Primo risultato registrato!'
+            : kind === 'tempo'
+              ? `Hai migliorato il tuo tempo di ${secondsToTime(prima - numeric)}!`
+              : `Hai superato il tuo record di ${Math.round((numeric - prima) * 10) / 10} rip.!`,
+        });
+      }
     }
   };
  
@@ -1702,7 +1818,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Aggiorna il massimale se il peso inserito nella scheda supera quello registrato
-  const maybeUpdateMaxFromScore = async (athleteId: string, exerciseName: string, repsText: any, scoreText: string, isCoachEditing: boolean, blockType?: string) => {
+  const maybeUpdateMaxFromScore = async (athleteId: string, exerciseName: string, repsText: any, scoreText: string, isCoachEditing: boolean, blockType?: string, benchLevelOverride?: string) => {
     const nameTrim = String(exerciseName || '').trim();
     if (!nameTrim) return;
  
@@ -1717,8 +1833,12 @@ const [notificationError, setNotificationError] = useState('');
         { onConflict: 'athlete_id' }
       );
       if (error) return false;
-      if (isCoachEditing) setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
-      else setAthleteMaxes(updatedAll);
+      if (isCoachEditing) {
+        setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
+      } else {
+        setAthleteMaxes(updatedAll);
+        setSavedMaxes(updatedAll);
+      }
       return true;
     };
  
@@ -1734,6 +1854,46 @@ const [notificationError, setNotificationError] = useState('');
         .limit(1);
       return !!(data && data.length > 0);
     };
+ 
+    // --- 0. Benchmark WOD ---
+    const bench = BENCHMARK_WODS.find((b: any) => b.name.toLowerCase() === nameTrim.toLowerCase());
+    if (bench) {
+      const val = bench.type === 'time'
+        ? timeToSeconds(scoreText)
+        : bench.type === 'rounds'
+          ? roundsToNumber(scoreText)
+          : parseWeightValue(scoreText);
+      if (!val || val <= 0) return;
+ 
+      const prevRaw = currentAll[bench.name]?.result;
+      const prev = bench.type === 'time'
+        ? timeToSeconds(prevRaw)
+        : bench.type === 'rounds'
+          ? roundsToNumber(prevRaw)
+          : parseWeightValue(prevRaw);
+ 
+      const isCorrection = await wasRecordedToday(bench.name, -3, 'scheda');
+      const migliore = bench.type === 'time' ? (prev === null || val < prev) : (prev === null || val > prev);
+ 
+      if (!isCorrection && !migliore) return;
+      if (isCorrection && prev !== null && val === prev) return;
+ 
+      const testo = bench.type === 'time' ? secondsToTime(val) : bench.type === 'rounds' ? numberToRounds(val) : String(val);
+      const updatedAll = { ...currentAll, [bench.name]: { ...(currentAll[bench.name] || {}), result: testo, level: benchLevelOverride || currentAll[bench.name]?.level || 'rx' } };
+      if (!(await saveMax(updatedAll))) return;
+      await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
+ 
+      if (!isCorrection) {
+        setPrBadge({
+          exercise: bench.name,
+          headline: testo,
+          subtitle: prev !== null
+            ? (bench.type === 'time' ? `Hai migliorato il tuo tempo di ${secondsToTime(prev - val)}!` : 'Hai superato il tuo record precedente!')
+            : 'Primo risultato registrato su questo benchmark!',
+        });
+      }
+      return;
+    }
  
     // --- 1. Esercizio metabolico: il risultato è un tempo, più basso è meglio ---
     const met = metconPRNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
@@ -3027,7 +3187,7 @@ const [notificationError, setNotificationError] = useState('');
                             {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
                           </button>
                           {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` && (
-                            <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${b.name}`)} />
+                            <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : b.type === 'rounds' ? 'round' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${b.name}`)} />
                           )}
                         </div>
                       );
@@ -3254,23 +3414,22 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                          {metconPRNames.includes(blk.name) ? (
-                                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                              <input type="number" min="0" placeholder="min" value={String(currentScore || '').split(':')[0] || ''}
-                                                onChange={(e) => { const sec = String(currentScore || '').split(':')[1] || ''; ((v: string) => handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId))(`${e.target.value || '0'}:${sec || '00'}`); }}
-                                                onBlur={() => ((v: string) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type))(String(currentScore || ''))}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                                                style={{ width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
-                                              <span style={{ fontWeight: 'bold', color: '#64748b' }}>:</span>
-                                              <input type="number" min="0" max="59" placeholder="sec" value={String(currentScore || '').split(':')[1] || ''}
-                                                onChange={(e) => { const min = String(currentScore || '').split(':')[0] || '0'; ((v: string) => handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId))(`${min}:${String(e.target.value || '0').padStart(2, '0')}`); }}
-                                                onBlur={() => ((v: string) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type))(String(currentScore || ''))}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                                                style={{ width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
-                                            </div>
-                                          ) : (
-                                          <input type="text" placeholder="es. 100kg" value={currentScore} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value, personalSelectedAthleteId)} onBlur={(e) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, e.target.value, true, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                          )}
+                                          {(() => {
+                                            const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
+                                            const mode = bench ? bench.type
+                                              : metconPRNames.includes(blk.name) ? 'time'
+                                              : gymPRNames.includes(blk.name) ? 'reps'
+                                              : 'text';
+                                            const lvl = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.level || blk.benchLevel || 'rx';
+                                            return (
+                                              <ScoreInput
+                                                mode={mode}
+                                                value={currentScore}
+                                                onChange={(v: string) => handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId)}
+                                                onCommit={(v: string) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type, lvl)}
+                                              />
+                                            );
+                                          })()}
                                         </div>
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
@@ -4321,14 +4480,11 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>Il tuo risultato — {unita}</span>
-                        <input
-                          type="text"
-                          placeholder={b.type === 'time' ? 'mm:ss' : b.type === 'rounds' ? 'es. 18+5' : 'es. 62'}
+                        <ScoreInput
+                          mode={b.type}
                           value={saved}
-                          onChange={(e) => handleBenchTyping(b.name, e.target.value, lvl)}
-                          onBlur={(e) => handleBenchSave(b.name, e.target.value, lvl, b.type)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                          style={{ width: '100px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                          onChange={(v: string) => handleBenchTyping(b.name, v, lvl)}
+                          onCommit={(v: string) => handleBenchSave(b.name, v, lvl, b.type)}
                         />
                       </div>
  
@@ -4336,7 +4492,7 @@ const [notificationError, setNotificationError] = useState('');
                         {openHistoryKey === `${session.user.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
                       </button>
                       {openHistoryKey === `${session.user.id}|${b.name}` && (
-                        <SimpleHistoryChart points={historyCache[`${session.user.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${b.name}`)} />
+                        <SimpleHistoryChart points={historyCache[`${session.user.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : b.type === 'rounds' ? 'round' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${b.name}`)} />
                       )}
                     </div>
                   );
@@ -4624,23 +4780,22 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                                      {metconPRNames.includes(blk.name) ? (
-                                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                                          <input type="number" min="0" placeholder="min" value={String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[0] || ''}
-                                                            onChange={(e) => { const sec = String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[1] || ''; ((v: string) => handleResultChange(prog.id, resultKey, 'score', v))(`${e.target.value || '0'}:${sec || '00'}`); }}
-                                                            onBlur={() => ((v: string) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, v, false, blk.type))(String(athleteResults[prog.id]?.[resultKey]?.score || ''))}
-                                                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                                                            style={{ width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
-                                                          <span style={{ fontWeight: 'bold', color: '#64748b' }}>:</span>
-                                                          <input type="number" min="0" max="59" placeholder="sec" value={String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[1] || ''}
-                                                            onChange={(e) => { const min = String(athleteResults[prog.id]?.[resultKey]?.score || '').split(':')[0] || '0'; ((v: string) => handleResultChange(prog.id, resultKey, 'score', v))(`${min}:${String(e.target.value || '0').padStart(2, '0')}`); }}
-                                                            onBlur={() => ((v: string) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, v, false, blk.type))(String(athleteResults[prog.id]?.[resultKey]?.score || ''))}
-                                                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                                                            style={{ width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' }} />
-                                                        </div>
-                                                      ) : (
-                                                      <input type="text" placeholder="es. 100kg" value={athleteResults[prog.id]?.[resultKey]?.score || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'score', e.target.value)} onBlur={(e) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, e.target.value, false, blk.type)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                                      )}
+                                                      {(() => {
+                                                        const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
+                                                        const mode = bench ? bench.type
+                                                          : metconPRNames.includes(blk.name) ? 'time'
+                                                          : gymPRNames.includes(blk.name) ? 'reps'
+                                                          : 'text';
+                                                        const lvl = athleteResults[prog.id]?.[resultKey]?.level || blk.benchLevel || 'rx';
+                                                        return (
+                                                          <ScoreInput
+                                                            mode={mode}
+                                                            value={athleteResults[prog.id]?.[resultKey]?.score || ''}
+                                                            onChange={(v: string) => handleResultChange(prog.id, resultKey, 'score', v)}
+                                                            onCommit={(v: string) => maybeUpdateMaxFromScore(session.user.id, blk.name || '', blk.reps, v, false, blk.type, lvl)}
+                                                          />
+                                                        );
+                                                      })()}
                                                     </div>
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
