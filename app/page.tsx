@@ -752,6 +752,7 @@ export default function TrainingApp() {
   const [athletes, setAthletes] = useState<any[]>([]);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programVisibility, setProgramVisibility] = useState<'none' | 'all' | 'selected'>('selected');
+  const [programTrialStyle, setProgramTrialStyle] = useState('');
   const [programTitle, setProgramTitle] = useState('');
   const [programStartDate, setProgramStartDate] = useState('');
   const [programEndDate, setProgramEndDate] = useState('');
@@ -798,10 +799,14 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [newPrName, setNewPrName] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('prova');
+  const [trialChoice, setTrialChoice] = useState<string | null>(null);
+  const [coachSubs, setCoachSubs] = useState<{ [athleteId: string]: string }>({});
+  const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
   const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [editingExerciseName, setEditingExerciseName] = useState('');
@@ -1107,11 +1112,15 @@ const [notificationError, setNotificationError] = useState('');
         fetchAllAthleteMaxesForCoach();
         fetchAllAnamnesisForCoach();
         fetchAllPersonalDataForCoach();
+        fetchAllSubscriptionsForCoach();
+        fetchTrialCta();
       } else {
         fetchAthleteResults();
         fetchAthleteMaxes(session.user.id);
         fetchOwnAnamnesis(session.user.id);
         fetchPersonalData(session.user.id);
+        fetchSubscription(session.user.id);
+        fetchTrialCta();
       }
  
       const channel = supabase
@@ -1271,6 +1280,7 @@ const [notificationError, setNotificationError] = useState('');
         endDate: item.end_date || '',
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
         visibility: item.visibility || 'all',
+        trialStyle: item.trial_style || null,
         isDeleted: item.is_deleted === true,
         weeks: normalizeProgramWeeks(item)
       }));
@@ -1449,6 +1459,86 @@ const [notificationError, setNotificationError] = useState('');
       alert('Errore durante l\'eliminazione: ' + (err.message || err));
     }
     setAccountActionLoading(false);
+  };
+ 
+  // Quando l'app torna in primo piano ricontrollo lo stato abbonamento:
+  // se il coach l'ha cambiato nel frattempo, la schermata si aggiorna da sola
+  useEffect(() => {
+    if (!session?.user?.id || role === 'coach') return;
+ 
+    const ricontrolla = () => {
+      if (document.visibilityState !== 'visible') return;
+      fetchSubscription(session.user.id);
+      fetchProgramLibrary();
+    };
+ 
+    document.addEventListener('visibilitychange', ricontrolla);
+    window.addEventListener('focus', ricontrolla);
+    return () => {
+      document.removeEventListener('visibilitychange', ricontrolla);
+      window.removeEventListener('focus', ricontrolla);
+    };
+  }, [session, role]);
+ 
+  const fetchSubscription = async (userId: string) => {
+    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice').eq('id', userId).maybeSingle();
+    setSubscriptionStatus(data?.subscription_status || 'prova');
+    setTrialChoice(data?.trial_choice || null);
+  };
+ 
+  const fetchAllSubscriptionsForCoach = async () => {
+    const { data } = await supabase.from('profiles').select('id,subscription_status').eq('role', 'athlete');
+    if (data) {
+      const map: { [k: string]: string } = {};
+      data.forEach((p: any) => { map[p.id] = p.subscription_status || 'prova'; });
+      setCoachSubs(map);
+    }
+  };
+ 
+  const setAthleteSubscription = async (athleteId: string, stato: string) => {
+    const precedente = coachSubs[athleteId] || 'prova';
+    if (precedente === stato) return;
+ 
+    setCoachSubs({ ...coachSubs, [athleteId]: stato });
+    const { error } = await supabase.from('profiles').update({ subscription_status: stato }).eq('id', athleteId);
+    if (error) {
+      alert('Errore: ' + error.message);
+      setCoachSubs({ ...coachSubs, [athleteId]: precedente });
+      return;
+    }
+ 
+    const avvisi: { [k: string]: { title: string; message: string } } = {
+      attivo: { title: 'Abbonamento attivo! 🎉', message: 'Il tuo abbonamento è attivo: trovi le tue schede nella sezione Allenamenti.' },
+      scaduto: { title: 'Abbonamento scaduto', message: 'Il tuo abbonamento è terminato. Apri l\'app per scoprire come rinnovarlo.' },
+      prova: { title: 'Settimana di prova attivata', message: 'Puoi scegliere lo stile di allenamento con cui iniziare la tua settimana di prova.' },
+    };
+    const avviso = avvisi[stato];
+    if (!avviso) return;
+ 
+    fetch('/api/notify-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: athleteId, type: `sub_${stato}`, ...avviso }),
+    }).catch((err) => console.error('Errore notifica abbonamento:', err));
+  };
+ 
+  const chooseTrial = async (stile: string) => {
+    const { error } = await supabase.from('profiles').update({ trial_choice: stile }).eq('id', session.user.id);
+    if (error) { alert('Errore: ' + error.message); return; }
+    setTrialChoice(stile);
+  };
+ 
+  const fetchTrialCta = async () => {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'trial_cta').maybeSingle();
+    if (data?.value) setTrialCta(data.value);
+  };
+ 
+  const saveTrialCta = async () => {
+    const { error } = await supabase.from('settings').upsert(
+      { key: 'trial_cta', value: trialCta, updated_at: new Date().toISOString() },
+      { onConflict: 'key' }
+    );
+    alert(error ? 'Errore: ' + error.message : 'Link salvato!');
   };
  
   const fetchPersonalData = async (userId: string) => {
@@ -2395,6 +2485,7 @@ const [notificationError, setNotificationError] = useState('');
       end_date: programEndDate || null,
       assigned_athlete_ids: selectedAthleteIds,
       visibility: programVisibility,
+      trial_style: programTrialStyle || null,
       weeks: programWeeks,
       days: programWeeks[0]?.days || []
     };
@@ -2411,6 +2502,7 @@ const [notificationError, setNotificationError] = useState('');
       setProgramEndDate('');
       setSelectedAthleteIds([]);
       setProgramVisibility('selected');
+      setProgramTrialStyle('');
       setProgramWeeks([{
         weekNumber: 1,
         weekName: 'Settimana 1',
@@ -2468,6 +2560,7 @@ const [notificationError, setNotificationError] = useState('');
         end_date: editingProgram.endDate || null,
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         visibility: editingProgram.visibility || 'selected',
+        trial_style: editingProgram.trialStyle || null,
         weeks: editingProgram.weeks,
         days: editingProgram.weeks[0]?.days || []
       })
@@ -2670,6 +2763,20 @@ const [notificationError, setNotificationError] = useState('');
  
   const athletePrograms = programLibrary.filter((prog) => {
     if (prog.isDeleted) return false;
+ 
+    // I programmi della settimana di prova: solo a chi è in prova e ha scelto quello stile
+    if (prog.trialStyle) {
+      return subscriptionStatus === 'prova' && trialChoice === prog.trialStyle;
+    }
+ 
+    // Abbonamento scaduto: nessuna scheda
+    if (subscriptionStatus === 'scaduto') return false;
+ 
+    // In prova: solo le schede espressamente assegnate dal coach
+    if (subscriptionStatus === 'prova') {
+      return prog.visibility !== 'none' && prog.assignedAthleteIds?.includes(session?.user?.id);
+    }
+ 
     if (prog.visibility === 'none') return false;            // bozza: solo il coach
     if (prog.visibility === 'all') return true;              // visibile a tutti
     return prog.assignedAthleteIds?.includes(session?.user?.id); // solo gli assegnati
@@ -2969,6 +3076,36 @@ const [notificationError, setNotificationError] = useState('');
                   {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
                 </button>
               </form>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: '#10b981' }}>🔗 Invito ad abbonarsi</h4>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+                  Compare solo agli atleti con abbonamento scaduto, al posto delle schede. Chi è attivo non lo vede mai.
+                </p>
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '4px' }}>Messaggio</label>
+                  <input
+                    type="text"
+                    placeholder="Scopri le programmazioni personalizzate..."
+                    value={trialCta.text}
+                    onChange={(e) => setTrialCta({ ...trialCta, text: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '4px' }}>Link al tuo sito</label>
+                  <input
+                    type="url"
+                    placeholder="https://tuosito.com/programmazioni"
+                    value={trialCta.link_url}
+                    onChange={(e) => setTrialCta({ ...trialCta, link_url: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <button type="button" onClick={saveTrialCta} style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                  Salva invito
+                </button>
+              </div>
             </div>
           ) : coachSubView === 'athletes' ? (
             <div>
@@ -2982,6 +3119,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'abbonamento' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'abbonamento' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Abbonamento</button>
                     <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi</button>
                   </div>
  
@@ -3273,6 +3411,58 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                   )}
  
+                  {coachAthleteDetailTab === 'abbonamento' && (() => {
+                    const stato = coachSubs[selectedCoachAthlete.id] || 'prova';
+                    const opzioni = [
+                      { k: 'attivo',  t: 'Attivo',  d: 'Vede le sue schede e il banner promozionale', bg: '#dcfce7', bd: '#4ade80', fg: '#166534' },
+                      { k: 'prova',   t: 'In prova', d: 'Vede solo la settimana di prova che ha scelto', bg: '#fef9c3', bd: '#facc15', fg: '#854d0e' },
+                      { k: 'scaduto', t: 'Scaduto',  d: 'Nessuna scheda: vede l\u2019invito ad abbonarsi', bg: '#fee2e2', bd: '#f87171', fg: '#991b1b' },
+                    ];
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <h4 style={{ fontSize: '15px', margin: 0, color: '#10b981' }}>Stato abbonamento</h4>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
+                          Chi si registra parte automaticamente &quot;In prova&quot;. Cambia lo stato quando acquista o quando l&apos;abbonamento finisce.
+                        </p>
+ 
+                        {opzioni.map((o) => (
+                          <button
+                            key={o.k}
+                            onClick={() => setAthleteSubscription(selectedCoachAthlete.id, o.k)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left',
+                              padding: '14px', borderRadius: '10px', cursor: 'pointer',
+                              background: stato === o.k ? o.bg : '#ffffff',
+                              border: stato === o.k ? `2px solid ${o.bd}` : '1px solid #e2e8f0',
+                            }}
+                          >
+                            <span style={{
+                              width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+                              border: `2px solid ${stato === o.k ? o.bd : '#cbd5e1'}`,
+                              background: stato === o.k ? o.bd : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#fff', fontSize: '12px', fontWeight: 'bold',
+                            }}>{stato === o.k ? '\u2713' : ''}</span>
+                            <span style={{ flex: 1 }}>
+                              <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: stato === o.k ? o.fg : '#334155' }}>{o.t}</span>
+                              <span style={{ display: 'block', fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{o.d}</span>
+                            </span>
+                          </button>
+                        ))}
+ 
+                        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Settimana di prova scelta</span>
+                          <span style={{ fontSize: '13px', color: '#334155' }}>
+                            {selectedCoachAthlete.trial_choice === 'pesi' ? '\ud83c\udfcb\ufe0f Sala Pesi'
+                              : selectedCoachAthlete.trial_choice === 'hyrox' ? '\ud83c\udfc3 Hyrox'
+                              : selectedCoachAthlete.trial_choice === 'crossfit' ? '\ud83e\udd38 CrossFit'
+                              : 'Non ancora scelta'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+ 
                   {coachAthleteDetailTab === 'anamnesi' && (() => {
                     const athAnamnesi = coachAllAnamnesis[selectedCoachAthlete.id] || emptyAnamnesis;
                     const updateField = (field: string, value: string) => {
@@ -3333,7 +3523,15 @@ const [notificationError, setNotificationError] = useState('');
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {athletes.map((a) => (
                         <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', cursor: 'pointer', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{a.full_name || a.email}</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                            {(() => {
+                              const st = coachSubs[a.id] || 'prova';
+                              const col = st === 'attivo' ? '#22c55e' : st === 'scaduto' ? '#ef4444' : '#eab308';
+                              const lab = st === 'attivo' ? 'Attivo' : st === 'scaduto' ? 'Scaduto' : 'In prova';
+                              return <span title={lab} style={{ width: '10px', height: '10px', borderRadius: '50%', background: col, flexShrink: 0 }} />;
+                            })()}
+                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.full_name || a.email}</span>
+                          </span>
                           <span style={{ fontSize: '12px', color: '#10b981' }}>Visualizza Profilo →</span>
                         </div>
                       ))}
@@ -3563,6 +3761,14 @@ const [notificationError, setNotificationError] = useState('');
               </div>
  
               <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
+                <select value={editingProgram.trialStyle || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trialStyle: e.target.value || null })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                  <option value="">Non è un programma di prova</option>
+                  <option value="pesi">🏋️ Prova — Sala Pesi</option>
+                  <option value="hyrox">🏃 Prova — Hyrox</option>
+                  <option value="crossfit">🤸 Prova — CrossFit</option>
+                </select>
+ 
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                 <select value={editingProgram.visibility || 'selected'} onChange={(e) => {
                   const v = e.target.value;
@@ -3924,6 +4130,14 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
  
                   <div style={{ marginBottom: '16px' }}>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
+                    <select value={programTrialStyle} onChange={(e) => setProgramTrialStyle(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                      <option value="">Non è un programma di prova</option>
+                      <option value="pesi">🏋️ Prova — Sala Pesi</option>
+                      <option value="hyrox">🏃 Prova — Hyrox</option>
+                      <option value="crossfit">🤸 Prova — CrossFit</option>
+                    </select>
+ 
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                     <select value={programVisibility} onChange={(e) => {
                       const v = e.target.value as any;
@@ -4369,7 +4583,7 @@ const [notificationError, setNotificationError] = useState('');
       ) : (
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
  
-          {bannerData.image_url && (
+          {subscriptionStatus === 'attivo' && bannerData.image_url && (
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
                 <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
@@ -4380,6 +4594,56 @@ const [notificationError, setNotificationError] = useState('');
               )}
             </div>
           )}
+ 
+          {subscriptionStatus === 'prova' && !trialChoice && (
+            <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid #d8dde3', padding: '20px', marginBottom: '20px' }}>
+              <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+                Scegli lo stile di allenamento che preferisci: riceverai subito cinque giorni di allenamento da provare.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { k: 'pesi', icon: '🏋️', t: 'Sala Pesi', d: 'Forza e ipertrofia, schede classiche da palestra' },
+                  { k: 'hyrox', icon: '🏃', t: 'Hyrox', d: 'Resistenza e forza funzionale, lavoro continuo' },
+                  { k: 'crossfit', icon: '🤸', t: 'CrossFit', d: 'WOD, sollevamenti e ginnastica' },
+                ].map((s) => (
+                  <button
+                    key={s.k}
+                    onClick={() => chooseTrial(s.k)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', cursor: 'pointer' }}
+                  >
+                    <span style={{ fontSize: '26px' }}>{s.icon}</span>
+                    <span style={{ flex: 1 }}>
+                      <span style={{ display: 'block', fontWeight: 'bold', fontSize: '15px', color: '#000' }}>{s.t}</span>
+                      <span style={{ display: 'block', fontSize: '12px', color: '#64748b' }}>{s.d}</span>
+                    </span>
+                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+ 
+          {subscriptionStatus === 'scaduto' && (
+            <div style={{ background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
+              <div style={{ fontSize: '30px', marginBottom: '8px' }}>💪</div>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>Vuoi continuare ad allenarti con noi?</h3>
+              <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.5, opacity: 0.95 }}>
+                {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
+              </p>
+              {trialCta.link_url && (
+                <a
+                  href={trialCta.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: '#ffffff', color: '#059669', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
+                >
+                  Scopri le programmazioni
+                </a>
+              )}
+            </div>
+          )}
+ 
  
  
           {activeTab === 'profile' ? (
