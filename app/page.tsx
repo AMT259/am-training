@@ -2502,6 +2502,29 @@ const [notificationError, setNotificationError] = useState('');
     setEditingProgram(updated);
   };
  
+  // Salva in libreria un esercizio scritto al volo mentre si costruisce una scheda
+  const salvaInLibreriaDaScheda = async (nome: string, video: string) => {
+    const pulito = String(nome || '').trim();
+    if (!pulito) return;
+ 
+    const esistente = exerciseLibrary.find((e: any) => sameName(e.name, pulito));
+    if (esistente) {
+      if (video && !esistente.video_url) {
+        await supabase.from('exercises_library').update({ video_url: video, dismissed: false }).eq('id', esistente.id);
+        fetchExerciseLibrary();
+        alert(`"${esistente.name}" era già in libreria: ho aggiunto il video.`);
+      } else {
+        alert(`"${esistente.name}" è già in libreria.`);
+      }
+      return;
+    }
+ 
+    const { error } = await supabase.from('exercises_library').insert([{ name: pulito, video_url: video || '' }]);
+    if (error) { alert('Errore: ' + error.message); return; }
+    fetchExerciseLibrary();
+    alert(`"${pulito}" aggiunto alla libreria.`);
+  };
+ 
   const addGlobalExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newExName) return;
@@ -4184,6 +4207,15 @@ const [notificationError, setNotificationError] = useState('');
                                   <div>
                                     <div style={{ marginBottom: '10px' }}>
                                       <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
+                                      {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
+                                        <button
+                                          type="button"
+                                          onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
+                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                        >
+                                          ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                        </button>
+                                      )}
                                     </div>
                                     {block.type === 'test' ? (
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
@@ -4585,6 +4617,15 @@ const [notificationError, setNotificationError] = useState('');
                                       <div>
                                         <div style={{ marginBottom: '10px' }}>
                                           <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
+                                          {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
+                                            <button
+                                              type="button"
+                                              onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
+                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                            >
+                                              ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                            </button>
+                                          )}
                                         </div>
                                         {block.type === 'test' ? (
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
