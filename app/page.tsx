@@ -2316,22 +2316,21 @@ const [notificationError, setNotificationError] = useState('');
     if (error) {
       setAuthError(error.message);
     } else {
-      try {
-        await fetch('/api/notify-coach', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'new_user',
-            title: 'Nuovo utente registrato',
-            message: `${fullName || email} si è appena registrato all'app.`
-          }),
-        });
-      } catch (err) {
-        console.error('Errore notifica nuovo utente:', err);
-      }
- 
+      // Mostro subito la conferma: la notifica al coach parte dopo, in sottofondo,
+      // così l'utente non resta ad aspettare un'operazione che non lo riguarda.
       setSignupDoneEmail(email);
       setIsRegistering(false);
+ 
+      fetch('/api/notify-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'new_user',
+          title: 'Nuovo utente registrato',
+          message: `${fullName || email} si è appena registrato all'app.`
+        }),
+        keepalive: true,
+      }).catch((err) => console.error('Errore notifica nuovo utente:', err));
       setSignupBirthDate('');
       setSignupGender('');
       setSignupWeight('');
