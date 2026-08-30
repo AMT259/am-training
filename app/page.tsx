@@ -3303,16 +3303,19 @@ const [notificationError, setNotificationError] = useState('');
             <div>
               {selectedCoachAthlete ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
                     <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'abbonamento' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'abbonamento' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Abbonamento</button>
                     <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi</button>
+                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'abbonamento' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'abbonamento' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Abbonamento</button>
+                  </div>
+ 
+                  <div style={{ display: 'flex', marginBottom: '16px' }}>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -3782,7 +3785,7 @@ const [notificationError, setNotificationError] = useState('');
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
                             >
-                              <h4 style={{ margin: 0, color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
                               <span style={{ fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
                             </div>
  
@@ -3938,7 +3941,7 @@ const [notificationError, setNotificationError] = useState('');
                         onClick={() => setPersonalSelectedAthleteId(a.id)}
                         style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                       >
-                        <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{a.full_name || a.email}</span>
+                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{a.full_name || a.email}</span>
                         <span style={{ fontSize: '12px', color: '#10b981' }}>Vai al Personal →</span>
                       </div>
                     ))}
@@ -4308,7 +4311,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
                     <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedExercises ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                       {showDeletedExercises ? 'Torna agli esercizi' : '🗑️ Cestino'}
@@ -4334,10 +4337,10 @@ const [notificationError, setNotificationError] = useState('');
                       <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>{showDeletedExercises ? 'Cestino vuoto.' : 'Nessun esercizio in libreria.'}</p>
                     ) : (
                       sortExerciseLibrary(exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed)).map((ex) => (
-                        <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
-                          <div>
+                        <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
+                          <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b' }}>{ex.video_url || 'Nessun video'}</div>
+                            <div style={{ fontSize: '11px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.video_url || 'Nessun video'}</div>
                             {ex.pr_kind ? (
                               <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? '#dbeafe' : '#fce7f3', color: ex.pr_kind === 'metcon' ? '#1e40af' : '#9d174d', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
                                 {ex.pr_kind === 'metcon' ? '⏱️ Metcon PR' : '🤸 Gymnastics PR'}
@@ -4355,7 +4358,7 @@ const [notificationError, setNotificationError] = useState('');
                             )}
                           </div>
                           {showDeletedExercises ? (
-                            <div style={{ display: 'flex', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                               <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
                               <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
                             </div>
@@ -4785,7 +4788,7 @@ const [notificationError, setNotificationError] = useState('');
                         <div key={prog.id} style={{ background: prog.trialStyle ? '#d6e9fb' : prog.visibility === 'none' ? '#fdf3d3' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : prog.visibility === 'none' ? '2px solid #e0a80c' : '1px solid #d8dde3', marginBottom: '16px' }}>
                           <div style={{ marginBottom: '12px' }}>
                             <div>
-                              <h4 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
                               <div style={{ marginBottom: '8px' }}>
                                 {prog.trialStyle ? (
                                   <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: '#dbeafe', color: '#1e40af' }}>
@@ -5024,7 +5027,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Email</label>
-                    <input type="text" value={session.user.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#64748b', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input type="text" value={session.user.email || ''} disabled style={{ overflowWrap: 'anywhere', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#64748b', fontSize: '13px', boxSizing: 'border-box' }} />
                   </div>
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
@@ -5345,7 +5348,7 @@ const [notificationError, setNotificationError] = useState('');
                   return (
                     <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                        <h4 style={{ color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
+                        <h4 style={{ overflowWrap: 'anywhere', color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (() => {
                           const st = getProgramDateStatus(prog.startDate, prog.endDate);
                           return (
