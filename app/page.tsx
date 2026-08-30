@@ -3058,14 +3058,14 @@ const [notificationError, setNotificationError] = useState('');
     if (libraryView === 'cestino') return prog.isDeleted;
     if (prog.isDeleted) return false;
  
+    // Primo: la categoria
     if (libraryFilter === 'prove') return !!prog.trialStyle;
     if (libraryFilter === 'bozze') return !prog.trialStyle && prog.visibility === 'none';
-    if (libraryFilter === 'assegnati') return !prog.trialStyle && prog.visibility !== 'none';
+    if (libraryFilter === 'assegnati' && (prog.trialStyle || prog.visibility === 'none')) return false;
  
-    // Le prove non si assegnano, quindi restano visibili anche filtrando per atleta
-    if (prog.trialStyle) return true;
- 
+    // Poi: il filtro per atleta, valido sia su "Tutti" sia su "Assegnati"
     if (!libraryFilterAthlete) return true;
+    if (prog.trialStyle) return false;   // le prove non sono assegnate a nessuno
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
  
