@@ -848,7 +848,8 @@ export default function TrainingApp() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
-  const [showDeletedPrograms, setShowDeletedPrograms] = useState(false);
+  const [libraryView, setLibraryView] = useState<'programmi' | 'cestino'>('programmi');
+  const showDeletedPrograms = libraryView === 'cestino';
   const [showDeletedExercises, setShowDeletedExercises] = useState(false);
  
   const normalizeProgramWeeks = (prog: any) => {
@@ -2537,7 +2538,7 @@ const [notificationError, setNotificationError] = useState('');
       start_date: programTrialStyle ? null : (programStartDate || null),
       end_date: programTrialStyle ? null : (programEndDate || null),
       assigned_athlete_ids: selectedAthleteIds,
-      visibility: programVisibility,
+      visibility: programTrialStyle ? 'none' : programVisibility,
       trial_style: programTrialStyle || null,
       training_tips: programTrainingTips || null,
       nutrition_tips: programNutritionTips || null,
@@ -2623,7 +2624,7 @@ const [notificationError, setNotificationError] = useState('');
         start_date: editingProgram.trialStyle ? null : (editingProgram.startDate || null),
         end_date: editingProgram.trialStyle ? null : (editingProgram.endDate || null),
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
-        visibility: editingProgram.visibility || 'selected',
+        visibility: editingProgram.trialStyle ? 'none' : (editingProgram.visibility || 'selected'),
         trial_style: editingProgram.trialStyle || null,
         training_tips: editingProgram.trainingTips || null,
         nutrition_tips: editingProgram.nutritionTips || null,
@@ -2868,14 +2869,17 @@ const [notificationError, setNotificationError] = useState('');
   });
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
-    if (showDeletedPrograms) {
-      if (!prog.isDeleted) return false;
-    } else if (prog.isDeleted) {
-      return false;
-    }
+    if (libraryView === 'cestino') return prog.isDeleted;
+    if (prog.isDeleted) return false;
+ 
+    // Le prove non si assegnano, quindi restano visibili anche filtrando per atleta
+    if (prog.trialStyle) return true;
+ 
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
+ 
+  const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
  
   return (
     <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
@@ -3868,6 +3872,7 @@ const [notificationError, setNotificationError] = useState('');
                   <option value="cross">🤸 Prova — Cross Training</option>
                 </select>
  
+                {!editingProgram.trialStyle && (<>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                 <select value={editingProgram.visibility || 'selected'} onChange={(e) => {
                   const v = e.target.value;
@@ -3883,7 +3888,8 @@ const [notificationError, setNotificationError] = useState('');
                   <option value="all">🌍 Tutti gli atleti</option>
                   <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
                 </select>
-                {(editingProgram.visibility || 'selected') !== 'none' && (<>
+                </>)}
+                {!editingProgram.trialStyle && (editingProgram.visibility || 'selected') !== 'none' && (<>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                 <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                   {athletes.map((a) => {
@@ -4252,6 +4258,7 @@ const [notificationError, setNotificationError] = useState('');
                       <option value="cross">🤸 Prova — Cross Training</option>
                     </select>
  
+                    {!programTrialStyle && (<>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
                     <select value={programVisibility} onChange={(e) => {
                       const v = e.target.value as any;
@@ -4266,7 +4273,8 @@ const [notificationError, setNotificationError] = useState('');
                       <option value="all">🌍 Tutti gli atleti</option>
                       <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
                     </select>
-                    {programVisibility !== 'none' && (<>
+                    </>)}
+                    {!programTrialStyle && programVisibility !== 'none' && (<>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
                     <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px' }}>
                       {athletes.length === 0 ? (
@@ -4540,21 +4548,39 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
               ) : (
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '18px', margin: 0 }}>{showDeletedPrograms ? 'Cestino Programmi' : 'Libreria Programmi'}</h3>
-  <button onClick={() => setShowDeletedPrograms(!showDeletedPrograms)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedPrograms ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
-    {showDeletedPrograms ? 'Torna ai programmi' : '🗑️ Cestino'}
-  </button>
-                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ padding: '8px 12px', borderRadius: '8px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}>
+                  <h3 style={{ fontSize: '18px', margin: '0 0 12px 0' }}>
+                    {libraryView === 'cestino' ? 'Cestino Programmi' : 'Libreria Programmi'}
+                  </h3>
+ 
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                    {[
+                      { k: 'programmi', t: '📋 Programmi', n: 0 },
+                      { k: 'cestino', t: '🗑️ Cestino', n: contaCestino },
+                    ].map((v) => (
+                      <button
+                        key={v.k}
+                        onClick={() => setLibraryView(v.k as any)}
+                        style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '9px 10px', borderRadius: '8px', border: 'none', background: libraryView === v.k ? '#10b981' : '#e2e8f0', color: libraryView === v.k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        {v.t}{v.n > 0 ? ` (${v.n})` : ''}
+                      </button>
+                    ))}
+                  </div>
+ 
+ 
+                  {libraryView === 'programmi' && (
+                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff', marginBottom: '12px' }}>
                       <option value="">Filtra per utente (Tutti)</option>
                       {athletes.map((a) => (
                         <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
                       ))}
                     </select>
-                  </div>
+                  )}
  
                   {filteredLibraryPrograms.length === 0 ? (
-                    <p style={{ color: '#64748b', textAlign: 'center', padding: '30px' }}>Nessun programma trovato.</p>
+                    <p style={{ color: '#64748b', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
+                      {libraryView === 'cestino' ? 'Il cestino è vuoto.' : 'Nessun programma trovato.'}
+                    </p>
                   ) : (
                     filteredLibraryPrograms.map((prog) => {
                       const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
@@ -4566,19 +4592,25 @@ const [notificationError, setNotificationError] = useState('');
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
                       return (
-                        <div key={prog.id} style={{ background: prog.visibility === 'none' ? '#fff8e6' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.visibility === 'none' ? '1px solid #f0c674' : '1px solid #d8dde3', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.trialStyle ? '#eff6ff' : prog.visibility === 'none' ? '#fff8e6' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #93c5fd' : prog.visibility === 'none' ? '1px solid #f0c674' : '1px solid #d8dde3', marginBottom: '16px' }}>
                           <div style={{ marginBottom: '12px' }}>
                             <div>
                               <h4 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
                               <div style={{ marginBottom: '8px' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? '#fef3c7' : prog.visibility === 'all' ? '#e0f2fe' : '#dcfce7', color: prog.visibility === 'none' ? '#92400e' : prog.visibility === 'all' ? '#075985' : '#166534' }}>
-                                  {prog.visibility === 'none' ? '🔒 Bozza — non visibile' : prog.visibility === 'all' ? '🌍 Visibile a tutti' : '👥 Visibile agli assegnati'}
-                                </span>
+                                {prog.trialStyle ? (
+                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: '#dbeafe', color: '#1e40af' }}>
+                                    🎁 Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? '#fef3c7' : prog.visibility === 'all' ? '#e0f2fe' : '#dcfce7', color: prog.visibility === 'none' ? '#92400e' : prog.visibility === 'all' ? '#075985' : '#166534' }}>
+                                    {prog.visibility === 'none' ? '🔒 Bozza — non visibile' : prog.visibility === 'all' ? '🌍 Visibile a tutti' : '👥 Visibile agli assegnati'}
+                                  </span>
+                                )}
                               </div>
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
-                                <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                                {!prog.trialStyle && <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
                                   Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
-                                </span>
+                                </span>}
                                 {!prog.trialStyle && (prog.startDate || prog.endDate) && (() => {
                                   const st = getProgramDateStatus(prog.startDate, prog.endDate);
                                   return (
@@ -4586,11 +4618,7 @@ const [notificationError, setNotificationError] = useState('');
                                     {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
                                   </span>
                                   ); })()}
-                                {prog.trialStyle && (
-                                  <span style={{ fontSize: '11px', color: '#1e40af', background: '#dbeafe', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
-                                    🎁 Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
-                                  </span>
-                                )}
+ 
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
@@ -4601,7 +4629,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#fef3c7' : '#f4f4f5', border: prog.visibility === 'none' ? '1px solid #fcd34d' : '1px solid #d4d4d8', color: prog.visibility === 'none' ? '#92400e' : '#3f3f46', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>
+                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#fef3c7' : '#f4f4f5', border: prog.visibility === 'none' ? '1px solid #fcd34d' : '1px solid #d4d4d8', color: prog.visibility === 'none' ? '#92400e' : '#3f3f46', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
                                   <button onClick={() => duplicateProgram(prog)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                                   <button onClick={() => {
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
