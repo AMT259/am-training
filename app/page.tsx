@@ -2487,8 +2487,8 @@ const [notificationError, setNotificationError] = useState('');
  
     const newProgram = {
       title: programTitle,
-      start_date: programStartDate || null,
-      end_date: programEndDate || null,
+      start_date: programTrialStyle ? null : (programStartDate || null),
+      end_date: programTrialStyle ? null : (programEndDate || null),
       assigned_athlete_ids: selectedAthleteIds,
       visibility: programVisibility,
       trial_style: programTrialStyle || null,
@@ -2562,8 +2562,8 @@ const [notificationError, setNotificationError] = useState('');
       .from('programs')
       .update({
         title: editingProgram.title,
-        start_date: editingProgram.startDate || null,
-        end_date: editingProgram.endDate || null,
+        start_date: editingProgram.trialStyle ? null : (editingProgram.startDate || null),
+        end_date: editingProgram.trialStyle ? null : (editingProgram.endDate || null),
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         visibility: editingProgram.visibility || 'selected',
         trial_style: editingProgram.trialStyle || null,
@@ -3108,12 +3108,12 @@ const [notificationError, setNotificationError] = useState('');
                 </p>
                 <div style={{ marginBottom: '10px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '4px' }}>Messaggio</label>
-                  <input
-                    type="text"
-                    placeholder="Scopri le programmazioni personalizzate..."
+                  <textarea
+                    rows={5}
+                    placeholder={'Scrivi qui il messaggio.\nVai a capo dove vuoi: le righe verranno rispettate.'}
                     value={trialCta.text}
                     onChange={(e) => setTrialCta({ ...trialCta, text: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }}
                   />
                 </div>
                 <div style={{ marginBottom: '12px' }}>
@@ -4495,13 +4495,18 @@ const [notificationError, setNotificationError] = useState('');
                                 <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#0284c7' : '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
                                   Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
                                 </span>
-                                {(prog.startDate || prog.endDate) && (() => {
+                                {!prog.trialStyle && (prog.startDate || prog.endDate) && (() => {
                                   const st = getProgramDateStatus(prog.startDate, prog.endDate);
                                   return (
                                   <span style={{ fontSize: '11px', color: st.color, background: st.bg, padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
                                     {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
                                   </span>
                                   ); })()}
+                                {prog.trialStyle && (
+                                  <span style={{ fontSize: '11px', color: '#1e40af', background: '#dbeafe', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
+                                    🎁 Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
@@ -4675,7 +4680,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
               <div style={{ fontSize: '30px', marginBottom: '8px' }}>💪</div>
               <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
-              <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.5, opacity: 0.95 }}>
+              <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
               </p>
               {trialCta.link_url && (
