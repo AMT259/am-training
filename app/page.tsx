@@ -460,37 +460,62 @@ function numberToRounds(n: number): string {
 }
  
 // Campo per inserire un risultato, con il formato adatto al tipo di prova.
-// Il salvataggio scatta solo quando si esce DAVVERO dal campo: passando da
-// minuti a secondi (o da round a rep) non succede nulla, così si finisce di scrivere.
+// Mentre si scrive le caselle restano libere (niente zeri messi d'ufficio):
+// il valore viene sistemato solo all'uscita dal gruppo.
 function ScoreInput({ mode, value, onChange, onCommit }: any) {
   const box: React.CSSProperties = { width: '58px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' };
   const sep: React.CSSProperties = { fontWeight: 'bold', color: '#64748b' };
   const enter = (e: any) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); };
  
-  // Se il fuoco passa all'altra casella dello stesso gruppo, non salvo ancora
   const groupBlur = (e: any) => {
+    // se il fuoco resta dentro lo stesso gruppo (es. da minuti a secondi) non salvo
     if (e.currentTarget.contains(e.relatedTarget)) return;
-    onCommit(String(value || ''));
+ 
+    const grezzo = String(value || '');
+ 
+    if (mode === 'time') {
+      const [m, s] = grezzo.split(':');
+      if (!m && !s) { onChange(''); onCommit(''); return; }
+      const finale = `${parseInt(m || '0', 10)}:${String(parseInt(s || '0', 10)).padStart(2, '0')}`;
+      onChange(finale);
+      onCommit(finale);
+      return;
+    }
+ 
+    if (mode === 'rounds') {
+      const [r, rep] = grezzo.split('+');
+      if (!r && !rep) { onChange(''); onCommit(''); return; }
+      const finale = `${parseInt(r || '0', 10)}+${parseInt(rep || '0', 10)}`;
+      onChange(finale);
+      onCommit(finale);
+      return;
+    }
+ 
+    onCommit(grezzo);
   };
  
   if (mode === 'time') {
-    const [m, s] = String(value || '').split(':');
+    const p = String(value || '').split(':');
+    const m = p[0] || '';
+    const s = p.length > 1 ? p[1] : '';
     return (
       <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-        <input type="number" min="0" placeholder="min" value={m || ''} onChange={(e) => onChange(`${e.target.value || '0'}:${s || '00'}`)} onKeyDown={enter} style={box} />
+        <input type="number" min="0" placeholder="min" value={m} onChange={(e) => onChange(`${e.target.value}:${s}`)} onKeyDown={enter} style={box} />
         <span style={sep}>:</span>
-        <input type="number" min="0" max="59" placeholder="sec" value={s || ''} onChange={(e) => onChange(`${m || '0'}:${String(e.target.value || '0').padStart(2, '0')}`)} onKeyDown={enter} style={box} />
+        <input type="number" min="0" max="59" placeholder="sec" value={s} onChange={(e) => onChange(`${m}:${e.target.value}`)} onKeyDown={enter} style={box} />
       </div>
     );
   }
  
   if (mode === 'rounds') {
-    const [r, rep] = String(value || '').split('+');
+    const p = String(value || '').split('+');
+    const r = p[0] || '';
+    const rep = p.length > 1 ? p[1] : '';
     return (
       <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-        <input type="number" min="0" placeholder="round" value={r || ''} onChange={(e) => onChange(`${e.target.value || '0'}+${rep || '0'}`)} onKeyDown={enter} style={box} />
+        <input type="number" min="0" placeholder="round" value={r} onChange={(e) => onChange(`${e.target.value}+${rep}`)} onKeyDown={enter} style={box} />
         <span style={sep}>+</span>
-        <input type="number" min="0" placeholder="rep" value={rep || ''} onChange={(e) => onChange(`${r || '0'}+${e.target.value || '0'}`)} onKeyDown={enter} style={box} />
+        <input type="number" min="0" placeholder="rep" value={rep} onChange={(e) => onChange(`${r}+${e.target.value}`)} onKeyDown={enter} style={box} />
       </div>
     );
   }
@@ -795,6 +820,7 @@ export default function TrainingApp() {
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
   // Copia dei valori già salvati: serve a capire se un nuovo dato è davvero un record
   const [savedMaxes, setSavedMaxes] = useState<{ [exercise: string]: any }>({});
+  const [savedCoachMaxes, setSavedCoachMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
@@ -1299,6 +1325,7 @@ const [notificationError, setNotificationError] = useState('');
         map[item.athlete_id] = item.maxes || {};
       });
       setCoachAthleteMaxes(map);
+      setSavedCoachMaxes(map);
     }
   };
  
@@ -1560,77 +1587,22 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Aggiorna solo a schermo mentre si digita (nessun salvataggio, nessun record)
-  const handleMaxTyping = (exercise: string, reps: number, value: string) => {
-    const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
-    setAthleteMaxes({ ...athleteMaxes, [exercise]: updatedEx });
+  // Legge/scrive i massimali dell'atleta giusto: se stesso oppure quello aperto dal coach
+  const getMaxesOf = (athleteId: string) =>
+    athleteId === session?.user?.id ? athleteMaxes : (coachAthleteMaxes[athleteId] || {});
+ 
+  const setMaxesOf = (athleteId: string, updated: any) => {
+    if (athleteId === session?.user?.id) setAthleteMaxes(updated);
+    else setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updated });
   };
  
-  // Salva davvero solo quando si esce dal campo o si preme Invio
-  const handleMaxChange = async (exercise: string, reps: number, value: string) => {
-    const updatedEx = { ...(athleteMaxes[exercise] || {}), [reps]: value };
-    const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
-    setAthleteMaxes(updatedAll);
+  const getSavedOf = (athleteId: string) =>
+    athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
  
-    await supabase.from('athlete_maxes').upsert(
-      {
-        athlete_id: session.user.id,
-        maxes: updatedAll,
-        updated_at: new Date().toISOString()
-      },
-      { onConflict: 'athlete_id' }
-    );
- 
-    const w = parseWeightValue(value);
-    if (w) {
-      const prima = parseWeightValue(savedMaxes[exercise]?.[reps]);
-      await recordMaxHistory(session.user.id, exercise, reps, w, 'manuale');
-      setSavedMaxes(updatedAll);
-      if (prima === null || w > prima) {
-        setPrBadge({
-          exercise,
-          headline: `${w} kg × ${reps}`,
-          subtitle: prima !== null
-            ? `Hai superato il tuo ${reps}RM precedente di ${Math.round((w - prima) * 10) / 10} kg!`
-            : `Primo ${reps}RM registrato su questo esercizio!`,
-        });
-      }
-    }
+  const setSavedOf = (athleteId: string, updated: any) => {
+    if (athleteId === session?.user?.id) setSavedMaxes(updated);
+    else setSavedCoachMaxes({ ...savedCoachMaxes, [athleteId]: updated });
   };
- 
-  // Registra un valore nello storico. Se esiste già un valore per lo stesso
-  // esercizio/ripetizioni nello stesso giorno, lo sostituisce: così le correzioni
-  // di un dato sbagliato non lasciano tracce nel grafico.
-  const recordMaxHistory = async (athleteId: string, exercise: string, reps: number, value: number, source: string) => {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
- 
-    const { data: existing } = await supabase
-      .from('athlete_max_history')
-      .select('id')
-      .eq('athlete_id', athleteId)
-      .eq('exercise', exercise)
-      .eq('reps', reps)
-      .gte('recorded_at', startOfDay.toISOString())
-      .order('recorded_at', { ascending: false })
-      .limit(1);
- 
-    if (existing && existing.length > 0) {
-      await supabase.from('athlete_max_history')
-        .update({ value, source, recorded_at: new Date().toISOString() })
-        .eq('id', existing[0].id);
-    } else {
-      await supabase.from('athlete_max_history').insert([{ athlete_id: athleteId, exercise, reps, value, source }]);
-    }
- 
-    setHistoryCache((prev) => {
-      const copy = { ...prev };
-      delete copy[`${athleteId}|${exercise}`];
-      return copy;
-    });
-  };
- 
-  const [newPrName, setNewPrName] = useState('');
-  const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
  
   // Confronto "morbido": ignora maiuscole, spazi e punteggiatura,
   // così "10 cal Assault Bike" e "10cal assault-bike" sono lo stesso esercizio
@@ -1661,7 +1633,6 @@ const [notificationError, setNotificationError] = useState('');
   const addMaxTrackedExercise = async () => {
     const name = newMaxExerciseName.trim();
     if (!name) return;
- 
     const existing = exerciseLibrary.find((e: any) => sameName(e.name, name));
     if (existing) {
       await supabase.from('exercises_library').update({ track_max: true, dismissed: false }).eq('id', existing.id);
@@ -1724,64 +1695,99 @@ const [notificationError, setNotificationError] = useState('');
     }));
   };
  
-  // Salva un massimale metabolico (tempo) o di ginnastica (ripetizioni)
-  const handleBenchTyping = (name: string, raw: string, level: string) => {
-    setAthleteMaxes({ ...athleteMaxes, [name]: { ...(athleteMaxes[name] || {}), result: raw, level } });
+  // Registra un valore nello storico. Se esiste già un valore per lo stesso
+  // esercizio/ripetizioni nello stesso giorno, lo sostituisce: così le correzioni
+  // di un dato sbagliato non lasciano tracce nel grafico.
+  const recordMaxHistory = async (athleteId: string, exercise: string, reps: number, value: number, source: string) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+ 
+    const { data: existing } = await supabase
+      .from('athlete_max_history')
+      .select('id')
+      .eq('athlete_id', athleteId)
+      .eq('exercise', exercise)
+      .eq('reps', reps)
+      .gte('recorded_at', startOfDay.toISOString())
+      .order('recorded_at', { ascending: false })
+      .limit(1);
+ 
+    if (existing && existing.length > 0) {
+      await supabase.from('athlete_max_history')
+        .update({ value, source, recorded_at: new Date().toISOString() })
+        .eq('id', existing[0].id);
+    } else {
+      await supabase.from('athlete_max_history').insert([{ athlete_id: athleteId, exercise, reps, value, source }]);
+    }
+ 
+    setHistoryCache((prev) => {
+      const copy = { ...prev };
+      delete copy[`${athleteId}|${exercise}`];
+      return copy;
+    });
   };
  
-  const handleBenchSave = async (name: string, raw: string, level: string, type: string) => {
-    const updatedAll = { ...athleteMaxes, [name]: { ...(athleteMaxes[name] || {}), result: raw, level } };
-    setAthleteMaxes(updatedAll);
+  // ---- FORZA ----
+  const handleMaxTyping = (exercise: string, reps: number, value: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
+    const cur = getMaxesOf(aid);
+    setMaxesOf(aid, { ...cur, [exercise]: { ...(cur[exercise] || {}), [reps]: value } });
+  };
+ 
+  const handleMaxChange = async (exercise: string, reps: number, value: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
+    const cur = getMaxesOf(aid);
+    const updatedAll = { ...cur, [exercise]: { ...(cur[exercise] || {}), [reps]: value } };
+    setMaxesOf(aid, updatedAll);
  
     await supabase.from('athlete_maxes').upsert(
-      { athlete_id: session.user.id, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
       { onConflict: 'athlete_id' }
     );
  
-    const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
-    if (numeric && numeric > 0) {
-      const prevRaw = savedMaxes[name]?.result;
-      const prima = type === 'time' ? timeToSeconds(prevRaw) : type === 'rounds' ? roundsToNumber(prevRaw) : parseWeightValue(prevRaw);
-      await recordMaxHistory(session.user.id, name, -3, numeric, 'benchmark');
-      setSavedMaxes(updatedAll);
- 
-      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
-      if (migliore) {
+    const w = parseWeightValue(value);
+    if (w) {
+      const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
+      await recordMaxHistory(aid, exercise, reps, w, 'manuale');
+      setSavedOf(aid, updatedAll);
+      if (prima === null || w > prima) {
         setPrBadge({
-          exercise: name,
-          headline: type === 'time' ? secondsToTime(numeric) : type === 'rounds' ? `${numberToRounds(numeric)} round` : `${numeric} ripetizioni`,
-          subtitle: prima === null
-            ? 'Primo risultato registrato su questo benchmark!'
-            : type === 'time'
-              ? `Hai migliorato il tuo tempo di ${secondsToTime(prima - numeric)}!`
-              : 'Hai superato il tuo record precedente!',
+          exercise,
+          headline: `${w} kg × ${reps}`,
+          subtitle: prima !== null
+            ? `Superato il ${reps}RM precedente di ${Math.round((w - prima) * 10) / 10} kg!`
+            : `Primo ${reps}RM registrato su questo esercizio!`,
         });
       }
     }
   };
  
-  const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string) => {
+  // ---- METCON E GINNASTICA ----
+  const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
     const key = kind === 'tempo' ? 'time' : 'reps';
-    setAthleteMaxes({ ...athleteMaxes, [exercise]: { ...(athleteMaxes[exercise] || {}), [key]: raw } });
+    const cur = getMaxesOf(aid);
+    setMaxesOf(aid, { ...cur, [exercise]: { ...(cur[exercise] || {}), [key]: raw } });
   };
  
-  const handleSpecialMaxChange = async (exercise: string, kind: 'tempo' | 'rep', raw: string) => {
+  const handleSpecialMaxChange = async (exercise: string, kind: 'tempo' | 'rep', raw: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
     const key = kind === 'tempo' ? 'time' : 'reps';
-    const updatedEx = { ...(athleteMaxes[exercise] || {}), [key]: raw };
-    const updatedAll = { ...athleteMaxes, [exercise]: updatedEx };
-    setAthleteMaxes(updatedAll);
+    const cur = getMaxesOf(aid);
+    const updatedAll = { ...cur, [exercise]: { ...(cur[exercise] || {}), [key]: raw } };
+    setMaxesOf(aid, updatedAll);
  
     await supabase.from('athlete_maxes').upsert(
-      { athlete_id: session.user.id, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
       { onConflict: 'athlete_id' }
     );
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
     if (numeric && numeric > 0) {
-      const prevRaw = kind === 'tempo' ? savedMaxes[exercise]?.time : savedMaxes[exercise]?.reps;
+      const prevRaw = kind === 'tempo' ? getSavedOf(aid)[exercise]?.time : getSavedOf(aid)[exercise]?.reps;
       const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
-      await recordMaxHistory(session.user.id, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
-      setSavedMaxes(updatedAll);
+      await recordMaxHistory(aid, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
+      setSavedOf(aid, updatedAll);
  
       const migliore = kind === 'tempo' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
       if (migliore) {
@@ -1791,8 +1797,48 @@ const [notificationError, setNotificationError] = useState('');
           subtitle: prima === null
             ? 'Primo risultato registrato!'
             : kind === 'tempo'
-              ? `Hai migliorato il tuo tempo di ${secondsToTime(prima - numeric)}!`
-              : `Hai superato il tuo record di ${Math.round((numeric - prima) * 10) / 10} rip.!`,
+              ? `Tempo migliorato di ${secondsToTime(prima - numeric)}!`
+              : `Record superato di ${Math.round((numeric - prima) * 10) / 10} rip.!`,
+        });
+      }
+    }
+  };
+ 
+  // ---- BENCHMARK ----
+  const handleBenchTyping = (name: string, raw: string, level: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
+    const cur = getMaxesOf(aid);
+    setMaxesOf(aid, { ...cur, [name]: { ...(cur[name] || {}), result: raw, level } });
+  };
+ 
+  const handleBenchSave = async (name: string, raw: string, level: string, type: string, athleteId?: string) => {
+    const aid = athleteId || session.user.id;
+    const cur = getMaxesOf(aid);
+    const updatedAll = { ...cur, [name]: { ...(cur[name] || {}), result: raw, level } };
+    setMaxesOf(aid, updatedAll);
+ 
+    await supabase.from('athlete_maxes').upsert(
+      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
+      { onConflict: 'athlete_id' }
+    );
+ 
+    const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
+    if (numeric && numeric > 0) {
+      const prevRaw = getSavedOf(aid)[name]?.result;
+      const prima = type === 'time' ? timeToSeconds(prevRaw) : type === 'rounds' ? roundsToNumber(prevRaw) : parseWeightValue(prevRaw);
+      await recordMaxHistory(aid, name, -3, numeric, 'benchmark');
+      setSavedOf(aid, updatedAll);
+ 
+      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
+      if (migliore) {
+        setPrBadge({
+          exercise: name,
+          headline: type === 'time' ? secondsToTime(numeric) : type === 'rounds' ? `${numberToRounds(numeric)} round` : `${numeric} ripetizioni`,
+          subtitle: prima === null
+            ? 'Primo risultato registrato su questo benchmark!'
+            : type === 'time'
+              ? `Tempo migliorato di ${secondsToTime(prima - numeric)}!`
+              : 'Record precedente superato!',
         });
       }
     }
@@ -3065,7 +3111,15 @@ const [notificationError, setNotificationError] = useState('');
                             {REP_SCHEMES.map((reps) => (
                               <div key={reps} style={{ background: '#ffffff', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>{reps} RM</span>
-                                <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{exMaxes[reps] || '-'} kg</span>
+                                <input
+                                  type="text"
+                                  placeholder="kg"
+                                  value={exMaxes[reps] || ''}
+                                  onChange={(e) => handleMaxTyping(exName, reps, e.target.value, selectedCoachAthlete.id)}
+                                  onBlur={(e) => handleMaxChange(exName, reps, e.target.value, selectedCoachAthlete.id)}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                  style={{ width: '100%', padding: '5px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', boxSizing: 'border-box' }}
+                                />
                               </div>
                             ))}
                           </div>
@@ -3110,7 +3164,12 @@ const [notificationError, setNotificationError] = useState('');
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
-                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.time || '-'}</span>
+                          <ScoreInput
+                            mode="time"
+                            value={coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.time || ''}
+                            onChange={(v: string) => handleSpecialMaxTyping(exName, 'tempo', v, selectedCoachAthlete.id)}
+                            onCommit={(v: string) => handleSpecialMaxChange(exName, 'tempo', v, selectedCoachAthlete.id)}
+                          />
                           <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
@@ -3148,7 +3207,12 @@ const [notificationError, setNotificationError] = useState('');
                       <div key={exName} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ flex: 1, fontWeight: 'bold', color: '#000', fontSize: '13px' }}>{exName}</span>
-                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#10b981' }}>{coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.reps ? `${coachAthleteMaxes[selectedCoachAthlete.id][exName].reps} rep` : '-'}</span>
+                          <ScoreInput
+                            mode="reps"
+                            value={coachAthleteMaxes[selectedCoachAthlete.id]?.[exName]?.reps || ''}
+                            onChange={(v: string) => handleSpecialMaxTyping(exName, 'rep', v, selectedCoachAthlete.id)}
+                            onCommit={(v: string) => handleSpecialMaxChange(exName, 'rep', v, selectedCoachAthlete.id)}
+                          />
                           <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
@@ -3169,20 +3233,28 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {BENCHMARK_WODS.map((b) => {
                       const dato = coachAthleteMaxes[selectedCoachAthlete.id]?.[b.name];
-                      const lvl = dato?.level || 'rx';
+                      const lvl = benchLevel[b.name] || dato?.level || 'rx';
                       return (
                         <div key={b.name} style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 'bold', color: '#000', fontSize: '15px' }}>{b.name}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {dato?.result && (
-                                <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '20px', background: '#e2e8f0', color: '#334155' }}>{String(lvl).toUpperCase()}</span>
-                              )}
-                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#10b981' }}>{dato?.result || '-'}</span>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
+                                <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                              ))}
                             </div>
                           </div>
-                          <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', whiteSpace: 'pre-line', lineHeight: 1.4 }}>{benchDesc(b, lvl)}</p>
-                          <div style={{ fontSize: '10px', color: '#b45309', marginTop: '4px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                          <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
+                          <div style={{ fontSize: '10px', color: '#b45309', marginBottom: '8px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>Risultato</span>
+                            <ScoreInput
+                              mode={b.type}
+                              value={dato?.result || ''}
+                              onChange={(v: string) => handleBenchTyping(b.name, v, lvl, selectedCoachAthlete.id)}
+                              onCommit={(v: string) => handleBenchSave(b.name, v, lvl, b.type, selectedCoachAthlete.id)}
+                            />
+                          </div>
                           <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, b.name)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
                             {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
                           </button>
