@@ -805,6 +805,7 @@ export default function TrainingApp() {
   const [newPrName, setNewPrName] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('prova');
   const [trialChoice, setTrialChoice] = useState<string | null>(null);
+  const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
   const [coachSubs, setCoachSubs] = useState<{ [athleteId: string]: string }>({});
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
   const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
@@ -1481,9 +1482,10 @@ const [notificationError, setNotificationError] = useState('');
   }, [session, role]);
  
   const fetchSubscription = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice').eq('id', userId).maybeSingle();
+    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice,trial_started_at').eq('id', userId).maybeSingle();
     setSubscriptionStatus(data?.subscription_status || 'prova');
     setTrialChoice(data?.trial_choice || null);
+    setTrialStartedAt(data?.trial_started_at || null);
   };
  
   const fetchAllSubscriptionsForCoach = async () => {
@@ -1523,9 +1525,13 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const chooseTrial = async (stile: string) => {
-    const { error } = await supabase.from('profiles').update({ trial_choice: stile }).eq('id', session.user.id);
+    const ora = new Date().toISOString();
+    const { error } = await supabase.from('profiles')
+      .update({ trial_choice: stile, trial_started_at: ora })
+      .eq('id', session.user.id);
     if (error) { alert('Errore: ' + error.message); return; }
     setTrialChoice(stile);
+    setTrialStartedAt(ora);
   };
  
   const fetchTrialCta = async () => {
@@ -2761,12 +2767,23 @@ const [notificationError, setNotificationError] = useState('');
     );
   }
  
+  // La settimana di prova dura sette giorni dalla scelta, poi scade da sola
+  const DURATA_PROVA_GIORNI = 7;
+  const trialEndDate = trialStartedAt
+    ? new Date(new Date(trialStartedAt).getTime() + DURATA_PROVA_GIORNI * 86400000)
+    : null;
+  const giorniProvaRimasti = trialEndDate
+    ? Math.ceil((trialEndDate.getTime() - Date.now()) / 86400000)
+    : 0;
+  const provaAttiva = subscriptionStatus === 'prova' && !!trialEndDate && Date.now() < trialEndDate.getTime();
+  const provaScaduta = subscriptionStatus === 'prova' && !!trialChoice && !provaAttiva;
+ 
   const athletePrograms = programLibrary.filter((prog) => {
     if (prog.isDeleted) return false;
  
-    // I programmi della settimana di prova: solo a chi è in prova e ha scelto quello stile
+    // I programmi della settimana di prova: solo a chi ce l'ha attiva e ha scelto quello stile
     if (prog.trialStyle) {
-      return subscriptionStatus === 'prova' && trialChoice === prog.trialStyle;
+      return provaAttiva && trialChoice === prog.trialStyle;
     }
  
     // Abbonamento scaduto: nessuna scheda
@@ -2780,6 +2797,13 @@ const [notificationError, setNotificationError] = useState('');
     if (prog.visibility === 'none') return false;            // bozza: solo il coach
     if (prog.visibility === 'all') return true;              // visibile a tutti
     return prog.assignedAthleteIds?.includes(session?.user?.id); // solo gli assegnati
+  }).map((prog) => {
+    if (!prog.trialStyle || !trialStartedAt || !trialEndDate) return prog;
+    return {
+      ...prog,
+      startDate: new Date(trialStartedAt).toISOString().split('T')[0],
+      endDate: trialEndDate.toISOString().split('T')[0],
+    };
   });
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
@@ -3749,6 +3773,12 @@ const [notificationError, setNotificationError] = useState('');
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
  
+              {editingProgram.trialStyle ? (
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                  <span style={{ fontSize: '12px', color: '#1e3a8a', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
+                </div>
+              ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
                   <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -3759,6 +3789,7 @@ const [notificationError, setNotificationError] = useState('');
                   <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
                 </div>
               </div>
+              )}
  
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
@@ -4118,6 +4149,12 @@ const [notificationError, setNotificationError] = useState('');
                 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
                 
+                  {programTrialStyle ? (
+                    <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                      <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                      <span style={{ fontSize: '12px', color: '#1e3a8a', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
+                    </div>
+                  ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                     <div>
                       <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
@@ -4128,6 +4165,7 @@ const [notificationError, setNotificationError] = useState('');
                       <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', boxSizing: 'border-box' }} />
                     </div>
                   </div>
+                  )}
  
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
@@ -4595,6 +4633,15 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           )}
  
+          {provaAttiva && trialChoice && (
+            <div style={{ background: '#fef9c3', border: '1px solid #facc15', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '20px' }}>⏳</span>
+              <span style={{ fontSize: '13px', color: '#854d0e', fontWeight: 'bold' }}>
+                Settimana di prova — {giorniProvaRimasti === 1 ? 'ultimo giorno' : `ancora ${giorniProvaRimasti} giorni`}
+              </span>
+            </div>
+          )}
+ 
           {subscriptionStatus === 'prova' && !trialChoice && (
             <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid #d8dde3', padding: '20px', marginBottom: '20px' }}>
               <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
@@ -4624,10 +4671,10 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           )}
  
-          {subscriptionStatus === 'scaduto' && (
+          {(subscriptionStatus === 'scaduto' || provaScaduta) && (
             <div style={{ background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
               <div style={{ fontSize: '30px', marginBottom: '8px' }}>💪</div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>Vuoi continuare ad allenarti con noi?</h3>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.5, opacity: 0.95 }}>
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
               </p>
