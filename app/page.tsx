@@ -729,6 +729,7 @@ export default function TrainingApp() {
   const [signupGender, setSignupGender] = useState('');
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [signupDoneEmail, setSignupDoneEmail] = useState('');
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
@@ -2329,7 +2330,7 @@ const [notificationError, setNotificationError] = useState('');
         console.error('Errore notifica nuovo utente:', err);
       }
  
-      alert('Registrazione effettuata con successo!');
+      setSignupDoneEmail(email);
       setIsRegistering(false);
       setSignupBirthDate('');
       setSignupGender('');
@@ -2908,6 +2909,31 @@ const [notificationError, setNotificationError] = useState('');
           <h1 style={{ color: '#10b981', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
           <div style={{ color: '#94a3b8', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
         </div>
+ 
+        {signupDoneEmail ? (
+          <div style={{ background: '#0f2e22', border: '1px solid #10b981', borderRadius: '14px', padding: '22px 20px', width: '100%', maxWidth: '340px', textAlign: 'center' }}>
+            <div style={{ fontSize: '34px', marginBottom: '10px' }}>📬</div>
+            <h3 style={{ margin: '0 0 10px 0', color: '#10b981', fontSize: '18px' }}>Ci siamo quasi!</h3>
+            <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#d4d4d8', lineHeight: 1.55 }}>
+              Ti abbiamo inviato un&apos;email a <strong style={{ color: '#fff', overflowWrap: 'anywhere' }}>{signupDoneEmail}</strong>.
+              Aprila e tocca il link di conferma per attivare il tuo account: solo dopo potrai accedere.
+            </p>
+            <p style={{ margin: '0 0 18px 0', fontSize: '13px', color: '#a1a1aa', lineHeight: 1.5, background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px' }}>
+              Non la trovi? Controlla nella posta indesiderata o nello spam: capita spesso che finisca lì.
+            </p>
+            <button
+              onClick={() => { setSignupDoneEmail(''); setPassword(''); }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+            >
+              Ho confermato, vai all&apos;accesso
+            </button>
+            <p style={{ margin: '14px 0 0 0', fontSize: '11px', color: '#71717a', lineHeight: 1.5 }}>
+              Problemi con la registrazione? Scrivi a{' '}
+              <a href="mailto:marcoangelon@gmail.com" style={{ color: '#71717a', textDecoration: 'underline' }}>marcoangelon@gmail.com</a>
+            </p>
+          </div>
+        ) : (
+        <>
       
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
@@ -2990,6 +3016,8 @@ const [notificationError, setNotificationError] = useState('');
             {isResettingPassword ? 'Torna al Login' : 'Password dimenticata?'}
           </button>
         </div>
+        </>
+        )}
  
         {showPrivacyPolicy && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
