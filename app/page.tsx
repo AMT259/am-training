@@ -665,7 +665,7 @@ function PrivacyPolicyContent() {
       <p style={pStyle}>AM Training. Per qualsiasi richiesta relativa ai tuoi dati puoi scrivere all&apos;indirizzo email del titolare, che trovi nei contatti dell&apos;attività.</p>
  
       <h4 style={hStyle}>2. Quali dati raccogliamo</h4>
-      <p style={pStyle}><strong>Dati identificativi e di contatto:</strong> nome e cognome, indirizzo email, data di nascita. La password è gestita e cifrata dal fornitore di autenticazione e non è mai visibile né al coach né a chi gestisce l&apos;app.</p>
+      <p style={pStyle}><strong>Dati identificativi e di contatto:</strong> nome e cognome, indirizzo email, data di nascita, sesso (usato per proporre la scheda di prova adeguata). La password è gestita e cifrata dal fornitore di autenticazione e non è mai visibile né al coach né a chi gestisce l&apos;app.</p>
       <p style={pStyle}><strong>Dati relativi alla salute:</strong> peso, altezza e il contenuto del campo &quot;problematiche fisiche o sistemiche&quot; dell&apos;anamnesi, in cui puoi indicare patologie, infortuni, limitazioni funzionali o terapie in corso.</p>
       <p style={pStyle}><strong>Dati di allenamento:</strong> obiettivi, numero e durata degli allenamenti settimanali, attrezzatura disponibile, programmi assegnati, punteggi e note inserite da te o dal coach, massimali di forza.</p>
       <p style={pStyle}><strong>Dati tecnici:</strong> se attivi le notifiche push, un identificativo tecnico del dispositivo; log di accesso generati automaticamente dai fornitori dell&apos;infrastruttura (indirizzo IP, data e ora).</p>
@@ -726,12 +726,13 @@ export default function TrainingApp() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [signupBirthDate, setSignupBirthDate] = useState('');
+  const [signupGender, setSignupGender] = useState('');
   const [signupWeight, setSignupWeight] = useState('');
   const [signupHeight, setSignupHeight] = useState('');
   const [privacyConsent, setPrivacyConsent] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [policyScrolledToEnd, setPolicyScrolledToEnd] = useState(false);
-  const emptyPersonalData = { full_name: '', birth_date: '', weight: '', height: '' };
+  const emptyPersonalData = { full_name: '', birth_date: '', weight: '', height: '', gender: '' };
   const [personalData, setPersonalData] = useState<any>(emptyPersonalData);
   const [coachAllPersonalData, setCoachAllPersonalData] = useState<{ [athleteId: string]: any }>({});
   const [personalDataSaving, setPersonalDataSaving] = useState(false);
@@ -774,6 +775,7 @@ export default function TrainingApp() {
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
   const [programVisibility, setProgramVisibility] = useState<'none' | 'all' | 'selected'>('selected');
   const [programTrialStyle, setProgramTrialStyle] = useState('');
+  const [programTrialGender, setProgramTrialGender] = useState('');
   const [programTrainingTips, setProgramTrainingTips] = useState('');
   const [programNutritionTips, setProgramNutritionTips] = useState('');
   const [openTipsProgram, setOpenTipsProgram] = useState<string | null>(null);
@@ -831,6 +833,7 @@ export default function TrainingApp() {
   const [newPrName, setNewPrName] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('prova');
   const [trialChoice, setTrialChoice] = useState<string | null>(null);
+  const [athleteGender, setAthleteGender] = useState<string | null>(null);
   const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
   const [coachSubs, setCoachSubs] = useState<{ [athleteId: string]: string }>({});
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
@@ -1311,6 +1314,7 @@ const [notificationError, setNotificationError] = useState('');
         assignedAthleteIds: item.assigned_athlete_ids || (item.assigned_athlete_id ? [item.assigned_athlete_id] : []),
         visibility: item.visibility || 'all',
         trialStyle: item.trial_style || null,
+        trialGender: item.trial_gender || null,
         trainingTips: item.training_tips || '',
         tipsUpdatedAt: item.tips_updated_at || null,
         nutritionTips: item.nutrition_tips || '',
@@ -1517,9 +1521,10 @@ const [notificationError, setNotificationError] = useState('');
   }, [session, role]);
  
   const fetchSubscription = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice,created_at').eq('id', userId).maybeSingle();
+    const { data } = await supabase.from('profiles').select('subscription_status,trial_choice,created_at,gender').eq('id', userId).maybeSingle();
     setSubscriptionStatus(data?.subscription_status || 'prova');
     setTrialChoice(data?.trial_choice || null);
+    setAthleteGender(data?.gender || null);
     // La settimana di prova parte dall'iscrizione, non dal momento della scelta
     setTrialStartedAt(data?.created_at || null);
   };
@@ -1619,14 +1624,15 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const fetchPersonalData = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('full_name,birth_date,weight,height').eq('id', userId).maybeSingle();
+    const { data } = await supabase.from('profiles').select('full_name,birth_date,weight,height,gender').eq('id', userId).maybeSingle();
  
     const meta = session?.user?.user_metadata || {};
     const merged = {
       full_name: data?.full_name || meta.full_name || '',
       birth_date: data?.birth_date || meta.birth_date || '',
       weight: data?.weight ?? meta.weight ?? '',
-      height: data?.height ?? meta.height ?? ''
+      height: data?.height ?? meta.height ?? '',
+      gender: data?.gender || meta.gender || ''
     };
     setPersonalData(merged);
  
@@ -1647,7 +1653,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const fetchAllPersonalDataForCoach = async () => {
-    const { data } = await supabase.from('profiles').select('id,full_name,birth_date,weight,height').eq('role', 'athlete');
+    const { data } = await supabase.from('profiles').select('id,full_name,birth_date,weight,height,gender').eq('role', 'athlete');
     if (data) {
       const map: { [key: string]: any } = {};
       data.forEach((item: any) => {
@@ -1655,7 +1661,8 @@ const [notificationError, setNotificationError] = useState('');
           full_name: item.full_name || '',
           birth_date: item.birth_date || '',
           weight: item.weight ?? '',
-          height: item.height ?? ''
+          height: item.height ?? '',
+          gender: item.gender || ''
         };
       });
       setCoachAllPersonalData(map);
@@ -1668,7 +1675,8 @@ const [notificationError, setNotificationError] = useState('');
       full_name: data.full_name,
       birth_date: data.birth_date || null,
       weight: data.weight ? parseFloat(data.weight) : null,
-      height: data.height ? parseFloat(data.height) : null
+      height: data.height ? parseFloat(data.height) : null,
+      gender: data.gender || null
     }).eq('id', userId);
     setPersonalDataSaving(false);
  
@@ -2256,6 +2264,11 @@ const [notificationError, setNotificationError] = useState('');
     e.preventDefault();
     setAuthError('');
  
+    if (!signupGender) {
+      setAuthError('Indica il sesso: serve per assegnarti la scheda corretta.');
+      return;
+    }
+ 
     if (!privacyConsent) {
       setAuthError('Devi accettare l\'informativa sul trattamento dei dati personali per registrarti.');
       return;
@@ -2268,6 +2281,7 @@ const [notificationError, setNotificationError] = useState('');
         data: {
           full_name: fullName,
           birth_date: signupBirthDate || null,
+          gender: signupGender || null,
           weight: signupWeight || null,
           height: signupHeight || null,
           privacy_consent_at: new Date().toISOString()
@@ -2294,6 +2308,7 @@ const [notificationError, setNotificationError] = useState('');
       alert('Registrazione effettuata con successo!');
       setIsRegistering(false);
       setSignupBirthDate('');
+      setSignupGender('');
       setSignupWeight('');
       setSignupHeight('');
       setPrivacyConsent(false);
@@ -2573,6 +2588,7 @@ const [notificationError, setNotificationError] = useState('');
       assigned_athlete_ids: selectedAthleteIds,
       visibility: programTrialStyle ? 'none' : programVisibility,
       trial_style: programTrialStyle || null,
+      trial_gender: programTrialStyle === 'pesi' ? (programTrialGender || null) : null,
       training_tips: programTrainingTips || null,
       nutrition_tips: programNutritionTips || null,
       tips_updated_at: (programTrainingTips || programNutritionTips) ? new Date().toISOString() : null,
@@ -2593,6 +2609,7 @@ const [notificationError, setNotificationError] = useState('');
       setSelectedAthleteIds([]);
       setProgramVisibility('selected');
       setProgramTrialStyle('');
+      setProgramTrialGender('');
       setProgramTrainingTips('');
       setProgramNutritionTips('');
       setProgramWeeks([{
@@ -2659,6 +2676,7 @@ const [notificationError, setNotificationError] = useState('');
         assigned_athlete_ids: editingProgram.assignedAthleteIds || [],
         visibility: editingProgram.trialStyle ? 'none' : (editingProgram.visibility || 'selected'),
         trial_style: editingProgram.trialStyle || null,
+        trial_gender: editingProgram.trialStyle === 'pesi' ? (editingProgram.trialGender || null) : null,
         training_tips: editingProgram.trainingTips || null,
         nutrition_tips: editingProgram.nutritionTips || null,
         tips_updated_at: consigliCambiati ? new Date().toISOString() : (editingProgram.tipsUpdatedAt || null),
@@ -2781,6 +2799,23 @@ const [notificationError, setNotificationError] = useState('');
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
                 <input type="date" value={signupBirthDate} onChange={(e) => setSignupBirthDate(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }} />
               </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Sesso</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setSignupGender(k)}
+                      style={{ flex: 1, padding: '12px', borderRadius: '8px', border: signupGender === k ? '2px solid #10b981' : '1px solid #3a3a40', background: signupGender === k ? '#10b981' : '#26262a', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <span style={{ fontSize: '11px', color: '#71717a', display: 'block', marginTop: '5px' }}>Serve per assegnarti la scheda di prova corretta.</span>
+              </div>
+ 
               <div style={{ display: 'flex', gap: '12px' }}>
                 <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
                 <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
@@ -2878,7 +2913,10 @@ const [notificationError, setNotificationError] = useState('');
  
     // I programmi della settimana di prova: solo a chi ce l'ha attiva e ha scelto quello stile
     if (prog.trialStyle) {
-      return provaAttiva && trialChoice === prog.trialStyle;
+      if (!provaAttiva || trialChoice !== prog.trialStyle) return false;
+      // Sulla Sala Pesi la scheda cambia in base al sesso
+      if (prog.trialGender && athleteGender && prog.trialGender !== athleteGender) return false;
+      return true;
     }
  
     // Abbonamento scaduto: nessuna scheda
@@ -3275,6 +3313,14 @@ const [notificationError, setNotificationError] = useState('');
                         <div>
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
                           <input type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                              <button key={k} type="button" onClick={() => updateField('gender', k)} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: athData.gender === k ? '#10b981' : '#e2e8f0', color: athData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                            ))}
+                          </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px' }}>
                           <div style={{ flex: 1 }}>
@@ -3913,6 +3959,18 @@ const [notificationError, setNotificationError] = useState('');
                   <option value="hybrid">🏃 Prova — Hybrid</option>
                   <option value="cross">🤸 Prova — Cross Training</option>
                 </select>
+                {editingProgram.trialStyle === 'pesi' && (
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                        <button key={k} type="button" onClick={() => setEditingProgram({ ...editingProgram, trialGender: k })} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: (editingProgram.trialGender || '') === k ? '#10b981' : '#e2e8f0', color: (editingProgram.trialGender || '') === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                      ))}
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
+                  </div>
+                )}
+ 
  
                 {!editingProgram.trialStyle && (<>
                 <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
@@ -4309,6 +4367,18 @@ const [notificationError, setNotificationError] = useState('');
                       <option value="hybrid">🏃 Prova — Hybrid</option>
                       <option value="cross">🤸 Prova — Cross Training</option>
                     </select>
+                    {programTrialStyle === 'pesi' && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                            <button key={k} type="button" onClick={() => setProgramTrialGender(k)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: programTrialGender === k ? '#10b981' : '#e2e8f0', color: programTrialGender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                          ))}
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
+                      </div>
+                    )}
+ 
  
                     {!programTrialStyle && (<>
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
@@ -4622,15 +4692,15 @@ const [notificationError, setNotificationError] = useState('');
                   {libraryView === 'programmi' && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
                       {[
-                        { k: 'tutti', t: 'Tutti', n: attivi.length, col: '#334155' },
-                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: '#166534' },
-                        { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#92400e' },
-                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: '#1e40af' },
+                        { k: 'tutti', t: 'Tutti', n: attivi.length, col: '#475569' },
+                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: '#16a34a' },
+                        { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#d97706' },
+                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: '#2563eb' },
                       ].map((f) => (
                         <button
                           key={f.k}
                           onClick={() => setLibraryFilter(f.k as any)}
-                          style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '7px 11px', borderRadius: '20px', border: libraryFilter === f.k ? `2px solid ${f.col}` : '1px solid #cbd5e1', background: libraryFilter === f.k ? '#ffffff' : '#f1f5f9', color: libraryFilter === f.k ? f.col : '#64748b', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                          style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 11px', borderRadius: '8px', border: 'none', background: libraryFilter === f.k ? f.col : '#e2e8f0', color: libraryFilter === f.k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
                         >
                           {f.t} ({f.n})
                         </button>
@@ -4874,6 +4944,9 @@ const [notificationError, setNotificationError] = useState('');
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
               </p>
+              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px 14px' }}>
+                Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
+              </p>
               {trialCta.link_url && (
                 <a
                   href={trialCta.link_url}
@@ -4893,9 +4966,12 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Massimali</button>
                 <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi</button>
                 <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy</button>
+              </div>
+ 
+              <div style={{ display: 'flex', marginBottom: '16px' }}>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
@@ -4912,6 +4988,14 @@ const [notificationError, setNotificationError] = useState('');
                   <div>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
                     <input type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                        <button key={k} type="button" onClick={() => setPersonalData({ ...personalData, gender: k })} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: personalData.gender === k ? '#10b981' : '#e2e8f0', color: personalData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                      ))}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <div style={{ flex: 1 }}>
