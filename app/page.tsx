@@ -5079,8 +5079,29 @@ const [notificationError, setNotificationError] = useState('');
             <div>
               <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
               {athletePrograms.length === 0 ? (
-                <div style={{ background: '#ffffff', color: '#000', padding: '30px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                  <p style={{ color: '#64748b', margin: 0 }}>Nessun allenamento assegnato al momento.</p>
+                <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid #d8dde3', textAlign: 'center' }}>
+                  <svg viewBox="0 0 120 90" style={{ width: '150px', height: 'auto', display: 'block', margin: '0 auto 18px auto' }} aria-hidden="true">
+                    {/* bilanciere appoggiato: nessun allenamento in corso */}
+                    <rect x="16" y="43" width="88" height="4" rx="2" fill="#cbd5e1" />
+                    <rect x="24" y="34" width="9" height="22" rx="3" fill="#94a3b8" />
+                    <rect x="12" y="38" width="8" height="14" rx="3" fill="#cbd5e1" />
+                    <rect x="87" y="34" width="9" height="22" rx="3" fill="#94a3b8" />
+                    <rect x="100" y="38" width="8" height="14" rx="3" fill="#cbd5e1" />
+                    <ellipse cx="60" cy="72" rx="34" ry="4" fill="#e2e8f0" />
+                    <circle cx="60" cy="20" r="9" fill="none" stroke="#10b981" strokeWidth="2.5" strokeDasharray="3 3" />
+                    <path d="M60 15v6l4 2" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  </svg>
+ 
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '17px', color: '#334155' }}>
+                    {subscriptionStatus === 'prova' && !trialChoice
+                      ? 'Scegli come iniziare'
+                      : 'Nessun allenamento assegnato'}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.55, maxWidth: '300px', marginLeft: 'auto', marginRight: 'auto' }}>
+                    {subscriptionStatus === 'prova' && !trialChoice
+                      ? 'Seleziona qui sopra lo stile di allenamento che preferisci per attivare la tua settimana di prova.'
+                      : 'Il coach sta preparando il tuo programma. Appena sarà pronto lo troverai qui e riceverai una notifica.'}
+                  </p>
                 </div>
               ) : (
                 athletePrograms.map((prog) => {
@@ -5329,14 +5350,6 @@ const [notificationError, setNotificationError] = useState('');
                                         );
                                       })
                                     )}
-                                  {(prog.trainingTips || prog.nutritionTips) && (
-                                    <button
-                                      onClick={() => { apriConsigli(prog.id, false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                      style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '8px', border: '1px dashed #fcd34d', background: '#fffbeb', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-                                    >
-                                      💡 Rileggi i consigli del coach
-                                    </button>
-                                  )}
                                   </div>
                                 )}
                               </div>
