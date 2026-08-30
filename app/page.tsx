@@ -871,6 +871,7 @@ export default function TrainingApp() {
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
   const [libraryView, setLibraryView] = useState<'programmi' | 'cestino'>('programmi');
+  const [libraryFilter, setLibraryFilter] = useState<'tutti' | 'assegnati' | 'bozze' | 'prove'>('tutti');
   const showDeletedPrograms = libraryView === 'cestino';
   const [showDeletedExercises, setShowDeletedExercises] = useState(false);
  
@@ -2904,12 +2905,21 @@ const [notificationError, setNotificationError] = useState('');
     if (libraryView === 'cestino') return prog.isDeleted;
     if (prog.isDeleted) return false;
  
+    if (libraryFilter === 'prove') return !!prog.trialStyle;
+    if (libraryFilter === 'bozze') return !prog.trialStyle && prog.visibility === 'none';
+    if (libraryFilter === 'assegnati') return !prog.trialStyle && prog.visibility !== 'none';
+ 
     // Le prove non si assegnano, quindi restano visibili anche filtrando per atleta
     if (prog.trialStyle) return true;
  
     if (!libraryFilterAthlete) return true;
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
   });
+ 
+  const attivi = programLibrary.filter((p: any) => !p.isDeleted);
+  const contaAssegnati = attivi.filter((p: any) => !p.trialStyle && p.visibility !== 'none').length;
+  const contaBozze = attivi.filter((p: any) => !p.trialStyle && p.visibility === 'none').length;
+  const contaProve = attivi.filter((p: any) => !!p.trialStyle).length;
  
   const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
  
@@ -4609,8 +4619,27 @@ const [notificationError, setNotificationError] = useState('');
                     ))}
                   </div>
  
- 
                   {libraryView === 'programmi' && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                      {[
+                        { k: 'tutti', t: 'Tutti', n: attivi.length, col: '#334155' },
+                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: '#166534' },
+                        { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#92400e' },
+                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: '#1e40af' },
+                      ].map((f) => (
+                        <button
+                          key={f.k}
+                          onClick={() => setLibraryFilter(f.k as any)}
+                          style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '7px 11px', borderRadius: '20px', border: libraryFilter === f.k ? `2px solid ${f.col}` : '1px solid #cbd5e1', background: libraryFilter === f.k ? '#ffffff' : '#f1f5f9', color: libraryFilter === f.k ? f.col : '#64748b', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          {f.t} ({f.n})
+                        </button>
+                      ))}
+                    </div>
+                  )}
+ 
+ 
+                  {libraryView === 'programmi' && (libraryFilter === 'tutti' || libraryFilter === 'assegnati') && (
                     <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff', marginBottom: '12px' }}>
                       <option value="">Filtra per utente (Tutti)</option>
                       {athletes.map((a) => (
@@ -4621,7 +4650,15 @@ const [notificationError, setNotificationError] = useState('');
  
                   {filteredLibraryPrograms.length === 0 ? (
                     <p style={{ color: '#64748b', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
-                      {libraryView === 'cestino' ? 'Il cestino è vuoto.' : 'Nessun programma trovato.'}
+                      {libraryView === 'cestino'
+                        ? 'Il cestino è vuoto.'
+                        : libraryFilter === 'prove'
+                          ? 'Nessuna settimana di prova. Creane una da "Crea Programma" indicando lo stile nel campo "Settimana di prova".'
+                          : libraryFilter === 'bozze'
+                            ? 'Nessuna bozza: tutti i programmi sono visibili a qualcuno.'
+                            : libraryFilter === 'assegnati'
+                              ? 'Nessun programma assegnato.'
+                              : 'Nessun programma trovato.'}
                     </p>
                   ) : (
                     filteredLibraryPrograms.map((prog) => {
@@ -4634,7 +4671,7 @@ const [notificationError, setNotificationError] = useState('');
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
                       return (
-                        <div key={prog.id} style={{ background: prog.trialStyle ? '#eff6ff' : prog.visibility === 'none' ? '#fff8e6' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #93c5fd' : prog.visibility === 'none' ? '1px solid #f0c674' : '1px solid #d8dde3', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.trialStyle ? '#d6e9fb' : prog.visibility === 'none' ? '#fdf3d3' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : prog.visibility === 'none' ? '2px solid #e0a80c' : '1px solid #d8dde3', marginBottom: '16px' }}>
                           <div style={{ marginBottom: '12px' }}>
                             <div>
                               <h4 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
