@@ -223,21 +223,30 @@ function sortMetconNames(names: string[]): string[] {
 }
  
 // Stato temporale di un programma, per colorare le date
+// Legge una data come mezzanotte locale, non UTC: altrimenti in Italia
+// un programma che inizia oggi risulterebbe "non ancora iniziato"
+function parseLocalDate(s: any): Date | null {
+  if (!s) return null;
+  const parti = String(s).split('T')[0].split('-').map(Number);
+  if (parti.length !== 3 || parti.some((n) => !n || isNaN(n))) return null;
+  return new Date(parti[0], parti[1] - 1, parti[2]);
+}
+ 
 function getProgramDateStatus(startDate: any, endDate: any) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
  
-  const end = endDate ? new Date(String(endDate).split('T')[0]) : null;
-  const start = startDate ? new Date(String(startDate).split('T')[0]) : null;
+  const end = parseLocalDate(endDate);
+  const start = parseLocalDate(startDate);
  
-  if (end && !isNaN(end.getTime())) {
+  if (end) {
     const diff = Math.round((end.getTime() - today.getTime()) / 86400000);
     if (diff < 0) return { color: '#b91c1c', bg: '#fee2e2', icon: '⛔', label: 'Scaduto' };
     if (diff === 0) return { color: '#b91c1c', bg: '#fee2e2', icon: '⚠️', label: 'Scade oggi' };
     if (diff <= 7) return { color: '#b45309', bg: '#fef3c7', icon: '⏳', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
   }
  
-  if (start && !isNaN(start.getTime()) && start.getTime() > today.getTime()) {
+  if (start && start.getTime() > today.getTime()) {
     return { color: '#1d4ed8', bg: '#dbeafe', icon: '🕒', label: 'Non ancora iniziato' };
   }
  
