@@ -565,7 +565,7 @@ function sortExerciseLibrary(list: any[]) {
   });
 }
  
-const PRIVACY_VERSION = '1.0';
+const PRIVACY_VERSION = '2.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -664,51 +664,98 @@ function AmtLogo({ style }: { style?: React.CSSProperties }) {
 }
  
 function PrivacyPolicyContent() {
-  const hStyle: React.CSSProperties = { color: '#10b981', fontSize: '14px', margin: '14px 0 4px 0' };
-  const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.5, color: '#334155' };
+  const hStyle: React.CSSProperties = { color: '#10b981', fontSize: '14px', margin: '18px 0 6px 0' };
+  const sStyle: React.CSSProperties = { color: '#334155', fontSize: '13px', fontWeight: 'bold', margin: '12px 0 4px 0' };
+  const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.55, color: '#334155' };
+  const bStyle: React.CSSProperties = { margin: '10px 0', fontSize: '13px', lineHeight: 1.55, color: '#7f1d1d', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px 12px' };
   return (
     <div>
-      <p style={{ ...pStyle, fontSize: '12px', color: '#64748b' }}>Versione {PRIVACY_VERSION} — Informativa ai sensi degli artt. 13 e 14 del Regolamento UE 2016/679 (GDPR)</p>
- 
-      <h4 style={hStyle}>1. Titolare del trattamento</h4>
-      <p style={pStyle}>AM Training. Per qualsiasi richiesta relativa ai tuoi dati puoi scrivere all&apos;indirizzo email del titolare, che trovi nei contatti dell&apos;attività.</p>
- 
-      <h4 style={hStyle}>2. Quali dati raccogliamo</h4>
-      <p style={pStyle}><strong>Dati identificativi e di contatto:</strong> nome e cognome, indirizzo email, data di nascita, sesso (usato per proporre la scheda di prova adeguata). La password è gestita e cifrata dal fornitore di autenticazione e non è mai visibile né al coach né a chi gestisce l&apos;app.</p>
-      <p style={pStyle}><strong>Dati relativi alla salute:</strong> peso, altezza e il contenuto del campo &quot;problematiche fisiche o sistemiche&quot; dell&apos;anamnesi, in cui puoi indicare patologie, infortuni, limitazioni funzionali o terapie in corso.</p>
-      <p style={pStyle}><strong>Dati di allenamento:</strong> obiettivi, numero e durata degli allenamenti settimanali, attrezzatura disponibile, programmi assegnati, punteggi e note inserite da te o dal coach, massimali di forza.</p>
-      <p style={pStyle}><strong>Dati tecnici:</strong> se attivi le notifiche push, un identificativo tecnico del dispositivo; log di accesso generati automaticamente dai fornitori dell&apos;infrastruttura (indirizzo IP, data e ora).</p>
- 
-      <h4 style={hStyle}>3. Dati sanitari: trattamento specifico</h4>
-      <p style={pStyle}>Peso, altezza e le problematiche fisiche o sistemiche che dichiari sono <strong>dati relativi alla salute</strong> e rientrano nelle categorie particolari di dati previste dall&apos;art. 9 del GDPR. Ricevono una tutela rafforzata.</p>
-      <p style={pStyle}><strong>Base giuridica:</strong> il tuo consenso esplicito, ai sensi dell&apos;art. 9, par. 2, lett. a) del GDPR. Senza questo consenso non possiamo trattarli.</p>
-      <p style={pStyle}><strong>Finalità:</strong> esclusivamente permettere al coach di valutare la tua condizione fisica e programmare allenamenti adeguati e sicuri, adattandoli a eventuali limitazioni. Non vengono usati per altri scopi.</p>
-      <p style={pStyle}><strong>Chi vi accede:</strong> soltanto tu e il coach. Nessun altro atleta può vederli. Non vengono comunicati a terzi, né usati per profilazione commerciale o assicurativa.</p>
-      <p style={pStyle}><strong>Facoltatività:</strong> l&apos;inserimento delle problematiche fisiche è una tua libera scelta. Puoi lasciare il campo vuoto: il servizio resta utilizzabile, ma il coach non potrà tenere conto di condizioni che non conosce. Per questo motivo ti invitiamo a segnalare quanto rilevante per la tua sicurezza.</p>
-      <p style={pStyle}><strong>Nota importante:</strong> l&apos;app non è uno strumento medico e il coach non svolge attività sanitaria. I programmi proposti non sostituiscono in alcun modo il parere di un medico. Se hai patologie in corso, consulta il tuo medico prima di iniziare o modificare un programma di allenamento.</p>
- 
-      <h4 style={hStyle}>4. Basi giuridiche degli altri trattamenti</h4>
-      <p style={pStyle}>I dati identificativi e di allenamento sono trattati per l&apos;esecuzione del rapporto tra te e il coach (art. 6, par. 1, lett. b). Le notifiche push si basano sul consenso che presti attivandole dal dispositivo.</p>
- 
-      <h4 style={hStyle}>5. Dove sono conservati i dati</h4>
-      <p style={pStyle}>I dati sono conservati su infrastruttura Supabase (database e autenticazione) e Vercel (hosting), che agiscono come responsabili del trattamento e garantiscono misure di sicurezza adeguate. Qualora i dati transitino al di fuori dello Spazio Economico Europeo, il trasferimento avviene sulla base delle clausole contrattuali standard approvate dalla Commissione Europea.</p>
- 
-      <h4 style={hStyle}>6. Per quanto tempo</h4>
-      <p style={pStyle}>I dati sono conservati per tutta la durata del rapporto e per il tempo successivamente necessario ad adempiere a obblighi di legge. Puoi richiedere la cancellazione in qualsiasi momento, anche direttamente dall&apos;app.</p>
- 
-      <h4 style={hStyle}>7. I tuoi diritti</h4>
-      <p style={pStyle}>Puoi in qualsiasi momento: accedere ai tuoi dati e ottenerne copia; chiederne la rettifica o la cancellazione; limitarne od opporti al trattamento; ottenerne la portabilità in formato leggibile; revocare il consenso prestato.</p>
-      <p style={pStyle}>Dalla sezione &quot;Privacy&quot; del tuo profilo puoi scaricare tutti i tuoi dati e richiedere l&apos;eliminazione dell&apos;account. Per le altre richieste scrivi al titolare, che risponderà entro 30 giorni.</p>
-      <p style={pStyle}>Hai inoltre diritto di proporre reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it).</p>
- 
-      <h4 style={hStyle}>8. Revoca del consenso</h4>
-      <p style={pStyle}>La revoca del consenso ai dati sanitari non pregiudica la liceità del trattamento effettuato prima della revoca. Comporta però la cancellazione dei dati di salute già inseriti e l&apos;impossibilità, per il coach, di continuare a tenerne conto nella programmazione.</p>
- 
-      <h4 style={hStyle}>9. Minori</h4>
-      <p style={pStyle}>Se hai meno di 18 anni, la registrazione e il consenso al trattamento dei dati di salute devono essere autorizzati da chi esercita la responsabilità genitoriale. In tal caso contatta direttamente il coach prima di proseguire.</p>
- 
-      <h4 style={hStyle}>10. Processo decisionale automatizzato</h4>
-      <p style={pStyle}>Non viene effettuato alcun processo decisionale automatizzato né profilazione: i programmi di allenamento sono elaborati dal coach.</p>
+      <p style={{ ...pStyle, fontSize: '12px', color: '#64748b' }}>Versione {PRIVACY_VERSION} — Informativa ai sensi dell&apos;art. 13 del Reg. UE 2016/679 (GDPR) e del D.lgs. 196/2003</p>
+      <p style={pStyle}>Il Sig. Marco Angeloni, P.IVA 02115500437, con sede in Via 4 Novembre n. 1, 62010 Montefano (MC), e-mail marcoangelon@gmail.com, in qualità di Titolare del trattamento (in seguito, “Titolare”), nonché soggetto che riveste il ruolo di coach, La informa, ai sensi dell’art. 13 del D.lgs. 30 giugno 2003 n. 196 (“Codice Privacy”) e dell’art. 13 del Regolamento UE n. 2016/679 (“GDPR”), che i Suoi dati personali saranno trattati con le modalità e per le finalità seguenti.</p>
+      <h4 style={hStyle}>1. Oggetto del trattamento</h4>
+      <p style={pStyle}>Il Titolare tratta i dati personali da Lei comunicati in occasione della registrazione, dell’utilizzo dell’applicazione AM Training e della gestione del rapporto con lo stesso. In particolare, potranno essere trattate le seguenti categorie di dati:</p>
+      <p style={sStyle}>A) Dati identificativi e di contatto</p>
+      <p style={pStyle}>Per consentire la registrazione dell’utente, la gestione del profilo e l’erogazione dei servizi offerti tramite l’applicazione, potranno essere raccolti alcuni dati identificativi e di contatto, quali il nome e il cognome, l’indirizzo e-mail, la data di nascita e il sesso.</p>
+      <p style={sStyle}>B) Dati relativi all’allenamento e all’attività sportiva</p>
+      <p style={pStyle}>Nell’ambito dell’utilizzo dell’applicazione potranno essere raccolte e trattate informazioni relative al percorso di allenamento e all’attività sportiva svolta dall’utente. Tali dati possono riguardare, in particolare, gli obiettivi di allenamento indicati dall’utente, il numero e la durata degli allenamenti effettuati su base settimanale, nonché i programmi di allenamento assegnati.</p>
+      <p style={pStyle}>Potranno inoltre essere registrati i punteggi ottenuti, i risultati conseguiti e i progressi rilevati nel corso del percorso di allenamento. Rientrano altresì in tale categoria le eventuali note inserite dall’utente e/o dal Titolare e, più in generale, ogni ulteriore informazione pertinente all’attività sportiva svolta e alle prestazioni fisiche dell’utente, nella misura necessaria alla gestione e al monitoraggio del percorso di allenamento.</p>
+      <p style={sStyle}>C) Dati relativi alla salute</p>
+      <p style={pStyle}>Nel corso dell’anamnesi, l’utente potrà fornire informazioni che, in considerazione della loro natura e delle finalità per le quali vengono trattate, possono qualificarsi come dati relativi alla salute ai sensi dell’art. 4, n. 15, del GDPR e rientrare, pertanto, tra le categorie particolari di dati personali disciplinate dall’art. 9 del GDPR.</p>
+      <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
+      <p style={sStyle}>D) Dati tecnici</p>
+      <p style={pStyle}>Per garantire il corretto funzionamento dell’applicazione, nonché per finalità connesse alla sicurezza, alla gestione e alla manutenzione dell’infrastruttura tecnologica, potranno essere trattati anche alcuni dati di natura tecnica.</p>
+      <p style={pStyle}>Tali dati possono comprendere gli identificativi tecnici del dispositivo, ove necessari per consentire l’invio di notifiche push, l’indirizzo IP utilizzato dall’utente, la data e l’ora degli accessi all’applicazione e gli eventuali log tecnici generati automaticamente dai fornitori dell’infrastruttura tecnologica. Tali informazioni sono trattate nella misura necessaria a garantire la disponibilità, la sicurezza e il corretto funzionamento dell’applicazione e dei relativi servizi.</p>
+      <h4 style={hStyle}>2. Finalità del trattamento</h4>
+      <p style={pStyle}>I Suoi dati personali sono trattati per le seguenti finalità.</p>
+      <p style={sStyle}>A) Finalità necessarie alla fornitura del servizio</p>
+      <p style={pStyle}>I dati identificativi, di contatto e quelli relativi all’allenamento sono trattati, senza che sia necessario acquisire uno specifico consenso, ai sensi dell’art. 6, par. 1, lett. b), del GDPR, nella misura in cui il loro trattamento sia necessario per l’esecuzione del rapporto con il Titolare e per consentire all’utente di usufruire delle funzionalità messe a disposizione attraverso l’applicazione.</p>
+      <p style={pStyle}>In tale ambito, i dati sono utilizzati per consentire la registrazione dell’utente e la gestione del relativo account, nonché per permettere l’accesso e l’utilizzo dell’applicazione. Il trattamento è inoltre finalizzato a consentire al Titolare, nella propria qualità di coach, di predisporre, assegnare e gestire i programmi di allenamento, nonché di registrare e monitorare i risultati e i progressi dell’utente nel corso dell’attività sportiva.</p>
+      <p style={pStyle}>I dati potranno altresì essere utilizzati per gestire le comunicazioni inerenti al servizio e per garantire il corretto funzionamento, la sicurezza e la manutenzione dell’applicazione. Il trattamento potrà inoltre essere effettuato per adempiere agli obblighi derivanti da leggi, regolamenti o dalla normativa europea applicabile, nonché, ove necessario, per l’accertamento, l’esercizio o la difesa di un diritto del Titolare.</p>
+      <p style={sStyle}>B) Trattamento dei dati relativi alla salute</p>
+      <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
+      <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente.</p>
+      <p style={pStyle}>Il conferimento delle informazioni relative alla salute è in ogni caso facoltativo. L’utente che scelga di non fornire tali informazioni, ovvero che non presti il proprio consenso al loro trattamento, potrà continuare a utilizzare tutte le funzionalità dell’applicazione che non richiedano il trattamento di tali dati. In tale eventualità, tuttavia, il Titolare non potrà tenere conto, nella predisposizione o nella gestione dei programmi di allenamento, di eventuali condizioni fisiche o sanitarie che non siano state comunicate dall’utente.</p>
+      <p style={pStyle}>I dati relativi alla salute non saranno utilizzati per finalità di marketing, pubblicità, profilazione commerciale o assicurativa.</p>
+      <p style={bStyle}>L’applicazione non costituisce uno strumento medico e il Titolare non svolge, attraverso l’applicazione, attività di natura sanitaria. I programmi di allenamento predisposti nell’ambito del servizio hanno esclusivamente finalità sportive e non costituiscono diagnosi, terapia o prescrizione medica, né intendono sostituire il parere o le indicazioni di un medico o di altro professionista sanitario. In presenza di patologie, infortuni o altre condizioni di salute rilevanti, l’utente è pertanto invitato a consultare il proprio medico prima di iniziare o modificare un programma di allenamento.</p>
+      <p style={sStyle}>C) Notifiche push</p>
+      <p style={pStyle}>Qualora l’utente scelga di abilitare le notifiche push, potranno essere trattati gli identificativi tecnici necessari per consentire l’invio delle notifiche al dispositivo utilizzato. L’attivazione delle notifiche push è facoltativa e la relativa preferenza può essere modificata in qualsiasi momento attraverso le impostazioni del dispositivo e/o dell’applicazione, secondo le funzionalità disponibili.</p>
+      <p style={sStyle}>D) Obblighi di legge e tutela dei diritti</p>
+      <p style={pStyle}>I dati personali potranno inoltre essere trattati, senza che sia necessario acquisire un ulteriore consenso dell’interessato, qualora ciò sia necessario per adempiere a obblighi imposti dalla legge, da regolamenti o dalla normativa europea applicabile, nonché per dare esecuzione a eventuali provvedimenti adottati dalle Autorità competenti. Il trattamento potrà altresì essere effettuato qualora risulti necessario per l’accertamento, l’esercizio o la difesa di un diritto del Titolare, anche in sede giudiziaria o stragiudiziale.</p>
+      <h4 style={hStyle}>3. Modalità di trattamento</h4>
+      <p style={pStyle}>Il trattamento dei dati personali è realizzato mediante le operazioni previste dall’art. 4, n. 2), GDPR e precisamente: raccolta, registrazione, organizzazione, conservazione, consultazione, elaborazione, modificazione, selezione, estrazione, raffronto, utilizzo, comunicazione ove necessaria, cancellazione e distruzione dei dati.</p>
+      <p style={pStyle}>I dati personali sono sottoposti a trattamento mediante strumenti elettronici e/o automatizzati. Il Titolare adotta misure tecniche e organizzative adeguate a garantire la sicurezza, la riservatezza, l’integrità e la disponibilità dei dati personali, tenendo conto della natura dei dati trattati e dei rischi connessi al trattamento.</p>
+      <h4 style={hStyle}>4. Accesso ai dati</h4>
+      <p style={pStyle}>I dati personali potranno essere resi accessibili al Titolare, in qualità di Titolare del trattamento e di coach, nella misura necessaria alla gestione del servizio e alla predisposizione e personalizzazione dei programmi di allenamento.</p>
+      <p style={pStyle}>I dati potranno inoltre essere trattati da soggetti terzi che forniscono al Titolare servizi tecnologici e infrastrutturali necessari al funzionamento dell’applicazione, ove nominati Responsabili del trattamento ai sensi dell’art. 28 GDPR.</p>
+      <p style={pStyle}>Tra i fornitori tecnologici utilizzati dal Titolare rientrano, in particolare, Supabase, per i servizi di database e autenticazione, Vercel, per i servizi di hosting, e Brevo, per l’invio delle comunicazioni di servizio via e-mail, secondo le funzioni e le configurazioni effettivamente utilizzate.</p>
+      <p style={pStyle}>Il Titolare limiterà l’accesso ai dati personali, e in particolare ai dati relativi alla salute, a quanto effettivamente necessario per le finalità indicate nella presente informativa. Gli altri utenti dell’applicazione non avranno accesso ai dati personali dell’interessato né ai dati relativi alla sua salute. L’elenco aggiornato degli eventuali responsabili del trattamento potrà essere richiesto al Titolare.</p>
+      <h4 style={hStyle}>5. Comunicazione dei dati</h4>
+      <p style={pStyle}>Senza la necessità di uno specifico consenso, il Titolare potrà comunicare i dati personali nei casi in cui la comunicazione sia necessaria per adempiere a un obbligo di legge, a un provvedimento dell’Autorità oppure per l’accertamento, l’esercizio o la difesa di un diritto.</p>
+      <p style={pStyle}>I dati potranno essere comunicati, a titolo esemplificativo, ad Autorità giudiziarie, amministrative e di controllo e ad altri soggetti pubblici o privati ai quali la comunicazione sia obbligatoria per legge. I soggetti destinatari dei dati tratteranno gli stessi, a seconda dei casi, in qualità di autonomi titolari del trattamento oppure di responsabili del trattamento. I dati personali non saranno diffusi.</p>
+      <h4 style={hStyle}>6. Trasferimento dei dati verso Paesi terzi</h4>
+      <p style={pStyle}>I dati personali sono trattati e conservati mediante l’infrastruttura tecnologica utilizzata dal Titolare, compresi i servizi di Supabase, Vercel e Brevo, secondo le rispettive configurazioni.</p>
+      <p style={pStyle}>Qualora, nell’ambito della fornitura dei servizi tecnologici utilizzati, i dati personali siano trasferiti verso Paesi situati al di fuori dello Spazio Economico Europeo, il Titolare assicurerà che il trasferimento avvenga nel rispetto degli artt. 44 e seguenti GDPR e sulla base di un valido meccanismo previsto dalla normativa applicabile, quale, ove pertinente, una decisione di adeguatezza della Commissione Europea o le Clausole Contrattuali Standard adottate dalla Commissione Europea, eventualmente integrate dalle ulteriori misure richieste dalla normativa applicabile.</p>
+      <p style={pStyle}>Le informazioni aggiornate relative ai fornitori, ai Paesi di trattamento e ai relativi meccanismi di trasferimento potranno essere richieste al Titolare.</p>
+      <h4 style={hStyle}>7. Periodo di conservazione</h4>
+      <p style={pStyle}>Il Titolare tratterà i dati personali per il tempo necessario a conseguire le finalità per le quali sono stati raccolti e, in particolare:</p>
+      <p style={pStyle}>• i dati relativi all’account e alla gestione del servizio saranno conservati per tutta la durata del rapporto con il Titolare e fino alla cancellazione dell’account, salvo gli ulteriori periodi di conservazione previsti dalla legge;</p>
+      <p style={pStyle}>• i dati relativi all’allenamento saranno conservati per tutta la durata del rapporto e per il periodo successivamente necessario alla gestione degli obblighi di legge o alla tutela dei diritti del Titolare;</p>
+      <p style={pStyle}>• i dati relativi alla salute saranno conservati per tutta la durata del rapporto, salvo revoca del consenso da parte dell’interessato o richiesta di cancellazione, fatti salvi i casi in cui la conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di un diritto;</p>
+      <p style={pStyle}>• i dati tecnici e i log saranno conservati per il periodo necessario a garantire il funzionamento, la sicurezza e la manutenzione dei sistemi e secondo i periodi di conservazione applicabili ai singoli servizi tecnologici.</p>
+      <p style={pStyle}>Al termine dei relativi periodi di conservazione, i dati saranno cancellati o resi anonimi, salvo che la loro ulteriore conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di diritti. La cancellazione dell’account può essere richiesta dall’utente anche attraverso l’applicazione, secondo le funzionalità disponibili.</p>
+      <h4 style={hStyle}>8. Natura del conferimento dei dati e conseguenze del rifiuto</h4>
+      <p style={pStyle}>Il conferimento dei dati identificativi e dei dati necessari alla gestione dell’account e all’utilizzo delle funzionalità essenziali dell’applicazione è necessario per poter usufruire dei relativi servizi. Il mancato conferimento di tali dati può impedire la registrazione, l’accesso o l’utilizzo delle funzionalità per le quali i dati risultano necessari.</p>
+      <p style={pStyle}>Il conferimento dei dati relativi alla salute è invece facoltativo. Il mancato conferimento di tali dati, così come il mancato rilascio del consenso esplicito al loro trattamento, non impedisce l’utilizzo delle funzionalità dell’applicazione che non richiedono tali informazioni. Tuttavia, il Titolare non potrà tenere conto delle condizioni fisiche o sanitarie non comunicate nella programmazione degli allenamenti.</p>
+      <p style={pStyle}>L’abilitazione delle notifiche push è facoltativa e il relativo mancato consenso non pregiudica l’utilizzo delle altre funzionalità dell’applicazione.</p>
+      <h4 style={hStyle}>9. Utenti minorenni</h4>
+      <p style={pStyle}>L’applicazione può essere utilizzata anche da soggetti di età inferiore ai 18 anni. Il Titolare presta particolare attenzione alla tutela dei dati personali dei minori e, in particolare, al trattamento dei dati relativi alla salute.</p>
+      <p style={pStyle}>Per gli utenti minorenni, il Titolare adotterà le procedure necessarie per verificare, nei casi previsti dalla normativa applicabile, il consenso o l’autorizzazione di chi esercita la responsabilità genitoriale. Quando il trattamento dei dati personali si basa sul consenso e l’offerta dei servizi della società dell’informazione è rivolta direttamente a un minore, si applicano le disposizioni dell’art. 8 GDPR e della normativa italiana applicabile in materia di consenso dei minori.</p>
+      <p style={pStyle}>Per quanto riguarda i dati relativi alla salute, trattandosi di categorie particolari di dati personali, il trattamento sarà effettuato nel rispetto dell’art. 9 GDPR e sulla base di un consenso esplicito validamente prestato dal soggetto legittimato secondo la normativa applicabile. Il Titolare potrà richiedere le informazioni necessarie a verificare l’età dell’utente e, ove necessario, l’identità e la titolarità della responsabilità genitoriale.</p>
+      <p style={pStyle}>Qualora non sia possibile acquisire validamente il consenso richiesto dalla normativa applicabile, il Titolare non procederà al trattamento dei dati relativi alla salute e potrà limitare l’accesso alle funzionalità dell’applicazione che richiedano tali dati.</p>
+      <h4 style={hStyle}>10. Revoca del consenso</h4>
+      <p style={pStyle}>Il consenso al trattamento dei dati relativi alla salute può essere revocato in qualsiasi momento, senza pregiudicare la liceità del trattamento effettuato prima della revoca. La revoca può essere effettuata attraverso le funzionalità messe a disposizione dall’applicazione oppure contattando il Titolare.</p>
+      <p style={pStyle}>A seguito della revoca, il Titolare cesserà il trattamento dei dati relativi alla salute basato sul consenso e, ove richiesto, procederà alla loro cancellazione, fatti salvi i casi in cui la conservazione o il trattamento siano necessari per adempiere a un obbligo di legge oppure per l’accertamento, l’esercizio o la difesa di un diritto. La revoca del consenso comporterà l’impossibilità, per il Titolare, di continuare a utilizzare tali informazioni per personalizzare la programmazione degli allenamenti.</p>
+      <h4 style={hStyle}>11. Diritti dell’interessato</h4>
+      <p style={pStyle}>Nella Sua qualità di interessato, può esercitare nei confronti del Titolare del trattamento i diritti previsti dagli artt. 15-22 GDPR e, in particolare:</p>
+      <p style={pStyle}>• ottenere la conferma che sia o meno in corso un trattamento di dati personali che La riguardano e, in tal caso, ottenere l’accesso ai dati personali e alle informazioni previste dall’art. 15 GDPR;</p>
+      <p style={pStyle}>• ottenere la rettifica dei dati personali inesatti e l’integrazione dei dati incompleti;</p>
+      <p style={pStyle}>• ottenere la cancellazione dei dati personali nei casi previsti dall’art. 17 GDPR;</p>
+      <p style={pStyle}>• ottenere la limitazione del trattamento nei casi previsti dall’art. 18 GDPR;</p>
+      <p style={pStyle}>• ottenere la portabilità dei dati nei casi previsti dall’art. 20 GDPR;</p>
+      <p style={pStyle}>• opporsi al trattamento nei casi previsti dall’art. 21 GDPR;</p>
+      <p style={pStyle}>• non essere sottoposto a una decisione basata unicamente sul trattamento automatizzato, compresa la profilazione, nei casi previsti dall’art. 22 GDPR;</p>
+      <p style={pStyle}>• revocare in qualsiasi momento il consenso precedentemente prestato, senza pregiudicare la liceità del trattamento effettuato prima della revoca.</p>
+      <p style={pStyle}>Dalla sezione “Privacy” del proprio profilo, ove disponibile, l’utente può scaricare i propri dati e richiedere la cancellazione dell’account. L’esercizio dei diritti può essere soggetto alle limitazioni previste dalla normativa applicabile.</p>
+      <h4 style={hStyle}>12. Modalità di esercizio dei diritti</h4>
+      <p style={pStyle}>Potrà in qualsiasi momento esercitare i diritti sopra indicati inviando una richiesta tramite raccomandata a/r o tramite e-mail a: Marco Angeloni — P.IVA 02115500437 — Via 4 Novembre n. 1, 62010 Montefano (MC) — marcoangelon@gmail.com</p>
+      <p style={pStyle}>Il Titolare fornirà riscontro alla richiesta senza ingiustificato ritardo e, in ogni caso, entro un mese dal suo ricevimento. Tale termine può essere prorogato di ulteriori due mesi nei casi previsti dall’art. 12 GDPR, tenuto conto della complessità e del numero delle richieste. In tal caso, il Titolare informerà l’interessato della proroga e dei motivi del ritardo.</p>
+      <h4 style={hStyle}>13. Reclamo all’Autorità di controllo</h4>
+      <p style={pStyle}>Ai sensi dell’art. 77 GDPR, l’interessato che ritenga che il trattamento dei propri dati personali violi il GDPR ha il diritto di proporre reclamo all’Autorità di controllo competente, in particolare nello Stato membro in cui risiede abitualmente, lavora oppure nel luogo in cui si è verificata la presunta violazione. Per l’Italia, l’Autorità di controllo competente è il Garante per la protezione dei dati personali.</p>
+      <h4 style={hStyle}>14. Processo decisionale automatizzato e profilazione</h4>
+      <p style={pStyle}>Il Titolare non effettua processi decisionali basati unicamente sul trattamento automatizzato dei dati personali ai sensi dell’art. 22 GDPR. I programmi e le indicazioni di allenamento sono elaborati direttamente dal Titolare nella sua qualità di coach e non sono il risultato di una decisione presa esclusivamente mediante un processo automatizzato. I dati personali, compresi i dati relativi alla salute, non sono utilizzati per attività di profilazione commerciale, pubblicitaria o assicurativa.</p>
+      <h4 style={hStyle}>15. Titolare del trattamento</h4>
+      <p style={pStyle}>Marco Angeloni — P.IVA 02115500437 — Via 4 Novembre n. 1, 62010 Montefano (MC) — marcoangelon@gmail.com</p>
+      <p style={pStyle}>L’elenco aggiornato degli eventuali responsabili del trattamento può essere richiesto al Titolare utilizzando i recapiti sopra indicati.</p>
     </div>
   );
 }
@@ -1404,26 +1451,30 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const checkPrivacyConsent = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('privacy_consent_at').eq('id', userId).maybeSingle();
+    const { data } = await supabase.from('profiles').select('privacy_consent_at,privacy_version').eq('id', userId).maybeSingle();
  
     // Rileggo i dati aggiornati dell'account: è la fonte più affidabile
     const { data: userData } = await supabase.auth.getUser();
-    const metaConsent = userData?.user?.user_metadata?.privacy_consent_at || null;
+    const meta = userData?.user?.user_metadata || {};
+    const metaConsent = meta.privacy_consent_at || null;
+    const metaVersion = meta.privacy_version || null;
  
     const consent = data?.privacy_consent_at || metaConsent || null;
+    const versione = data?.privacy_version || metaVersion || null;
     setPrivacyConsentAt(consent);
  
-    if (!consent) {
+    // Serve il consenso se non è mai stato dato, oppure se l'informativa è cambiata
+    if (!consent || versione !== PRIVACY_VERSION) {
       setShowConsentGate(true);
       return;
     }
  
     // Allineo le due copie, senza bloccare nulla se l'aggiornamento non è permesso
     if (!data?.privacy_consent_at) {
-      await supabase.from('profiles').update({ privacy_consent_at: consent }).eq('id', userId);
+      await supabase.from('profiles').update({ privacy_consent_at: consent, privacy_version: versione }).eq('id', userId);
     }
     if (!metaConsent) {
-      await supabase.auth.updateUser({ data: { privacy_consent_at: consent } });
+      await supabase.auth.updateUser({ data: { privacy_consent_at: consent, privacy_version: versione } });
     }
   };
  
@@ -1434,12 +1485,12 @@ const [notificationError, setNotificationError] = useState('');
  
     // Salvo il consenso nei dati dell'account: non dipende dai permessi della tabella
     // profiles, quindi resta memorizzato anche se quell'aggiornamento non va a buon fine.
-    const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now } });
+    const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now, privacy_version: PRIVACY_VERSION } });
  
     // Salvo anche sul profilo, verificando che la riga sia stata davvero aggiornata
     const { data: updated, error: profError } = await supabase
       .from('profiles')
-      .update({ privacy_consent_at: now })
+      .update({ privacy_consent_at: now, privacy_version: PRIVACY_VERSION })
       .eq('id', session.user.id)
       .select('privacy_consent_at');
  
@@ -2316,7 +2367,8 @@ const [notificationError, setNotificationError] = useState('');
           gender: signupGender || null,
           weight: signupWeight || null,
           height: signupHeight || null,
-          privacy_consent_at: new Date().toISOString()
+          privacy_consent_at: new Date().toISOString(),
+          privacy_version: PRIVACY_VERSION
         }
       }
     });
@@ -3054,7 +3106,7 @@ const [notificationError, setNotificationError] = useState('');
                   onClick={() => { setPrivacyConsent(true); setShowPrivacyPolicy(false); }}
                   style={{ width: '100%', padding: '13px', borderRadius: '8px', background: policyScrolledToEnd ? '#10b981' : '#cbd5e1', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
                 >
-                  {policyScrolledToEnd ? 'Ho letto e accetto — Chiudi' : 'Scorri fino in fondo per continuare'}
+                  {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'}
                 </button>
               </div>
             </div>
@@ -3178,9 +3230,13 @@ const [notificationError, setNotificationError] = useState('');
       {showConsentGate && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 2000 }}>
           <div style={{ background: '#ffffff', color: '#000', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
-            <h3 style={{ marginTop: 0, color: '#10b981' }}>Aggiornamento privacy</h3>
+            <h3 style={{ marginTop: 0, color: '#10b981' }}>
+              {privacyConsentAt ? 'Informativa privacy aggiornata' : 'Trattamento dei dati personali'}
+            </h3>
             <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.5 }}>
-              Abbiamo aggiornato l&apos;informativa sul trattamento dei dati personali. Poiché l&apos;app raccoglie anche dati relativi alla tua salute (peso, altezza, problematiche fisiche), la legge richiede un tuo consenso esplicito. Leggi l&apos;informativa e conferma per continuare a usare l&apos;app.
+              {privacyConsentAt
+                ? 'L\u2019informativa sul trattamento dei dati personali è stata aggiornata: è cambiato anche uno dei fornitori che trattano i tuoi dati. Rileggila e conferma il consenso per continuare a usare l\u2019app.'
+                : 'L\u2019app raccoglie anche dati relativi alla tua salute (peso, altezza, problematiche fisiche): la legge richiede per questi un tuo consenso esplicito. Leggi l\u2019informativa e conferma per proseguire.'}
             </p>
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', maxHeight: '35vh', overflowY: 'auto', marginBottom: '14px' }}>
               <PrivacyPolicyContent />
