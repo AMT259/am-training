@@ -565,6 +565,15 @@ function sortExerciseLibrary(list: any[]) {
   });
 }
  
+// L'esercizio "Mobility" si comporta in modo speciale: niente serie, ripetizioni
+// o recupero, solo il testo scritto dal coach, il video, una spunta "fatto"
+// e le note dell'atleta. Viene riconosciuto dal nome, come i benchmark.
+const MOBILITY_NAMES = ['mobility', 'mobilità', 'mobilita'];
+function isMobility(nome: any) {
+  const pulito = String(nome || '').toLowerCase().replace(/[^a-z0-9à]/g, '');
+  return MOBILITY_NAMES.some((m) => pulito === m.replace(/[^a-z0-9à]/g, ''));
+}
+ 
 const PRIVACY_VERSION = '2.0';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
@@ -786,6 +795,10 @@ export default function TrainingApp() {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [signupDoneEmail, setSignupDoneEmail] = useState('');
+  const emptyNewAthlete = { email: '', password: '', full_name: '', birth_date: '', gender: '', weight: '', height: '', subscription_status: 'attivo' };
+  const [showAddAthlete, setShowAddAthlete] = useState(false);
+  const [newAthlete, setNewAthlete] = useState<any>(emptyNewAthlete);
+  const [addingAthlete, setAddingAthlete] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [newPassword2, setNewPassword2] = useState('');
@@ -1608,6 +1621,43 @@ const [notificationError, setNotificationError] = useState('');
       const map: { [k: string]: string } = {};
       data.forEach((p: any) => { map[p.id] = p.subscription_status || 'prova'; });
       setCoachSubs(map);
+    }
+  };
+ 
+  const creaAtletaManuale = async () => {
+    if (!newAthlete.email.trim() || !newAthlete.password) {
+      alert('Email e password sono obbligatorie.');
+      return;
+    }
+    if (newAthlete.password.length < 6) {
+      alert('La password deve avere almeno 6 caratteri.');
+      return;
+    }
+ 
+    setAddingAthlete(true);
+    try {
+      const res = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requester_id: session.user.id, ...newAthlete, email: newAthlete.email.trim() }),
+      });
+      const esito = await res.json();
+ 
+      if (!res.ok) {
+        alert('Errore: ' + (esito.error || 'creazione non riuscita'));
+        return;
+      }
+ 
+      alert(`Atleta creato! Comunicagli email e password: al primo accesso gli verrà chiesto di accettare l'informativa privacy.`);
+      setNewAthlete(emptyNewAthlete);
+      setShowAddAthlete(false);
+      fetchAthletes();
+      fetchAllSubscriptionsForCoach();
+      fetchAllPersonalDataForCoach();
+    } catch (err: any) {
+      alert('Errore: ' + err.message);
+    } finally {
+      setAddingAthlete(false);
     }
   };
  
@@ -3932,6 +3982,65 @@ const [notificationError, setNotificationError] = useState('');
               ) : (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta</h3>
+ 
+                  {!showAddAthlete ? (
+                    <button
+                      onClick={() => setShowAddAthlete(true)}
+                      style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '10px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                    >
+                      ➕ Aggiungi atleta manualmente
+                    </button>
+                  ) : (
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#10b981' }}>Nuovo atleta</h4>
+                      <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#64748b', lineHeight: 1.45 }}>
+                        L&apos;account viene creato già attivo, senza email di conferma. Comunica tu email e password all&apos;atleta: al primo accesso gli verrà chiesto di accettare l&apos;informativa privacy e potrà cambiare la password dal suo profilo.
+                      </p>
+ 
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+                        <input type="text" placeholder="Nome e cognome" value={newAthlete.full_name} onChange={(e) => setNewAthlete({ ...newAthlete, full_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        <input type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+ 
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                          <input type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        </div>
+ 
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
+                              <button key={k} type="button" onClick={() => setNewAthlete({ ...newAthlete, gender: k })} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: newAthlete.gender === k ? '#10b981' : '#e2e8f0', color: newAthlete.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                            ))}
+                          </div>
+                        </div>
+ 
+                        <div style={{ display: 'flex', gap: '9px' }}>
+                          <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                          <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        </div>
+ 
+                        <div>
+                          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
+                          <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}>
+                            <option value="attivo">✅ Attivo</option>
+                            <option value="prova">🎁 In prova</option>
+                            <option value="scaduto">⛔ Scaduto</option>
+                          </select>
+                        </div>
+ 
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                          <button onClick={creaAtletaManuale} disabled={addingAthlete} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: addingAthlete ? 0.6 : 1 }}>
+                            {addingAthlete ? 'Creazione...' : 'Crea atleta'}
+                          </button>
+                          <button onClick={() => { setShowAddAthlete(false); setNewAthlete(emptyNewAthlete); }} style={{ padding: '12px 16px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                            Annulla
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {athletes.length === 0 ? (
                     <p style={{ color: '#64748b' }}>Nessun atleta registrato.</p>
                   ) : (
@@ -4035,7 +4144,26 @@ const [notificationError, setNotificationError] = useState('');
                                   <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
  
-                                    {blk.type === 'test' ? (
+                                    {isMobility(blk.name) ? (
+                                      <div>
+                                        {blk.wodNotes && (
+                                          <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                            <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handlePersonalResultChange(blockKey, 'done', !personalResults[blockKey]?.done)}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: personalResults[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: personalResults[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                        >
+                                          <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: personalResults[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                            {personalResults[blockKey]?.done ? '\u2713' : ''}
+                                          </span>
+                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: personalResults[blockKey]?.done ? '#047857' : '#334155' }}>
+                                            {personalResults[blockKey]?.done ? 'Completata' : 'Segna come fatta'}
+                                          </span>
+                                        </button>
+                                      </div>
+                                    ) : blk.type === 'test' ? (
                                       <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
                                         <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
                                         <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
@@ -4098,7 +4226,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                       <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
-                                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                      <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
+                                        {!isMobility(blk.name) && (
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
                                           {(() => {
@@ -4118,6 +4247,7 @@ const [notificationError, setNotificationError] = useState('');
                                             );
                                           })()}
                                         </div>
+                                        )}
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
                                           <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, personalSelectedAthleteId)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
@@ -4381,6 +4511,20 @@ const [notificationError, setNotificationError] = useState('');
                                         {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
                                       </optgroup>
                                     </select>
+                                  ) : isMobility(block.name) ? (
+                                    <div>
+                                      <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                      <textarea
+                                        rows={6}
+                                        placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
+                                        value={block.wodNotes || ''}
+                                        onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
+                                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                      />
+                                      <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
+                                        L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
+                                      </span>
+                                    </div>
                                   ) : block.type === 'forza' ? (
                                     <div>
                                       <input
@@ -4449,6 +4593,20 @@ const [notificationError, setNotificationError] = useState('');
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE DEL COACH</label>
                                         <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                         <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                      </div>
+                                    ) : isMobility(block.name) ? (
+                                      <div>
+                                        <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                        <textarea
+                                          rows={6}
+                                          placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
+                                          value={block.wodNotes || ''}
+                                          onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
+                                          style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                        />
+                                        <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
+                                          L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
+                                        </span>
                                       </div>
                                     ) : block.type === 'forza' ? (
                                       <div>
@@ -4790,6 +4948,20 @@ const [notificationError, setNotificationError] = useState('');
                                             {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
                                           </optgroup>
                                         </select>
+                                      ) : isMobility(block.name) ? (
+                                        <div>
+                                          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                          <textarea
+                                            rows={6}
+                                            placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
+                                            value={block.wodNotes || ''}
+                                            onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
+                                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                          />
+                                          <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
+                                            L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
+                                          </span>
+                                        </div>
                                       ) : block.type === 'forza' ? (
                                         <div>
                                           <input
@@ -4859,6 +5031,20 @@ const [notificationError, setNotificationError] = useState('');
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE DEL COACH</label>
                                             <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                             <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                          </div>
+                                        ) : isMobility(block.name) ? (
+                                          <div>
+                                            <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                            <textarea
+                                              rows={6}
+                                              placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
+                                              value={block.wodNotes || ''}
+                                              onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
+                                              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                            />
+                                            <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
+                                              L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
+                                            </span>
                                           </div>
                                         ) : block.type === 'forza' ? (
                                           <div>
@@ -5098,21 +5284,37 @@ const [notificationError, setNotificationError] = useState('');
                                     const athName = ath.full_name || ath.email;
  
                                     return (
-                                      <div key={ath.id} style={{ marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                                        <span style={{ fontSize: '12px', color: '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>{athName}:</span>
-                                        <div style={{ fontSize: '11px', color: '#334155', paddingLeft: '6px' }}>
+                                      <div key={ath.id} style={{ marginBottom: '14px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '8px' }}>
+                                          <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                            {String(athName).trim().charAt(0).toUpperCase()}
+                                          </span>
+                                          <span style={{ fontSize: '13px', color: '#0284c7', fontWeight: 'bold', overflowWrap: 'anywhere' }}>{athName}</span>
+                                        </div>
+ 
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                           {blocksOfActiveDay.map((blk: any, bIdx: number) => {
                                             const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
                                             const blockData = resObj[blockKey];
                                             if (!blockData || (!blockData.score && !blockData.notes)) return null;
  
                                             return (
-                                              <div key={bIdx} style={{ marginBottom: '3px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span>• <strong style={{ color: '#000' }}>{blk.name || `Esercizio ${bIdx + 1}`}</strong>:</span>
-                                                <span>
-                                                  <strong style={{ color: '#10b981' }}>Score:</strong> {blockData.score || '-'} 
-                                                  {blockData.notes && <span style={{ color: '#64748b', marginLeft: '6px' }}>(Note: {blockData.notes})</span>}
-                                                </span>
+                                              <div key={bIdx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '3px solid #10b981', borderRadius: '8px', padding: '9px 11px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+                                                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000', flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
+                                                    {blk.name || `Esercizio ${bIdx + 1}`}
+                                                  </span>
+                                                  {blockData.score && (
+                                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', background: '#ecfdf5', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                                      {blockData.score}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                                {blockData.notes && (
+                                                  <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748b', lineHeight: 1.5, fontStyle: 'italic', overflowWrap: 'anywhere' }}>
+                                                    &ldquo;{blockData.notes}&rdquo;
+                                                  </p>
+                                                )}
                                               </div>
                                             );
                                           })}
@@ -5714,7 +5916,26 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {!isClosed && (
                                               <div>
-                                                {blk.type === 'test' ? (
+                                                {isMobility(blk.name) ? (
+                                                  <div>
+                                                    {blk.wodNotes && (
+                                                      <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                                        <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                                      </div>
+                                                    )}
+                                                    <button
+                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', !athleteResults[prog.id]?.[blockKey]?.done)}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                    >
+                                                      <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                                        {athleteResults[prog.id]?.[blockKey]?.done ? '\u2713' : ''}
+                                                      </span>
+                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#334155' }}>
+                                                        {athleteResults[prog.id]?.[blockKey]?.done ? 'Completata' : 'Segna come fatta'}
+                                                      </span>
+                                                    </button>
+                                                  </div>
+                                                ) : blk.type === 'test' ? (
                                                   <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
                                                     <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
                                                     <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
@@ -5780,7 +6001,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
-                                                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                                                  <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
+                                                    {!isMobility(blk.name) && (
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
                                                       {(() => {
@@ -5800,6 +6022,7 @@ const [notificationError, setNotificationError] = useState('');
                                                         );
                                                       })()}
                                                     </div>
+                                                    )}
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note personali</label>
                                                       <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
