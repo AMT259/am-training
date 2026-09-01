@@ -4152,14 +4152,14 @@ const [notificationError, setNotificationError] = useState('');
                                           </div>
                                         )}
                                         <button
-                                          onClick={() => handlePersonalResultChange(blockKey, 'done', !personalResults[blockKey]?.done)}
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: personalResults[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: personalResults[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                         >
-                                          <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: personalResults[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
-                                            {personalResults[blockKey]?.done ? '\u2713' : ''}
+                                          <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '\u2713' : ''}
                                           </span>
-                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: personalResults[blockKey]?.done ? '#047857' : '#334155' }}>
-                                            {personalResults[blockKey]?.done ? 'Completata' : 'Segna come fatta'}
+                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#334155' }}>
+                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
                                           </span>
                                         </button>
                                       </div>
@@ -5924,7 +5924,7 @@ const [notificationError, setNotificationError] = useState('');
                                                       </div>
                                                     )}
                                                     <button
-                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', !athleteResults[prog.id]?.[blockKey]?.done)}
+                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
                                                       style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                                     >
                                                       <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
