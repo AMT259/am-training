@@ -4511,20 +4511,6 @@ const [notificationError, setNotificationError] = useState('');
                                         {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
                                       </optgroup>
                                     </select>
-                                  ) : isMobility(block.name) ? (
-                                    <div>
-                                      <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
-                                      <textarea
-                                        rows={6}
-                                        placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
-                                        value={block.wodNotes || ''}
-                                        onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
-                                        style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
-                                      />
-                                      <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
-                                        L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
-                                      </span>
-                                    </div>
                                   ) : block.type === 'forza' ? (
                                     <div>
                                       <input
@@ -4948,20 +4934,6 @@ const [notificationError, setNotificationError] = useState('');
                                             {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
                                           </optgroup>
                                         </select>
-                                      ) : isMobility(block.name) ? (
-                                        <div>
-                                          <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
-                                          <textarea
-                                            rows={6}
-                                            placeholder={'Scrivi qui la sequenza.\nVai a capo dove vuoi: le righe vengono rispettate.'}
-                                            value={block.wodNotes || ''}
-                                            onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
-                                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
-                                          />
-                                          <span style={{ fontSize: '11px', color: '#64748b', display: 'block', lineHeight: 1.45 }}>
-                                            L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
-                                          </span>
-                                        </div>
                                       ) : block.type === 'forza' ? (
                                         <div>
                                           <input
