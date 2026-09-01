@@ -3295,9 +3295,9 @@ const [notificationError, setNotificationError] = useState('');
                   style={{ marginTop: '2px', flexShrink: 0 }}
                 />
                 <span>
-                  Ho letto e accetto l'
+                  {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
                   <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: '#10b981', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
-                  {' '}e acconsento al trattamento dei miei dati, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.
+                  {' '}{isMinorenne(signupBirthDate) ? 'e presto il consenso al trattamento dei dati del minore, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.' : 'e acconsento al trattamento dei miei dati, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.'}
                 </span>
               </label>
             </>
@@ -3335,7 +3335,14 @@ const [notificationError, setNotificationError] = useState('');
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
             <div style={{ background: '#ffffff', color: '#000', borderRadius: '12px', maxWidth: '560px', width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ padding: '18px 20px 10px 20px', borderBottom: '1px solid #e2e8f0' }}>
-                <h3 style={{ margin: 0, color: '#10b981', fontSize: '17px' }}>Informativa sul trattamento dei dati personali</h3>
+                <h3 style={{ margin: 0, color: '#10b981', fontSize: '17px' }}>
+                  {isMinorenne(signupBirthDate) ? 'Informativa per utenti minorenni' : 'Informativa sul trattamento dei dati personali'}
+                </h3>
+                {isMinorenne(signupBirthDate) && (
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#92400e', fontWeight: 'bold' }}>
+                    Rivolta a chi esercita la responsabilità genitoriale
+                  </p>
+                )}
                 <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b' }}>Scorri fino in fondo per poter proseguire.</p>
               </div>
  
