@@ -82,14 +82,3 @@ export async function POST(req: NextRequest) {
   }
 }
  
-2d. vercel.json (nuovo file, nella cartella principale)
-Crealo nella root del progetto (stesso livello di package.json). Dice a Vercel di controllare i compleanni ogni mattina alle 7:00 UTC. Nota: i cron di Vercel richiedono un piano a pagamento; sul piano gratuito le altre notifiche funzionano comunque, mentre quelle di compleanno partiranno solo se apri manualmente l'indirizzo /api/cron/birthdays o se usi un servizio esterno gratuito (es. cron-job.org) che lo chiami una volta al giorno.
-{
-  "crons": [
-    {
-      "path": "/api/cron/birthdays",
-      "schedule": "0 7 * * *"
-    }
-  ]
-}
- 
