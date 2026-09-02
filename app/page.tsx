@@ -894,7 +894,8 @@ export default function TrainingApp() {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [signupBirthDate, setSignupBirthDate] = useState('');
   const [signupGender, setSignupGender] = useState('');
   const [signupGuardian, setSignupGuardian] = useState('');
@@ -903,7 +904,7 @@ export default function TrainingApp() {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [signupDoneEmail, setSignupDoneEmail] = useState('');
-  const emptyNewAthlete = { email: '', password: '', full_name: '', birth_date: '', gender: '', weight: '', height: '', subscription_status: 'attivo' };
+  const emptyNewAthlete = { email: '', password: '', first_name: '', last_name: '', birth_date: '', gender: '', weight: '', height: '', subscription_status: 'attivo' };
   const [showAddAthlete, setShowAddAthlete] = useState(false);
   const [newAthlete, setNewAthlete] = useState<any>(emptyNewAthlete);
   const [addingAthlete, setAddingAthlete] = useState(false);
@@ -1733,6 +1734,10 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const creaAtletaManuale = async () => {
+    if (!newAthlete.first_name.trim() || !newAthlete.last_name.trim()) {
+      alert('Nome e cognome sono obbligatori.');
+      return;
+    }
     if (!newAthlete.email.trim() || !newAthlete.password) {
       alert('Email e password sono obbligatorie.');
       return;
@@ -1747,7 +1752,7 @@ const [notificationError, setNotificationError] = useState('');
       const res = await fetch('/api/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requester_id: session.user.id, ...newAthlete, email: newAthlete.email.trim() }),
+        body: JSON.stringify({ requester_id: session.user.id, ...newAthlete, full_name: `${newAthlete.first_name.trim()} ${newAthlete.last_name.trim()}`, email: newAthlete.email.trim() }),
       });
       const esito = await res.json();
  
@@ -2566,6 +2571,16 @@ const [notificationError, setNotificationError] = useState('');
       return;
     }
  
+    if (!signupBirthDate) {
+      setAuthError('Inserisci la data di nascita: serve per stabilire quale informativa privacy ti spetta.');
+      return;
+    }
+ 
+    if (!firstName.trim() || !lastName.trim()) {
+      setAuthError('Inserisci nome e cognome: servono entrambi per completare la registrazione.');
+      return;
+    }
+ 
     if (isMinorenne(signupBirthDate) && !signupGuardian.trim()) {
       setAuthError('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
       return;
@@ -2582,7 +2597,7 @@ const [notificationError, setNotificationError] = useState('');
       password,
       options: {
         data: {
-          full_name: fullName,
+          full_name: `${firstName.trim()} ${lastName.trim()}`,
           birth_date: signupBirthDate || null,
           gender: signupGender || null,
           guardian_name: signupGuardian.trim() || null,
@@ -2609,7 +2624,7 @@ const [notificationError, setNotificationError] = useState('');
         body: JSON.stringify({
           type: 'new_user',
           title: 'Nuovo utente registrato',
-          message: `${fullName || email} si è appena registrato all'app.`
+          message: `${[firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || email} si è appena registrato all'app.`
         }),
         keepalive: true,
       }).catch((err) => console.error('Errore notifica nuovo utente:', err));
@@ -2617,6 +2632,8 @@ const [notificationError, setNotificationError] = useState('');
       setSignupGender('');
       setSignupGuardian('');
       setConsensoAzzerato(false);
+      setFirstName('');
+      setLastName('');
       setSignupWeight('');
       setSignupHeight('');
       setPrivacyConsent(false);
@@ -3225,7 +3242,10 @@ const [notificationError, setNotificationError] = useState('');
           )}
           {isRegistering && !isResettingPassword && (
             <>
-              <input type="text" placeholder="Nome e Cognome" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <input type="text" placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }} />
+              </div>
               <div>
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
                 <input type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff', boxSizing: 'border-box' }} />
@@ -4213,7 +4233,10 @@ const [notificationError, setNotificationError] = useState('');
                       </p>
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                        <input type="text" placeholder="Nome e cognome" value={newAthlete.full_name} onChange={(e) => setNewAthlete({ ...newAthlete, full_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        <div style={{ display: 'flex', gap: '9px' }}>
+                          <input type="text" placeholder="Nome" value={newAthlete.first_name} onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                          <input type="text" placeholder="Cognome" value={newAthlete.last_name} onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                        </div>
                         <input type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                         <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
  
