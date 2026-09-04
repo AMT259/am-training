@@ -4597,6 +4597,7 @@ const [notificationError, setNotificationError] = useState('');
                                         })()}
                                       </div>
                                     ) : blk.type === 'forza' ? (
+                                      <>
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
@@ -4626,6 +4627,7 @@ const [notificationError, setNotificationError] = useState('');
                                           </div>
                                         );
                                       })()}
+                                      </>
                                     ) : (
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
