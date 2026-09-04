@@ -595,16 +595,16 @@ const PRIVACY_VERSION = '3.0';
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
 const RPE_TABLE: { [rpe: string]: number[] } = {
-  // indice 0 = 1 rep, indice 9 = 10 reps — percentuali del massimale (1RM)
-  '10':  [100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9],
-  '9.5': [97.8, 93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3],
-  '9':   [95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7],
-  '8.5': [93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4],
-  '8':   [92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0],
-  '7.5': [90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7],
-  '7':   [89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3],
-  '6.5': [87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7, 64.0],
-  '6':   [86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3, 62.6],
+  // indice 0 = 1 rep, indice 11 = 12 reps — percentuali del massimale (1RM)
+  '10':  [100, 95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 71.7, 69.4],
+  '9.5': [97.8, 93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 70.2, 67.9],
+  '9':   [95.5, 92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.6, 66.4],
+  '8.5': [93.9, 90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 67.4, 65.2],
+  '8':   [92.2, 89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 66.1, 64.0],
+  '7.5': [90.7, 87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7, 64.8, 62.8],
+  '7':   [89.2, 86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3, 63.5, 61.5],
+  '6.5': [87.8, 85.0, 82.4, 79.9, 77.4, 75.1, 72.3, 69.4, 66.7, 64.0, 62.2, 60.3],
+  '6':   [86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3, 62.6, 60.9, 59.0],
 };
  
 function parseWeightValue(s: any): number | null {
@@ -631,6 +631,19 @@ function estimate1RM(exMaxes: any): number | null {
  
 function roundLoad(kg: number): number {
   return Math.round(kg / 2.5) * 2.5;
+}
+ 
+// Trova i massimali di un esercizio anche se il nome è scritto in modo
+// leggermente diverso ("Back Squat" / "back squat" / "Back-Squat")
+function trovaMaxes(tuttiMaxes: any, nomeEsercizio: any): any {
+  if (!tuttiMaxes || !nomeEsercizio) return null;
+  if (tuttiMaxes[nomeEsercizio]) return tuttiMaxes[nomeEsercizio];
+  const pulito = String(nomeEsercizio).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!pulito) return null;
+  const chiave = Object.keys(tuttiMaxes).find(
+    (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '') === pulito
+  );
+  return chiave ? tuttiMaxes[chiave] : null;
 }
  
 // Legge il campo "carico" e calcola il peso consigliato in kg
@@ -670,7 +683,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
     const key = (Math.round(rpeVal * 2) / 2).toString();
     const row = RPE_TABLE[key];
     if (!row) return null;
-    const idx = Math.min(10, Math.max(1, Math.round(reps))) - 1;
+    const idx = Math.min(12, Math.max(1, Math.round(reps))) - 1;
     const pct = row[idx];
     const kg = roundLoad((oneRM * pct) / 100);
     return `≈ ${kg} kg indicativi (RPE ${rpeVal} × ${Math.round(reps)} rip.)`;
@@ -679,6 +692,29 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
   return null;
 }
  
+ 
+// Stima il massimale per un numero qualsiasi di ripetizioni.
+// Parte dal massimale inserito più vicino: più è vicino, più la stima è attendibile.
+function stimaRM(exMaxes: any, reps: number): { kg: number; reale: boolean } | null {
+  if (!exMaxes || reps < 1) return null;
+ 
+  const diretto = parseWeightValue(exMaxes[reps]);
+  if (diretto) return { kg: diretto, reale: true };
+ 
+  // Cerco il massimale inserito con il numero di ripetizioni più vicino
+  const noti = [1, 3, 5, 10]
+    .map((r) => ({ r, w: parseWeightValue(exMaxes[r]) }))
+    .filter((x) => x.w) as { r: number; w: number }[];
+  if (noti.length === 0) return null;
+ 
+  noti.sort((a, b) => Math.abs(a.r - reps) - Math.abs(b.r - reps));
+  const base = noti[0];
+ 
+  // Epley: porto il massimale noto a 1RM, poi lo riporto alle ripetizioni volute
+  const oneRM = base.w * (1 + base.r / 30);
+  const kg = oneRM / (1 + reps / 30);
+  return { kg: roundLoad(kg), reale: false };
+}
  
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
   return (
@@ -901,6 +937,8 @@ export default function TrainingApp() {
   const [signupGuardian, setSignupGuardian] = useState('');
   const [consensoAzzerato, setConsensoAzzerato] = useState(false);
   const [savedBirthDate, setSavedBirthDate] = useState('');
+  const [dupBlock, setDupBlock] = useState<any>(null);
+  const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [signupDoneEmail, setSignupDoneEmail] = useState('');
@@ -975,7 +1013,7 @@ export default function TrainingApp() {
  
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
-  
+ 
   const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
  
@@ -1030,7 +1068,7 @@ export default function TrainingApp() {
  
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
   const [selectedDayView, setSelectedDayView] = useState('Giorno 1');
-  
+ 
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
  
   const [newExName, setNewExName] = useState('');
@@ -1415,7 +1453,7 @@ const [notificationError, setNotificationError] = useState('');
     if (programLibrary.length > 0) {
       const initialWeeks: { [id: string]: string } = {};
       const initialDays: { [id: string]: string } = {};
-      
+ 
       programLibrary.forEach(prog => {
         const weeks = normalizeProgramWeeks(prog);
         if (weeks.length > 0 && !selectedWeeksByProgram[prog.id]) {
@@ -2561,6 +2599,67 @@ const [notificationError, setNotificationError] = useState('');
     if (!oraMinorenne) setSignupGuardian('');
   };
  
+  // Duplica un esercizio: nella stessa seduta oppure in altre a scelta
+  const apriDuplicaBlocco = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, blocco: any) => {
+    setDupBlock({ contesto, wIdx, dIdx, bIdx, nome: blocco?.name || 'esercizio' });
+    setDupTargets([]);
+  };
+ 
+  // Elenco di tutte le sedute del programma in lavorazione
+  const seduteDelProgramma = (contesto: 'edit' | 'free') => {
+    const prog = contesto === 'edit' ? editingProgram : { weeks: programWeeks };
+    const settimane = normalizeProgramWeeks(prog);
+    const elenco: any[] = [];
+    settimane.forEach((w: any, wi: number) => {
+      (w.days || []).forEach((d: any, di: number) => {
+        elenco.push({
+          chiave: `${wi}_${di}`,
+          wIdx: wi,
+          dIdx: di,
+          etichetta: `${w.weekName || `Settimana ${wi + 1}`} — ${d.dayName || `Giorno ${di + 1}`}`,
+          quanti: (d.blocks || []).length,
+        });
+      });
+    });
+    return elenco;
+  };
+ 
+  const confermaDuplica = () => {
+    if (!dupBlock) return;
+    const { contesto, wIdx, dIdx, bIdx } = dupBlock;
+ 
+    const prog = contesto === 'edit'
+      ? JSON.parse(JSON.stringify(editingProgram))
+      : { weeks: JSON.parse(JSON.stringify(programWeeks)) };
+ 
+    const settimane = normalizeProgramWeeks(prog);
+    const originale = settimane[wIdx]?.days?.[dIdx]?.blocks?.[bIdx];
+    if (!originale) { setDupBlock(null); return; }
+ 
+    // Nessuna seduta scelta: duplico subito sotto l'originale, nella stessa seduta
+    const destinazioni = dupTargets.length > 0
+      ? dupTargets
+      : [`${wIdx}_${dIdx}`];
+ 
+    destinazioni.forEach((chiave) => {
+      const [wi, di] = chiave.split('_').map(Number);
+      const giorno = settimane[wi]?.days?.[di];
+      if (!giorno) return;
+      const copia = { ...JSON.parse(JSON.stringify(originale)), id: Date.now() + Math.floor(Math.random() * 100000) };
+      if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
+      if (wi === wIdx && di === dIdx) giorno.blocks.splice(bIdx + 1, 0, copia);
+      else giorno.blocks.push(copia);
+    });
+ 
+    if (contesto === 'edit') setEditingProgram({ ...prog, weeks: settimane });
+    else setProgramWeeks(settimane);
+ 
+    const quante = destinazioni.length;
+    setDupBlock(null);
+    setDupTargets([]);
+    alert(quante === 1 ? 'Esercizio duplicato.' : `Esercizio duplicato in ${quante} sedute.`);
+  };
+ 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (authLoading) return;   // evita doppi invii se si tocca più volte
@@ -2884,6 +2983,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const addGlobalExercise = async (e: React.FormEvent) => {
     e.preventDefault();
+ 
     if (!newExName) return;
  
     // Se un esercizio con lo stesso nome esiste già, lo aggiorno invece di duplicarlo
@@ -3234,7 +3334,7 @@ const [notificationError, setNotificationError] = useState('');
           </div>
         ) : (
         <>
-      
+ 
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#26262a', border: '1px solid #3a3a40', color: '#fff' }} />
           {!isResettingPassword && (
@@ -3476,6 +3576,60 @@ const [notificationError, setNotificationError] = useState('');
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
       `}</style>
+ 
+      {dupBlock && (() => {
+        const sedute = seduteDelProgramma(dupBlock.contesto);
+        const corrente = `${dupBlock.wIdx}_${dupBlock.dIdx}`;
+        return (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 3000 }}>
+            <div style={{ background: '#ffffff', color: '#000', borderRadius: '12px', maxWidth: '480px', width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '18px 20px 12px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: 0, color: '#10b981', fontSize: '17px' }}>Duplica esercizio</h3>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b', lineHeight: 1.45 }}>
+                  <strong style={{ color: '#334155' }}>{dupBlock.nome || 'Esercizio senza nome'}</strong><br />
+                  Senza selezionare nulla viene duplicato qui sotto, nella seduta corrente. Oppure scegli in quali altre sedute copiarlo.
+                </p>
+              </div>
+ 
+              <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
+                {sedute.map((s: any) => {
+                  const scelta = dupTargets.includes(s.chiave);
+                  const isCorrente = s.chiave === corrente;
+                  return (
+                    <button
+                      key={s.chiave}
+                      type="button"
+                      onClick={() => setDupTargets(scelta ? dupTargets.filter((k) => k !== s.chiave) : [...dupTargets, s.chiave])}
+                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', marginBottom: '7px', borderRadius: '8px', cursor: 'pointer', background: scelta ? '#ecfdf5' : '#f8fafc', border: scelta ? '2px solid #10b981' : '1px solid #e2e8f0' }}
+                    >
+                      <span style={{ width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#fff', background: scelta ? '#10b981' : '#e2e8f0' }}>
+                        {scelta ? '\u2713' : ''}
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#334155', overflowWrap: 'anywhere' }}>
+                          {s.etichetta}{isCorrente ? ' (seduta corrente)' : ''}
+                        </span>
+                        <span style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>
+                          {s.quanti === 0 ? 'nessun esercizio' : s.quanti === 1 ? '1 esercizio' : `${s.quanti} esercizi`}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+ 
+              <div style={{ padding: '12px 20px 18px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={confermaDuplica} style={{ flex: 1, padding: '13px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  {dupTargets.length === 0 ? 'Duplica qui' : `Duplica in ${dupTargets.length} sedute`}
+                </button>
+                <button type="button" onClick={() => { setDupBlock(null); setDupTargets([]); }} style={{ padding: '13px 18px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  Annulla
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
  
       {prBadge && (
         <div onClick={() => setPrBadge(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1800 }}>
@@ -3967,6 +4121,7 @@ const [notificationError, setNotificationError] = useState('');
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
                             <MaxHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
                           )}
+ 
                         </div>
                       );
                     })}
@@ -4011,6 +4166,7 @@ const [notificationError, setNotificationError] = useState('');
                         {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
                           <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
                         )}
+ 
                       </div>
                     ))}
                   </div>
@@ -4054,6 +4210,7 @@ const [notificationError, setNotificationError] = useState('');
                         {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
                           <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
                         )}
+ 
                       </div>
                     ))}
                   </div>
@@ -4445,7 +4602,7 @@ const [notificationError, setNotificationError] = useState('');
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
                                           {(() => {
-                                            const hint = computeLoadHint(blk.load, blk.reps, coachAthleteMaxes[personalSelectedAthleteId]?.[blk.name]);
+                                            const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[personalSelectedAthleteId], blk.name));
                                             return hint ? <span style={{ display: 'block', fontSize: '10px', color: '#0284c7', fontWeight: 'bold', marginTop: '2px' }}>{hint}</span> : null;
                                           })()}
                                         </div>
@@ -4731,6 +4888,7 @@ const [notificationError, setNotificationError] = useState('');
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}>⧉</button>
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
                                     <button type="button" onClick={() => {
@@ -4966,9 +5124,9 @@ const [notificationError, setNotificationError] = useState('');
               ) : activeTab === 'create' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
-                
+ 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', marginBottom: '12px', boxSizing: 'border-box' }} />
-                
+ 
                   {programTrialStyle ? (
                     <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
                       <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
@@ -5158,6 +5316,7 @@ const [notificationError, setNotificationError] = useState('');
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}>⧉</button>
                                         <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
                                         <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
                                         <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
@@ -5385,7 +5544,7 @@ const [notificationError, setNotificationError] = useState('');
                     filteredLibraryPrograms.map((prog) => {
                       const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
                       const progResultsByAthlete = coachAllResults[prog.id] || {};
-                      
+ 
                       const weeks = normalizeProgramWeeks(prog);
                       const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
                       const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
@@ -5448,7 +5607,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           <div style={{ marginTop: '12px', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>📊 RISULTATI INSERITI DAGLI ATLETI:</span>
-                            
+ 
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '4px' }}>
                               {weeks.map((w: any) => (
                                 <button
@@ -5484,9 +5643,9 @@ const [notificationError, setNotificationError] = useState('');
                                   const wIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
                                   const dayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDay);
                                   if (wIndex === -1 || dayIndex === -1) return <span style={{ fontSize: '11px', color: '#64748b' }}>Seleziona un giorno valido.</span>;
-                                  
+ 
                                   const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
-                                  
+ 
                                   return athletes.map((ath) => {
                                     const resObj = progResultsByAthlete[ath.id];
                                     if (!resObj) return null;
@@ -5726,6 +5885,7 @@ const [notificationError, setNotificationError] = useState('');
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <MaxHistoryChart points={historyCache[`${session.user.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
                     )}
+ 
                   </div>
                 ))}
               </div>
@@ -5756,6 +5916,7 @@ const [notificationError, setNotificationError] = useState('');
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
                     )}
+ 
                   </div>
                 ))}
               </div>
@@ -5787,6 +5948,7 @@ const [notificationError, setNotificationError] = useState('');
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
                     )}
+ 
                   </div>
                 ))}
               </div>
@@ -6054,7 +6216,7 @@ const [notificationError, setNotificationError] = useState('');
                           )}
                         </div>
                         ); })()}
-                    
+ 
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
                         {weeks.map((week: any) => (
                           <button
@@ -6198,7 +6360,7 @@ const [notificationError, setNotificationError] = useState('');
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
                                                         {(() => {
-                                                          const hint = computeLoadHint(blk.load, blk.reps, athleteMaxes[blk.name]);
+                                                          const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
                                                           return hint ? <span style={{ display: 'block', fontSize: '11px', color: '#0284c7', fontWeight: 'bold', marginTop: '3px' }}>{hint}</span> : null;
                                                         })()}
                                                       </div>
@@ -6335,5 +6497,4 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
- 
  
