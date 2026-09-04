@@ -675,11 +675,20 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
     return `≈ ${kg} kg${note}`;
   }
  
-  // Caso 2: RPE, es. "RPE 8", "@8", "rpe8.5"
-  const rpeMatch = txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)/i);
+  // Caso 2: RPE scritto in qualsiasi modo — "RPE 8", "8 RPE", "@8",
+  // e anche gli intervalli "7/8 rpe" o "RPE 7-8" (in tal caso vale la media)
+  const rpeMatch =
+    txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)\s*[/\-\u2013]\s*(\d{1,2}(?:[.,]5)?)/i) ||
+    txt.match(/(\d{1,2}(?:[.,]5)?)\s*[/\-\u2013]\s*(\d{1,2}(?:[.,]5)?)\s*RPE/i) ||
+    txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)/i) ||
+    txt.match(/(\d{1,2}(?:[.,]5)?)\s*RPE/i);
+ 
   if (rpeMatch && oneRM) {
-    const rpeRaw = rpeMatch[1].replace(',', '.');
-    const rpeVal = Math.min(10, Math.max(6, parseFloat(rpeRaw)));
+    const primo = parseFloat(rpeMatch[1].replace(',', '.'));
+    const secondo = rpeMatch[2] ? parseFloat(rpeMatch[2].replace(',', '.')) : null;
+    // Su un intervallo prendo la via di mezzo: "7/8" diventa 7,5
+    const scelto = secondo !== null ? (primo + secondo) / 2 : primo;
+    const rpeVal = Math.min(10, Math.max(6, scelto));
     const key = (Math.round(rpeVal * 2) / 2).toString();
     const row = RPE_TABLE[key];
     if (!row) return null;
