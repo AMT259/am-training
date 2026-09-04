@@ -1122,7 +1122,7 @@ export default function TrainingApp() {
   const [showNotifications, setShowNotifications] = useState(false);
 const [notificationError, setNotificationError] = useState('');
   const [libraryView, setLibraryView] = useState<'programmi' | 'cestino'>('programmi');
-  const [libraryFilter, setLibraryFilter] = useState<'tutti' | 'assegnati' | 'bozze' | 'prove'>('tutti');
+  const [libraryFilter, setLibraryFilter] = useState<'tutti' | 'assegnati' | 'bozze' | 'prove' | 'scaduti' | 'inscadenza'>('tutti');
   const showDeletedPrograms = libraryView === 'cestino';
   const [showDeletedExercises, setShowDeletedExercises] = useState(false);
  
@@ -3621,6 +3621,14 @@ const [notificationError, setNotificationError] = useState('');
  
     // Primo: la categoria
     if (libraryFilter === 'prove') return !!prog.trialStyle;
+ 
+    if (libraryFilter === 'scaduti' || libraryFilter === 'inscadenza') {
+      if (prog.trialStyle) return false;   // le prove non hanno scadenza a calendario
+      const g = giorniDallaScadenza(prog.endDate);
+      if (g === null) return false;
+      return libraryFilter === 'scaduti' ? g > 0 : (g <= 0 && g >= -7);
+    }
+ 
     if (libraryFilter === 'bozze') return !prog.trialStyle && prog.visibility === 'none';
     if (libraryFilter === 'assegnati' && (prog.trialStyle || prog.visibility === 'none')) return false;
  
@@ -3634,6 +3642,16 @@ const [notificationError, setNotificationError] = useState('');
   const contaAssegnati = attivi.filter((p: any) => !p.trialStyle && p.visibility !== 'none').length;
   const contaBozze = attivi.filter((p: any) => !p.trialStyle && p.visibility === 'none').length;
   const contaProve = attivi.filter((p: any) => !!p.trialStyle).length;
+  const contaScaduti = attivi.filter((p: any) => {
+    if (p.trialStyle) return false;
+    const g = giorniDallaScadenza(p.endDate);
+    return g !== null && g > 0;
+  }).length;
+  const contaInScadenza = attivi.filter((p: any) => {
+    if (p.trialStyle) return false;
+    const g = giorniDallaScadenza(p.endDate);
+    return g !== null && g <= 0 && g >= -7;
+  }).length;
  
   const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
  
@@ -5600,6 +5618,8 @@ const [notificationError, setNotificationError] = useState('');
                         { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: '#16a34a' },
                         { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#d97706' },
                         { k: 'prove', t: '🎁 Prove', n: contaProve, col: '#2563eb' },
+                        { k: 'inscadenza', t: '⏳ In scadenza', n: contaInScadenza, col: '#ea580c' },
+                        { k: 'scaduti', t: '⛔ Scaduti', n: contaScaduti, col: '#dc2626' },
                       ].map((f) => (
                         <button
                           key={f.k}
@@ -5626,7 +5646,11 @@ const [notificationError, setNotificationError] = useState('');
                     <p style={{ color: '#64748b', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
                       {libraryView === 'cestino'
                         ? 'Il cestino è vuoto.'
-                        : libraryFilter === 'prove'
+                        : libraryFilter === 'scaduti'
+                          ? 'Nessun programma scaduto.'
+                          : libraryFilter === 'inscadenza'
+                            ? 'Nessun programma in scadenza nei prossimi sette giorni.'
+                            : libraryFilter === 'prove'
                           ? 'Nessuna settimana di prova. Creane una da "Crea Programma" indicando lo stile nel campo "Settimana di prova".'
                           : libraryFilter === 'bozze'
                             ? 'Nessuna bozza: tutti i programmi sono visibili a qualcuno.'
@@ -5644,8 +5668,13 @@ const [notificationError, setNotificationError] = useState('');
                       const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
+                      // Stato scadenza: le settimane di prova non cambiano mai colore
+                      const gg = prog.trialStyle ? null : giorniDallaScadenza(prog.endDate);
+                      const progScaduto = gg !== null && gg > 0;
+                      const progInScadenza = gg !== null && gg <= 0 && gg >= -7;
+ 
                       return (
-                        <div key={prog.id} style={{ background: prog.trialStyle ? '#d6e9fb' : prog.visibility === 'none' ? '#fdf3d3' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : prog.visibility === 'none' ? '2px solid #e0a80c' : '1px solid #d8dde3', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.trialStyle ? '#d6e9fb' : progScaduto ? '#fee2e2' : prog.visibility === 'none' ? '#fdf3d3' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : progScaduto ? '2px solid #dc2626' : progInScadenza ? '2px solid #f97316' : prog.visibility === 'none' ? '2px solid #e0a80c' : '1px solid #d8dde3', marginBottom: '16px' }}>
                           <div style={{ marginBottom: '12px' }}>
                             <div>
                               <h4 style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', color: '#10b981', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
