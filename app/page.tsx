@@ -671,8 +671,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
     }
     if (!base) return null;
     const kg = roundLoad((base * pct) / 100);
-    const note = hasDirect1RM || baseReps !== 1 ? '' : ' (stimato)';
-    return `≈ ${kg} kg${note}`;
+    return `≈ ${kg} kg`;
   }
  
   // Caso 2: RPE scritto in qualsiasi modo — "RPE 8", "8 RPE", "@8",
@@ -695,7 +694,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
     const idx = Math.min(12, Math.max(1, Math.round(reps))) - 1;
     const pct = row[idx];
     const kg = roundLoad((oneRM * pct) / 100);
-    return `≈ ${kg} kg indicativi (RPE ${rpeVal} × ${Math.round(reps)} rip.)`;
+    return `≈ ${kg} kg`;
   }
  
   return null;
@@ -4610,16 +4609,23 @@ const [notificationError, setNotificationError] = useState('');
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
-                                          {(() => {
-                                            const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[personalSelectedAthleteId], blk.name));
-                                            return hint ? <span style={{ display: 'block', fontSize: '10px', color: '#0284c7', fontWeight: 'bold', marginTop: '2px' }}>{hint}</span> : null;
-                                          })()}
                                         </div>
                                         <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
                                         </div>
                                       </div>
+ 
+                                      {(() => {
+                                        const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[personalSelectedAthleteId], blk.name));
+                                        if (!hint) return null;
+                                        return (
+                                          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                            <span style={{ display: 'block', fontSize: '9px', color: '#1e40af' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
+                                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                          </div>
+                                        );
+                                      })()}
                                     ) : (
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
@@ -6368,16 +6374,23 @@ const [notificationError, setNotificationError] = useState('');
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
-                                                        {(() => {
-                                                          const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
-                                                          return hint ? <span style={{ display: 'block', fontSize: '11px', color: '#0284c7', fontWeight: 'bold', marginTop: '3px' }}>{hint}</span> : null;
-                                                        })()}
                                                       </div>
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
                                                       </div>
                                                     </div>
+ 
+                                                    {(() => {
+                                                      const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
+                                                      if (!hint) return null;
+                                                      return (
+                                                        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                          <span style={{ display: 'block', fontSize: '10px', color: '#1e40af', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
+                                                          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                                        </div>
+                                                      );
+                                                    })()}
                                                     {blk.notes && (
                                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
@@ -6506,3 +6519,4 @@ const [notificationError, setNotificationError] = useState('');
     </div>
   );
 }
+ 
