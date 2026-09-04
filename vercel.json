@@ -3,7 +3,10 @@
     {
       "path": "/api/cron/birthdays",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/expiring-programs",
+      "schedule": "0 8 * * *"
     }
   ]
 }
- 

@@ -232,6 +232,23 @@ function parseLocalDate(s: any): Date | null {
   return new Date(parti[0], parti[1] - 1, parti[2]);
 }
  
+// Giorni trascorsi dalla scadenza. Negativo o zero se non è ancora scaduto.
+function giorniDallaScadenza(endDate: any): number | null {
+  const end = parseLocalDate(endDate);
+  if (!end) return null;
+  const oggi = new Date();
+  oggi.setHours(0, 0, 0, 0);
+  return Math.round((oggi.getTime() - end.getTime()) / 86400000);
+}
+ 
+// Dopo quanti giorni dalla scadenza il programma sparisce dalla vista dell'atleta
+const GIORNI_VISIBILITA_DOPO_SCADENZA = 7;
+ 
+function programmaDaNascondere(endDate: any): boolean {
+  const g = giorniDallaScadenza(endDate);
+  return g !== null && g > GIORNI_VISIBILITA_DOPO_SCADENZA;
+}
+ 
 function getProgramDateStatus(startDate: any, endDate: any) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -2668,6 +2685,50 @@ const [notificationError, setNotificationError] = useState('');
     alert(quante === 1 ? 'Esercizio duplicato.' : `Esercizio duplicato in ${quante} sedute.`);
   };
  
+  // Cerca l'ultima volta che l'atleta ha fatto un esercizio e con che peso.
+  // Serve per suggerire un carico anche dove non ci sono massimali registrati.
+  const ultimoCaricoUsato = (nomeEsercizio: string) => ricercaUltimoCarico(nomeEsercizio, athleteResults);
+ 
+  const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string) => {
+    const risultatiAtleta: { [k: string]: any } = {};
+    Object.keys(coachAllResults || {}).forEach((pid) => {
+      const r = coachAllResults[pid]?.[athleteId];
+      if (r) risultatiAtleta[pid] = r;
+    });
+    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta);
+  };
+ 
+  const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any) => {
+    if (!nomeEsercizio || !risultatiPerProgramma) return null;
+ 
+    // Programmi dal più recente al più vecchio
+    const programmi = [...programLibrary]
+      .filter((p: any) => !p.isDeleted)
+      .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
+ 
+    for (const prog of programmi) {
+      const risultati = risultatiPerProgramma[prog.id];
+      if (!risultati) continue;
+ 
+      const settimane = normalizeProgramWeeks(prog);
+      // scorro a ritroso: prima le settimane e i giorni più avanzati
+      for (let wi = settimane.length - 1; wi >= 0; wi--) {
+        const giorni = settimane[wi]?.days || [];
+        for (let di = giorni.length - 1; di >= 0; di--) {
+          const blocchi = giorni[di]?.blocks || [];
+          for (let bi = blocchi.length - 1; bi >= 0; bi--) {
+            const blk = blocchi[bi];
+            if (!sameName(blk?.name, nomeEsercizio)) continue;
+            const dato = risultati[`${wi}_${di}_${bi}`];
+            const kg = parseWeightValue(dato?.score);
+            if (kg) return { kg, reps: blk.reps || null };
+          }
+        }
+      }
+    }
+    return null;
+  };
+ 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (authLoading) return;   // evita doppi invii se si tocca più volte
@@ -3516,6 +3577,10 @@ const [notificationError, setNotificationError] = useState('');
  
   const athletePrograms = programLibrary.filter((prog) => {
     if (prog.isDeleted) return false;
+ 
+    // Una settimana dopo la scadenza il programma sparisce dagli allenamenti.
+    // Se il coach sposta in avanti la data di fine, torna visibile da solo.
+    if (programmaDaNascondere(prog.endDate)) return false;
  
     // I programmi della settimana di prova: solo a chi ce l'ha attiva e ha scelto quello stile
     if (prog.trialStyle) {
@@ -4619,11 +4684,23 @@ const [notificationError, setNotificationError] = useState('');
  
                                       {(() => {
                                         const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[personalSelectedAthleteId], blk.name));
-                                        if (!hint) return null;
+                                        if (hint) {
+                                          return (
+                                            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                              <span style={{ display: 'block', fontSize: '9px', color: '#1e40af' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
+                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                            </div>
+                                          );
+                                        }
+ 
+                                        const ultimo = ultimoCaricoUsatoPer(personalSelectedAthleteId, blk.name);
+                                        if (!ultimo) return null;
                                         return (
-                                          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
-                                            <span style={{ display: 'block', fontSize: '9px', color: '#1e40af' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
-                                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                            <span style={{ display: 'block', fontSize: '9px', color: '#64748b' }}>L&apos;ULTIMA VOLTA AVEVA USATO</span>
+                                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#334155' }}>
+                                              {ultimo.kg} kg{ultimo.reps ? ` × ${ultimo.reps} rip.` : ''}
+                                            </span>
                                           </div>
                                         );
                                       })()}
@@ -6174,9 +6251,24 @@ const [notificationError, setNotificationError] = useState('');
                   const currentProgramActiveWeek = selectedWeeksByProgram[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
                   const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || weeks[0];
                   const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
+                  const giorniScaduto = giorniDallaScadenza(prog.endDate);
+                  const scaduto = giorniScaduto !== null && giorniScaduto > 0;
+                  const giorniRimasti = scaduto ? GIORNI_VISIBILITA_DOPO_SCADENZA - giorniScaduto : null;
  
                   return (
-                    <div key={prog.id} style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: scaduto ? '#fef2f2' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: scaduto ? '2px solid #ef4444' : '1px solid #d8dde3', marginBottom: '20px' }}>
+                      {scaduto && (
+                        <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '11px 13px', marginBottom: '14px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
+                          <span style={{ fontSize: '17px', flexShrink: 0 }}>⛔</span>
+                          <span style={{ fontSize: '12.5px', color: '#991b1b', lineHeight: 1.5 }}>
+                            <strong>Programma scaduto.</strong>{' '}
+                            {giorniRimasti !== null && giorniRimasti > 0
+                              ? `Resterà visibile ancora ${giorniRimasti} ${giorniRimasti === 1 ? 'giorno' : 'giorni'}, poi sparirà da questa schermata.`
+                              : 'Sparirà da questa schermata a breve.'}
+                          </span>
+                        </div>
+                      )}
+ 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                         <h4 style={{ overflowWrap: 'anywhere', color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (() => {
@@ -6385,11 +6477,24 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {(() => {
                                                       const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
-                                                      if (!hint) return null;
+                                                      if (hint) {
+                                                        return (
+                                                          <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                            <span style={{ display: 'block', fontSize: '10px', color: '#1e40af', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
+                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                                          </div>
+                                                        );
+                                                      }
+ 
+                                                      // Nessun massimale per questo esercizio: mostro l'ultimo carico che ha usato
+                                                      const ultimo = ultimoCaricoUsato(blk.name);
+                                                      if (!ultimo) return null;
                                                       return (
-                                                        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
-                                                          <span style={{ display: 'block', fontSize: '10px', color: '#1e40af', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
-                                                          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                                        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginBottom: '2px' }}>L&apos;ULTIMA VOLTA AVEVI USATO</span>
+                                                          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#334155' }}>
+                                                            {ultimo.kg} kg{ultimo.reps ? ` × ${ultimo.reps} rip.` : ''}
+                                                          </span>
                                                         </div>
                                                       );
                                                     })()}
