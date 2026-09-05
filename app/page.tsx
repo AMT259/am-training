@@ -5322,6 +5322,7 @@ const [notificationError, setNotificationError] = useState('');
                       ))
                     )}
                   </div>
+                </div>
               ) : activeTab === 'create' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
