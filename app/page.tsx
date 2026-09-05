@@ -1087,6 +1087,9 @@ export default function TrainingApp() {
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
   const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
+  const [libEditId, setLibEditId] = useState<string | null>(null);
+  const [libEditName, setLibEditName] = useState('');
+  const [libEditVideo, setLibEditVideo] = useState('');
   const [editingExerciseName, setEditingExerciseName] = useState('');
   const [showExerciseManager, setShowExerciseManager] = useState(false);
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
@@ -2170,6 +2173,55 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Rinomina l'esercizio ovunque: libreria, massimali degli atleti e storico
+  // Salva nome e link video di un esercizio della libreria.
+  // Cambiando il nome lo aggiorna ovunque: schede, massimali e storico.
+  const salvaEsercizioLibreria = async (ex: any) => {
+    const nuovoNome = libEditName.trim();
+    if (!nuovoNome) {
+      alert('Il nome non può restare vuoto.');
+      return;
+    }
+ 
+    // Controllo doppioni: un altro esercizio con lo stesso nome
+    const gemello = exerciseLibrary.find((e: any) => e.id !== ex.id && sameName(e.name, nuovoNome));
+    if (gemello) {
+      alert(`Esiste già un esercizio chiamato "${gemello.name}". Scegli un nome diverso.`);
+      return;
+    }
+ 
+    const { error } = await supabase.from('exercises_library')
+      .update({ name: nuovoNome, video_url: libEditVideo.trim() })
+      .eq('id', ex.id);
+ 
+    if (error) {
+      alert('Errore: ' + error.message);
+      return;
+    }
+ 
+    // Se il nome è cambiato, lo porto anche nei massimali e nello storico
+    if (nuovoNome !== ex.name) {
+      await supabase.from('athlete_max_history').update({ exercise: nuovoNome }).eq('exercise', ex.name);
+ 
+      const { data: tuttiMax } = await supabase.from('athlete_maxes').select('athlete_id,maxes');
+      for (const riga of tuttiMax || []) {
+        const m = riga.maxes || {};
+        if (m[ex.name] === undefined) continue;
+        const aggiornato: any = {};
+        Object.keys(m).forEach((k) => { aggiornato[k === ex.name ? nuovoNome : k] = m[k]; });
+        await supabase.from('athlete_maxes')
+          .upsert({ athlete_id: riga.athlete_id, maxes: aggiornato, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
+      }
+      setHistoryCache({});
+      if (role === 'coach') fetchAllAthleteMaxesForCoach();
+      else fetchAthleteMaxes(session.user.id);
+    }
+ 
+    setLibEditId(null);
+    setLibEditName('');
+    setLibEditVideo('');
+    fetchExerciseLibrary();
+  };
+ 
   const renameExerciseEverywhere = async (id: string, oldName: string, newNameRaw: string) => {
     const newName = newNameRaw.trim();
     if (!newName || newName === oldName) {
@@ -5200,6 +5252,40 @@ const [notificationError, setNotificationError] = useState('');
                       <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>{showDeletedExercises ? 'Cestino vuoto.' : 'Nessun esercizio in libreria.'}</p>
                     ) : (
                       sortExerciseLibrary(exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed)).map((ex) => (
+                        libEditId === ex.id ? (
+                          <div key={ex.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '2px solid #10b981' }}>
+                            <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Nome esercizio</label>
+                            <input
+                              type="text"
+                              value={libEditName}
+                              onChange={(e) => setLibEditName(e.target.value)}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '9px' }}
+                              autoFocus
+                            />
+                            <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Link video</label>
+                            <input
+                              type="url"
+                              placeholder="https://..."
+                              value={libEditVideo}
+                              onChange={(e) => setLibEditVideo(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') salvaEsercizioLibreria(ex); }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
+                            />
+                            <div style={{ display: 'flex', gap: '7px' }}>
+                              <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                Salva
+                              </button>
+                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); }} style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                Annulla
+                              </button>
+                            </div>
+                            {libEditName.trim() && libEditName.trim() !== ex.name && (
+                              <p style={{ fontSize: '10.5px', color: '#92400e', margin: '9px 0 0 0', lineHeight: 1.45, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '6px', padding: '8px 10px' }}>
+                                Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
+                              </p>
+                            )}
+                          </div>
+                        ) : (
                         <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
                           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
@@ -5226,13 +5312,16 @@ const [notificationError, setNotificationError] = useState('');
                               <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
                             </div>
                           ) : (
-                            <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>✏️ Modifica</button>
+                              <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                            </div>
                           )}
                         </div>
+                        )
                       ))
                     )}
                   </div>
-                </div>
               ) : activeTab === 'create' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
