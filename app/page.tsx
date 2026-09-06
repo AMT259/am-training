@@ -1139,7 +1139,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [newPrName, setNewPrName] = useState('');
@@ -1179,7 +1179,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare'>('anagrafici');
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
@@ -2929,7 +2929,7 @@ const [notificationError, setNotificationError] = useState('');
     const ordinate = [...(gare || [])].sort((a, b) => String(a.event_date).localeCompare(String(b.event_date)));
  
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '100%', minWidth: 0 }}>
         <div>
           <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#10b981' }}>🎯 Competition Day</h4>
           <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b', lineHeight: 1.45 }}>
@@ -2945,7 +2945,7 @@ const [notificationError, setNotificationError] = useState('');
           const m = giorniAlla(g.event_date);
           const passata = m !== null && m < 0;
           return (
-            <div key={g.id} style={{ background: passata ? '#f8fafc' : '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px', opacity: passata ? 0.65 : 1 }}>
+            <div key={g.id} style={{ background: passata ? '#f8fafc' : '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px', opacity: passata ? 0.65 : 1, boxSizing: 'border-box', width: '100%', maxWidth: '100%', minWidth: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#000', overflowWrap: 'anywhere' }}>{g.name}</span>
                 <span style={{ fontSize: '11px', color: passata ? '#94a3b8' : '#0284c7', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
@@ -2966,26 +2966,37 @@ const [notificationError, setNotificationError] = useState('');
         })}
  
         {showCompForm ? (
-          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
+          <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>
+              Nome della gara
+            </label>
             <input
               type="text"
-              placeholder="Nome della gara"
+              placeholder="es. Regionali di categoria"
               value={newComp.name}
               onChange={(e) => setNewComp({ ...newComp, name: e.target.value })}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '8px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
             />
+ 
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>
+              Data della gara
+            </label>
             <input
               type="date"
               value={newComp.event_date}
               onChange={(e) => setNewComp({ ...newComp, event_date: e.target.value })}
-              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '8px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
             />
+ 
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>
+              Note <span style={{ fontWeight: 'normal', color: '#94a3b8' }}>(facoltative)</span>
+            </label>
             <textarea
               rows={2}
-              placeholder="Note (facoltative): categoria, sede, obiettivo..."
+              placeholder="Categoria, sede, obiettivo..."
               value={newComp.notes}
               onChange={(e) => setNewComp({ ...newComp, notes: e.target.value })}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }}
             />
             <div style={{ display: 'flex', gap: '7px' }}>
               <button onClick={() => salvaCompetizione(athleteId, isCoach)} style={{ flex: 1, padding: '11px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
@@ -4321,8 +4332,9 @@ const [notificationError, setNotificationError] = useState('');
                     <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'abbonamento' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'abbonamento' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Abbonamento</button>
                   </div>
  
-                  <div style={{ display: 'flex', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'gare' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -4382,11 +4394,7 @@ const [notificationError, setNotificationError] = useState('');
                     );
                   })()}
  
-                  {coachAthleteDetailTab === 'anagrafici' && (
-                    <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '2px solid #e2e8f0' }}>
-                      {pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
-                    </div>
-                  )}
+                  {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
@@ -6254,8 +6262,9 @@ const [notificationError, setNotificationError] = useState('');
                 <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy</button>
               </div>
  
-              <div style={{ display: 'flex', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'gare' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
@@ -6307,11 +6316,7 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
               )}
  
-              {athleteProfileTab === 'anagrafici' && (
-                <div style={{ marginTop: '18px', paddingTop: '16px', borderTop: '2px solid #e2e8f0' }}>
-                  {pannelloCompetizioni(session.user.id, competitions, false)}
-                </div>
-              )}
+              {athleteProfileTab === 'gare' && pannelloCompetizioni(session.user.id, competitions, false)}
  
               {athleteProfileTab === 'maxes' && (
               <>
