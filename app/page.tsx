@@ -842,46 +842,77 @@ function mmss(secondi: number): string {
   return `${m}:${String(s % 60).padStart(2, '0')}`;
 }
  
-// Suono e vibrazione ai cambi di fase, senza file audio.
-// Il canale audio va creato una sola volta, durante un tocco dell'utente:
-// iOS non permette di aprirlo da un conteggio automatico.
-let canaleAudio: any = null;
+// Suono e vibrazione ai cambi di fase.
+// Uso due strade in parallelo, perche' i telefoni si comportano in modo diverso:
+// il canale audio del browser e un elemento audio con il suono incorporato.
+const SUONO_CORTO = 'data:audio/wav;base64,UklGRr0FAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YZkFAACAtuDy58OPVykQEzFjmszs8NmsdT8aDh5HfbTe8ejGklorERIvX5fK6vHbr3hCHA4dRHqx3PHqyJVdLRISLVyUx+nx3bJ7RR0OG0F3rtrw68uYYTATESpZkcXo8d+1fkgfDho/dKvY8OzNm2QyFBAoVo3C5/Lgt4FLIQ8YPHCo1u/t0J9nNBUQJlOKwOXy4rqETSMPFzltpdTv7tKiajcWDyRQh73k8uS9h1AkDxY3aqLS7u/UpW05Fw8iTYS64vLlwIpTJhAVNGeez+3v1qhwPBgPIUqAt+Dy58KOVigQFDJkm83s8NirdD8aDh9IfrTf8ejFkVkrERMwYJjL6/HarndBGw4dRXuy3fHpyJRcLRISLV2VyOrx3LF6RB0OHEJ4r9vx68qXYC8TEStaksbo8d60fUcfDho/dKzZ8OzNmmMxExApV47D5/Lgt4BKIA4ZPXGp1/Dtz55mNBQQJ1SLwOby4rmDTSIPFzpuptXv7tGhaTYWDyVRiL7k8uO8hk8kDxY4a6LS7u7TpGw5Fw8jToW74/Llv4lSJhAVNWif0O3v1qdvOxgPIUuBuOHy5sKNVSgQFDNknM7s8Niqcz4ZDh9If7Xf8ejEkFgqERMwYZnL6/DarXZBGw4eRnyy3fHpx5NcLBESLl6Wyerx3LB5QxwOHEN5r9vx6smWXy4SESxbk8bp8d6zfEYeDhtAdazZ8OvMmWIxExEqWI/E5/HftoBJIA4ZPXKp1/Dszp1lMxQQKFWMweby4bmCTCEPGDtvptXv7dGgaDUVDyZSib/l8uO7hU8jDxc4bKPT7u7To2s4Fg8kT4a84/LkvohSJQ8VNmmg0e3v1aZuOhgPIkyCueHy5sGMVScQFDNlnc/t8Nepcj0ZDiBJgLbg8ufDj1gpERMxYprM6/DZrHVAGg4eRn2z3vHpxpJbKxESL1+Xyurx2694QhwOHUR6sNzx6smVXi4SEixclMfp8d2ye0UeDhtBdq3a8OvLmWEwExEqWZDF6PHftX9IHw4aPnOq2PDszZxkMhQQKFaNwufy4biBSyEPGDxwp9bv7dCfZzUVECZTir/l8uK7hE4jDxc5baTU7+7Somo3Fg8kUIe95PLkvYdRJQ8WN2qh0u7v1KVuOhcPIk2DuuLy5cCLVCcQFTRmns/t79aocTwZDiBKgLfg8ufDjlcpEBQyY5vN7PDZq3Q/Gg4fR3603vHoxZFaKxETL2CYyuvx2653QhsOHUR7sd3x6ciUXS0SEi1dlcjq8dyxekQdDhxCd67b8evKmGAvExErWpHF6PHetH5HHw4aP3Sr2fDszZtjMhQQKVeOw+fy4LeASiAOGTxxqNfv7c+eZjQVECdUi8Dm8uK6g00iDxc6bqXU7+7RoWk2Fg8lUYi95PLjvIZQJA8WN2qi0u7u1KRtORcPI06Eu+Ly5b+KUyYQFTVnn9Dt79ancDsYDyFLgbjh8ubCjVYoEBQyZJzO7PDYqnM+Gg4fSH+13/HoxZBZKhETMGGZy+vw2q12QRsOHkV8st3x6ceTXC0TEy9flcfn7dmuekYiFCJGeazV6OLDlWI2HRw0X5C+3OTSrX1OLB4pSXely97av5VnPyclOmCMttLay6qAVTYpMU11n8LU0bqVbEgyL0BhiK7I0MSogVw/MzlRdJm5yci1lXFQPDhHY4Wnvsa9pINjST1CVnSUsL+/r5R1WEZCTmWDoLW8taCEaFJHSlt0kKe1tqmSeGBQTFVogZmrsq2chW5bUVNgdYufq6yikHtnWVZcbICToqikl4VzY1tcZneImKGjm419bWNfZHB/jpmem5KEd2tlZm15hZGYmZSKf3RsaW11f4mRlJKMg3tzb290e4KKjo+MhoB5dXN1en+EiIqJhoJ+enh5e36Ag4WFhIKAf319fn+AgICAgA==';
+const SUONO_LUNGO = 'data:audio/wav;base64,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GEKExurism0wFCVcodnr0ZZSIBc5ebvl5bt6OhghUpXQ6dehXigXMm2v3ubEhUUdHkiIxubcq2oxGSxipNfmy5BQIx1Afrvh37V2OhwoWJjP5dGbWyodOXKx3OC9gEQgJE6MxuLVpWcyHjNoptXhxItPJiNGgbze2a5yOyAuXpvN4MqWWSwiP3ey2dq3fUQkK1WQxd3PoGQ0Izltp9LbvodOKSlMhbza0qlvPCU0Y53L2sSRWC8oRXuy1dSxeUQoMVqSxNnJmmI2KD9xqdDVuINNLS5SiLvWzKNsPSo7aJ/J1b6MVzItS3+z0s+rdkUtN2CVwtTClWA4LkZ2qc3QsoBOMDRYi7rRxp5qPy9BbaDH0LeIVjUzUYKyzsmlc0YxPWWXwM+8kV87M0t6qsnKrH1ONDpdjrnNwJloQTRHcaHEyrKEVjk5V4WyycOgcUg2Q2qYvsm2jV8+OVF9qsXEpnpPOUBikLfIupRnQzlNdaLBxayBVjw/XIiwxb2bb0o7SW6au8SxiV5BPleAqcK+oXdQPUZnkrXDtJBmRj5SeaK9v6d/V0FEYYqvwLeXbkxATnKauL+rhV5FRFyCqL25nXVSQkxsk7O+r4xmSURYfKG6uqJ9WEVKZoutvLGSbU5FVHaatbqmgl9ISWGFp7mzmHRUR1FwlLC5qYlmTUldf6G2tJ17WklQao2rt6yPbFFKWXmasrShgGBMT2WGpbSulHNWTFdzlK2zpIZmUE9igJ+xr5h5XE5Vbo6osqeLbFVPXnyarq+cf2FRVGqIo7CokHJZUVx2lKqun4NnVFRmgp6tqZR4XlNaco6lraGIbFhVY36ZqqmYfWNVWW6JoaujjXJcVmF5k6apmoFoWFlqhJyopJB3YVhgdY6iqJ2FbVxaaICXpqSUfGVaX3GJnqaeiXJgW2Z8kqKkloBqXV9uhZqkn413ZF1keI6fo5iDbmBfbICVoZ+Qe2hfZHWJm6GZh3NjYGp+kZ6ekn9sYWRyhZefmop3Z2Jpeo2bnZSBcGRkcIKTnZqMe2pkaXiJmJyVhXRnZW9/j5qZjn5uZml1hpSalYd3amdufIyXmI+AcmhpdIKRmJWJe25obXqIlJeQg3VranOAjZWUi31xa254hZGVkIV4bmxyfoqTk4yAdG1ud4OOk5CGe3FtcnyHkJKMgXdvb3aAi5GPiH10b3J7hY2QjIN5cnF2f4iOjoiAdnJzeoKLjoyEfHVydn6GjI2IgHl0dHqBiIyLhX53dHd9hImLiIF7dnZ6gIaKiYV/eXZ4fYKHiYeCfXl3en+EiIiFgHt5eXyBhYeGgn97eXt/goWGhIB9e3t9gIOFhYKAfXt8f4GDhIOBf318foCCg4OCgH59fn+AgoKCgIB/fn+AgIGBgYCAf3+AgICAgICAgICA';
  
+let canaleAudio: any = null;
+let elemCorto: any = null;
+let elemLungo: any = null;
+let audioPronto = false;
+ 
+// Va chiamata dentro un tocco dell'utente: e' l'unico momento in cui
+// iOS permette di sbloccare la riproduzione
 function preparaAudio() {
   try {
-    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-    if (!AC) return;
-    if (!canaleAudio) canaleAudio = new AC();
-    if (canaleAudio.state === 'suspended') canaleAudio.resume();
+    if (!elemCorto) {
+      elemCorto = new Audio(SUONO_CORTO);
+      elemCorto.preload = 'auto';
+      elemCorto.volume = 1;
+    }
+    if (!elemLungo) {
+      elemLungo = new Audio(SUONO_LUNGO);
+      elemLungo.preload = 'auto';
+      elemLungo.volume = 1;
+    }
  
-    // Un suono muto sblocca l'audio su iOS al primo tocco
-    const osc = canaleAudio.createOscillator();
-    const gain = canaleAudio.createGain();
-    gain.gain.value = 0;
-    osc.connect(gain);
-    gain.connect(canaleAudio.destination);
-    osc.start();
-    osc.stop(canaleAudio.currentTime + 0.01);
+    // riproduzione muta immediata: sblocca l'audio per le volte successive
+    [elemCorto, elemLungo].forEach((el: any) => {
+      const v = el.volume;
+      el.volume = 0;
+      const p = el.play();
+      if (p && p.then) p.then(() => { el.pause(); el.currentTime = 0; el.volume = v; }).catch(() => { el.volume = v; });
+      else { el.pause(); el.currentTime = 0; el.volume = v; }
+    });
+ 
+    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (AC) {
+      if (!canaleAudio) canaleAudio = new AC();
+      if (canaleAudio.state === 'suspended') canaleAudio.resume();
+    }
+ 
+    audioPronto = true;
   } catch (e) { /* audio non disponibile */ }
 }
  
 function bip(frequenza: number, durata: number) {
+  // strada 1: elemento audio con suono incorporato
   try {
-    if (!canaleAudio) preparaAudio();
+    const el = durata >= 0.3 ? elemLungo : elemCorto;
+    if (el) {
+      el.currentTime = 0;
+      const p = el.play();
+      if (p && p.catch) p.catch(() => { /* bloccato */ });
+    }
+  } catch (e) { /* niente */ }
+ 
+  // strada 2: canale audio del browser
+  try {
     if (!canaleAudio) return;
     if (canaleAudio.state === 'suspended') canaleAudio.resume();
- 
     const osc = canaleAudio.createOscillator();
     const gain = canaleAudio.createGain();
     osc.connect(gain);
     gain.connect(canaleAudio.destination);
     osc.frequency.value = frequenza;
     osc.type = 'square';
-    gain.gain.setValueAtTime(0.4, canaleAudio.currentTime);
+    gain.gain.setValueAtTime(0.5, canaleAudio.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, canaleAudio.currentTime + durata);
     osc.start();
     osc.stop(canaleAudio.currentTime + durata);
-  } catch (e) { /* niente suono: pazienza */ }
+  } catch (e) { /* niente suono */ }
 }
  
 function vibra(schema: number | number[]) {
@@ -1020,8 +1051,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         }
       } catch (e) { /* non supportato: pazienza */ }
     };
- 
-    if (attivo || preparazione !== null) attiva();
+ if (attivo || preparazione !== null) attiva();
  
     const alRientro = () => {
       if (document.visibilityState === 'visible' && vivo && (attivo || preparazione !== null)) attiva();
@@ -3398,7 +3428,9 @@ const [notificationError, setNotificationError] = useState('');
       const updatedAthleteResults = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
       const updatedProgResults = { ...currentProgResults, [athleteIdOverride]: updatedAthleteResults };
  
-      setCoachAllResults({ ...coachAllResults, [programId]: updatedProgResults });  await supabase.from('program_results').upsert(
+      setCoachAllResults({ ...coachAllResults, [programId]: updatedProgResults });
+ 
+      await supabase.from('program_results').upsert(
         {
           program_id: programId,
           athlete_id: athleteIdOverride,
