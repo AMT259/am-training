@@ -908,7 +908,7 @@ function costruisciFasi(cfg: any): any[] {
 function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
   const [fase, setFase] = useState(0);
-  const [restano, setRestano] = useState(config?.tipo === 'recupero' ? (config.secondi || 0) : 0);
+  const [restano, setRestano] = useState<number>(config?.tipo === 'recupero' ? (config.secondi || 0) : 0);
   const [partito, setPartito] = useState(false);
   const [trascorsi, setTrascorsi] = useState(0);
   const [attivo, setAttivo] = useState(false);
@@ -998,13 +998,13 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
  
     const t = setInterval(() => {
       if (libero) {
-        setTrascorsi((v) => v + 1);
+        setTrascorsi((v: number) => v + 1);
         return;
       }
  
       if (unoAUno) {
-        if (r1InLavoro) { setTrascorsi((v) => v + 1); return; }
-        setRestano((v) => {
+        if (r1InLavoro) { setTrascorsi((v: number) => v + 1); return; }
+        setRestano((v: number) => {
           if (v > 1) {
             if (v <= 4) bip(660, 0.08);
             return v - 1;
@@ -1012,7 +1012,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
           // recupero finito: parte il round successivo
           bip(1000, 0.3);
           vibra([120, 60, 120]);
-          setR1Round((n) => n + 1);
+          setR1Round((n: number) => n + 1);
           setR1InLavoro(true);
           setTrascorsi(0);
           return 0;
@@ -1020,7 +1020,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
         return;
       }
  
-      setRestano((v) => {
+      setRestano((v: number) => {
         if (v > 1) {
           if (v <= 4) bip(660, 0.08);
           return v - 1;
@@ -1300,7 +1300,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
         <h4 style={hStyle}>10. Revoca del consenso</h4>
         <p style={pStyle}>Il consenso al trattamento dei dati relativi alla salute può essere revocato in qualsiasi momento, senza pregiudicare la liceità del trattamento effettuato prima della revoca. La revoca può essere effettuata attraverso le funzionalità messe a disposizione dall’applicazione oppure contattando il Titolare.</p>
         <p style={pStyle}>A seguito della revoca, il Titolare cesserà il trattamento dei dati relativi alla salute basato sul consenso e, ove richiesto, procederà alla loro cancellazione, fatti salvi i casi in cui la conservazione o il trattamento siano necessari per adempiere a un obbligo di legge oppure per l’accertamento, l’esercizio o la difesa di un diritto. La revoca del consenso comporterà l’impossibilità, per il Titolare, di continuare a utilizzare tali informazioni per personalizzare la programmazione degli allenamenti.</p>
-        <h4 style={hStyle}>11. Diritti dell’interessato</h4> <p style={pStyle}>L’interessato, o chi esercita la responsabilità genitoriale nei suoi confronti, può esercitare nei confronti del Titolare del trattamento i diritti previsti dagli artt. 15-22 GDPR e, in particolare:</p>
+        <h4 style={hStyle}>11. Diritti dell’interessato</h4>
+        <p style={pStyle}>L’interessato, o chi esercita la responsabilità genitoriale nei suoi confronti, può esercitare nei confronti del Titolare del trattamento i diritti previsti dagli artt. 15-22 GDPR e, in particolare:</p>
         <p style={pStyle}>• ottenere la conferma che sia o meno in corso un trattamento di dati personali che lo riguardano e, in tal caso, ottenere l’accesso ai dati personali e alle informazioni previste dall’art. 15 GDPR;</p>
         <p style={pStyle}>• ottenere la rettifica dei dati personali inesatti e l’integrazione dei dati incompleti;</p>
         <p style={pStyle}>• ottenere la cancellazione dei dati personali nei casi previsti dall’art. 17 GDPR;</p>
@@ -1657,8 +1658,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const createNotificationIfMissing = async (
   title: string,
-  message: string,
-  notificationType: string,
+  message: string,  notificationType: string,
   programId?: string
 ) => {
     if (!session?.user?.id) return;
