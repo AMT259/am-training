@@ -1051,7 +1051,8 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         }
       } catch (e) { /* non supportato: pazienza */ }
     };
- if (attivo || preparazione !== null) attiva();
+ 
+    if (attivo || preparazione !== null) attiva();
  
     const alRientro = () => {
       if (document.visibilityState === 'visible' && vivo && (attivo || preparazione !== null)) attiva();
@@ -2628,8 +2629,7 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     setAddingAthlete(true);
-    try {
-      const res = await fetch('/api/create-user', {
+    try {   const res = await fetch('/api/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requester_id: session.user.id, ...newAthlete, full_name: `${newAthlete.first_name.trim()} ${newAthlete.last_name.trim()}`, email: newAthlete.email.trim() }),
@@ -5682,7 +5682,18 @@ const [notificationError, setNotificationError] = useState('');
  
                                 return (
                                   <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>{blk.name || `Esercizio ${bIdx + 1}`}</div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || `Esercizio ${bIdx + 1}`}</span>
+                                      {(blk.type === 'wod' || blk.type === 'test') && (
+                                        <button
+                                          type="button"
+                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
+                                          style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '6px', padding: '4px 8px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                        >
+                                          ⏱️ Timer
+                                        </button>
+                                      )}
+                                    </div>
  
                                     {isMobility(blk.name) ? (
                                       <div>
@@ -5742,10 +5753,18 @@ const [notificationError, setNotificationError] = useState('');
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
                                         </div>
-                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                        {(() => {
+                                          const secRec = parseRestSeconds(blk.rest);
+                                          return (
+                                          <div
+                                            onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
+                                            style={{ background: '#ecfdf5', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #6ee7b7', cursor: 'pointer' }}
+                                          >
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
                                           <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
-                                        </div>
+                                          <span style={{ display: 'block', fontSize: '8px', color: '#047857', fontWeight: 'bold' }}>⏱️</span>
+                                          </div>
+                                          ); })()}
                                       </div>
  
                                       {(() => {
