@@ -802,31 +802,36 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
 // ---- TIMER ----
 // Legge il tempo di recupero scritto dal coach: "1'30", "1'", "90 sec", "1:30", "2 min"
 function parseRestSeconds(testo: any): number | null {
-  if (!testo) return null;
-  const t = String(testo).toLowerCase().replace(/\s+/g, '');
+  if (testo === null || testo === undefined) return null;
+  const t = String(testo).toLowerCase().replace(/\s+/g, '').replace(/[\u2019\u02bc]/g, "'").replace(/[\u201d\u2033]/g, '"');
+  if (!t) return null;
  
-  // formato con apostrofo: 1'30  oppure  1'  oppure 1'30''
-  const apo = t.match(/^(\d+)'(?:(\d{1,2})'{0,2})?$/);
-  if (apo) return parseInt(apo[1], 10) * 60 + (apo[2] ? parseInt(apo[2], 10) : 0);
+  // minuti e secondi insieme: 1'30  1'30"  1'30''  1:30  1m30  1m30s
+  const insieme = t.match(/^(\d+)\s*(?:'|:|m|min)\s*(\d{1,2})\s*(?:"|''|s|sec)?$/);
+  if (insieme) return parseInt(insieme[1], 10) * 60 + parseInt(insieme[2], 10);
  
-  // formato con due punti: 1:30
-  const due = t.match(/^(\d+):(\d{1,2})$/);
-  if (due) return parseInt(due[1], 10) * 60 + parseInt(due[2], 10);
+  // solo minuti: 2'  2min  2m  1,5'
+  const soloMin = t.match(/^(\d+(?:[.,]\d+)?)\s*(?:'|min|m)$/);
+  if (soloMin) return Math.round(parseFloat(soloMin[1].replace(',', '.')) * 60);
  
-  // minuti scritti a parole: 2min, 2m
-  const min = t.match(/^(\d+(?:[.,]\d+)?)(?:min|m)$/);
-  if (min) return Math.round(parseFloat(min[1].replace(',', '.')) * 60);
+  // solo secondi: 90"  90''  90s  90sec
+  const soloSec = t.match(/^(\d+)\s*(?:"|''|s|sec)$/);
+  if (soloSec) return parseInt(soloSec[1], 10);
  
-  // secondi: 90sec, 90s, 90"
-  const sec = t.match(/^(\d+)(?:sec|s|")$/);
-  if (sec) return parseInt(sec[1], 10);
- 
-  // solo numero: sotto 10 lo leggo come minuti, sopra come secondi
+  // solo numero: fino a 10 lo leggo come minuti, oltre come secondi
   const nudo = t.match(/^(\d+)$/);
   if (nudo) {
     const n = parseInt(nudo[1], 10);
     return n <= 10 ? n * 60 : n;
   }
+ 
+  // ultimo tentativo: primo numero utile dentro un testo piu' lungo (es. "recupero 90 sec")
+  const dentro = t.match(/(\d+)\s*(?:'|:|m|min)\s*(\d{1,2})/);
+  if (dentro) return parseInt(dentro[1], 10) * 60 + parseInt(dentro[2], 10);
+  const soloDentro = t.match(/(\d+)\s*(?:"|''|s|sec)/);
+  if (soloDentro) return parseInt(soloDentro[1], 10);
+  const minDentro = t.match(/(\d+)\s*(?:'|min|m)/);
+  if (minDentro) return parseInt(minDentro[1], 10) * 60;
  
   return null;
 }
@@ -920,6 +925,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const [cfgRound, setCfgRound] = useState(10);
   const [cfgEmomDurata, setCfgEmomDurata] = useState(60);
   const [cfgAmrapDurata, setCfgAmrapDurata] = useState(720);
+  const [cfgRecupero, setCfgRecupero] = useState<number>(config?.secondi || 90);
   const [r1Round, setR1Round] = useState(1);
   const [r1InLavoro, setR1InLavoro] = useState(true);
   const [r1UltimoLavoro, setR1UltimoLavoro] = useState(0);
@@ -933,7 +939,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const avvia = () => {
     setPartito(true);
     if (scelta?.tipo === 'recupero') {
-      if (restano <= 0) setRestano(scelta.secondi);
+      if (restano <= 0 || restano > scelta.secondi) setRestano(scelta.secondi);
       setAttivo(true);
       bip(880, 0.12);
       return;
@@ -1042,7 +1048,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
     }, 1000);
  
     return () => clearInterval(t);
-  }, [attivo, fase, fasi.length, libero]);
+  }, [attivo, fase, fasi.length, libero, unoAUno, r1InLavoro, r1Round]);
  
   const ferma = () => { setAttivo(false); setPreparazione(null); };
   const azzera = () => {
@@ -1102,14 +1108,30 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   if (scelta.daImpostare) {
     const campo = (etichetta: string, valore: number, imposta: (n: number) => void, passo: number, min: number, max: number, suffisso: string) => (
       <div style={{ marginBottom: '14px' }}>
-        <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>{etichetta}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button onClick={() => imposta(Math.max(min, valore - passo))} style={{ ...btn('#3a3a40'), padding: '10px 16px' }}>−</button>
-          <span style={{ flex: 1, textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff' }}>
-            {suffisso === 's' ? mmss(valore) : valore}
-          </span>
-          <button onClick={() => imposta(Math.min(max, valore + passo))} style={{ ...btn('#3a3a40'), padding: '10px 16px' }}>+</button>
+        <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+          {etichetta}{suffisso === 's' ? ' (secondi)' : ''}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={() => imposta(Math.max(min, valore - passo))} style={{ ...btn('#3a3a40'), padding: '12px 15px' }}>−</button>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={min}
+            max={max}
+            value={valore}
+            onChange={(e: any) => {
+              const n = parseInt(e.target.value, 10);
+              imposta(isNaN(n) ? min : Math.min(max, Math.max(min, n)));
+            }}
+            style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#26262a', border: '1px solid #3a3a40', borderRadius: '8px', padding: '9px 4px' }}
+          />
+          <button onClick={() => imposta(Math.min(max, valore + passo))} style={{ ...btn('#3a3a40'), padding: '12px 15px' }}>+</button>
         </div>
+        {suffisso === 's' && valore >= 60 && (
+          <span style={{ display: 'block', fontSize: '11px', color: '#71717a', marginTop: '4px', textAlign: 'center' }}>
+            = {mmss(valore)}
+          </span>
+        )}
       </div>
     );
  
@@ -1117,28 +1139,38 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
       <div style={scatola}>
         <div style={{ width: '100%', maxWidth: '340px', maxHeight: '85vh', overflowY: 'auto' }}>
           <h3 style={{ color: '#10b981', margin: '0 0 16px 0', fontSize: '19px' }}>
-            {scelta.tipo === 'emom' ? 'EMOM' : scelta.tipo === 'amrap' ? 'AMRAP' : scelta.tipo === 'unoauno' ? 'Rest 1:1' : 'Intervalli'}
+            {scelta.tipo === 'emom' ? 'EMOM' : scelta.tipo === 'amrap' ? 'AMRAP' : scelta.tipo === 'unoauno' ? 'Rest 1:1' : scelta.tipo === 'recupero' ? 'Recupero' : 'Intervalli'}
           </h3>
+ 
+          {scelta.tipo === 'recupero' && (
+            <>
+              <p style={{ fontSize: '12px', color: '#a1a1aa', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                Il tempo scritto nella scheda non è in un formato leggibile: impostalo qui.
+              </p>
+              {campo('Durata del recupero', cfgRecupero, setCfgRecupero, 5, 5, 3600, 's')}
+            </>
+          )}
  
           {scelta.tipo === 'intervalli' && (
             <>
-              {campo('Lavoro', cfgLavoro, setCfgLavoro, 5, 5, 600, 's')}
-              {campo('Recupero', cfgRiposo, setCfgRiposo, 5, 0, 600, 's')}
+              {campo('Lavoro', cfgLavoro, setCfgLavoro, 1, 1, 3600, 's')}
+              {campo('Recupero', cfgRiposo, setCfgRiposo, 1, 0, 3600, 's')}
             </>
           )}
-          {scelta.tipo === 'emom' && campo('Durata di ogni round', cfgEmomDurata, setCfgEmomDurata, 15, 30, 300, 's')}
-          {scelta.tipo === 'amrap' && campo('Durata totale', cfgAmrapDurata, setCfgAmrapDurata, 60, 60, 3600, 's')}
+          {scelta.tipo === 'emom' && campo('Durata di ogni round', cfgEmomDurata, setCfgEmomDurata, 5, 5, 3600, 's')}
+          {scelta.tipo === 'amrap' && campo('Durata totale', cfgAmrapDurata, setCfgAmrapDurata, 30, 10, 7200, 's')}
           {scelta.tipo === 'unoauno' && (
             <p style={{ fontSize: '12px', color: '#a1a1aa', lineHeight: 1.5, margin: '0 0 14px 0' }}>
               Il cronometro sale mentre lavori. Quando chiudi il round, il recupero parte con la stessa durata che ci hai messo.
             </p>
           )}
-          {scelta.tipo !== 'amrap' && campo('Round', cfgRound, setCfgRound, 1, 1, 60, '')}
+          {scelta.tipo !== 'amrap' && scelta.tipo !== 'recupero' && campo('Round', cfgRound, setCfgRound, 1, 1, 99, '')}
  
           <div style={{ display: 'flex', gap: '8px', marginTop: '18px' }}>
             <button
               onClick={() => setScelta(
-                scelta.tipo === 'emom' ? { tipo: 'emom', durata: cfgEmomDurata, round: cfgRound }
+                scelta.tipo === 'recupero' ? (setRestano(cfgRecupero), { tipo: 'recupero', secondi: cfgRecupero })
+                : scelta.tipo === 'emom' ? { tipo: 'emom', durata: cfgEmomDurata, round: cfgRound }
                 : scelta.tipo === 'amrap' ? { tipo: 'amrap', durata: cfgAmrapDurata }
                 : scelta.tipo === 'unoauno' ? { tipo: 'unoauno', round: cfgRound }
                 : { tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound })}
@@ -1658,7 +1690,8 @@ const [notificationError, setNotificationError] = useState('');
  
   const createNotificationIfMissing = async (
   title: string,
-  message: string,  notificationType: string,
+  message: string,
+  notificationType: string,
   programId?: string
 ) => {
     if (!session?.user?.id) return;
@@ -4986,8 +5019,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {coachMaxSubTab === 'gym' && (
                   <div>
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>
-                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
@@ -7286,14 +7318,14 @@ const [notificationError, setNotificationError] = useState('');
                                                         const secRec = parseRestSeconds(blk.rest);
                                                         return (
                                                         <div
-                                                          onClick={() => { if (secRec) setTimerConfig({ tipo: 'recupero', secondi: secRec }); }}
-                                                          style={{ background: secRec ? '#ecfdf5' : '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: secRec ? '1px solid #6ee7b7' : '1px solid #e2e8f0', cursor: secRec ? 'pointer' : 'default' }}
+                                                          onClick={() => setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true })}
+                                                          style={{ background: '#ecfdf5', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #6ee7b7', cursor: 'pointer' }}
                                                         >
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
-                                                        {secRec && (
-                                                          <span style={{ display: 'block', fontSize: '9px', color: '#047857', fontWeight: 'bold', marginTop: '3px' }}>⏱️ AVVIA TIMER</span>
-                                                        )}
+                                                        <span style={{ display: 'block', fontSize: '9px', color: '#047857', fontWeight: 'bold', marginTop: '3px' }}>
+                                                          {secRec ? '⏱️ AVVIA TIMER' : '⏱️ IMPOSTA TIMER'}
+                                                        </span>
                                                         </div>
                                                         ); })()}
                                                     </div>
