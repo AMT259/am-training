@@ -799,6 +799,423 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
   );
 }
  
+// ---- TIMER ----
+// Legge il tempo di recupero scritto dal coach: "1'30", "1'", "90 sec", "1:30", "2 min"
+function parseRestSeconds(testo: any): number | null {
+  if (!testo) return null;
+  const t = String(testo).toLowerCase().replace(/\s+/g, '');
+ 
+  // formato con apostrofo: 1'30  oppure  1'  oppure 1'30''
+  const apo = t.match(/^(\d+)'(?:(\d{1,2})'{0,2})?$/);
+  if (apo) return parseInt(apo[1], 10) * 60 + (apo[2] ? parseInt(apo[2], 10) : 0);
+ 
+  // formato con due punti: 1:30
+  const due = t.match(/^(\d+):(\d{1,2})$/);
+  if (due) return parseInt(due[1], 10) * 60 + parseInt(due[2], 10);
+ 
+  // minuti scritti a parole: 2min, 2m
+  const min = t.match(/^(\d+(?:[.,]\d+)?)(?:min|m)$/);
+  if (min) return Math.round(parseFloat(min[1].replace(',', '.')) * 60);
+ 
+  // secondi: 90sec, 90s, 90"
+  const sec = t.match(/^(\d+)(?:sec|s|")$/);
+  if (sec) return parseInt(sec[1], 10);
+ 
+  // solo numero: sotto 10 lo leggo come minuti, sopra come secondi
+  const nudo = t.match(/^(\d+)$/);
+  if (nudo) {
+    const n = parseInt(nudo[1], 10);
+    return n <= 10 ? n * 60 : n;
+  }
+ 
+  return null;
+}
+ 
+function mmss(secondi: number): string {
+  const s = Math.max(0, Math.round(secondi));
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, '0')}`;
+}
+ 
+// Suono e vibrazione ai cambi di fase, senza file audio
+function bip(frequenza: number, durata: number) {
+  try {
+    const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = frequenza;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durata);
+    osc.start();
+    osc.stop(ctx.currentTime + durata);
+    setTimeout(() => ctx.close(), (durata + 0.1) * 1000);
+  } catch (e) { /* audio non disponibile: pazienza */ }
+}
+ 
+function vibra(schema: number | number[]) {
+  try { if (navigator.vibrate) navigator.vibrate(schema); } catch (e) { /* niente */ }
+}
+ 
+// Costruisce la sequenza di fasi in base al tipo di timer scelto
+function costruisciFasi(cfg: any): any[] {
+  if (!cfg) return [];
+ 
+  if (cfg.tipo === 'recupero') {
+    return [{ nome: 'Recupero', secondi: cfg.secondi, colore: '#0284c7', round: null }];
+  }
+ 
+  if (cfg.tipo === 'intervalli') {
+    const fasi: any[] = [];
+    for (let r = 1; r <= cfg.round; r++) {
+      fasi.push({ nome: 'Lavoro', secondi: cfg.lavoro, colore: '#10b981', round: r });
+      if (cfg.riposo > 0 && r < cfg.round) {
+        fasi.push({ nome: 'Recupero', secondi: cfg.riposo, colore: '#0284c7', round: r });
+      }
+    }
+    return fasi;
+  }
+ 
+  if (cfg.tipo === 'emom') {
+    const fasi: any[] = [];
+    for (let r = 1; r <= cfg.round; r++) {
+      fasi.push({ nome: `Minuto ${r}`, secondi: cfg.durata, colore: '#10b981', round: r });
+    }
+    return fasi;
+  }
+ 
+  if (cfg.tipo === 'amrap') {
+    return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
+  }
+ 
+  if (cfg.tipo === 'tabata') {
+    const fasi: any[] = [];
+    for (let r = 1; r <= 8; r++) {
+      fasi.push({ nome: 'Lavoro', secondi: 20, colore: '#10b981', round: r });
+      fasi.push({ nome: 'Recupero', secondi: 10, colore: '#0284c7', round: r });
+    }
+    return fasi;
+  }
+ 
+  return [];
+}
+ 
+// Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
+function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void }) {
+  const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
+  const [fase, setFase] = useState(0);
+  const [restano, setRestano] = useState(0);
+  const [trascorsi, setTrascorsi] = useState(0);
+  const [attivo, setAttivo] = useState(false);
+  const [preparazione, setPreparazione] = useState<number | null>(null);
+ 
+  // impostazioni modificabili prima di partire
+  const [cfgLavoro, setCfgLavoro] = useState(30);
+  const [cfgRiposo, setCfgRiposo] = useState(30);
+  const [cfgRound, setCfgRound] = useState(10);
+  const [cfgEmomDurata, setCfgEmomDurata] = useState(60);
+  const [cfgAmrapDurata, setCfgAmrapDurata] = useState(720);
+  const [r1Round, setR1Round] = useState(1);
+  const [r1InLavoro, setR1InLavoro] = useState(true);
+  const [r1UltimoLavoro, setR1UltimoLavoro] = useState(0);
+ 
+  const fasi = costruisciFasi(scelta);
+  const faseCorrente = fasi[fase] || null;
+  const libero = scelta?.tipo === 'libero';
+  const unoAUno = scelta?.tipo === 'unoauno';
+ 
+  // Il recupero parte subito; gli altri timer hanno dieci secondi di preparazione
+  const avvia = () => {
+    if (scelta?.tipo === 'recupero') {
+      if (restano === 0) setRestano(scelta.secondi);
+      setAttivo(true);
+      bip(880, 0.12);
+      return;
+    }
+ 
+    // La preparazione serve solo al primo avvio: riprendendo dopo una pausa si riparte subito
+    const giaIniziato = trascorsi > 0 || restano > 0 || fase > 0 || (unoAUno && r1UltimoLavoro > 0);
+    if (giaIniziato) {
+      setAttivo(true);
+      bip(880, 0.12);
+      return;
+    }
+ 
+    setPreparazione(10);
+    bip(660, 0.12);
+  };
+ 
+  // Uno a uno: chiude il round di lavoro e fa partire un recupero di pari durata
+  const chiudiRound = () => {
+    const misurato = Math.max(1, trascorsi);
+    setR1UltimoLavoro(misurato);
+    bip(1000, 0.25);
+    vibra(150);
+ 
+    if (r1Round >= (scelta?.round || 1)) {
+      bip(1200, 0.6);
+      vibra([200, 80, 200, 80, 200]);
+      setAttivo(false);
+      setR1InLavoro(false);
+      setRestano(0);
+      return;
+    }
+ 
+    setR1InLavoro(false);
+    setRestano(misurato);
+  };
+ 
+  // Conto alla rovescia di preparazione
+  useEffect(() => {
+    if (preparazione === null) return;
+    if (preparazione <= 0) {
+      setPreparazione(null);
+      setFase(0);
+      setTrascorsi(0);
+      setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
+      if (unoAUno) { setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); }
+      setAttivo(true);
+      bip(1200, 0.35);
+      vibra([120, 60, 120]);
+      return;
+    }
+    const t = setTimeout(() => {
+      if (preparazione <= 4) bip(660, 0.1);
+      setPreparazione(preparazione - 1);
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [preparazione]);
+ 
+  // Motore del timer
+  useEffect(() => {
+    if (!attivo) return;
+ 
+    const t = setInterval(() => {
+      if (libero) {
+        setTrascorsi((v) => v + 1);
+        return;
+      }
+ 
+      if (unoAUno) {
+        if (r1InLavoro) { setTrascorsi((v) => v + 1); return; }
+        setRestano((v) => {
+          if (v > 1) {
+            if (v <= 4) bip(660, 0.08);
+            return v - 1;
+          }
+          // recupero finito: parte il round successivo
+          bip(1000, 0.3);
+          vibra([120, 60, 120]);
+          setR1Round((n) => n + 1);
+          setR1InLavoro(true);
+          setTrascorsi(0);
+          return 0;
+        });
+        return;
+      }
+ 
+      setRestano((v) => {
+        if (v > 1) {
+          if (v <= 4) bip(660, 0.08);
+          return v - 1;
+        }
+ 
+        // fase conclusa
+        const prossima = fase + 1;
+        if (prossima >= fasi.length) {
+          bip(1200, 0.6);
+          vibra([200, 80, 200, 80, 200]);
+          setAttivo(false);
+          return 0;
+        }
+        bip(1000, 0.25);
+        vibra(150);
+        setFase(prossima);
+        return fasi[prossima].secondi;
+      });
+    }, 1000);
+ 
+    return () => clearInterval(t);
+  }, [attivo, fase, fasi.length, libero]);
+ 
+  const ferma = () => { setAttivo(false); setPreparazione(null); };
+  const azzera = () => {
+    setAttivo(false); setPreparazione(null); setFase(0);
+    setTrascorsi(0); setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
+    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0);
+  };
+ 
+  const finito = unoAUno
+    ? (!attivo && preparazione === null && r1Round >= (scelta?.round || 1) && !r1InLavoro && restano === 0 && r1UltimoLavoro > 0)
+    : (!libero && !attivo && preparazione === null && fase >= fasi.length - 1 && restano === 0 && fasi.length > 0);
+  const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? '#334155' : (faseCorrente?.colore || '#10b981');
+ 
+  const scatola: React.CSSProperties = {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+    background: 'rgba(0,0,0,0.92)', zIndex: 5000,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+  };
+ 
+  const btn = (bg: string): React.CSSProperties => ({
+    padding: '14px 22px', borderRadius: '10px', border: 'none', background: bg,
+    color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+  });
+ 
+  // Schermata di scelta del tipo di timer
+  if (!scelta) {
+    const opzione = (titolo: string, descrizione: string, icona: string, onClick: () => void) => (
+      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', border: '1px solid #3a3a40', background: '#26262a', cursor: 'pointer', marginBottom: '9px' }}>
+        <span style={{ fontSize: '24px' }}>{icona}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
+          <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>{descrizione}</span>
+        </span>
+      </button>
+    );
+ 
+    return (
+      <div style={scatola}>
+        <div style={{ width: '100%', maxWidth: '380px', maxHeight: '85vh', overflowY: 'auto' }}>
+          <h3 style={{ color: '#10b981', margin: '0 0 4px 0', fontSize: '19px' }}>Scegli il timer</h3>
+          <p style={{ color: '#a1a1aa', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
+ 
+          {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', '⏱️', () => setScelta({ tipo: 'libero' }))}
+          {opzione('Intervalli', 'Lavoro e recupero, per il numero di round che vuoi', '🔁', () => setScelta({ tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound, daImpostare: true }))}
+          {opzione('Rest 1:1', 'Recuperi quanto ci hai messo a fare il round', '⚖️', () => setScelta({ tipo: 'unoauno', round: cfgRound, daImpostare: true }))}
+          {opzione('EMOM', 'Un blocco a inizio di ogni minuto', '⏳', () => setScelta({ tipo: 'emom', durata: cfgEmomDurata, round: cfgRound, daImpostare: true }))}
+          {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', '🔂', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
+          {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', '🔥', () => setScelta({ tipo: 'tabata' }))}
+ 
+          <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', marginTop: '8px' }}>Chiudi</button>
+        </div>
+      </div>
+    );
+  }
+ 
+  // Impostazioni per intervalli ed EMOM
+  if (scelta.daImpostare) {
+    const campo = (etichetta: string, valore: number, imposta: (n: number) => void, passo: number, min: number, max: number, suffisso: string) => (
+      <div style={{ marginBottom: '14px' }}>
+        <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>{etichetta}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button onClick={() => imposta(Math.max(min, valore - passo))} style={{ ...btn('#3a3a40'), padding: '10px 16px' }}>−</button>
+          <span style={{ flex: 1, textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff' }}>
+            {suffisso === 's' ? mmss(valore) : valore}
+          </span>
+          <button onClick={() => imposta(Math.min(max, valore + passo))} style={{ ...btn('#3a3a40'), padding: '10px 16px' }}>+</button>
+        </div>
+      </div>
+    );
+ 
+    return (
+      <div style={scatola}>
+        <div style={{ width: '100%', maxWidth: '340px', maxHeight: '85vh', overflowY: 'auto' }}>
+          <h3 style={{ color: '#10b981', margin: '0 0 16px 0', fontSize: '19px' }}>
+            {scelta.tipo === 'emom' ? 'EMOM' : scelta.tipo === 'amrap' ? 'AMRAP' : scelta.tipo === 'unoauno' ? 'Rest 1:1' : 'Intervalli'}
+          </h3>
+ 
+          {scelta.tipo === 'intervalli' && (
+            <>
+              {campo('Lavoro', cfgLavoro, setCfgLavoro, 5, 5, 600, 's')}
+              {campo('Recupero', cfgRiposo, setCfgRiposo, 5, 0, 600, 's')}
+            </>
+          )}
+          {scelta.tipo === 'emom' && campo('Durata di ogni round', cfgEmomDurata, setCfgEmomDurata, 15, 30, 300, 's')}
+          {scelta.tipo === 'amrap' && campo('Durata totale', cfgAmrapDurata, setCfgAmrapDurata, 60, 60, 3600, 's')}
+          {scelta.tipo === 'unoauno' && (
+            <p style={{ fontSize: '12px', color: '#a1a1aa', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+              Il cronometro sale mentre lavori. Quando chiudi il round, il recupero parte con la stessa durata che ci hai messo.
+            </p>
+          )}
+          {scelta.tipo !== 'amrap' && campo('Round', cfgRound, setCfgRound, 1, 1, 60, '')}
+ 
+          <div style={{ display: 'flex', gap: '8px', marginTop: '18px' }}>
+            <button
+              onClick={() => setScelta(
+                scelta.tipo === 'emom' ? { tipo: 'emom', durata: cfgEmomDurata, round: cfgRound }
+                : scelta.tipo === 'amrap' ? { tipo: 'amrap', durata: cfgAmrapDurata }
+                : scelta.tipo === 'unoauno' ? { tipo: 'unoauno', round: cfgRound }
+                : { tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound })}
+              style={{ ...btn('#10b981'), flex: 1 }}
+            >
+              Pronto
+            </button>
+            <button onClick={() => setScelta(null)} style={btn('#3a3a40')}>Indietro</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+ 
+  // Timer in funzione
+  const totaleRound = scelta.tipo === 'tabata' ? 8 : (scelta.round || null);
+ 
+  return (
+    <div style={scatola}>
+      <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+        {preparazione !== null ? (
+          <>
+            <span style={{ display: 'block', fontSize: '14px', color: '#fbbf24', letterSpacing: '2px', marginBottom: '10px' }}>PRONTI</span>
+            <span style={{ display: 'block', fontSize: '96px', fontWeight: 'bold', color: '#f59e0b', lineHeight: 1 }}>{preparazione}</span>
+          </>
+        ) : (
+          <>
+            <span style={{ display: 'block', fontSize: '13px', color: unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7') : coloreSfondo, letterSpacing: '2px', marginBottom: '6px', fontWeight: 'bold' }}>
+              {finito ? 'FINITO'
+                : libero ? 'TEMPO LIBERO'
+                : unoAUno ? (r1InLavoro ? 'LAVORO' : 'RECUPERO')
+                : (faseCorrente?.nome || '').toUpperCase()}
+            </span>
+ 
+            {unoAUno && !finito && (
+              <span style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '10px' }}>
+                Round {Math.min(r1Round, scelta.round)} di {scelta.round}
+                {!r1InLavoro && r1UltimoLavoro > 0 && ` · hai impiegato ${mmss(r1UltimoLavoro)}`}
+              </span>
+            )}
+ 
+            {!unoAUno && totaleRound && faseCorrente?.round && !finito && (
+              <span style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '10px' }}>
+                Round {faseCorrente.round} di {totaleRound}
+              </span>
+            )}
+ 
+            <span style={{ display: 'block', fontSize: '76px', fontWeight: 'bold', color: '#fff', lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
+              {libero ? mmss(trascorsi) : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano)) : mmss(restano)}
+            </span>
+ 
+            {unoAUno && attivo && r1InLavoro && (
+              <button
+                onClick={chiudiRound}
+                style={{ marginTop: '22px', padding: '16px 30px', borderRadius: '12px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}
+              >
+                ✓ Round finito
+              </button>
+            )}
+          </>
+        )}
+ 
+        <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', marginTop: '28px', flexWrap: 'wrap' }}>
+          {!attivo && preparazione === null && (
+            <button onClick={avvia} style={btn('#10b981')}>
+              {finito || trascorsi > 0 || (restano > 0 && restano < (fasi[0]?.secondi || 0)) ? 'Riparti' : 'Avvia'}
+            </button>
+          )}
+          {(attivo || preparazione !== null) && <button onClick={ferma} style={btn('#f59e0b')}>Pausa</button>}
+          {!attivo && preparazione === null && (trascorsi > 0 || fase > 0 || finito) && (
+            <button onClick={azzera} style={btn('#3a3a40')}>Azzera</button>
+          )}
+          <button onClick={onClose} style={btn('#3a3a40')}>Chiudi</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 802 538" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AMT" style={style}>
@@ -1026,6 +1443,7 @@ export default function TrainingApp() {
   const [newComp, setNewComp] = useState({ name: '', event_date: '', notes: '' });
   const [editCompId, setEditCompId] = useState<string | null>(null);
   const [menuAgganciato, setMenuAgganciato] = useState(false);
+  const [timerConfig, setTimerConfig] = useState<any>(null);
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -3136,8 +3554,7 @@ const [notificationError, setNotificationError] = useState('');
     setRecoveryMode(false);
     setShowChangePassword(false);
     if (typeof window !== 'undefined' && window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname);
-    }
+      window.history.replaceState(null, '', window.location.pathname);  }
     alert('Password aggiornata! Da ora accedi con quella nuova.');
   };
  
@@ -4008,6 +4425,14 @@ const [notificationError, setNotificationError] = useState('');
           </div>
         );
       })()}
+ 
+      {timerConfig && (
+        <WorkoutTimer config={timerConfig} onClose={() => setTimerConfig(null)} />
+      )}
+ 
+      {timerConfig && (
+        <WorkoutTimer config={timerConfig} onClose={() => setTimerConfig(null)} />
+      )}
  
       {prBadge && (
         <div onClick={() => setPrBadge(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1800 }}>
@@ -6595,7 +7020,16 @@ const [notificationError, setNotificationError] = useState('');
           ) : (
             <div>
               <CompetitionCountdown gare={competitions} />
-              <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
+ 
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <h3 style={{ fontSize: '18px', margin: 0 }}>I tuoi allenamenti</h3>
+                <button
+                  onClick={() => setTimerConfig({ tipo: 'scelta' })}
+                  style={{ padding: '9px 15px', borderRadius: '10px', border: '1px solid #10b981', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  ⏱️ Timer
+                </button>
+              </div>
               {athletePrograms.length === 0 ? (
                 <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid #d8dde3', textAlign: 'center' }}>
                   <svg viewBox="0 0 120 90" style={{ width: '150px', height: 'auto', display: 'block', margin: '0 auto 18px auto' }} aria-hidden="true">
@@ -6845,10 +7279,20 @@ const [notificationError, setNotificationError] = useState('');
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
                                                       </div>
-                                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                                      {(() => {
+                                                        const secRec = parseRestSeconds(blk.rest);
+                                                        return (
+                                                        <div
+                                                          onClick={() => { if (secRec) setTimerConfig({ tipo: 'recupero', secondi: secRec }); }}
+                                                          style={{ background: secRec ? '#ecfdf5' : '#f8fafc', padding: '8px', borderRadius: '6px', textAlign: 'center', border: secRec ? '1px solid #6ee7b7' : '1px solid #e2e8f0', cursor: secRec ? 'pointer' : 'default' }}
+                                                        >
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
                                                         <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
-                                                      </div>
+                                                        {secRec && (
+                                                          <span style={{ display: 'block', fontSize: '9px', color: '#047857', fontWeight: 'bold', marginTop: '3px' }}>⏱️ AVVIA TIMER</span>
+                                                        )}
+                                                        </div>
+                                                        ); })()}
                                                     </div>
  
                                                     {(() => {
