@@ -929,6 +929,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const [r1Round, setR1Round] = useState(1);
   const [r1InLavoro, setR1InLavoro] = useState(true);
   const [r1UltimoLavoro, setR1UltimoLavoro] = useState(0);
+  const [giri, setGiri] = useState<{ round: number; secondi: number }[]>([]);
  
   const fasi = costruisciFasi(scelta);
   const faseCorrente = fasi[fase] || null;
@@ -961,6 +962,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const chiudiRound = () => {
     const misurato = Math.max(1, trascorsi);
     setR1UltimoLavoro(misurato);
+    setGiri((g: { round: number; secondi: number }[]) => [...g, { round: r1Round, secondi: misurato }]);
     bip(1000, 0.25);
     vibra(150);
  
@@ -977,6 +979,16 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
     setRestano(misurato);
   };
  
+  // Il recupero dei blocchi di forza parte da solo: quando lo tocchi
+  // hai appena finito la serie e il tempo deve correre da subito
+  useEffect(() => {
+    if (config?.tipo === 'recupero' && !config?.daImpostare && (config.secondi || 0) > 0) {
+      setPartito(true);
+      setAttivo(true);
+      bip(880, 0.12);
+    }
+  }, []);
+ 
   // Conto alla rovescia di preparazione
   useEffect(() => {
     if (preparazione === null) return;
@@ -986,6 +998,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
       setTrascorsi(0);
       setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
       if (unoAUno) { setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); }
+      setGiri([]);
       setAttivo(true);
       bip(1200, 0.35);
       vibra([120, 60, 120]);
@@ -1032,7 +1045,12 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
           return v - 1;
         }
  
-        // fase conclusa
+        // fase conclusa: se era lavoro, la annoto nel resoconto
+        const conclusa = fasi[fase];
+        if (conclusa && (conclusa.nome === 'Lavoro' || String(conclusa.nome).startsWith('Minuto'))) {
+          setGiri((g: { round: number; secondi: number }[]) => [...g, { round: conclusa.round || g.length + 1, secondi: conclusa.secondi }]);
+        }
+ 
         const prossima = fase + 1;
         if (prossima >= fasi.length) {
           bip(1200, 0.6);
@@ -1054,7 +1072,7 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const azzera = () => {
     setAttivo(false); setPreparazione(null); setFase(0);
     setTrascorsi(0); setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
-    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); setPartito(false);
+    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); setPartito(false); setGiri([]);
   };
  
   const finito = !partito ? false : unoAUno
@@ -1233,7 +1251,39 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
           </>
         )}
  
-        <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', marginTop: '28px', flexWrap: 'wrap' }}>
+        {giri.length > 0 && (unoAUno || scelta.tipo === 'intervalli' || scelta.tipo === 'emom') && (() => {
+          const totale = giri.reduce((a: number, g: any) => a + g.secondi, 0);
+          const medio = Math.round(totale / giri.length);
+          const migliore = Math.min(...giri.map((g: any) => g.secondi));
+          const peggiore = Math.max(...giri.map((g: any) => g.secondi));
+ 
+          return (
+            <div style={{ marginTop: '22px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '12px', textAlign: 'left', maxHeight: finito ? '46vh' : '26vh', overflowY: 'auto' }}>
+              <span style={{ display: 'block', fontSize: '10px', color: '#a1a1aa', letterSpacing: '1px', marginBottom: '8px' }}>
+                {finito ? 'RESOCONTO' : 'ROUND COMPLETATI'}
+              </span>
+ 
+              {[...giri].reverse().map((g: any, i: number) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '5px 0', borderBottom: i < giri.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+                  <span style={{ fontSize: '12px', color: '#d4d4d8' }}>Round {g.round}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: giri.length > 1 && g.secondi === migliore ? '#10b981' : giri.length > 1 && g.secondi === peggiore ? '#f87171' : '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                    {mmss(g.secondi)}
+                  </span>
+                </div>
+              ))}
+ 
+              {giri.length > 1 && (
+                <div style={{ marginTop: '9px', paddingTop: '9px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#a1a1aa' }}>Totale <strong style={{ color: '#fff' }}>{mmss(totale)}</strong></span>
+                  <span style={{ fontSize: '11px', color: '#a1a1aa' }}>Media <strong style={{ color: '#fff' }}>{mmss(medio)}</strong></span>
+                  <span style={{ fontSize: '11px', color: '#a1a1aa' }}>Migliore <strong style={{ color: '#10b981' }}>{mmss(migliore)}</strong></span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+ 
+        <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
           {!attivo && preparazione === null && (
             <button onClick={avvia} style={btn('#10b981')}>
               {finito || trascorsi > 0 || (restano > 0 && restano < (fasi[0]?.secondi || 0)) ? 'Riparti' : 'Avvia'}
@@ -1412,8 +1462,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <p style={pStyle}>• i dati relativi alla salute saranno conservati per tutta la durata del rapporto, salvo revoca del consenso da parte dell’interessato o richiesta di cancellazione, fatti salvi i casi in cui la conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di un diritto;</p>
       <p style={pStyle}>• i dati tecnici e i log saranno conservati per il periodo necessario a garantire il funzionamento, la sicurezza e la manutenzione dei sistemi e secondo i periodi di conservazione applicabili ai singoli servizi tecnologici.</p>
       <p style={pStyle}>Al termine dei relativi periodi di conservazione, i dati saranno cancellati o resi anonimi, salvo che la loro ulteriore conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di diritti. La cancellazione dell’account può essere richiesta dall’utente anche attraverso l’applicazione, secondo le funzionalità disponibili.</p>
-      <h4 style={hStyle}>8. Natura del conferimento dei dati e conseguenze del rifiuto</h4>
-      <p style={pStyle}>Il conferimento dei dati identificativi e dei dati necessari alla gestione dell’account e all’utilizzo delle funzionalità essenziali dell’applicazione è necessario per poter usufruire dei relativi servizi. Il mancato conferimento di tali dati può impedire la registrazione, l’accesso o l’utilizzo delle funzionalità per le quali i dati risultano necessari.</p>
+      <h4 style={hStyle}>8. Natura del conferimento dei dati e conseguenze del rifiuto</h4>     <p style={pStyle}>Il conferimento dei dati identificativi e dei dati necessari alla gestione dell’account e all’utilizzo delle funzionalità essenziali dell’applicazione è necessario per poter usufruire dei relativi servizi. Il mancato conferimento di tali dati può impedire la registrazione, l’accesso o l’utilizzo delle funzionalità per le quali i dati risultano necessari.</p>
       <p style={pStyle}>Il conferimento dei dati relativi alla salute è invece facoltativo. Il mancato conferimento di tali dati, così come il mancato rilascio del consenso esplicito al loro trattamento, non impedisce l’utilizzo delle funzionalità dell’applicazione che non richiedono tali informazioni. Tuttavia, il Titolare non potrà tenere conto delle condizioni fisiche o sanitarie non comunicate nella programmazione degli allenamenti.</p>
       <p style={pStyle}>L’abilitazione delle notifiche push è facoltativa e il relativo mancato consenso non pregiudica l’utilizzo delle altre funzionalità dell’applicazione.</p>
       <h4 style={hStyle}>9. Revoca del consenso</h4>
@@ -5019,7 +5068,8 @@ const [notificationError, setNotificationError] = useState('');
  
                   {coachMaxSubTab === 'gym' && (
                   <div>
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#10b981' }}>🤸 Gymnastics PR</h4>
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
