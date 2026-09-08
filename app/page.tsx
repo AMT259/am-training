@@ -908,7 +908,8 @@ function costruisciFasi(cfg: any): any[] {
 function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
   const [fase, setFase] = useState(0);
-  const [restano, setRestano] = useState(0);
+  const [restano, setRestano] = useState(config?.tipo === 'recupero' ? (config.secondi || 0) : 0);
+  const [partito, setPartito] = useState(false);
   const [trascorsi, setTrascorsi] = useState(0);
   const [attivo, setAttivo] = useState(false);
   const [preparazione, setPreparazione] = useState<number | null>(null);
@@ -930,8 +931,9 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
  
   // Il recupero parte subito; gli altri timer hanno dieci secondi di preparazione
   const avvia = () => {
+    setPartito(true);
     if (scelta?.tipo === 'recupero') {
-      if (restano === 0) setRestano(scelta.secondi);
+      if (restano <= 0) setRestano(scelta.secondi);
       setAttivo(true);
       bip(880, 0.12);
       return;
@@ -1046,10 +1048,10 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const azzera = () => {
     setAttivo(false); setPreparazione(null); setFase(0);
     setTrascorsi(0); setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
-    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0);
+    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); setPartito(false);
   };
  
-  const finito = unoAUno
+  const finito = !partito ? false : unoAUno
     ? (!attivo && preparazione === null && r1Round >= (scelta?.round || 1) && !r1InLavoro && restano === 0 && r1UltimoLavoro > 0)
     : (!libero && !attivo && preparazione === null && fase >= fasi.length - 1 && restano === 0 && fasi.length > 0);
   const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? '#334155' : (faseCorrente?.colore || '#10b981');
@@ -1298,8 +1300,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
         <h4 style={hStyle}>10. Revoca del consenso</h4>
         <p style={pStyle}>Il consenso al trattamento dei dati relativi alla salute può essere revocato in qualsiasi momento, senza pregiudicare la liceità del trattamento effettuato prima della revoca. La revoca può essere effettuata attraverso le funzionalità messe a disposizione dall’applicazione oppure contattando il Titolare.</p>
         <p style={pStyle}>A seguito della revoca, il Titolare cesserà il trattamento dei dati relativi alla salute basato sul consenso e, ove richiesto, procederà alla loro cancellazione, fatti salvi i casi in cui la conservazione o il trattamento siano necessari per adempiere a un obbligo di legge oppure per l’accertamento, l’esercizio o la difesa di un diritto. La revoca del consenso comporterà l’impossibilità, per il Titolare, di continuare a utilizzare tali informazioni per personalizzare la programmazione degli allenamenti.</p>
-        <h4 style={hStyle}>11. Diritti dell’interessato</h4>
-        <p style={pStyle}>L’interessato, o chi esercita la responsabilità genitoriale nei suoi confronti, può esercitare nei confronti del Titolare del trattamento i diritti previsti dagli artt. 15-22 GDPR e, in particolare:</p>
+        <h4 style={hStyle}>11. Diritti dell’interessato</h4> <p style={pStyle}>L’interessato, o chi esercita la responsabilità genitoriale nei suoi confronti, può esercitare nei confronti del Titolare del trattamento i diritti previsti dagli artt. 15-22 GDPR e, in particolare:</p>
         <p style={pStyle}>• ottenere la conferma che sia o meno in corso un trattamento di dati personali che lo riguardano e, in tal caso, ottenere l’accesso ai dati personali e alle informazioni previste dall’art. 15 GDPR;</p>
         <p style={pStyle}>• ottenere la rettifica dei dati personali inesatti e l’integrazione dei dati incompleti;</p>
         <p style={pStyle}>• ottenere la cancellazione dei dati personali nei casi previsti dall’art. 17 GDPR;</p>
@@ -3554,7 +3555,8 @@ const [notificationError, setNotificationError] = useState('');
     setRecoveryMode(false);
     setShowChangePassword(false);
     if (typeof window !== 'undefined' && window.location.hash) {
-      window.history.replaceState(null, '', window.location.pathname);  }
+      window.history.replaceState(null, '', window.location.pathname);
+    }
     alert('Password aggiornata! Da ora accedi con quella nuova.');
   };
  
@@ -7021,15 +7023,7 @@ const [notificationError, setNotificationError] = useState('');
             <div>
               <CompetitionCountdown gare={competitions} />
  
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                <h3 style={{ fontSize: '18px', margin: 0 }}>I tuoi allenamenti</h3>
-                <button
-                  onClick={() => setTimerConfig({ tipo: 'scelta' })}
-                  style={{ padding: '9px 15px', borderRadius: '10px', border: '1px solid #10b981', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  ⏱️ Timer
-                </button>
-              </div>
+              <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
               {athletePrograms.length === 0 ? (
                 <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid #d8dde3', textAlign: 'center' }}>
                   <svg viewBox="0 0 120 90" style={{ width: '150px', height: 'auto', display: 'block', margin: '0 auto 18px auto' }} aria-hidden="true">
@@ -7208,6 +7202,15 @@ const [notificationError, setNotificationError] = useState('');
                                             >
                                               <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
                                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                                {(blk.type === 'wod' || blk.type === 'test') && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); setTimerConfig({ tipo: 'scelta' }); }}
+                                                    style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '6px', padding: '5px 9px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                                  >
+                                                    ⏱️ Timer
+                                                  </button>
+                                                )}
                                                 {blk.videoUrl && (
                                                   <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
                                                     🎥 Video
