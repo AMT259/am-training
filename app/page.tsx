@@ -962,6 +962,61 @@ function costruisciFasi(cfg: any): any[] {
   return [];
 }
  
+// Campo numerico del timer: mentre scrivi puoi svuotarlo del tutto,
+// il valore viene corretto solo quando esci dal campo
+function CampoNumero({ etichetta, valore, imposta, passo, min, max, inSecondi }: any) {
+  const [testo, setTesto] = useState(String(valore));
+ 
+  useEffect(() => { setTesto(String(valore)); }, [valore]);
+ 
+  const applica = (n: number) => {
+    const ok = Math.min(max, Math.max(min, n));
+    imposta(ok);
+    setTesto(String(ok));
+  };
+ 
+  const btnPiccolo: React.CSSProperties = {
+    padding: '12px 15px', borderRadius: '10px', border: 'none',
+    background: '#3a3a40', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+  };
+ 
+  return (
+    <div style={{ marginBottom: '14px' }}>
+      <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
+        {etichetta}{inSecondi ? ' (secondi)' : ''}
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button onClick={() => applica((parseInt(testo, 10) || 0) - passo)} style={btnPiccolo}>−</button>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={testo}
+          onFocus={(e: any) => e.target.select()}
+          onChange={(e: any) => {
+            const pulito = e.target.value.replace(/[^0-9]/g, '');
+            setTesto(pulito);
+            if (pulito !== '') {
+              const n = parseInt(pulito, 10);
+              if (!isNaN(n) && n <= max) imposta(n);
+            }
+          }}
+          onBlur={() => {
+            const n = parseInt(testo, 10);
+            applica(isNaN(n) ? min : n);
+          }}
+          style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#26262a', border: '1px solid #3a3a40', borderRadius: '8px', padding: '9px 4px' }}
+        />
+        <button onClick={() => applica((parseInt(testo, 10) || 0) + passo)} style={btnPiccolo}>+</button>
+      </div>
+      {inSecondi && (parseInt(testo, 10) || 0) >= 60 && (
+        <span style={{ display: 'block', fontSize: '11px', color: '#71717a', marginTop: '4px', textAlign: 'center' }}>
+          = {mmss(parseInt(testo, 10) || 0)}
+        </span>
+      )}
+    </div>
+  );
+}
+ 
 // Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
 function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: () => void; onRidotto?: (v: boolean) => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
@@ -987,6 +1042,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   const riferimento = React.useRef<{ inizio: number; base: number } | null>(null);
   const setRidotto = (v: boolean) => { setRidottoLocale(v); if (onRidotto) onRidotto(v); };
   const [nascosto, setNascosto] = useState(false);
+  const [bozza, setBozza] = useState<{ [k: string]: string }>({});
  
   const fasi = costruisciFasi(scelta);
   const faseCorrente = fasi[fase] || null;
@@ -1356,32 +1412,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   // Impostazioni per intervalli ed EMOM
   if (scelta.daImpostare) {
     const campo = (etichetta: string, valore: number, imposta: (n: number) => void, passo: number, min: number, max: number, suffisso: string) => (
-      <div style={{ marginBottom: '14px' }}>
-        <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
-          {etichetta}{suffisso === 's' ? ' (secondi)' : ''}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button onClick={() => imposta(Math.max(min, valore - passo))} style={{ ...btn('#3a3a40'), padding: '12px 15px' }}>−</button>
-          <input
-            type="number"
-            inputMode="numeric"
-            min={min}
-            max={max}
-            value={valore}
-            onChange={(e: any) => {
-              const n = parseInt(e.target.value, 10);
-              imposta(isNaN(n) ? min : Math.min(max, Math.max(min, n)));
-            }}
-            style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#26262a', border: '1px solid #3a3a40', borderRadius: '8px', padding: '9px 4px' }}
-          />
-          <button onClick={() => imposta(Math.min(max, valore + passo))} style={{ ...btn('#3a3a40'), padding: '12px 15px' }}>+</button>
-        </div>
-        {suffisso === 's' && valore >= 60 && (
-          <span style={{ display: 'block', fontSize: '11px', color: '#71717a', marginTop: '4px', textAlign: 'center' }}>
-            = {mmss(valore)}
-          </span>
-        )}
-      </div>
+      <CampoNumero etichetta={etichetta} valore={valore} imposta={imposta} passo={passo} min={min} max={max} inSecondi={suffisso === 's'} />
     );
  
     return (
@@ -2629,7 +2660,8 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     setAddingAthlete(true);
-    try {   const res = await fetch('/api/create-user', {
+    try {
+      const res = await fetch('/api/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requester_id: session.user.id, ...newAthlete, full_name: `${newAthlete.first_name.trim()} ${newAthlete.last_name.trim()}`, email: newAthlete.email.trim() }),
@@ -3553,18 +3585,18 @@ const [notificationError, setNotificationError] = useState('');
  
   // Cerca l'ultima volta che l'atleta ha fatto un esercizio e con che peso.
   // Serve per suggerire un carico anche dove non ci sono massimali registrati.
-  const ultimoCaricoUsato = (nomeEsercizio: string) => ricercaUltimoCarico(nomeEsercizio, athleteResults);
+  const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
  
-  const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string) => {
+  const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string, repsAttuali?: any) => {
     const risultatiAtleta: { [k: string]: any } = {};
     Object.keys(coachAllResults || {}).forEach((pid) => {
       const r = coachAllResults[pid]?.[athleteId];
       if (r) risultatiAtleta[pid] = r;
     });
-    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta);
+    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);
   };
  
-  const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any) => {
+  const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any, repsAttuali?: any) => {
     if (!nomeEsercizio || !risultatiPerProgramma) return null;
  
     // Programmi dal più recente al più vecchio
@@ -3572,12 +3604,15 @@ const [notificationError, setNotificationError] = useState('');
       .filter((p: any) => !p.isDeleted)
       .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
  
+    // Raccolgo l'ultimo carico per ogni schema di ripetizioni diverso
+    const trovati: { kg: number; reps: any }[] = [];
+    const gia = new Set<string>();
+ 
     for (const prog of programmi) {
       const risultati = risultatiPerProgramma[prog.id];
       if (!risultati) continue;
  
       const settimane = normalizeProgramWeeks(prog);
-      // scorro a ritroso: prima le settimane e i giorni più avanzati
       for (let wi = settimane.length - 1; wi >= 0; wi--) {
         const giorni = settimane[wi]?.days || [];
         for (let di = giorni.length - 1; di >= 0; di--) {
@@ -3585,35 +3620,31 @@ const [notificationError, setNotificationError] = useState('');
           for (let bi = blocchi.length - 1; bi >= 0; bi--) {
             const blk = blocchi[bi];
             if (!sameName(blk?.name, nomeEsercizio)) continue;
-            const dato = risultati[`${wi}_${di}_${bi}`];
-            const kg = parseWeightValue(dato?.score);
-            if (kg) return { kg, reps: blk.reps || null };
+ 
+            const kg = parseWeightValue(risultati[`${wi}_${di}_${bi}`]?.score);
+            if (!kg) continue;
+ 
+            const chiave = String(blk.reps ?? '');
+            if (gia.has(chiave)) continue;   // di ogni schema tengo solo il più recente
+            gia.add(chiave);
+            trovati.push({ kg, reps: blk.reps || null });
+ 
+            if (trovati.length >= 3) return ordinaPerRipetizioni(trovati, repsAttuali);
           }
         }
       }
     }
-    return null;
+ 
+    return trovati.length > 0 ? ordinaPerRipetizioni(trovati, repsAttuali) : null;
   };
  
-  // Il menu delle tre sezioni si aggancia in alto quando si scorre oltre.
-  // Agganciandosi si stringe un po', per non rubare spazio alla pagina.
-  useEffect(() => {
-    if (role !== 'coach') return;
- 
-    const controlla = () => {
-      const ancora = document.getElementById('menu-coach-ancora');
-      if (!ancora) return;
-      setMenuAgganciato(ancora.getBoundingClientRect().top < 0);
-    };
- 
-    controlla();
-    window.addEventListener('scroll', controlla, { passive: true });
-    window.addEventListener('resize', controlla);
-    return () => {
-      window.removeEventListener('scroll', controlla);
-      window.removeEventListener('resize', controlla);
-    };
-  }, [role, coachSubView]);
+  // Metto per primo lo schema uguale a quello di oggi: è il confronto più utile
+  const ordinaPerRipetizioni = (elenco: { kg: number; reps: any }[], repsAttuali?: any) => {
+    if (!repsAttuali) return elenco;
+    const uguale = elenco.filter((x) => String(x.reps ?? '') === String(repsAttuali ?? ''));
+    const altri = elenco.filter((x) => String(x.reps ?? '') !== String(repsAttuali ?? ''));
+    return [...uguale, ...altri];
+  };
  
   // ---- COMPETITION DAY: calendario gare ----
   const fetchCompetitions = async (athleteId: string) => {
@@ -5778,14 +5809,23 @@ const [notificationError, setNotificationError] = useState('');
                                           );
                                         }
  
-                                        const ultimo = ultimoCaricoUsatoPer(personalSelectedAthleteId, blk.name);
-                                        if (!ultimo) return null;
+                                        const usati = ultimoCaricoUsatoPer(personalSelectedAthleteId, blk.name, blk.reps);
+                                        if (!usati || usati.length === 0) return null;
                                         return (
                                           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
-                                            <span style={{ display: 'block', fontSize: '9px', color: '#64748b' }}>L&apos;ULTIMA VOLTA AVEVA USATO</span>
-                                            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#334155' }}>
-                                              {ultimo.kg} kg{ultimo.reps ? ` × ${ultimo.reps} rip.` : ''}
+                                            <span style={{ display: 'block', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
+                                              {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVA USATO' : 'CARICHI GIÀ USATI'}
                                             </span>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
+                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{usati[0].kg} kg
+                                              </span>
+                                              {usati.length > 1 && (
+                                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${u.kg}`).join(' · ')}
+                                                </span>
+                                              )}
+                                            </div>
                                           </div>
                                         );
                                       })()}
@@ -7658,14 +7698,23 @@ const [notificationError, setNotificationError] = useState('');
                                                       }
  
                                                       // Nessun massimale per questo esercizio: mostro l'ultimo carico che ha usato
-                                                      const ultimo = ultimoCaricoUsato(blk.name);
-                                                      if (!ultimo) return null;
+                                                      const usati = ultimoCaricoUsato(blk.name, blk.reps);
+                                                      if (!usati || usati.length === 0) return null;
                                                       return (
                                                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
-                                                          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginBottom: '2px' }}>L&apos;ULTIMA VOLTA AVEVI USATO</span>
-                                                          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#334155' }}>
-                                                            {ultimo.kg} kg{ultimo.reps ? ` × ${ultimo.reps} rip.` : ''}
+                                                          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginBottom: '3px' }}>
+                                                            {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVI USATO' : 'CARICHI CHE HAI GIÀ USATO'}
                                                           </span>
+                                                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
+                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
+                                                              {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{usati[0].kg} kg
+                                                            </span>
+                                                            {usati.length > 1 && (
+                                                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                                {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${u.kg}`).join(' · ')}
+                                                              </span>
+                                                            )}
+                                                          </div>
                                                         </div>
                                                       );
                                                     })()}
