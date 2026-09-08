@@ -842,24 +842,46 @@ function mmss(secondi: number): string {
   return `${m}:${String(s % 60).padStart(2, '0')}`;
 }
  
-// Suono e vibrazione ai cambi di fase, senza file audio
-function bip(frequenza: number, durata: number) {
+// Suono e vibrazione ai cambi di fase, senza file audio.
+// Il canale audio va creato una sola volta, durante un tocco dell'utente:
+// iOS non permette di aprirlo da un conteggio automatico.
+let canaleAudio: any = null;
+ 
+function preparaAudio() {
   try {
     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!AC) return;
-    const ctx = new AC();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (!canaleAudio) canaleAudio = new AC();
+    if (canaleAudio.state === 'suspended') canaleAudio.resume();
+ 
+    // Un suono muto sblocca l'audio su iOS al primo tocco
+    const osc = canaleAudio.createOscillator();
+    const gain = canaleAudio.createGain();
+    gain.gain.value = 0;
     osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = frequenza;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durata);
+    gain.connect(canaleAudio.destination);
     osc.start();
-    osc.stop(ctx.currentTime + durata);
-    setTimeout(() => ctx.close(), (durata + 0.1) * 1000);
-  } catch (e) { /* audio non disponibile: pazienza */ }
+    osc.stop(canaleAudio.currentTime + 0.01);
+  } catch (e) { /* audio non disponibile */ }
+}
+ 
+function bip(frequenza: number, durata: number) {
+  try {
+    if (!canaleAudio) preparaAudio();
+    if (!canaleAudio) return;
+    if (canaleAudio.state === 'suspended') canaleAudio.resume();
+ 
+    const osc = canaleAudio.createOscillator();
+    const gain = canaleAudio.createGain();
+    osc.connect(gain);
+    gain.connect(canaleAudio.destination);
+    osc.frequency.value = frequenza;
+    osc.type = 'square';
+    gain.gain.setValueAtTime(0.4, canaleAudio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, canaleAudio.currentTime + durata);
+    osc.start();
+    osc.stop(canaleAudio.currentTime + durata);
+  } catch (e) { /* niente suono: pazienza */ }
 }
  
 function vibra(schema: number | number[]) {
@@ -931,6 +953,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   const [r1UltimoLavoro, setR1UltimoLavoro] = useState(0);
   const [giri, setGiri] = useState<{ round: number; secondi: number }[]>([]);
   const [ridotto, setRidottoLocale] = useState(false);
+  const riferimento = React.useRef<{ inizio: number; base: number } | null>(null);
   const setRidotto = (v: boolean) => { setRidottoLocale(v); if (onRidotto) onRidotto(v); };
   const [nascosto, setNascosto] = useState(false);
  
@@ -941,6 +964,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
  
   // Il recupero parte subito; gli altri timer hanno dieci secondi di preparazione
   const avvia = () => {
+    preparaAudio();   // sblocca l'audio: deve avvenire dentro un tocco dell'utente
     setPartito(true);
     if (scelta?.tipo === 'recupero') {
       if (restano <= 0 || restano > scelta.secondi) setRestano(scelta.secondi);
@@ -978,14 +1002,44 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
       return;
     }
  
+    riferimento.current = null;
     setR1InLavoro(false);
     setRestano(misurato);
   };
+ 
+  // Tengo lo schermo acceso mentre il timer corre: il caso piu' frequente
+  // e' il telefono appoggiato che si blocca da solo a meta' serie
+  useEffect(() => {
+    let blocco: any = null;
+    let vivo = true;
+ 
+    const attiva = async () => {
+      try {
+        if ((navigator as any).wakeLock && (attivo || preparazione !== null)) {
+          blocco = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (e) { /* non supportato: pazienza */ }
+    };
+ 
+    if (attivo || preparazione !== null) attiva();
+ 
+    const alRientro = () => {
+      if (document.visibilityState === 'visible' && vivo && (attivo || preparazione !== null)) attiva();
+    };
+    document.addEventListener('visibilitychange', alRientro);
+ 
+    return () => {
+      vivo = false;
+      document.removeEventListener('visibilitychange', alRientro);
+      try { if (blocco) blocco.release(); } catch (e) { /* niente */ }
+    };
+  }, [attivo, preparazione]);
  
   // Il recupero dei blocchi di forza parte da solo: quando lo tocchi
   // hai appena finito la serie e il tempo deve correre da subito
   useEffect(() => {
     if (config?.tipo === 'recupero' && !config?.daImpostare && (config.secondi || 0) > 0) {
+      preparaAudio();
       setPartito(true);
       setAttivo(true);
       bip(880, 0.12);
@@ -1018,14 +1072,23 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   useEffect(() => {
     if (!attivo) return;
  
+    // Mi appoggio all'orologio di sistema: se l'app va in sottofondo e il
+    // conteggio si ferma, al rientro il tempo mostrato è comunque quello giusto
+    if (!riferimento.current) {
+      riferimento.current = { inizio: Date.now(), base: libero || (unoAUno && r1InLavoro) ? trascorsi : restano };
+    }
+ 
     const t = setInterval(() => {
+      const passati = Math.floor((Date.now() - (riferimento.current?.inizio || Date.now())) / 1000);
+      const base = riferimento.current?.base || 0;
+ 
       if (libero) {
-        setTrascorsi((v: number) => v + 1);
+        setTrascorsi(base + passati);
         return;
       }
  
       if (unoAUno) {
-        if (r1InLavoro) { setTrascorsi((v: number) => v + 1); return; }
+        if (r1InLavoro) { setTrascorsi(base + passati); return; }
         setRestano((v: number) => {
           if (v > 1) {
             if (v <= 4) bip(660, 0.08);
@@ -1034,6 +1097,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           // recupero finito: parte il round successivo
           bip(1000, 0.3);
           vibra([120, 60, 120]);
+          riferimento.current = null;
           setR1Round((n: number) => n + 1);
           setR1InLavoro(true);
           setTrascorsi(0);
@@ -1063,6 +1127,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         }
         bip(1000, 0.25);
         vibra(150);
+        riferimento.current = null;
         setFase(prossima);
         return fasi[prossima].secondi;
       });
@@ -1071,11 +1136,11 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
     return () => clearInterval(t);
   }, [attivo, fase, fasi.length, libero, unoAUno, r1InLavoro, r1Round]);
  
-  const ferma = () => { setAttivo(false); setPreparazione(null); };
+  const ferma = () => { setAttivo(false); setPreparazione(null); riferimento.current = null; };
   const azzera = () => {
     setAttivo(false); setPreparazione(null); setFase(0);
     setTrascorsi(0); setRestano(libero || unoAUno ? 0 : (fasi[0]?.secondi || 0));
-    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); setPartito(false); setGiri([]);
+    setR1Round(1); setR1InLavoro(true); setR1UltimoLavoro(0); setPartito(false); setGiri([]); riferimento.current = null;
   };
  
   const finito = !partito ? false : unoAUno
@@ -2059,7 +2124,9 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     setNotificationError('');
-  };  const markNotificationAsRead = async (notificationId: string) => {
+  };
+ 
+  const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
       .update({ is_read: true })
@@ -3331,9 +3398,7 @@ const [notificationError, setNotificationError] = useState('');
       const updatedAthleteResults = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
       const updatedProgResults = { ...currentProgResults, [athleteIdOverride]: updatedAthleteResults };
  
-      setCoachAllResults({ ...coachAllResults, [programId]: updatedProgResults });
- 
-      await supabase.from('program_results').upsert(
+      setCoachAllResults({ ...coachAllResults, [programId]: updatedProgResults });  await supabase.from('program_results').upsert(
         {
           program_id: programId,
           athlete_id: athleteIdOverride,
@@ -4594,7 +4659,7 @@ const [notificationError, setNotificationError] = useState('');
   const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
  
   return (
-    <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', paddingTop: timerRidotto ? '62px' : undefined, padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', paddingTop: timerRidotto ? '86px' : '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
         button { transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .1s ease; }
@@ -7437,7 +7502,7 @@ const [notificationError, setNotificationError] = useState('');
                                                 {(blk.type === 'wod' || blk.type === 'test') && (
                                                   <button
                                                     type="button"
-                                                    onClick={(e) => { e.stopPropagation(); setTimerConfig({ tipo: 'scelta' }); }}
+                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
                                                     style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '6px', padding: '5px 9px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                                   >
                                                     ⏱️ Timer
@@ -7518,7 +7583,7 @@ const [notificationError, setNotificationError] = useState('');
                                                         const secRec = parseRestSeconds(blk.rest);
                                                         return (
                                                         <div
-                                                          onClick={() => setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true })}
+                                                          onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
                                                           style={{ background: '#ecfdf5', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #6ee7b7', cursor: 'pointer' }}
                                                         >
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
