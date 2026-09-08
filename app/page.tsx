@@ -910,7 +910,7 @@ function costruisciFasi(cfg: any): any[] {
 }
  
 // Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
-function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void }) {
+function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: () => void; onRidotto?: (v: boolean) => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
   const [fase, setFase] = useState(0);
   const [restano, setRestano] = useState<number>(config?.tipo === 'recupero' ? (config.secondi || 0) : 0);
@@ -930,6 +930,9 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
   const [r1InLavoro, setR1InLavoro] = useState(true);
   const [r1UltimoLavoro, setR1UltimoLavoro] = useState(0);
   const [giri, setGiri] = useState<{ round: number; secondi: number }[]>([]);
+  const [ridotto, setRidottoLocale] = useState(false);
+  const setRidotto = (v: boolean) => { setRidottoLocale(v); if (onRidotto) onRidotto(v); };
+  const [nascosto, setNascosto] = useState(false);
  
   const fasi = costruisciFasi(scelta);
   const faseCorrente = fasi[fase] || null;
@@ -1080,6 +1083,83 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
     : (!libero && !attivo && preparazione === null && fase >= fasi.length - 1 && restano === 0 && fasi.length > 0);
   const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? '#334155' : (faseCorrente?.colore || '#10b981');
  
+  // Timer nascosto durante l'impostazione: resta solo un pulsante per rientrare
+  if (nascosto) {
+    return (
+      <button
+        onClick={() => setNascosto(false)}
+        style={{
+          position: 'fixed', left: '50%', transform: 'translateX(-50%)',
+          bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+          zIndex: 5000, padding: '12px 22px', borderRadius: '24px', border: 'none',
+          background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px',
+          cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.45)',
+        }}
+      >
+        ↩ Torna al timer
+      </button>
+    );
+  }
+ 
+  // Timer ridotto a barra: il conteggio continua e sotto si vede la scheda
+  if (ridotto) {
+    const coloreBarra = preparazione !== null ? '#f59e0b'
+      : unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7')
+      : (faseCorrente?.colore || '#10b981');
+ 
+    const testoFase = preparazione !== null ? 'PRONTI'
+      : libero ? 'TEMPO LIBERO'
+      : unoAUno ? (r1InLavoro ? 'LAVORO' : 'RECUPERO')
+      : (faseCorrente?.nome || '').toUpperCase();
+ 
+    const valore = preparazione !== null ? String(preparazione)
+      : libero ? mmss(trascorsi)
+      : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano))
+      : mmss(restano);
+ 
+    const round = unoAUno ? `${Math.min(r1Round, scelta.round)}/${scelta.round}`
+      : (faseCorrente?.round && (scelta.tipo === 'tabata' ? 8 : scelta.round))
+        ? `${faseCorrente.round}/${scelta.tipo === 'tabata' ? 8 : scelta.round}`
+        : null;
+ 
+    return (
+      <div
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 5000,
+          background: '#18181b', borderBottom: `3px solid ${coloreBarra}`,
+          padding: '9px 12px calc(9px) 12px',
+          display: 'flex', alignItems: 'center', gap: '10px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+        }}
+      >
+        <button
+          onClick={() => setRidotto(false)}
+          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+            {valore}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: coloreBarra, letterSpacing: '1px' }}>{testoFase}</span>
+            {round && <span style={{ display: 'block', fontSize: '10px', color: '#a1a1aa' }}>Round {round}</span>}
+          </span>
+        </button>
+ 
+        {unoAUno && attivo && r1InLavoro && (
+          <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            ✓ Round
+          </button>
+        )}
+        {attivo || preparazione !== null ? (
+          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>⏸</button>
+        ) : (
+          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>▶</button>
+        )}
+        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>✕</button>
+      </div>
+    );
+  }
+ 
   const scatola: React.CSSProperties = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
     background: 'rgba(0,0,0,0.92)', zIndex: 5000,
@@ -1090,6 +1170,58 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
     padding: '14px 22px', borderRadius: '10px', border: 'none', background: bg,
     color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
   });
+ 
+  // Barra compatta: il timer continua a correre mentre si consulta la scheda
+  if (ridotto && scelta && !scelta.daImpostare) {
+    const etichetta = finito ? 'Finito'
+      : preparazione !== null ? 'Pronti'
+      : libero ? 'Tempo libero'
+      : unoAUno ? (r1InLavoro ? 'Lavoro' : 'Recupero')
+      : (faseCorrente?.nome || '');
+ 
+    const valore = preparazione !== null ? String(preparazione)
+      : libero ? mmss(trascorsi)
+      : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano))
+      : mmss(restano);
+ 
+    const tinta = preparazione !== null ? '#f59e0b'
+      : finito ? '#94a3b8'
+      : unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7')
+      : (faseCorrente?.colore || '#10b981');
+ 
+    return (
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 5000, background: '#18181b', borderBottom: `2px solid ${tinta}`, boxShadow: '0 4px 14px rgba(0,0,0,0.5)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          onClick={() => setRidotto(false)}
+          style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '10px', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+        >
+          <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{valore}</span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: tinta, letterSpacing: '0.5px' }}>{etichetta.toUpperCase()}</span>
+            {!libero && !finito && (
+              <span style={{ display: 'block', fontSize: '10px', color: '#a1a1aa' }}>
+                {unoAUno
+                  ? `Round ${Math.min(r1Round, scelta.round)} di ${scelta.round}`
+                  : faseCorrente?.round ? `Round ${faseCorrente.round}${scelta.round ? ` di ${scelta.round}` : ''}` : ''}
+              </span>
+            )}
+          </span>
+        </button>
+ 
+        {unoAUno && attivo && r1InLavoro && (
+          <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            ✓ Round
+          </button>
+        )}
+        {(attivo || preparazione !== null) ? (
+          <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
+        ) : (
+          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>▶</button>
+        )}
+        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#a1a1aa', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>✕</button>
+      </div>
+    );
+  }
  
   // Schermata di scelta del tipo di timer
   if (!scelta) {
@@ -1116,6 +1248,9 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
           {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', '🔂', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
           {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', '🔥', () => setScelta({ tipo: 'tabata' }))}
  
+          <button onClick={() => setNascosto(true)} style={{ ...btn('#26262a'), width: '100%', marginTop: '8px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}>
+            👁 Vedi la scheda
+          </button>
           <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', marginTop: '8px' }}>Chiudi</button>
         </div>
       </div>
@@ -1198,6 +1333,16 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
             </button>
             <button onClick={() => setScelta(null)} style={btn('#3a3a40')}>Indietro</button>
           </div>
+ 
+          <button
+            onClick={() => setNascosto(true)}
+            style={{ ...btn('#26262a'), width: '100%', marginTop: '10px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}
+          >
+            👁 Vedi la scheda
+          </button>
+          <p style={{ fontSize: '11px', color: '#71717a', marginTop: '8px', lineHeight: 1.45, textAlign: 'center' }}>
+            Il timer si nasconde e i valori che hai impostato restano come li hai lasciati.
+          </p>
         </div>
       </div>
     );
@@ -1293,8 +1438,13 @@ function WorkoutTimer({ config, onClose }: { config: any; onClose: () => void })
           {!attivo && preparazione === null && (trascorsi > 0 || fase > 0 || finito) && (
             <button onClick={azzera} style={btn('#3a3a40')}>Azzera</button>
           )}
+          <button onClick={() => setRidotto(true)} style={btn('#0284c7')}>⌄ Riduci</button>
           <button onClick={onClose} style={btn('#3a3a40')}>Chiudi</button>
         </div>
+ 
+        <p style={{ fontSize: '11px', color: '#71717a', marginTop: '14px', lineHeight: 1.45 }}>
+          Con &quot;Riduci&quot; il timer diventa una barra in alto e continua a correre: sotto puoi leggere la scheda e inserire i risultati.
+        </p>
       </div>
     </div>
   );
@@ -1462,7 +1612,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <p style={pStyle}>• i dati relativi alla salute saranno conservati per tutta la durata del rapporto, salvo revoca del consenso da parte dell’interessato o richiesta di cancellazione, fatti salvi i casi in cui la conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di un diritto;</p>
       <p style={pStyle}>• i dati tecnici e i log saranno conservati per il periodo necessario a garantire il funzionamento, la sicurezza e la manutenzione dei sistemi e secondo i periodi di conservazione applicabili ai singoli servizi tecnologici.</p>
       <p style={pStyle}>Al termine dei relativi periodi di conservazione, i dati saranno cancellati o resi anonimi, salvo che la loro ulteriore conservazione sia necessaria per adempiere a obblighi di legge o per l’accertamento, l’esercizio o la difesa di diritti. La cancellazione dell’account può essere richiesta dall’utente anche attraverso l’applicazione, secondo le funzionalità disponibili.</p>
-      <h4 style={hStyle}>8. Natura del conferimento dei dati e conseguenze del rifiuto</h4>     <p style={pStyle}>Il conferimento dei dati identificativi e dei dati necessari alla gestione dell’account e all’utilizzo delle funzionalità essenziali dell’applicazione è necessario per poter usufruire dei relativi servizi. Il mancato conferimento di tali dati può impedire la registrazione, l’accesso o l’utilizzo delle funzionalità per le quali i dati risultano necessari.</p>
+      <h4 style={hStyle}>8. Natura del conferimento dei dati e conseguenze del rifiuto</h4>
+      <p style={pStyle}>Il conferimento dei dati identificativi e dei dati necessari alla gestione dell’account e all’utilizzo delle funzionalità essenziali dell’applicazione è necessario per poter usufruire dei relativi servizi. Il mancato conferimento di tali dati può impedire la registrazione, l’accesso o l’utilizzo delle funzionalità per le quali i dati risultano necessari.</p>
       <p style={pStyle}>Il conferimento dei dati relativi alla salute è invece facoltativo. Il mancato conferimento di tali dati, così come il mancato rilascio del consenso esplicito al loro trattamento, non impedisce l’utilizzo delle funzionalità dell’applicazione che non richiedono tali informazioni. Tuttavia, il Titolare non potrà tenere conto delle condizioni fisiche o sanitarie non comunicate nella programmazione degli allenamenti.</p>
       <p style={pStyle}>L’abilitazione delle notifiche push è facoltativa e il relativo mancato consenso non pregiudica l’utilizzo delle altre funzionalità dell’applicazione.</p>
       <h4 style={hStyle}>9. Revoca del consenso</h4>
@@ -1527,6 +1678,7 @@ export default function TrainingApp() {
   const [editCompId, setEditCompId] = useState<string | null>(null);
   const [menuAgganciato, setMenuAgganciato] = useState(false);
   const [timerConfig, setTimerConfig] = useState<any>(null);
+  const [timerRidotto, setTimerRidotto] = useState(false);
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -1907,9 +2059,7 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     setNotificationError('');
-  };
- 
-  const markNotificationAsRead = async (notificationId: string) => {
+  };  const markNotificationAsRead = async (notificationId: string) => {
     await supabase
       .from('notifications')
       .update({ is_read: true })
@@ -4444,7 +4594,7 @@ const [notificationError, setNotificationError] = useState('');
   const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
  
   return (
-    <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ background: '#18181b', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', paddingTop: timerRidotto ? '62px' : undefined, padding: '24px 24px 88px 24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Permanent+Marker&display=swap');
         button { transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .1s ease; }
@@ -4511,11 +4661,11 @@ const [notificationError, setNotificationError] = useState('');
       })()}
  
       {timerConfig && (
-        <WorkoutTimer config={timerConfig} onClose={() => setTimerConfig(null)} />
-      )}
- 
-      {timerConfig && (
-        <WorkoutTimer config={timerConfig} onClose={() => setTimerConfig(null)} />
+        <WorkoutTimer
+          config={timerConfig}
+          onClose={() => { setTimerConfig(null); setTimerRidotto(false); }}
+          onRidotto={setTimerRidotto}
+        />
       )}
  
       {prBadge && (
