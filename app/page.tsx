@@ -900,8 +900,7 @@ function bip(frequenza: number, durata: number) {
  
   // strada 2: canale audio del browser
   try {
-    if (!canaleAudio) return;
-    if (canaleAudio.state === 'suspended') canaleAudio.resume();
+    if (!canaleAudio) return;  if (canaleAudio.state === 'suspended') canaleAudio.resume();
     const osc = canaleAudio.createOscillator();
     const gain = canaleAudio.createGain();
     osc.connect(gain);
@@ -3750,6 +3749,33 @@ const [notificationError, setNotificationError] = useState('');
     };
   }, [role, coachSubView, activeTab]);
  
+  // Esercizi del riscaldamento: elenco dentro il blocco
+  const aggiornaWarmItems = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, nuovi: any[]) => {
+    if (contesto === 'edit') updateEditingBlock(wIdx, dIdx, bIdx, 'items', nuovi);
+    else updateFreeBlock(wIdx, dIdx, bIdx, 'items', nuovi);
+  };
+ 
+  const aggiungiWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[]) => {
+    aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, [...(attuali || []), { name: '', value: '', videoUrl: '' }]);
+  };
+ 
+  const modificaWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number, campo: string, valore: string) => {
+    const copia = [...(attuali || [])];
+    copia[i] = { ...copia[i], [campo]: valore };
+ 
+    // Scrivendo un esercizio già in libreria, ne recupero il video
+    if (campo === 'name') {
+      const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, valore));
+      if (inLibreria?.video_url && !copia[i].videoUrl) copia[i].videoUrl = inLibreria.video_url;
+    }
+ 
+    aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
+  };
+ 
+  const togliWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
+    aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, (attuali || []).filter((_: any, k: number) => k !== i));
+  };
+ 
   // Confronto per la ricerca: ignora maiuscole e accenti
   const contiene = (testo: any, cerca: string) => {
     if (!cerca.trim()) return true;
@@ -4299,8 +4325,7 @@ const [notificationError, setNotificationError] = useState('');
       const { error } = await supabase.from('exercises_library').update(payload).eq('id', existing.id);
       if (error) {
         alert('Errore: ' + error.message);
-        return;
-      }
+        return;  }
       setNewExName('');
       setNewExVideo('');
       fetchExerciseLibrary();
@@ -5912,7 +5937,42 @@ const [notificationError, setNotificationError] = useState('');
                                       )}
                                     </div>
  
-                                    {isMobility(blk.name) ? (
+                                    {blk.type === 'warmup' ? (
+                                      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
+                                        {blk.rounds && (
+                                          <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                            {blk.rounds}
+                                          </span>
+                                        )}
+                                        {(blk.items || []).length === 0 && (
+                                          <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
+                                        )}
+                                        {(blk.items || []).map((it: any, i: number) => (
+                                          <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '6px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
+                                              <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere' }}>{it.name}</span>
+                                              {it.videoUrl && (
+                                                <a href={it.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', color: '#2563eb', flexShrink: 0 }}>
+                                                  <Icona nome="video" size={14} />
+                                                </a>
+                                              )}
+                                            </span>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                          </div>
+                                        ))}
+                                        <button
+                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '8px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                        >
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
+                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
+                                          </span>
+                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#92400e' }}>
+                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
+                                          </span>
+                                        </button>
+                                      </div>
+                                    ) : isMobility(blk.name) ? (
                                       <div>
                                         {blk.wodNotes && (
                                           <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
@@ -6033,7 +6093,7 @@ const [notificationError, setNotificationError] = useState('');
                                     <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                       <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
                                       <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
-                                        {!isMobility(blk.name) && (
+                                        {!isMobility(blk.name) && blk.type !== 'warmup' && (
                                         <div>
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
                                           {(() => {
@@ -6306,10 +6366,11 @@ const [notificationError, setNotificationError] = useState('');
                             return (
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
-                                  <div style={{ display: 'flex', gap: '6px', flex: '1 1 180px', minWidth: 0 }}>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
+                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -6406,6 +6467,53 @@ const [notificationError, setNotificationError] = useState('');
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE DEL COACH</label>
                                         <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                         <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                      </div>
+                                    ) : block.type === 'warmup' ? (
+                                      <div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                                          <div style={{ flex: '2 1 150px', minWidth: 0 }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
+                                            <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                          </div>
+                                          <div style={{ flex: '1 1 80px', minWidth: 0 }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
+                                            <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                          </div>
+                                        </div>
+ 
+                                        {(block.items || []).map((it: any, i: number) => (
+                                          <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
+                                            <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
+                                              <input
+                                                type="text"
+                                                list={`warm_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                                placeholder="Esercizio"
+                                                value={it.name || ''}
+                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
+                                                style={{ flex: '2 1 120px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                              />
+                                              <input
+                                                type="text"
+                                                placeholder="10 rep / 30&quot;"
+                                                value={it.value || ''}
+                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
+                                                style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                              />
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="cestino" size={13} />
+                                              </button>
+                                            </div>
+                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }} />
+                                          </div>
+                                        ))}
+ 
+                                        <datalist id={`warm_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
+                                          {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
+                                        </datalist>
+ 
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                          <Icona nome="piu" size={13} /> Aggiungi esercizio
+                                        </button>
                                       </div>
                                     ) : isMobility(block.name) ? (
                                       <div>
@@ -6785,10 +6893,11 @@ const [notificationError, setNotificationError] = useState('');
                                 return (
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
-                                      <div style={{ display: 'flex', gap: '6px', flex: '1 1 180px', minWidth: 0 }}>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
+                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -6883,6 +6992,53 @@ const [notificationError, setNotificationError] = useState('');
                                             <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                             <p style={{ fontSize: '10px', color: '#64748b', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
                                           </div>
+                                        ) : block.type === 'warmup' ? (
+                                          <div>
+                                            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                                              <div style={{ flex: '2 1 150px', minWidth: 0 }}>
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
+                                                <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                              </div>
+                                              <div style={{ flex: '1 1 80px', minWidth: 0 }}>
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
+                                                <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                              </div>
+                                            </div>
+ 
+                                            {(block.items || []).map((it: any, i: number) => (
+                                              <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
+                                                <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
+                                                  <input
+                                                    type="text"
+                                                    list={`warm_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                                    placeholder="Esercizio"
+                                                    value={it.name || ''}
+                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
+                                                    style={{ flex: '2 1 120px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                  />
+                                                  <input
+                                                    type="text"
+                                                    placeholder="10 rep / 30&quot;"
+                                                    value={it.value || ''}
+                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
+                                                    style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                  />
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="cestino" size={13} />
+                                                  </button>
+                                                </div>
+                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }} />
+                                              </div>
+                                            ))}
+ 
+                                            <datalist id={`warm_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}>
+                                              {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
+                                            </datalist>
+ 
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                              <Icona nome="piu" size={13} /> Aggiungi esercizio
+                                            </button>
+                                          </div>
                                         ) : isMobility(block.name) ? (
                                           <div>
                                             <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
@@ -6958,7 +7114,9 @@ const [notificationError, setNotificationError] = useState('');
                 <div>
                   <h3 style={{ fontSize: '18px', margin: '0 0 12px 0' }}>
                     {libraryView === 'cestino' ? 'Cestino Programmi' : 'Libreria Programmi'}
-                  </h3>      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                  </h3>
+ 
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
                     {[
                       { k: 'programmi', t: '📋 Programmi', n: 0 },
                       { k: 'cestino', t: '🗑️ Cestino', n: contaCestino },
@@ -7832,7 +7990,42 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {!isClosed && (
                                               <div>
-                                                {isMobility(blk.name) ? (
+                                                {blk.type === 'warmup' ? (
+                                                  <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
+                                                    {blk.rounds && (
+                                                      <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                                        {blk.rounds}
+                                                      </span>
+                                                    )}
+                                                    {(blk.items || []).length === 0 && (
+                                                      <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
+                                                    )}
+                                                    {(blk.items || []).map((it: any, i: number) => (
+                                                      <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '6px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
+                                                          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere' }}>{it.name}</span>
+                                                          {it.videoUrl && (
+                                                            <a href={it.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', color: '#2563eb', flexShrink: 0 }}>
+                                                              <Icona nome="video" size={14} />
+                                                            </a>
+                                                          )}
+                                                        </span>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                                      </div>
+                                                    ))}
+                                                    <button
+                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '8px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                    >
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#fde68a' }}>
+                                                        {athleteResults[prog.id]?.[blockKey]?.done && <Icona nome="spunta" size={13} />}
+                                                      </span>
+                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#92400e' }}>
+                                                        {athleteResults[prog.id]?.[blockKey]?.done ? 'Completato' : 'Segna come fatto'}
+                                                      </span>
+                                                    </button>
+                                                  </div>
+                                                ) : isMobility(blk.name) ? (
                                                   <div>
                                                     {blk.wodNotes && (
                                                       <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
@@ -7954,10 +8147,11 @@ const [notificationError, setNotificationError] = useState('');
                                                   </div>
                                                 )}
  
+                                                {blk.type !== 'warmup' && (
                                                 <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
                                                   <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
-                                                    {!isMobility(blk.name) && (
+                                                    {!isMobility(blk.name) && blk.type !== 'warmup' && (
                                                     <div>
                                                       <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
                                                       {(() => {
@@ -7984,6 +8178,7 @@ const [notificationError, setNotificationError] = useState('');
                                                     </div>
                                                   </div>
                                                 </div>
+                                                )}
                                               </div>
                                             )}
                                           </div>
