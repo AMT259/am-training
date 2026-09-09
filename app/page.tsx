@@ -962,9 +962,75 @@ function costruisciFasi(cfg: any): any[] {
   return [];
 }
  
-// Campo numerico del timer: mentre scrivi puoi svuotarlo del tutto,
-// il valore viene corretto solo quando esci dal campo
-function CampoNumero({ etichetta, valore, imposta, passo, min, max, inSecondi }: any) {
+// Campo del timer: minuti e secondi separati, come si legge un cronometro.
+// Una casella lasciata vuota vale zero.
+function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
+  const [min_, setMin_] = useState(String(Math.floor(valore / 60)));
+  const [sec_, setSec_] = useState(String(valore % 60));
+ 
+  useEffect(() => {
+    setMin_(String(Math.floor(valore / 60)));
+    setSec_(String(valore % 60));
+  }, [valore]);
+ 
+  const applica = (testoMin: string, testoSec: string) => {
+    const m = parseInt(testoMin, 10) || 0;
+    const s = parseInt(testoSec, 10) || 0;
+    const totale = Math.min(max, Math.max(min, m * 60 + s));
+    imposta(totale);
+    setMin_(String(Math.floor(totale / 60)));
+    setSec_(String(totale % 60));
+  };
+ 
+  const casella: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box', textAlign: 'center',
+    fontSize: '26px', fontWeight: 'bold', color: '#fff', background: '#26262a',
+    border: '1px solid #3a3a40', borderRadius: '10px', padding: '11px 4px',
+  };
+ 
+  const etich: React.CSSProperties = {
+    display: 'block', fontSize: '10px', color: '#71717a',
+    textAlign: 'center', marginTop: '3px', letterSpacing: '0.5px',
+  };
+ 
+  return (
+    <div style={{ marginBottom: '16px' }}>
+      <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '7px' }}>{etichetta}</span>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={min_}
+            onFocus={(e: any) => e.target.select()}
+            onChange={(e: any) => setMin_(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+            onBlur={() => applica(min_, sec_)}
+            style={casella}
+          />
+          <span style={etich}>MIN</span>
+        </div>
+ 
+        <span style={{ fontSize: '26px', fontWeight: 'bold', color: '#71717a', paddingTop: '10px' }}>:</span>
+ 
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={sec_}
+            onFocus={(e: any) => e.target.select()}
+            onChange={(e: any) => setSec_(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+            onBlur={() => applica(min_, sec_)}
+            style={casella}
+          />
+          <span style={etich}>SEC</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
+// Campo per i valori senza tempo, come il numero di round
+function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
   const [testo, setTesto] = useState(String(valore));
  
   useEffect(() => { setTesto(String(valore)); }, [valore]);
@@ -981,10 +1047,8 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max, inSecondi }:
   };
  
   return (
-    <div style={{ marginBottom: '14px' }}>
-      <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '6px' }}>
-        {etichetta}{inSecondi ? ' (secondi)' : ''}
-      </span>
+    <div style={{ marginBottom: '16px' }}>
+      <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginBottom: '7px' }}>{etichetta}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <button onClick={() => applica((parseInt(testo, 10) || 0) - passo)} style={btnPiccolo}>−</button>
         <input
@@ -992,27 +1056,12 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max, inSecondi }:
           inputMode="numeric"
           value={testo}
           onFocus={(e: any) => e.target.select()}
-          onChange={(e: any) => {
-            const pulito = e.target.value.replace(/[^0-9]/g, '');
-            setTesto(pulito);
-            if (pulito !== '') {
-              const n = parseInt(pulito, 10);
-              if (!isNaN(n) && n <= max) imposta(n);
-            }
-          }}
-          onBlur={() => {
-            const n = parseInt(testo, 10);
-            applica(isNaN(n) ? min : n);
-          }}
-          style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#26262a', border: '1px solid #3a3a40', borderRadius: '8px', padding: '9px 4px' }}
+          onChange={(e: any) => setTesto(e.target.value.replace(/[^0-9]/g, ''))}
+          onBlur={() => { const n = parseInt(testo, 10); applica(isNaN(n) ? min : n); }}
+          style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#26262a', border: '1px solid #3a3a40', borderRadius: '10px', padding: '11px 4px' }}
         />
         <button onClick={() => applica((parseInt(testo, 10) || 0) + passo)} style={btnPiccolo}>+</button>
       </div>
-      {inSecondi && (parseInt(testo, 10) || 0) >= 60 && (
-        <span style={{ display: 'block', fontSize: '11px', color: '#71717a', marginTop: '4px', textAlign: 'center' }}>
-          = {mmss(parseInt(testo, 10) || 0)}
-        </span>
-      )}
     </div>
   );
 }
@@ -1412,7 +1461,9 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   // Impostazioni per intervalli ed EMOM
   if (scelta.daImpostare) {
     const campo = (etichetta: string, valore: number, imposta: (n: number) => void, passo: number, min: number, max: number, suffisso: string) => (
-      <CampoNumero etichetta={etichetta} valore={valore} imposta={imposta} passo={passo} min={min} max={max} inSecondi={suffisso === 's'} />
+      suffisso === 's'
+        ? <CampoTempo etichetta={etichetta} valore={valore} imposta={imposta} min={min} max={max} />
+        : <CampoNumero etichetta={etichetta} valore={valore} imposta={imposta} passo={passo} min={min} max={max} />
     );
  
     return (
@@ -1860,6 +1911,9 @@ export default function TrainingApp() {
   const [menuAgganciato, setMenuAgganciato] = useState(false);
   const [timerConfig, setTimerConfig] = useState<any>(null);
   const [timerRidotto, setTimerRidotto] = useState(false);
+  const [cercaProfili, setCercaProfili] = useState('');
+  const [cercaPersonal, setCercaPersonal] = useState('');
+  const [cercaProgrammi, setCercaProgrammi] = useState('');
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -3662,6 +3716,36 @@ const [notificationError, setNotificationError] = useState('');
     return `${u.kg} kg`;
   };
  
+  // Il menu delle tre sezioni si aggancia in alto quando si scorre oltre,
+  // cosi' non serve risalire tutta la pagina per cambiare sezione
+  useEffect(() => {
+    if (role !== 'coach') return;
+ 
+    const controlla = () => {
+      const ancora = document.getElementById('menu-coach-ancora');
+      if (!ancora) { setMenuAgganciato(false); return; }
+      setMenuAgganciato(ancora.getBoundingClientRect().top < 0);
+    };
+ 
+    controlla();
+    window.addEventListener('scroll', controlla, { passive: true });
+    window.addEventListener('resize', controlla);
+    return () => {
+      window.removeEventListener('scroll', controlla);
+      window.removeEventListener('resize', controlla);
+    };
+  }, [role, coachSubView, activeTab]);
+ 
+  // Confronto per la ricerca: ignora maiuscole e accenti
+  const contiene = (testo: any, cerca: string) => {
+    if (!cerca.trim()) return true;
+    const pulisci = (s: any) => String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    return pulisci(testo).includes(pulisci(cerca));
+  };
+ 
   const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any, repsAttuali?: any) => {
     if (!nomeEsercizio || !risultatiPerProgramma) return null;
  
@@ -4749,8 +4833,12 @@ const [notificationError, setNotificationError] = useState('');
   });
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
-    if (libraryView === 'cestino') return prog.isDeleted;
+    if (libraryView === 'cestino') {
+      if (!prog.isDeleted) return false;
+      return contiene(prog.title, cercaProgrammi);
+    }
     if (prog.isDeleted) return false;
+    if (!contiene(prog.title, cercaProgrammi)) return false;
  
     // Primo: la categoria
     if (libraryFilter === 'prove') return !!prog.trialStyle;
@@ -5612,6 +5700,21 @@ const [notificationError, setNotificationError] = useState('');
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta</h3>
  
+ <div style={{ position: 'relative', marginBottom: '12px' }}>
+   <input
+     type="text"
+     placeholder="Cerca un atleta..."
+     value={cercaProfili}
+     onChange={(e: any) => setCercaProfili(e.target.value)}
+     style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}
+   />
+   {cercaProfili && (
+     <button onClick={() => setCercaProfili('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+       <Icona nome="chiudi" size={15} />
+     </button>
+   )}
+ </div>
+ 
                   {!showAddAthlete ? (
                     <button
                       onClick={() => setShowAddAthlete(true)}
@@ -5681,9 +5784,11 @@ const [notificationError, setNotificationError] = useState('');
                   )}
                   {athletes.length === 0 ? (
                     <p style={{ color: '#64748b' }}>Nessun atleta registrato.</p>
+                  ) : athletes.filter((a: any) => contiene(a.full_name || a.email, cercaProfili)).length === 0 ? (
+                    <p style={{ color: '#94a3b8', fontSize: '13px' }}>Nessun atleta con &quot;{cercaProfili}&quot;.</p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {athletes.map((a) => (
+                      {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaProfili)).map((a) => (
                         <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', cursor: 'pointer', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
                             {(() => {
@@ -5957,7 +6062,27 @@ const [notificationError, setNotificationError] = useState('');
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta per il Personal</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {athletes.map((a: any) => (
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
+                    <input
+                      type="text"
+                      placeholder="Cerca un atleta..."
+                      value={cercaPersonal}
+                      onChange={(e: any) => setCercaPersonal(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}
+                    />
+                    {cercaPersonal && (
+                      <button onClick={() => setCercaPersonal('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                        <Icona nome="chiudi" size={15} />
+                      </button>
+                    )}
+                  </div>
+ 
+                    {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaPersonal)).length === 0 && (
+                      <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
+                        {cercaPersonal ? `Nessun atleta con "${cercaPersonal}".` : 'Nessun atleta registrato.'}
+                      </p>
+                    )}
+                    {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaPersonal)).map((a: any) => (
                       <div
                         key={a.id}
                         onClick={() => setPersonalSelectedAthleteId(a.id)}
@@ -6220,7 +6345,8 @@ const [notificationError, setNotificationError] = useState('');
                                       />
                                       <datalist id={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
                                         {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
-                                          <option key={ex.id} value={ex.name} />                                    ))}
+                                          <option key={ex.id} value={ex.name} />
+                                        ))}
                                       </datalist>
                                     </div>
                                   ) : (
@@ -6345,7 +6471,7 @@ const [notificationError, setNotificationError] = useState('');
                 gap: '8px',
                 marginBottom: menuAgganciato ? '10px' : '20px',
                 position: menuAgganciato ? 'sticky' : 'static',
-                top: 0,
+                top: timerRidotto ? '62px' : 0,
                 zIndex: 40,
                 background: menuAgganciato ? '#18181b' : 'transparent',
                 paddingTop: menuAgganciato ? '8px' : 0,
@@ -6857,6 +6983,21 @@ const [notificationError, setNotificationError] = useState('');
                   )}
  
  
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
+                    <input
+                      type="text"
+                      placeholder="Cerca un programma..."
+                      value={cercaProgrammi}
+                      onChange={(e: any) => setCercaProgrammi(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}
+                    />
+                    {cercaProgrammi && (
+                      <button onClick={() => setCercaProgrammi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                        <Icona nome="chiudi" size={15} />
+                      </button>
+                    )}
+                  </div>
+ 
                   {libraryView === 'programmi' && (libraryFilter === 'tutti' || libraryFilter === 'assegnati') && (
                     <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff', marginBottom: '12px' }}>
                       <option value="">Filtra per utente (Tutti)</option>
@@ -6868,7 +7009,9 @@ const [notificationError, setNotificationError] = useState('');
  
                   {filteredLibraryPrograms.length === 0 ? (
                     <p style={{ color: '#64748b', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
-                      {libraryView === 'cestino'
+                      {cercaProgrammi
+                        ? `Nessun programma con "${cercaProgrammi}".`
+                        : libraryView === 'cestino'
                         ? 'Il cestino è vuoto.'
                         : libraryFilter === 'scaduti'
                           ? 'Nessun programma scaduto.'
@@ -7527,15 +7670,16 @@ const [notificationError, setNotificationError] = useState('');
                         </div>
                       )}
  
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                        <h4 style={{ overflowWrap: 'anywhere', color: '#10b981', margin: 0, fontSize: '18px' }}>{prog.title}</h4>
+                      <div style={{ marginBottom: '12px' }}>
+                        <h4 style={{ overflowWrap: 'anywhere', color: '#10b981', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
                         {(prog.startDate || prog.endDate) && (() => {
                           const st = getProgramDateStatus(prog.startDate, prog.endDate);
                           return (
-                          <span style={{ fontSize: '12px', color: st.color, background: st.bg, padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold' }}>
-                            {st.icon} Dal {formatDateToIT(prog.startDate)} al {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
-                          </span>
-                          ); })()}
+                            <span style={{ display: 'block', fontSize: '11px', color: st.color, fontWeight: 'bold' }}>
+                              {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
+                            </span>
+                          );
+                        })()}
                       </div>
  
                       {(prog.trainingTips || prog.nutritionTips) && (() => {
