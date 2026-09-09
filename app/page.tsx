@@ -1292,12 +1292,14 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         style={{
           position: 'fixed', left: '50%', transform: 'translateX(-50%)',
           bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
-          zIndex: 5000, padding: '12px 22px', borderRadius: '24px', border: 'none',
-          background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px',
-          cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.45)',
+          zIndex: 5000, display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '12px 20px', borderRadius: '999px', border: 'none',
+          background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)',
+          color: '#fff', fontWeight: 'bold', fontSize: '14px',
+          cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.5)',
         }}
       >
-        ↩ Torna al timer
+        <Icona nome="timer" size={16} /> Torna al timer
       </button>
     );
   }
@@ -1449,7 +1451,16 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', '🔂', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
           {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', '🔥', () => setScelta({ tipo: 'tabata' }))}
  
-          <button onClick={() => setNascosto(true)} style={{ ...btn('#26262a'), width: '100%', marginTop: '8px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}>
+          <button
+            onClick={() => setNascosto(true)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+              margin: '18px auto 0 auto', padding: '9px 18px',
+              borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.07)', color: '#d4d4d8',
+              fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer',
+            }}
+          >
             <Icona nome="occhio" size={14} /> Vedi la scheda
           </button>
           <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', marginTop: '8px' }}>Chiudi</button>
@@ -1514,13 +1525,16 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
  
           <button
             onClick={() => setNascosto(true)}
-            style={{ ...btn('#26262a'), width: '100%', marginTop: '10px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+              margin: '18px auto 0 auto', padding: '9px 18px',
+              borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.07)', color: '#d4d4d8',
+              fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer',
+            }}
           >
             <Icona nome="occhio" size={14} /> Vedi la scheda
           </button>
-          <p style={{ fontSize: '11px', color: '#71717a', marginTop: '8px', lineHeight: 1.45, textAlign: 'center' }}>
-            Il timer si nasconde e i valori che hai impostato restano come li hai lasciati.
-          </p>
         </div>
       </div>
     );
@@ -6944,9 +6958,7 @@ const [notificationError, setNotificationError] = useState('');
                 <div>
                   <h3 style={{ fontSize: '18px', margin: '0 0 12px 0' }}>
                     {libraryView === 'cestino' ? 'Cestino Programmi' : 'Libreria Programmi'}
-                  </h3>
- 
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                  </h3>      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
                     {[
                       { k: 'programmi', t: '📋 Programmi', n: 0 },
                       { k: 'cestino', t: '🗑️ Cestino', n: contaCestino },
