@@ -1303,11 +1303,11 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           </button>
         )}
         {attivo || preparazione !== null ? (
-          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>⏸</button>
+          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="pausa" size={14} /></button>
         ) : (
-          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>▶</button>
+          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
         )}
-        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}>✕</button>
+        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
       </div>
     );
   }
@@ -1368,9 +1368,9 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         {(attivo || preparazione !== null) ? (
           <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
         ) : (
-          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>▶</button>
+          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
         )}
-        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#a1a1aa', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>✕</button>
+        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#a1a1aa', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
       </div>
     );
   }
@@ -1401,7 +1401,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', '🔥', () => setScelta({ tipo: 'tabata' }))}
  
           <button onClick={() => setNascosto(true)} style={{ ...btn('#26262a'), width: '100%', marginTop: '8px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}>
-            👁 Vedi la scheda
+            <Icona nome="occhio" size={14} /> Vedi la scheda
           </button>
           <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', marginTop: '8px' }}>Chiudi</button>
         </div>
@@ -1465,7 +1465,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
             onClick={() => setNascosto(true)}
             style={{ ...btn('#26262a'), width: '100%', marginTop: '10px', border: '1px solid #3a3a40', color: '#a1a1aa', fontSize: '13px' }}
           >
-            👁 Vedi la scheda
+            <Icona nome="occhio" size={14} /> Vedi la scheda
           </button>
           <p style={{ fontSize: '11px', color: '#71717a', marginTop: '8px', lineHeight: 1.45, textAlign: 'center' }}>
             Il timer si nasconde e i valori che hai impostato restano come li hai lasciati.
@@ -1517,7 +1517,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
                 onClick={chiudiRound}
                 style={{ marginTop: '22px', padding: '16px 30px', borderRadius: '12px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}
               >
-                ✓ Round finito
+                <Icona nome="spunta" size={17} /> Round finito
               </button>
             )}
           </>
@@ -1565,7 +1565,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           {!attivo && preparazione === null && (trascorsi > 0 || fase > 0 || finito) && (
             <button onClick={azzera} style={btn('#3a3a40')}>Azzera</button>
           )}
-          <button onClick={() => setRidotto(true)} style={btn('#0284c7')}>⌄ Riduci</button>
+          <button onClick={() => setRidotto(true)} style={btn('#0284c7')}><Icona nome="riduci" size={15} /> Riduci</button>
           <button onClick={onClose} style={btn('#3a3a40')}>Chiudi</button>
         </div>
  
@@ -1575,6 +1575,60 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
       </div>
     </div>
   );
+}
+ 
+// Icone disegnate per i pulsanti: nitide a ogni dimensione e uguali
+// su tutti i telefoni, a differenza delle emoji
+function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?: React.CSSProperties }) {
+  const comuni = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    style: { flexShrink: 0, ...style },
+    'aria-hidden': true,
+  };
+ 
+  switch (nome) {
+    case 'video':
+      return <svg {...comuni}><rect x="2" y="5" width="14" height="14" rx="3" /><path d="M16 10l6-3v10l-6-3z" /></svg>;
+    case 'timer':
+      return <svg {...comuni}><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2.5M9 2h6" /></svg>;
+    case 'cestino':
+      return <svg {...comuni}><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5" /></svg>;
+    case 'grafico':
+      return <svg {...comuni}><path d="M3 3v18h18M7 15l4-5 3 3 5-7" /></svg>;
+    case 'modifica':
+      return <svg {...comuni}><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>;
+    case 'duplica':
+      return <svg {...comuni}><rect x="8" y="8" width="13" height="13" rx="2" /><path d="M16 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h3" /></svg>;
+    case 'occhio':
+      return <svg {...comuni}><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>;
+    case 'occhio-barrato':
+      return <svg {...comuni}><path d="M17.9 17.9A10.4 10.4 0 0112 20c-7 0-11-8-11-8a19 19 0 015.1-6M9.9 4.2A10.5 10.5 0 0112 4c7 0 11 8 11 8a19 19 0 01-2.2 3.2M1 1l22 22M9.9 9.9a3 3 0 004.2 4.2" /></svg>;
+    case 'piu':
+      return <svg {...comuni}><path d="M12 5v14M5 12h14" /></svg>;
+    case 'su':
+      return <svg {...comuni}><path d="M18 15l-6-6-6 6" /></svg>;
+    case 'giu':
+      return <svg {...comuni}><path d="M6 9l6 6 6-6" /></svg>;
+    case 'spunta':
+      return <svg {...comuni}><path d="M20 6L9 17l-5-5" /></svg>;
+    case 'pausa':
+      return <svg {...comuni}><path d="M9 4v16M15 4v16" /></svg>;
+    case 'play':
+      return <svg {...comuni} fill="currentColor" stroke="none"><path d="M7 4l13 8-13 8z" /></svg>;
+    case 'chiudi':
+      return <svg {...comuni}><path d="M18 6L6 18M6 6l12 12" /></svg>;
+    case 'riduci':
+      return <svg {...comuni}><path d="M6 9l6 6 6-6" /></svg>;
+    default:
+      return null;
+  }
 }
  
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
@@ -3596,6 +3650,18 @@ const [notificationError, setNotificationError] = useState('');
     return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);
   };
  
+  // Se l'atleta ha scritto un peso diverso per ogni serie (es. "7/7/6/6"),
+  // lo mostro per intero invece del solo primo numero
+  const mostraCarico = (u: any) => {
+    const testo = String(u?.testo || '').trim();
+    const numeri = testo.match(/\d+(?:[.,]\d+)?/g) || [];
+    if (numeri.length > 1) {
+      const ripulito = testo.replace(/\s*(kg|kilogrammi|kilo)\s*/gi, '').trim();
+      return `${ripulito} kg`;
+    }
+    return `${u.kg} kg`;
+  };
+ 
   const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any, repsAttuali?: any) => {
     if (!nomeEsercizio || !risultatiPerProgramma) return null;
  
@@ -3605,7 +3671,7 @@ const [notificationError, setNotificationError] = useState('');
       .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
  
     // Raccolgo l'ultimo carico per ogni schema di ripetizioni diverso
-    const trovati: { kg: number; reps: any }[] = [];
+    const trovati: { kg: number; reps: any; testo: string }[] = [];
     const gia = new Set<string>();
  
     for (const prog of programmi) {
@@ -3621,13 +3687,14 @@ const [notificationError, setNotificationError] = useState('');
             const blk = blocchi[bi];
             if (!sameName(blk?.name, nomeEsercizio)) continue;
  
-            const kg = parseWeightValue(risultati[`${wi}_${di}_${bi}`]?.score);
+            const grezzo = risultati[`${wi}_${di}_${bi}`]?.score;
+            const kg = parseWeightValue(grezzo);
             if (!kg) continue;
  
             const chiave = String(blk.reps ?? '');
             if (gia.has(chiave)) continue;   // di ogni schema tengo solo il più recente
             gia.add(chiave);
-            trovati.push({ kg, reps: blk.reps || null });
+            trovati.push({ kg, reps: blk.reps || null, testo: String(grezzo || '').trim() });
  
             if (trovati.length >= 3) return ordinaPerRipetizioni(trovati, repsAttuali);
           }
@@ -3639,7 +3706,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Metto per primo lo schema uguale a quello di oggi: è il confronto più utile
-  const ordinaPerRipetizioni = (elenco: { kg: number; reps: any }[], repsAttuali?: any) => {
+  const ordinaPerRipetizioni = (elenco: { kg: number; reps: any; testo: string }[], repsAttuali?: any) => {
     if (!repsAttuali) return elenco;
     const uguale = elenco.filter((x) => String(x.reps ?? '') === String(repsAttuali ?? ''));
     const altri = elenco.filter((x) => String(x.reps ?? '') !== String(repsAttuali ?? ''));
@@ -5285,7 +5352,7 @@ const [notificationError, setNotificationError] = useState('');
                             onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)}
                             style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
                           >
-                            {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                            {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                           </button>
  
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
@@ -5331,7 +5398,7 @@ const [notificationError, setNotificationError] = useState('');
                           <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                         </button>
                         {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
                           <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
@@ -5375,7 +5442,7 @@ const [notificationError, setNotificationError] = useState('');
                           <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
                         </div>
                         <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                          {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                         </button>
                         {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
                           <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
@@ -5416,7 +5483,7 @@ const [notificationError, setNotificationError] = useState('');
                             />
                           </div>
                           <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, b.name)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                            {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                            {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                           </button>
                           {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` && (
                             <SimpleHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : b.type === 'rounds' ? 'round' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${b.name}`)} />
@@ -5719,9 +5786,9 @@ const [notificationError, setNotificationError] = useState('');
                                         <button
                                           type="button"
                                           onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
-                                          style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '6px', padding: '4px 8px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
                                         >
-                                          ⏱️ Timer
+                                            <Icona nome="timer" size={13} /> Timer
                                         </button>
                                       )}
                                     </div>
@@ -5818,11 +5885,11 @@ const [notificationError, setNotificationError] = useState('');
                                             </span>
                                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                                               <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
-                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{usati[0].kg} kg
+                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
                                               </span>
                                               {usati.length > 1 && (
                                                 <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${u.kg}`).join(' · ')}
+                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
                                                 </span>
                                               )}
                                             </div>
@@ -6107,14 +6174,14 @@ const [notificationError, setNotificationError] = useState('');
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}>⧉</button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
+                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
                                     <button type="button" onClick={() => {
                                       const updated = JSON.parse(JSON.stringify(editingProgram));
                                       updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
                                       setEditingProgram(updated);
-                                    }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
+                                    }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
                                   </div>
                                 </div>
  
@@ -6153,8 +6220,7 @@ const [notificationError, setNotificationError] = useState('');
                                       />
                                       <datalist id={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
                                         {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
-                                          <option key={ex.id} value={ex.name} />
-                                        ))}
+                                          <option key={ex.id} value={ex.name} />                                    ))}
                                       </datalist>
                                     </div>
                                   ) : (
@@ -6381,7 +6447,7 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                           ) : (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>✏️ Modifica</button>
+                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
                               <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
                           )}
@@ -6586,10 +6652,10 @@ const [notificationError, setNotificationError] = useState('');
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}>⧉</button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬆️</button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>⬇️</button>
-                                        <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️</button>
+                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
+                                        <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
                                       </div>
                                     </div>
  
@@ -6865,7 +6931,7 @@ const [notificationError, setNotificationError] = useState('');
                               {showDeletedPrograms ? (
                                 <>
                                   <button onClick={() => restoreProgram(prog.id)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                                  <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>🗑️ Elimina definitivamente</button>
+                                  <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} /> Elimina definitivamente</button>
                                 </>
                               ) : (
                                 <>
@@ -7163,7 +7229,7 @@ const [notificationError, setNotificationError] = useState('');
                       onClick={() => toggleMaxHistory(session.user.id, exName)}
                       style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
                     >
-                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                     </button>
  
                     {openHistoryKey === `${session.user.id}|${exName}` && (
@@ -7195,7 +7261,7 @@ const [notificationError, setNotificationError] = useState('');
                       />
                     </div>
                     <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                     </button>
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} lowerIsBetter unit="tempo" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
@@ -7227,7 +7293,7 @@ const [notificationError, setNotificationError] = useState('');
                       />
                     </div>
                     <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                      {openHistoryKey === `${session.user.id}|${exName}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                      {openHistoryKey === `${session.user.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                     </button>
                     {openHistoryKey === `${session.user.id}|${exName}` && (
                       <SimpleHistoryChart points={historyCache[`${session.user.id}|${exName}`]} unit="rep" onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
@@ -7273,7 +7339,7 @@ const [notificationError, setNotificationError] = useState('');
                       </div>
  
                       <button onClick={() => toggleMaxHistory(session.user.id, b.name)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
-                        {openHistoryKey === `${session.user.id}|${b.name}` ? '▲ Chiudi storico' : '📈 Apri storico'}
+                        {openHistoryKey === `${session.user.id}|${b.name}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
                       </button>
                       {openHistoryKey === `${session.user.id}|${b.name}` && (
                         <SimpleHistoryChart points={historyCache[`${session.user.id}|${b.name}`]} lowerIsBetter={b.type === 'time'} unit={b.type === 'time' ? 'tempo' : b.type === 'rounds' ? 'round' : 'rep'} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${b.name}`)} />
@@ -7394,7 +7460,7 @@ const [notificationError, setNotificationError] = useState('');
                   </div>
  
                   <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#991b1b', display: 'block', marginBottom: '6px' }}>🗑️ Elimina il tuo account</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#991b1b', display: 'block', marginBottom: '6px' }}><Icona nome="cestino" size={12} /> Elimina il tuo account</span>
                     <p style={{ fontSize: '12px', color: '#7f1d1d', margin: '0 0 10px 0', lineHeight: 1.4 }}>Cancella definitivamente l&apos;account e tutti i dati associati: anagrafica, anamnesi, massimali e risultati. L&apos;operazione non è reversibile.</p>
                     <button onClick={deleteMyAccount} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '8px', background: '#dc2626', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
                       {accountActionLoading ? 'Attendere...' : 'Elimina account'}
@@ -7594,14 +7660,14 @@ const [notificationError, setNotificationError] = useState('');
                                                   <button
                                                     type="button"
                                                     onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
-                                                    style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '6px', padding: '5px 9px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
                                                   >
-                                                    ⏱️ Timer
+                                                      <Icona nome="timer" size={13} /> Timer
                                                   </button>
                                                 )}
                                                 {blk.videoUrl && (
-                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: '11px', background: '#3b82f6', color: '#fff', padding: '4px 8px', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold' }}>
-                                                    🎥 Video
+                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '7px 13px', borderRadius: '999px', fontSize: '11.5px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
+                                                    <Icona nome="video" size={13} /> Video
                                                   </a>
                                                 )}
                                                 <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -7707,11 +7773,11 @@ const [notificationError, setNotificationError] = useState('');
                                                           </span>
                                                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
                                                             <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
-                                                              {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{usati[0].kg} kg
+                                                              {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
                                                             </span>
                                                             {usati.length > 1 && (
                                                               <span style={{ fontSize: '11px', color: '#94a3b8' }}>
-                                                                {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${u.kg}`).join(' · ')}
+                                                                {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
                                                               </span>
                                                             )}
                                                           </div>
