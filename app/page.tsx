@@ -223,8 +223,7 @@ function sortMetconNames(names: string[]): string[] {
 }
  
 // Stato temporale di un programma, per colorare le date
-// Legge una data come mezzanotte locale, non UTC: altrimenti in Italia
-// un programma che inizia oggi risulterebbe "non ancora iniziato"
+// Legge una data come mezzanotte locale, non UTC: altrimenti in Italia// un programma che inizia oggi risulterebbe "non ancora iniziato"
 function parseLocalDate(s: any): Date | null {
   if (!s) return null;
   const parti = String(s).split('T')[0].split('-').map(Number);
@@ -3305,8 +3304,7 @@ const [notificationError, setNotificationError] = useState('');
         const updated: any = {};
         Object.keys(m).forEach((k) => {
           updated[k === oldName ? newName : k] = m[k];
-        });
-        await supabase.from('athlete_maxes')
+        });        await supabase.from('athlete_maxes')
           .upsert({ athlete_id: row.athlete_id, maxes: updated, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
       }
     }
@@ -3866,6 +3864,14 @@ const [notificationError, setNotificationError] = useState('');
       if (inLibreria?.video_url && !copia[i].videoUrl) copia[i].videoUrl = inLibreria.video_url;
     }
  
+    aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
+  };
+ 
+  const spostaWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number, verso: 'su' | 'giu') => {
+    const copia = [...(attuali || [])];
+    const dest = verso === 'su' ? i - 1 : i + 1;
+    if (dest < 0 || dest >= copia.length) return;
+    [copia[i], copia[dest]] = [copia[dest], copia[i]];
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
   };
  
@@ -6602,28 +6608,19 @@ const [notificationError, setNotificationError] = useState('');
                                     </select>
                                   ) : block.type === 'forza' ? (
                                     <div>
-                                      <input
-                                        type="text"
-                                        list={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
-                                        value={block.name || ''}
-                                        onChange={(e) => {
-                                          const val = e.target.value;
+                                      <CampoEsercizio
+                                        placeholder="Inserisci o seleziona esercizio..."
+                                        valore={block.name}
+                                        onChange={(v: string) => {
                                           const updated = JSON.parse(JSON.stringify(editingProgram));
-                                          updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx].name = val;
-                                          const foundEx = exerciseLibrary.find(ex => ex.name === val);
-                                          if (foundEx && foundEx.video_url) {
-                                            updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx].videoUrl = foundEx.video_url;
-                                          }
+                                          const b = updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx];
+                                          b.name = v;
+                                          const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
+                                          if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
                                           setEditingProgram(updated);
                                         }}
-                                        placeholder="Inserisci o seleziona esercizio..."
-                                        style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
+                                        elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
                                       />
-                                      <datalist id={`ex_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                        {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
-                                          <option key={ex.id} value={ex.name} />
-                                        ))}
-                                      </datalist>
                                     </div>
                                   ) : block.type === 'warmup' ? (
                                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
@@ -6728,6 +6725,12 @@ const [notificationError, setNotificationError] = useState('');
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
                                                 style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
                                               />
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="su" size={12} />
+                                              </button>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="giu" size={12} />
+                                              </button>
                                               <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="cestino" size={13} />
                                               </button>
@@ -6809,6 +6812,12 @@ const [notificationError, setNotificationError] = useState('');
                                               onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
                                               style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
                                             />
+                                            <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                              <Icona nome="su" size={12} />
+                                            </button>
+                                            <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                              <Icona nome="giu" size={12} />
+                                            </button>
                                             <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                               <Icona nome="cestino" size={12} />
                                             </button>
@@ -7202,29 +7211,19 @@ const [notificationError, setNotificationError] = useState('');
                                         </select>
                                       ) : block.type === 'forza' ? (
                                         <div>
-                                          <input
-                                            type="text"
-                                            list={`ex_list_create_${actualWIdx}_${actualDIdx}_${bIdx}`}
-                                            value={block.name || ''}
-                                            onChange={(e) => {
-                                              const val = e.target.value;
+                                          <CampoEsercizio
+                                            placeholder="Inserisci o seleziona esercizio..."
+                                            valore={block.name}
+                                            onChange={(v: string) => {
                                               const upd = JSON.parse(JSON.stringify(programWeeks));
                                               const target = upd[actualWIdx].days[actualDIdx].blocks[bIdx];
-                                              target.name = val;
-                                              const foundEx = exerciseLibrary.find(ex => ex.name === val);
-                                              if (foundEx && foundEx.video_url) {
-                                                target.videoUrl = foundEx.video_url;
-                                              }
+                                              target.name = v;
+                                              const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
+                                              if (inLibreria && inLibreria.video_url) target.videoUrl = inLibreria.video_url;
                                               setProgramWeeks(upd);
                                             }}
-                                            placeholder="Inserisci o seleziona esercizio..."
-                                            style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#10b981', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }}
+                                            elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
                                           />
-                                          <datalist id={`ex_list_create_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                            {exerciseLibrary.filter((ex) => !ex.dismissed).map((ex) => (
-                                              <option key={ex.id} value={ex.name} />
-                                            ))}
-                                          </datalist>
                                         </div>
                                       ) : block.type === 'warmup' ? (
                                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>{block.name || 'Warm up'}</span>
@@ -7327,6 +7326,12 @@ const [notificationError, setNotificationError] = useState('');
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
                                                     style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
                                                   />
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="su" size={12} />
+                                                  </button>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="giu" size={12} />
+                                                  </button>
                                                   <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="cestino" size={13} />
                                                   </button>
@@ -7408,6 +7413,12 @@ const [notificationError, setNotificationError] = useState('');
                                                   onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
                                                   style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
                                                 />
+                                                <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                  <Icona nome="su" size={12} />
+                                                </button>
+                                                <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
+                                                  <Icona nome="giu" size={12} />
+                                                </button>
                                                 <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                   <Icona nome="cestino" size={12} />
                                                 </button>
