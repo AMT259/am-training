@@ -900,7 +900,8 @@ function bip(frequenza: number, durata: number) {
  
   // strada 2: canale audio del browser
   try {
-    if (!canaleAudio) return;  if (canaleAudio.state === 'suspended') canaleAudio.resume();
+    if (!canaleAudio) return;
+    if (canaleAudio.state === 'suspended') canaleAudio.resume();
     const osc = canaleAudio.createOscillator();
     const gain = canaleAudio.createGain();
     osc.connect(gain);
@@ -1636,8 +1637,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         <p style={{ fontSize: '11px', color: '#71717a', marginTop: '14px', lineHeight: 1.45 }}>
           Con &quot;Riduci&quot; il timer diventa una barra in alto e continua a correre: sotto puoi leggere la scheda e inserire i risultati.
         </p>
-      </div>
-    </div>
+      </div>   </div>
   );
 }
  
@@ -4325,7 +4325,8 @@ const [notificationError, setNotificationError] = useState('');
       const { error } = await supabase.from('exercises_library').update(payload).eq('id', existing.id);
       if (error) {
         alert('Errore: ' + error.message);
-        return;  }
+        return;
+      }
       setNewExName('');
       setNewExVideo('');
       fetchExerciseLibrary();
@@ -5759,8 +5760,7 @@ const [notificationError, setNotificationError] = useState('');
                       onClick={() => setShowAddAthlete(true)}
                       style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '10px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
                     >
-                      ➕ Aggiungi atleta manualmente
-                    </button>
+                      ➕ Aggiungi atleta manualmente       </button>
                   ) : (
                     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#10b981' }}>Nuovo atleta</h4>
@@ -5971,6 +5971,33 @@ const [notificationError, setNotificationError] = useState('');
                                             {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
                                           </span>
                                         </button>
+ 
+                                        {(() => {
+                                          const grezzo = String(blk.warmRest || '').trim();
+                                          const senza = !grezzo || /^(no|nessuno|niente|0)$/i.test(grezzo);
+                                          if (senza) {
+                                            return (
+                                              <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
+                                                Nessun recupero tra i round
+                                              </span>
+                                            );
+                                          }
+                                          const sec = parseRestSeconds(grezzo);
+                                          return (
+                                            <button
+                                              onClick={() => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 60, daImpostare: true }); }}
+                                              style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                                            >
+                                              <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
+                                            </button>
+                                          );
+                                        })()}
+ 
+                                        {blk.notes && (
+                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                            {blk.notes}
+                                          </p>
+                                        )}
                                       </div>
                                     ) : isMobility(blk.name) ? (
                                       <div>
@@ -6424,6 +6451,10 @@ const [notificationError, setNotificationError] = useState('');
                                         ))}
                                       </datalist>
                                     </div>
+                                  ) : block.type === 'warmup' ? (
+                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
+                                      {block.name || 'Warm up'}
+                                    </span>
                                   ) : (
                                     <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                   )}
@@ -6431,6 +6462,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 {!isClosed && (
                                   <div>
+                                    {block.type !== 'warmup' && (
                                     <div style={{ marginBottom: '10px' }}>
                                       <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                       {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
@@ -6443,6 +6475,7 @@ const [notificationError, setNotificationError] = useState('');
                                         </button>
                                       )}
                                     </div>
+                                    )}
                                     {block.type === 'test' ? (
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
                                         {(() => {
@@ -6479,6 +6512,10 @@ const [notificationError, setNotificationError] = useState('');
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
                                             <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                           </div>
+                                          <div style={{ flex: '1 1 90px', minWidth: 0 }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
+                                            <input type="text" placeholder="1' oppure no" value={block.warmRest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                          </div>
                                         </div>
  
                                         {(block.items || []).map((it: any, i: number) => (
@@ -6514,6 +6551,9 @@ const [notificationError, setNotificationError] = useState('');
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                           <Icona nome="piu" size={13} /> Aggiungi esercizio
                                         </button>
+ 
+      <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
+      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
                                       </div>
                                     ) : isMobility(block.name) ? (
                                       <div>
@@ -6948,6 +6988,8 @@ const [notificationError, setNotificationError] = useState('');
                                             ))}
                                           </datalist>
                                         </div>
+                                      ) : block.type === 'warmup' ? (
+                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>{block.name || 'Warm up'}</span>
                                       ) : (
                                         <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                       )}
@@ -6955,6 +6997,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {!isClosed && (
                                       <div>
+                                        {block.type !== 'warmup' && (
                                         <div style={{ marginBottom: '10px' }}>
                                           <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
                                           {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
@@ -6967,6 +7010,7 @@ const [notificationError, setNotificationError] = useState('');
                                             </button>
                                           )}
                                         </div>
+                                        )}
                                         {block.type === 'test' ? (
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
                                             {(() => {
@@ -7003,6 +7047,10 @@ const [notificationError, setNotificationError] = useState('');
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
                                                 <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                               </div>
+                                              <div style={{ flex: '1 1 90px', minWidth: 0 }}>
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
+                                                <input type="text" placeholder="1' oppure no" value={block.warmRest || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                              </div>
                                             </div>
  
                                             {(block.items || []).map((it: any, i: number) => (
@@ -7038,6 +7086,9 @@ const [notificationError, setNotificationError] = useState('');
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                               <Icona nome="piu" size={13} /> Aggiungi esercizio
                                             </button>
+ 
+      <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
+      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
                                           </div>
                                         ) : isMobility(block.name) ? (
                                           <div>
@@ -8024,6 +8075,33 @@ const [notificationError, setNotificationError] = useState('');
                                                         {athleteResults[prog.id]?.[blockKey]?.done ? 'Completato' : 'Segna come fatto'}
                                                       </span>
                                                     </button>
+ 
+                                                    {(() => {
+                                                      const grezzo = String(blk.warmRest || '').trim();
+                                                      const senza = !grezzo || /^(no|nessuno|niente|0)$/i.test(grezzo);
+                                                      if (senza) {
+                                                        return (
+                                                          <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
+                                                            Nessun recupero tra i round
+                                                          </span>
+                                                        );
+                                                      }
+                                                      const sec = parseRestSeconds(grezzo);
+                                                      return (
+                                                        <button
+                                                          onClick={() => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 60, daImpostare: true }); }}
+                                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                                                        >
+                                                          <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
+                                                        </button>
+                                                      );
+                                                    })()}
+ 
+                                                    {blk.notes && (
+                                                      <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                        {blk.notes}
+                                                      </p>
+                                                    )}
                                                   </div>
                                                 ) : isMobility(blk.name) ? (
                                                   <div>
