@@ -2171,7 +2171,8 @@ export default function TrainingApp() {
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
   // Copia dei valori già salvati: serve a capire se un nuovo dato è davvero un record
   const [savedMaxes, setSavedMaxes] = useState<{ [exercise: string]: any }>({});
-  const [savedCoachMaxes, setSavedCoachMaxes] = useState<{ [athleteId: string]: any }>({});  const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
+  const [savedCoachMaxes, setSavedCoachMaxes] = useState<{ [athleteId: string]: any }>({});
+  const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
@@ -5514,8 +5515,7 @@ const [notificationError, setNotificationError] = useState('');
                   <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
                   </div>
  
-                  {coachMaxSubTab === 'strength' && (
-                  <div>
+                  {coachMaxSubTab === 'strength' && (                  <div>
                     <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
                       <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
                       <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>
@@ -6801,13 +6801,21 @@ const [notificationError, setNotificationError] = useState('');
                                         </label>
                                         {(block.items || []).map((it: any, i: number) => (
                                           <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
-                                              <CampoEsercizio
-                                                placeholder="Nome esercizio"
-                                                valore={it.name}
-                                                onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                                elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                                style={{ flex: 1, minWidth: 0 }}
+                                            <CampoEsercizio
+                                              placeholder="Nome esercizio"
+                                              valore={it.name}
+                                              onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                              elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                              style={{ marginBottom: '7px' }}
+                                            />
+ 
+                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
+                                              <input
+                                                type="url"
+                                                placeholder="Link video"
+                                                value={it.videoUrl || ''}
+                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
+                                                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }}
                                               />
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="su" size={14} />
@@ -6819,7 +6827,6 @@ const [notificationError, setNotificationError] = useState('');
                                                 <Icona nome="cestino" size={14} />
                                               </button>
                                             </div>
-                                            <input type="url" placeholder="Link video" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                           </div>
                                         ))}
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
@@ -7400,13 +7407,21 @@ const [notificationError, setNotificationError] = useState('');
                                             </label>
                                             {(block.items || []).map((it: any, i: number) => (
                                               <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
-                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
-                                                  <CampoEsercizio
-                                                    placeholder="Nome esercizio"
-                                                    valore={it.name}
-                                                    onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                                    elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                                    style={{ flex: 1, minWidth: 0 }}
+                                                <CampoEsercizio
+                                                  placeholder="Nome esercizio"
+                                                  valore={it.name}
+                                                  onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                  elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                  style={{ marginBottom: '7px' }}
+                                                />
+ 
+                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
+                                                  <input
+                                                    type="url"
+                                                    placeholder="Link video"
+                                                    value={it.videoUrl || ''}
+                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
+                                                    style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }}
                                                   />
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="su" size={14} />
@@ -7418,7 +7433,6 @@ const [notificationError, setNotificationError] = useState('');
                                                     <Icona nome="cestino" size={14} />
                                                   </button>
                                                 </div>
-                                                <input type="url" placeholder="Link video" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                               </div>
                                             ))}
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
@@ -7736,7 +7750,8 @@ const [notificationError, setNotificationError] = useState('');
  
           {subscriptionStatus === 'prova' && !trialChoice && (
             <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid #d8dde3', padding: '20px', marginBottom: '20px' }}>
-              <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+              <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
                 Scegli lo stile di allenamento che preferisci: riceverai subito cinque giorni di allenamento da provare.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
