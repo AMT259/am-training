@@ -223,7 +223,8 @@ function sortMetconNames(names: string[]): string[] {
 }
  
 // Stato temporale di un programma, per colorare le date
-// Legge una data come mezzanotte locale, non UTC: altrimenti in Italia// un programma che inizia oggi risulterebbe "non ancora iniziato"
+// Legge una data come mezzanotte locale, non UTC: altrimenti in Italia
+// un programma che inizia oggi risulterebbe "non ancora iniziato"
 function parseLocalDate(s: any): Date | null {
   if (!s) return null;
   const parti = String(s).split('T')[0].split('-').map(Number);
@@ -670,8 +671,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
   const oneRM = estimate1RM(exMaxes);
   const hasDirect1RM = exMaxes && parseWeightValue(exMaxes[1]);
  
-  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"
-  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
   if (pctMatch) {
     const pct = parseFloat(pctMatch[1].replace(',', '.'));
     const baseReps = pctMatch[2] ? parseInt(pctMatch[2]) : 1;
@@ -1006,7 +1006,7 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
         value={valore || ''}
         onFocus={() => { valutaSpazio(); setAperta(true); }}
         onChange={(e: any) => { onChange(e.target.value); valutaSpazio(); setAperta(true); }}
-        style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
       />
  
       {aperta && suggeriti.length > 0 && (
@@ -1015,7 +1015,7 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
             position: 'absolute', left: 0, right: 0, zIndex: 60,
             ...(sopra ? { bottom: 'calc(100% + 4px)' } : { top: 'calc(100% + 4px)' }),
             background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.18)', maxHeight: '200px', overflowY: 'auto',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.18)', maxHeight: '240px', overflowY: 'auto',
           }}
         >
           {suggeriti.map((n: string, i: number) => (
@@ -1026,8 +1026,8 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
               onClick={() => { onChange(n); setAperta(false); }}
               style={{
                 display: 'block', width: '100%', boxSizing: 'border-box', textAlign: 'left',
-                padding: '10px 11px', border: 'none', background: 'none', cursor: 'pointer',
-                fontSize: '13px', color: '#000',
+                padding: '12px 12px', border: 'none', background: 'none', cursor: 'pointer',
+                fontSize: '14.5px', color: '#000',
                 borderBottom: i < suggeriti.length - 1 ? '1px solid #f1f5f9' : 'none',
               }}
             >
@@ -1528,8 +1528,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
           <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>{descrizione}</span>
-        </span>
-      </button>
+        </span>     </button>
     );
  
     return (
@@ -3303,8 +3302,8 @@ const [notificationError, setNotificationError] = useState('');
         if (m[oldName] === undefined) continue;
         const updated: any = {};
         Object.keys(m).forEach((k) => {
-          updated[k === oldName ? newName : k] = m[k];
-        });        await supabase.from('athlete_maxes')
+          updated[k === oldName ? newName : k] = m[k];     });
+        await supabase.from('athlete_maxes')
           .upsert({ athlete_id: row.athlete_id, maxes: updated, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
       }
     }
@@ -6709,33 +6708,35 @@ const [notificationError, setNotificationError] = useState('');
                                         </div>
  
                                         {(block.items || []).map((it: any, i: number) => (
-                                          <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
-                                            <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
-                                              <CampoEsercizio
-                                                placeholder="Esercizio"
-                                                valore={it.name}
-                                                onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                                elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                                style={{ flex: '2 1 120px', minWidth: 0 }}
-                                              />
+                                          <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                            <CampoEsercizio
+                                              placeholder="Nome esercizio"
+                                              valore={it.name}
+                                              onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                              elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                              style={{ marginBottom: '7px' }}
+                                            />
+ 
+                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
                                               <input
                                                 type="text"
                                                 placeholder="10 rep / 30&quot;"
                                                 value={it.value || ''}
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
-                                                style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
                                               />
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                <Icona nome="su" size={12} />
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="su" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                <Icona nome="giu" size={12} />
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="giu" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
-                                                <Icona nome="cestino" size={13} />
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="cestino" size={14} />
                                               </button>
                                             </div>
-                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }} />
+ 
+                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                           </div>
                                         ))}
  
@@ -6797,30 +6798,26 @@ const [notificationError, setNotificationError] = useState('');
                                           Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
                                         </label>
                                         {(block.items || []).map((it: any, i: number) => (
-                                          <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                                            <CampoEsercizio
-                                              placeholder="Nome esercizio"
-                                              valore={it.name}
-                                              onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                              elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                              style={{ flex: '1 1 110px', minWidth: 0 }}
-                                            />
-                                            <input
-                                              type="url"
-                                              placeholder="Link video"
-                                              value={it.videoUrl || ''}
-                                              onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
-                                              style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
-                                            />
-                                            <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                              <Icona nome="su" size={12} />
-                                            </button>
-                                            <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                              <Icona nome="giu" size={12} />
-                                            </button>
-                                            <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
-                                              <Icona nome="cestino" size={12} />
-                                            </button>
+                                          <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                              <CampoEsercizio
+                                                placeholder="Nome esercizio"
+                                                valore={it.name}
+                                                onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                style={{ flex: 1, minWidth: 0 }}
+                                              />
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="su" size={14} />
+                                              </button>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="giu" size={14} />
+                                              </button>
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                <Icona nome="cestino" size={14} />
+                                              </button>
+                                            </div>
+                                            <input type="url" placeholder="Link video" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                           </div>
                                         ))}
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
@@ -7310,33 +7307,35 @@ const [notificationError, setNotificationError] = useState('');
                                             </div>
  
                                             {(block.items || []).map((it: any, i: number) => (
-                                              <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
-                                                <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
-                                                  <CampoEsercizio
-                                                    placeholder="Esercizio"
-                                                    valore={it.name}
-                                                    onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                                    elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                                    style={{ flex: '2 1 120px', minWidth: 0 }}
-                                                  />
+                                              <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                                <CampoEsercizio
+                                                  placeholder="Nome esercizio"
+                                                  valore={it.name}
+                                                  onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                  elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                  style={{ marginBottom: '7px' }}
+                                                />
+ 
+                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
                                                   <input
                                                     type="text"
                                                     placeholder="10 rep / 30&quot;"
                                                     value={it.value || ''}
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
-                                                    style={{ flex: '1 1 90px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                    style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
                                                   />
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                    <Icona nome="su" size={12} />
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="su" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                    <Icona nome="giu" size={12} />
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="giu" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 9px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
-                                                    <Icona nome="cestino" size={13} />
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="cestino" size={14} />
                                                   </button>
                                                 </div>
-                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }} />
+ 
+                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                               </div>
                                             ))}
  
@@ -7398,30 +7397,26 @@ const [notificationError, setNotificationError] = useState('');
                                               Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
                                             </label>
                                             {(block.items || []).map((it: any, i: number) => (
-                                              <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                                                <CampoEsercizio
-                                                  placeholder="Nome esercizio"
-                                                  valore={it.name}
-                                                  onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
-                                                  elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
-                                                  style={{ flex: '1 1 110px', minWidth: 0 }}
-                                                />
-                                                <input
-                                                  type="url"
-                                                  placeholder="Link video"
-                                                  value={it.videoUrl || ''}
-                                                  onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
-                                                  style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
-                                                />
-                                                <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} disabled={i === 0} title="Sposta su" style={{ background: i === 0 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === 0 ? '#cbd5e1' : '#0369a1', cursor: i === 0 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                  <Icona nome="su" size={12} />
-                                                </button>
-                                                <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} disabled={i === (block.items || []).length - 1} title="Sposta giù" style={{ background: i === (block.items || []).length - 1 ? '#f1f5f9' : '#e0f2fe', border: 'none', borderRadius: '6px', padding: '0 7px', color: i === (block.items || []).length - 1 ? '#cbd5e1' : '#0369a1', cursor: i === (block.items || []).length - 1 ? 'default' : 'pointer', flexShrink: 0 }}>
-                                                  <Icona nome="giu" size={12} />
-                                                </button>
-                                                <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
-                                                  <Icona nome="cestino" size={12} />
-                                                </button>
+                                              <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                                  <CampoEsercizio
+                                                    placeholder="Nome esercizio"
+                                                    valore={it.name}
+                                                    onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                    elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                    style={{ flex: 1, minWidth: 0 }}
+                                                  />
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="su" size={14} />
+                                                  </button>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="giu" size={14} />
+                                                  </button>
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                    <Icona nome="cestino" size={14} />
+                                                  </button>
+                                                </div>
+                                                <input type="url" placeholder="Link video" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }} />
                                               </div>
                                             ))}
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
