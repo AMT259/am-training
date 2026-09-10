@@ -962,6 +962,85 @@ function costruisciFasi(cfg: any): any[] {
   return [];
 }
  
+// Campo con tendina dei suggerimenti agganciata alla casella.
+// Il datalist del browser su iPhone finisce sopra la tastiera, lontano
+// da dove si sta scrivendo: questa invece resta attaccata al campo.
+function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
+  const [aperta, setAperta] = useState(false);
+  const [sopra, setSopra] = useState(false);
+  const contenitore = React.useRef<any>(null);
+ 
+  const pulisci = (s: any) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cerca = pulisci(valore);
+ 
+  const suggeriti = (elenco || [])
+    .filter((n: string) => n && (!cerca || pulisci(n).includes(cerca)))
+    .filter((n: string) => pulisci(n) !== cerca)
+    .slice(0, 8);
+ 
+  // Se il campo è in fondo allo schermo apro la tendina verso l'alto
+  const valutaSpazio = () => {
+    const el = contenitore.current;
+    if (!el) return;
+    const sotto = window.innerHeight - el.getBoundingClientRect().bottom;
+    setSopra(sotto < 220);
+  };
+ 
+  useEffect(() => {
+    if (!aperta) return;
+    const chiudi = (e: any) => {
+      if (contenitore.current && !contenitore.current.contains(e.target)) setAperta(false);
+    };
+    document.addEventListener('mousedown', chiudi);
+    document.addEventListener('touchstart', chiudi);
+    return () => {
+      document.removeEventListener('mousedown', chiudi);
+      document.removeEventListener('touchstart', chiudi);
+    };
+  }, [aperta]);
+ 
+  return (
+    <div ref={contenitore} style={{ position: 'relative', ...(style || {}) }}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={valore || ''}
+        onFocus={() => { valutaSpazio(); setAperta(true); }}
+        onChange={(e: any) => { onChange(e.target.value); valutaSpazio(); setAperta(true); }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+      />
+ 
+      {aperta && suggeriti.length > 0 && (
+        <div
+          style={{
+            position: 'absolute', left: 0, right: 0, zIndex: 60,
+            ...(sopra ? { bottom: 'calc(100% + 4px)' } : { top: 'calc(100% + 4px)' }),
+            background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px',
+            boxShadow: '0 8px 20px rgba(0,0,0,0.18)', maxHeight: '200px', overflowY: 'auto',
+          }}
+        >
+          {suggeriti.map((n: string, i: number) => (
+            <button
+              key={i}
+              type="button"
+              onMouseDown={(e: any) => e.preventDefault()}
+              onClick={() => { onChange(n); setAperta(false); }}
+              style={{
+                display: 'block', width: '100%', boxSizing: 'border-box', textAlign: 'left',
+                padding: '10px 11px', border: 'none', background: 'none', cursor: 'pointer',
+                fontSize: '13px', color: '#000',
+                borderBottom: i < suggeriti.length - 1 ? '1px solid #f1f5f9' : 'none',
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+ 
 // Campo del timer: minuti e secondi separati, come si legge un cronometro.
 // Una casella lasciata vuota vale zero.
 function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
@@ -1839,8 +1918,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <h4 style={hStyle}>2. Finalità del trattamento</h4>
       <p style={pStyle}>I Suoi dati personali sono trattati per le seguenti finalità.</p>
       <p style={sStyle}>A) Finalità necessarie alla fornitura del servizio</p>
-      <p style={pStyle}>I dati identificativi, di contatto e quelli relativi all’allenamento sono trattati, senza che sia necessario acquisire uno specifico consenso, ai sensi dell’art. 6, par. 1, lett. b), del GDPR, nella misura in cui il loro trattamento sia necessario per l’esecuzione del rapporto con il Titolare e per consentire all’utente di usufruire delle funzionalità messe a disposizione attraverso l’applicazione.</p>
-      <p style={pStyle}>In tale ambito, i dati sono utilizzati per consentire la registrazione dell’utente e la gestione del relativo account, nonché per permettere l’accesso e l’utilizzo dell’applicazione. Il trattamento è inoltre finalizzato a consentire al Titolare, nella propria qualità di coach, di predisporre, assegnare e gestire i programmi di allenamento, nonché di registrare e monitorare i risultati e i progressi dell’utente nel corso dell’attività sportiva.</p>
+      <p style={pStyle}>I dati identificativi, di contatto e quelli relativi all’allenamento sono trattati, senza che sia necessario acquisire uno specifico consenso, ai sensi dell’art. 6, par. 1, lett. b), del GDPR, nella misura in cui il loro trattamento sia necessario per l’esecuzione del rapporto con il Titolare e per consentire all’utente di usufruire delle funzionalità messe a disposizione attraverso l’applicazione.</p>      <p style={pStyle}>In tale ambito, i dati sono utilizzati per consentire la registrazione dell’utente e la gestione del relativo account, nonché per permettere l’accesso e l’utilizzo dell’applicazione. Il trattamento è inoltre finalizzato a consentire al Titolare, nella propria qualità di coach, di predisporre, assegnare e gestire i programmi di allenamento, nonché di registrare e monitorare i risultati e i progressi dell’utente nel corso dell’attività sportiva.</p>
       <p style={pStyle}>I dati potranno altresì essere utilizzati per gestire le comunicazioni inerenti al servizio e per garantire il corretto funzionamento, la sicurezza e la manutenzione dell’applicazione. Il trattamento potrà inoltre essere effettuato per adempiere agli obblighi derivanti da leggi, regolamenti o dalla normativa europea applicabile, nonché, ove necessario, per l’accertamento, l’esercizio o la difesa di un diritto del Titolare.</p>
       <p style={sStyle}>B) Trattamento dei dati relativi alla salute</p>
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
@@ -3723,8 +3801,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Cerca l'ultima volta che l'atleta ha fatto un esercizio e con che peso.
-  // Serve per suggerire un carico anche dove non ci sono massimali registrati.
-  const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
+  // Serve per suggerire un carico anche dove non ci sono massimali registrati.  const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
  
   const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string, repsAttuali?: any) => {
     const risultatiAtleta: { [k: string]: any } = {};
@@ -5446,7 +5523,8 @@ const [notificationError, setNotificationError] = useState('');
                           style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
                         />
                         <datalist id="max_ex_suggestions">
-                          {exerciseLibrary.filter((e: any) => !e.dismissed && !e.track_max).map((e: any) => (                            <option key={e.id} value={e.name} />
+                          {exerciseLibrary.filter((e: any) => !e.dismissed && !e.track_max).map((e: any) => (
+                            <option key={e.id} value={e.name} />
                           ))}
                         </datalist>
                         <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
@@ -6559,7 +6637,7 @@ const [notificationError, setNotificationError] = useState('');
                                     {block.type !== 'warmup' && (
                                     <div style={{ marginBottom: '10px' }}>
                                       <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
-                                      {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
+                                      {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
                                         <button
                                           type="button"
                                           onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
@@ -6634,13 +6712,12 @@ const [notificationError, setNotificationError] = useState('');
                                         {(block.items || []).map((it: any, i: number) => (
                                           <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
                                             <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
-                                              <input
-                                                type="text"
-                                                list={`warm_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                              <CampoEsercizio
                                                 placeholder="Esercizio"
-                                                value={it.name || ''}
-                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
-                                                style={{ flex: '2 1 120px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                valore={it.name}
+                                                onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                style={{ flex: '2 1 120px', minWidth: 0 }}
                                               />
                                               <input
                                                 type="text"
@@ -6657,9 +6734,6 @@ const [notificationError, setNotificationError] = useState('');
                                           </div>
                                         ))}
  
-                                        <datalist id={`warm_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                          {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
-                                        </datalist>
  
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                           <Icona nome="piu" size={13} /> Aggiungi esercizio
@@ -6719,13 +6793,12 @@ const [notificationError, setNotificationError] = useState('');
                                         </label>
                                         {(block.items || []).map((it: any, i: number) => (
                                           <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                                            <input
-                                              type="text"
-                                              list={`wod_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                            <CampoEsercizio
                                               placeholder="Nome esercizio"
-                                              value={it.name || ''}
-                                              onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
-                                              style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12.5px' }}
+                                              valore={it.name}
+                                              onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                              elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                              style={{ flex: '1 1 110px', minWidth: 0 }}
                                             />
                                             <input
                                               type="url"
@@ -6739,9 +6812,6 @@ const [notificationError, setNotificationError] = useState('');
                                             </button>
                                           </div>
                                         ))}
-                                        <datalist id={`wod_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                          {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
-                                        </datalist>
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
                                           <Icona nome="piu" size={12} /> Aggiungi esercizio con video
                                         </button>
@@ -7166,7 +7236,7 @@ const [notificationError, setNotificationError] = useState('');
                                         {block.type !== 'warmup' && (
                                         <div style={{ marginBottom: '10px' }}>
                                           <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '12px' }} />
-                                          {block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
+                                          {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
                                             <button
                                               type="button"
                                               onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
@@ -7241,13 +7311,12 @@ const [notificationError, setNotificationError] = useState('');
                                             {(block.items || []).map((it: any, i: number) => (
                                               <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px', marginBottom: '7px' }}>
                                                 <div style={{ display: 'flex', gap: '7px', marginBottom: '6px' }}>
-                                                  <input
-                                                    type="text"
-                                                    list={`warm_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                                  <CampoEsercizio
                                                     placeholder="Esercizio"
-                                                    value={it.name || ''}
-                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
-                                                    style={{ flex: '2 1 120px', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
+                                                    valore={it.name}
+                                                    onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                    elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                    style={{ flex: '2 1 120px', minWidth: 0 }}
                                                   />
                                                   <input
                                                     type="text"
@@ -7264,9 +7333,6 @@ const [notificationError, setNotificationError] = useState('');
                                               </div>
                                             ))}
  
-                                            <datalist id={`warm_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                              {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
-                                            </datalist>
  
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                               <Icona nome="piu" size={13} /> Aggiungi esercizio
@@ -7326,13 +7392,12 @@ const [notificationError, setNotificationError] = useState('');
                                             </label>
                                             {(block.items || []).map((it: any, i: number) => (
                                               <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
-                                                <input
-                                                  type="text"
-                                                  list={`wod_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                                <CampoEsercizio
                                                   placeholder="Nome esercizio"
-                                                  value={it.name || ''}
-                                                  onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
-                                                  style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12.5px' }}
+                                                  valore={it.name}
+                                                  onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', v)}
+                                                  elenco={exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => ex.name)}
+                                                  style={{ flex: '1 1 110px', minWidth: 0 }}
                                                 />
                                                 <input
                                                   type="url"
@@ -7346,9 +7411,6 @@ const [notificationError, setNotificationError] = useState('');
                                                 </button>
                                               </div>
                                             ))}
-                                            <datalist id={`wod_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}>
-                                              {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
-                                            </datalist>
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
                                               <Icona nome="piu" size={12} /> Aggiungi esercizio con video
                                             </button>
