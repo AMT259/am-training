@@ -1918,7 +1918,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <h4 style={hStyle}>2. Finalità del trattamento</h4>
       <p style={pStyle}>I Suoi dati personali sono trattati per le seguenti finalità.</p>
       <p style={sStyle}>A) Finalità necessarie alla fornitura del servizio</p>
-      <p style={pStyle}>I dati identificativi, di contatto e quelli relativi all’allenamento sono trattati, senza che sia necessario acquisire uno specifico consenso, ai sensi dell’art. 6, par. 1, lett. b), del GDPR, nella misura in cui il loro trattamento sia necessario per l’esecuzione del rapporto con il Titolare e per consentire all’utente di usufruire delle funzionalità messe a disposizione attraverso l’applicazione.</p>      <p style={pStyle}>In tale ambito, i dati sono utilizzati per consentire la registrazione dell’utente e la gestione del relativo account, nonché per permettere l’accesso e l’utilizzo dell’applicazione. Il trattamento è inoltre finalizzato a consentire al Titolare, nella propria qualità di coach, di predisporre, assegnare e gestire i programmi di allenamento, nonché di registrare e monitorare i risultati e i progressi dell’utente nel corso dell’attività sportiva.</p>
+      <p style={pStyle}>I dati identificativi, di contatto e quelli relativi all’allenamento sono trattati, senza che sia necessario acquisire uno specifico consenso, ai sensi dell’art. 6, par. 1, lett. b), del GDPR, nella misura in cui il loro trattamento sia necessario per l’esecuzione del rapporto con il Titolare e per consentire all’utente di usufruire delle funzionalità messe a disposizione attraverso l’applicazione.</p>
+      <p style={pStyle}>In tale ambito, i dati sono utilizzati per consentire la registrazione dell’utente e la gestione del relativo account, nonché per permettere l’accesso e l’utilizzo dell’applicazione. Il trattamento è inoltre finalizzato a consentire al Titolare, nella propria qualità di coach, di predisporre, assegnare e gestire i programmi di allenamento, nonché di registrare e monitorare i risultati e i progressi dell’utente nel corso dell’attività sportiva.</p>
       <p style={pStyle}>I dati potranno altresì essere utilizzati per gestire le comunicazioni inerenti al servizio e per garantire il corretto funzionamento, la sicurezza e la manutenzione dell’applicazione. Il trattamento potrà inoltre essere effettuato per adempiere agli obblighi derivanti da leggi, regolamenti o dalla normativa europea applicabile, nonché, ove necessario, per l’accertamento, l’esercizio o la difesa di un diritto del Titolare.</p>
       <p style={sStyle}>B) Trattamento dei dati relativi alla salute</p>
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
@@ -3801,7 +3802,8 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Cerca l'ultima volta che l'atleta ha fatto un esercizio e con che peso.
-  // Serve per suggerire un carico anche dove non ci sono massimali registrati.  const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
+  // Serve per suggerire un carico anche dove non ci sono massimali registrati.
+  const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
  
   const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string, repsAttuali?: any) => {
     const risultatiAtleta: { [k: string]: any } = {};
