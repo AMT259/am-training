@@ -671,7 +671,8 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
   const oneRM = estimate1RM(exMaxes);
   const hasDirect1RM = exMaxes && parseWeightValue(exMaxes[1]);
  
-  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
+  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"
+  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
   if (pctMatch) {
     const pct = parseFloat(pctMatch[1].replace(',', '.'));
     const baseReps = pctMatch[2] ? parseInt(pctMatch[2]) : 1;
@@ -1528,7 +1529,8 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
           <span style={{ display: 'block', fontSize: '12px', color: '#a1a1aa', marginTop: '2px' }}>{descrizione}</span>
-        </span>     </button>
+        </span>
+      </button>
     );
  
     return (
@@ -2169,8 +2171,7 @@ export default function TrainingApp() {
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
   // Copia dei valori già salvati: serve a capire se un nuovo dato è davvero un record
   const [savedMaxes, setSavedMaxes] = useState<{ [exercise: string]: any }>({});
-  const [savedCoachMaxes, setSavedCoachMaxes] = useState<{ [athleteId: string]: any }>({});
-  const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
+  const [savedCoachMaxes, setSavedCoachMaxes] = useState<{ [athleteId: string]: any }>({});  const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
@@ -3302,7 +3303,8 @@ const [notificationError, setNotificationError] = useState('');
         if (m[oldName] === undefined) continue;
         const updated: any = {};
         Object.keys(m).forEach((k) => {
-          updated[k === oldName ? newName : k] = m[k];     });
+          updated[k === oldName ? newName : k] = m[k];
+        });
         await supabase.from('athlete_maxes')
           .upsert({ athlete_id: row.athlete_id, maxes: updated, updated_at: new Date().toISOString() }, { onConflict: 'athlete_id' });
       }
@@ -7734,8 +7736,7 @@ const [notificationError, setNotificationError] = useState('');
  
           {subscriptionStatus === 'prova' && !trialChoice && (
             <div style={{ background: '#fafafa', color: '#000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid #d8dde3', padding: '20px', marginBottom: '20px' }}>
-              <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+              <h3 style={{ margin: '0 0 6px 0', color: '#10b981', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
                 Scegli lo stile di allenamento che preferisci: riceverai subito cinque giorni di allenamento da provare.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
