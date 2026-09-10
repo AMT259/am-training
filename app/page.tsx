@@ -5446,8 +5446,7 @@ const [notificationError, setNotificationError] = useState('');
                           style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }}
                         />
                         <datalist id="max_ex_suggestions">
-                          {exerciseLibrary.filter((e: any) => !e.dismissed && !e.track_max).map((e: any) => (
-                            <option key={e.id} value={e.name} />
+                          {exerciseLibrary.filter((e: any) => !e.dismissed && !e.track_max).map((e: any) => (                            <option key={e.id} value={e.name} />
                           ))}
                         </datalist>
                         <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
@@ -6024,7 +6023,7 @@ const [notificationError, setNotificationError] = useState('');
                                                     title="Avvia il timer"
                                                     style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
                                                   >
-                                                    <Icona nome="play" size={11} />
+                                                    <Icona nome="timer" size={14} />
                                                   </button>
                                                 );
                                               })()}
@@ -6065,7 +6064,7 @@ const [notificationError, setNotificationError] = useState('');
                                                 onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
                                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
                                               >
-                                                <Icona nome="play" size={12} /> Avvia timer
+                                                <Icona nome="timer" size={13} /> Avvia timer
                                               </button>
                                             </div>
                                           );
@@ -6993,6 +6992,7 @@ const [notificationError, setNotificationError] = useState('');
                     </div>
                     </>)}
                   </div>
+ 
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -8303,7 +8303,7 @@ const [notificationError, setNotificationError] = useState('');
                                                                 title="Avvia il timer"
                                                                 style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
                                                               >
-                                                                <Icona nome="play" size={11} />
+                                                                <Icona nome="timer" size={14} />
                                                               </button>
                                                             );
                                                           })()}
@@ -8344,7 +8344,7 @@ const [notificationError, setNotificationError] = useState('');
                                                             onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
                                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
                                                           >
-                                                            <Icona nome="play" size={12} /> Avvia timer
+                                                            <Icona nome="timer" size={13} /> Avvia timer
                                                           </button>
                                                         </div>
                                                       );
