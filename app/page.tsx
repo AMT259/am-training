@@ -1066,6 +1066,22 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
   );
 }
  
+// Capisce se il valore di un esercizio del riscaldamento è un tempo
+// (30", 45 sec, 1'30) e non un numero di ripetizioni (10 rep, 12).
+// Serve per mostrare il timer solo dove ha senso.
+function tempoDaValore(valore: any): number | null {
+  if (!valore) return null;
+  const t = String(valore).toLowerCase().trim();
+ 
+  // se parla di ripetizioni non e' un tempo
+  if (/(rep|rip|volt)/i.test(t)) return null;
+ 
+  // deve contenere un segno di tempo: apostrofo, virgolette, sec, min, due punti
+  if (!/(["\u201d\u2033']|sec|min|\bs\b|\bm\b|:)/i.test(t)) return null;
+ 
+  return parseRestSeconds(t);
+}
+ 
 // Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
 function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: () => void; onRidotto?: (v: boolean) => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
@@ -1928,6 +1944,7 @@ export default function TrainingApp() {
   const [cercaProfili, setCercaProfili] = useState('');
   const [cercaPersonal, setCercaPersonal] = useState('');
   const [cercaProgrammi, setCercaProgrammi] = useState('');
+  const [cercaEsercizi, setCercaEsercizi] = useState('');
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -3715,7 +3732,8 @@ const [notificationError, setNotificationError] = useState('');
       const r = coachAllResults[pid]?.[athleteId];
       if (r) risultatiAtleta[pid] = r;
     });
-    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);  };
+    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);
+  };
  
   // Se l'atleta ha scritto un peso diverso per ogni serie (es. "7/7/6/6"),
   // lo mostro per intero invece del solo primo numero
@@ -5963,9 +5981,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {blk.type === 'warmup' ? (
                                       <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
-                                        {blk.rounds && (
+                                        {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
                                           <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
-                                            {blk.rounds}
+                                            {parseInt(String(blk.rounds), 10)} round
                                           </span>
                                         )}
                                         {(blk.items || []).length === 0 && (
@@ -5981,7 +5999,22 @@ const [notificationError, setNotificationError] = useState('');
                                                 </a>
                                               )}
                                             </span>
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                              {(() => {
+                                                const sec = tempoDaValore(it.value);
+                                                if (!sec) return null;
+                                                return (
+                                                  <button
+                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
+                                                    title="Avvia il timer"
+                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
+                                                  >
+                                                    <Icona nome="play" size={11} />
+                                                  </button>
+                                                );
+                                              })()}
+                                            </span>
                                           </div>
                                         ))}
                                         <button
@@ -6010,12 +6043,17 @@ const [notificationError, setNotificationError] = useState('');
                                             );
                                           }
                                           return (
-                                            <button
-                                              onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
-                                              style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-                                            >
-                                              <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
-                                            </button>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
+                                              <span style={{ fontSize: '12px', color: '#92400e' }}>
+                                                Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
+                                              </span>
+                                              <button
+                                                onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                              >
+                                                <Icona nome="play" size={12} /> Avvia timer
+                                              </button>
+                                            </div>
                                           );
                                         })()}
  
@@ -6133,6 +6171,23 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
                                         <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                      </div>
+                                    )}
+ 
+                                    {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
+                                        {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
+                                          <a
+                                            key={i}
+                                            href={it.videoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '6px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                          >
+                                            <Icona nome="video" size={12} /> {it.name}
+                                          </a>
+                                        ))}
                                       </div>
                                     )}
  
@@ -6535,8 +6590,8 @@ const [notificationError, setNotificationError] = useState('');
                                             <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                           </div>
                                           <div style={{ flex: '1 1 80px', minWidth: 0 }}>
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
-                                            <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>N. round</label>
+                                            <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }} />
                                           </div>
                                           <div style={{ flex: '1 1 120px', minWidth: 0 }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
@@ -6645,6 +6700,38 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                         <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
+ 
+                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
+                                          Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                        </label>
+                                        {(block.items || []).map((it: any, i: number) => (
+                                          <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                                            <input
+                                              type="text"
+                                              list={`wod_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                              placeholder="Nome esercizio"
+                                              value={it.name || ''}
+                                              onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
+                                              style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12.5px' }}
+                                            />
+                                            <input
+                                              type="url"
+                                              placeholder="Link video"
+                                              value={it.videoUrl || ''}
+                                              onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
+                                              style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
+                                            />
+                                            <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                              <Icona nome="cestino" size={12} />
+                                            </button>
+                                          </div>
+                                        ))}
+                                        <datalist id={`wod_list_edit_${actualWIdx}_${actualDIdx}_${bIdx}`}>
+                                          {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
+                                        </datalist>
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                          <Icona nome="piu" size={12} /> Aggiungi esercizio con video
+                                        </button>
                                       </div>
                                     )}
                                   </div>
@@ -6714,11 +6801,32 @@ const [notificationError, setNotificationError] = useState('');
                     </form>
                   )}
  
+                  <div style={{ position: 'relative', marginBottom: '12px' }}>
+                    <input
+                      type="text"
+                      placeholder="Cerca un esercizio..."
+                      value={cercaEsercizi}
+                      onChange={(e: any) => setCercaEsercizi(e.target.value)}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}
+                    />
+                    {cercaEsercizi && (
+                      <button onClick={() => setCercaEsercizi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                        <Icona nome="chiudi" size={15} />
+                      </button>
+                    )}
+                  </div>
+ 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed).length === 0 ? (
-                      <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>{showDeletedExercises ? 'Cestino vuoto.' : 'Nessun esercizio in libreria.'}</p>
+                    {exerciseLibrary.filter((ex) => (showDeletedExercises ? ex.dismissed : !ex.dismissed) && contiene(ex.name, cercaEsercizi)).length === 0 ? (
+                      <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
+                        {cercaEsercizi
+                          ? `Nessun esercizio con "${cercaEsercizi}".`
+                          : showDeletedExercises
+                            ? 'Il cestino è vuoto.'
+                            : 'Nessun esercizio in libreria.'}
+                      </p>
                     ) : (
-                      sortExerciseLibrary(exerciseLibrary.filter((ex) => showDeletedExercises ? ex.dismissed : !ex.dismissed)).map((ex) => (
+                      sortExerciseLibrary(exerciseLibrary.filter((ex) => (showDeletedExercises ? ex.dismissed : !ex.dismissed) && contiene(ex.name, cercaEsercizi))).map((ex) => (
                         libEditId === ex.id ? (
                           <div key={ex.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', border: '2px solid #10b981' }}>
                             <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Nome esercizio</label>
@@ -7089,8 +7197,8 @@ const [notificationError, setNotificationError] = useState('');
                                                 <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                               </div>
                                               <div style={{ flex: '1 1 80px', minWidth: 0 }}>
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
-                                                <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>N. round</label>
+                                                <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }} />
                                               </div>
                                               <div style={{ flex: '1 1 120px', minWidth: 0 }}>
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
@@ -7199,6 +7307,38 @@ const [notificationError, setNotificationError] = useState('');
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                             <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
+ 
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
+                                              Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                            </label>
+                                            {(block.items || []).map((it: any, i: number) => (
+                                              <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                                                <input
+                                                  type="text"
+                                                  list={`wod_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}
+                                                  placeholder="Nome esercizio"
+                                                  value={it.name || ''}
+                                                  onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'name', e.target.value)}
+                                                  style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12.5px' }}
+                                                />
+                                                <input
+                                                  type="url"
+                                                  placeholder="Link video"
+                                                  value={it.videoUrl || ''}
+                                                  onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
+                                                  style={{ flex: '1 1 110px', minWidth: 0, boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '11.5px' }}
+                                                />
+                                                <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '0 8px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <Icona nome="cestino" size={12} />
+                                                </button>
+                                              </div>
+                                            ))}
+                                            <datalist id={`wod_list_free_${actualWIdx}_${actualDIdx}_${bIdx}`}>
+                                              {exerciseLibrary.filter((ex: any) => !ex.dismissed).map((ex: any) => (<option key={ex.id} value={ex.name} />))}
+                                            </datalist>
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                              <Icona nome="piu" size={12} /> Aggiungi esercizio con video
+                                            </button>
                                           </div>
                                         )}
                                       </div>
@@ -8107,9 +8247,9 @@ const [notificationError, setNotificationError] = useState('');
                                               <div>
                                                 {blk.type === 'warmup' ? (
                                                   <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
-                                                    {blk.rounds && (
+                                                    {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
                                                       <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
-                                                        {blk.rounds}
+                                                        {parseInt(String(blk.rounds), 10)} round
                                                       </span>
                                                     )}
                                                     {(blk.items || []).length === 0 && (
@@ -8125,7 +8265,22 @@ const [notificationError, setNotificationError] = useState('');
                                                             </a>
                                                           )}
                                                         </span>
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+                                                          {(() => {
+                                                            const sec = tempoDaValore(it.value);
+                                                            if (!sec) return null;
+                                                            return (
+                                                              <button
+                                                                onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
+                                                                title="Avvia il timer"
+                                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
+                                                              >
+                                                                <Icona nome="play" size={11} />
+                                                              </button>
+                                                            );
+                                                          })()}
+                                                        </span>
                                                       </div>
                                                     ))}
                                                     <button
@@ -8154,12 +8309,17 @@ const [notificationError, setNotificationError] = useState('');
                                                         );
                                                       }
                                                       return (
-                                                        <button
-                                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
-                                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-                                                        >
-                                                          <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
-                                                        </button>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
+                                                          <span style={{ fontSize: '12px', color: '#92400e' }}>
+                                                            Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
+                                                          </span>
+                                                          <button
+                                                            onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
+                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                                          >
+                                                            <Icona nome="play" size={12} /> Avvia timer
+                                                          </button>
+                                                        </div>
                                                       );
                                                     })()}
  
@@ -8288,6 +8448,23 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
                                                     <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
                                                     <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                  </div>
+                                                )}
+ 
+                                                {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
+                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
+                                                    {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
+                                                      <a
+                                                        key={i}
+                                                        href={it.videoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                                      >
+                                                        <Icona nome="video" size={12} /> {it.name}
+                                                      </a>
+                                                    ))}
                                                   </div>
                                                 )}
  
