@@ -5990,17 +5990,31 @@ const [notificationError, setNotificationError] = useState('');
                                           <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
                                         )}
                                         {(blk.items || []).map((it: any, i: number) => (
-                                          <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '6px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
-                                              <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere' }}>{it.name}</span>
+                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                              {it.name}
+                                            </span>
+ 
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                              {it.value}
+                                            </span>
+ 
+                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
                                               {it.videoUrl && (
-                                                <a href={it.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', color: '#2563eb', flexShrink: 0 }}>
-                                                  <Icona nome="video" size={14} />
+                                                <a
+                                                  href={it.videoUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                  title="Guarda il video"
+                                                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                                >
+                                                  <Icona nome="video" size={12} />
                                                 </a>
                                               )}
                                             </span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+ 
+                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
                                               {(() => {
                                                 const sec = tempoDaValore(it.value);
                                                 if (!sec) return null;
@@ -6008,7 +6022,7 @@ const [notificationError, setNotificationError] = useState('');
                                                   <button
                                                     onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
                                                     title="Avvia il timer"
-                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
                                                   >
                                                     <Icona nome="play" size={11} />
                                                   </button>
@@ -6979,7 +6993,6 @@ const [notificationError, setNotificationError] = useState('');
                     </div>
                     </>)}
                   </div>
- 
                   <div style={{ marginBottom: '16px', background: '#f1f5f9', padding: '12px', borderRadius: '8px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
@@ -8256,17 +8269,31 @@ const [notificationError, setNotificationError] = useState('');
                                                       <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
                                                     )}
                                                     {(blk.items || []).map((it: any, i: number) => (
-                                                      <div key={i} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '6px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '7px', flex: 1, minWidth: 0 }}>
-                                                          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere' }}>{it.name}</span>
+                                                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                          {it.name}
+                                                        </span>
+ 
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                                          {it.value}
+                                                        </span>
+ 
+                                                        <span style={{ display: 'flex', justifyContent: 'center' }}>
                                                           {it.videoUrl && (
-                                                            <a href={it.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', color: '#2563eb', flexShrink: 0 }}>
-                                                              <Icona nome="video" size={14} />
+                                                            <a
+                                                              href={it.videoUrl}
+                                                              target="_blank"
+                                                              rel="noopener noreferrer"
+                                                              onClick={(e) => e.stopPropagation()}
+                                                              title="Guarda il video"
+                                                              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                                            >
+                                                              <Icona nome="video" size={12} />
                                                             </a>
                                                           )}
                                                         </span>
-                                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap' }}>{it.value}</span>
+ 
+                                                        <span style={{ display: 'flex', justifyContent: 'center' }}>
                                                           {(() => {
                                                             const sec = tempoDaValore(it.value);
                                                             if (!sec) return null;
@@ -8274,7 +8301,7 @@ const [notificationError, setNotificationError] = useState('');
                                                               <button
                                                                 onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
                                                                 title="Avvia il timer"
-                                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
+                                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
                                                               >
                                                                 <Icona nome="play" size={11} />
                                                               </button>
