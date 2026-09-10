@@ -1637,7 +1637,8 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         <p style={{ fontSize: '11px', color: '#71717a', marginTop: '14px', lineHeight: 1.45 }}>
           Con &quot;Riduci&quot; il timer diventa una barra in alto e continua a correre: sotto puoi leggere la scheda e inserire i risultati.
         </p>
-      </div>   </div>
+      </div>
+    </div>
   );
 }
  
@@ -3714,8 +3715,7 @@ const [notificationError, setNotificationError] = useState('');
       const r = coachAllResults[pid]?.[athleteId];
       if (r) risultatiAtleta[pid] = r;
     });
-    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);
-  };
+    return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);  };
  
   // Se l'atleta ha scritto un peso diverso per ogni serie (es. "7/7/6/6"),
   // lo mostro per intero invece del solo primo numero
@@ -3774,6 +3774,29 @@ const [notificationError, setNotificationError] = useState('');
  
   const togliWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, (attuali || []).filter((_: any, k: number) => k !== i));
+  };
+ 
+  // Sceglie il tipo di blocco. Passando a WARM UP, se il nome è vuoto
+  // lo compila da solo. Le due cose vanno fatte insieme: due aggiornamenti
+  // separati partirebbero dallo stesso stato e il secondo annullerebbe il primo.
+  const scegliTipoBlocco = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, tipo: string) => {
+    const sistema = (blocco: any) => {
+      blocco.type = tipo;
+      if (tipo === 'warmup' && (!blocco.name || !String(blocco.name).trim())) {
+        blocco.name = 'Warm up';
+      }
+    };
+ 
+    if (contesto === 'edit') {
+      if (!editingProgram) return;
+      const aggiornato = JSON.parse(JSON.stringify(editingProgram));
+      sistema(aggiornato.weeks[wIdx].days[dIdx].blocks[bIdx]);
+      setEditingProgram(aggiornato);
+    } else {
+      const aggiornato = JSON.parse(JSON.stringify(programWeeks));
+      sistema(aggiornato[wIdx].days[dIdx].blocks[bIdx]);
+      setProgramWeeks(aggiornato);
+    }
   };
  
   // Confronto per la ricerca: ignora maiuscole e accenti
@@ -5760,7 +5783,8 @@ const [notificationError, setNotificationError] = useState('');
                       onClick={() => setShowAddAthlete(true)}
                       style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '10px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
                     >
-                      ➕ Aggiungi atleta manualmente       </button>
+                      ➕ Aggiungi atleta manualmente
+                    </button>
                   ) : (
                     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#10b981' }}>Nuovo atleta</h4>
@@ -5925,7 +5949,7 @@ const [notificationError, setNotificationError] = useState('');
                                 return (
                                   <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || `Esercizio ${bIdx + 1}`}</span>
+                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}</span>
                                       {(blk.type === 'wod' || blk.type === 'test') && (
                                         <button
                                           type="button"
@@ -5973,8 +5997,11 @@ const [notificationError, setNotificationError] = useState('');
                                         </button>
  
                                         {(() => {
-                                          const grezzo = String(blk.warmRest || '').trim();
-                                          const senza = !grezzo || /^(no|nessuno|niente|0)$/i.test(grezzo);
+                                          const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
+                                          const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
+                                          const totale = mm * 60 + ss;
+                                          const grezzo = mmss(totale);
+                                          const senza = totale <= 0;
                                           if (senza) {
                                             return (
                                               <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
@@ -5982,10 +6009,9 @@ const [notificationError, setNotificationError] = useState('');
                                               </span>
                                             );
                                           }
-                                          const sec = parseRestSeconds(grezzo);
                                           return (
                                             <button
-                                              onClick={() => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 60, daImpostare: true }); }}
+                                              onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
                                               style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
                                             >
                                               <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
@@ -6397,7 +6423,7 @@ const [notificationError, setNotificationError] = useState('');
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
+                                    <button type="button" onClick={() => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -6506,15 +6532,34 @@ const [notificationError, setNotificationError] = useState('');
                                         <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
                                           <div style={{ flex: '2 1 150px', minWidth: 0 }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
-                                            <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                            <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                           </div>
                                           <div style={{ flex: '1 1 80px', minWidth: 0 }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
                                             <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                           </div>
-                                          <div style={{ flex: '1 1 90px', minWidth: 0 }}>
+                                          <div style={{ flex: '1 1 120px', minWidth: 0 }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
-                                            <input type="text" placeholder="1' oppure no" value={block.warmRest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                              <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                placeholder="0"
+                                                value={block.warmRestMin ?? ''}
+                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                              />
+                                              <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+                                              <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                placeholder="0"
+                                                value={block.warmRestSec ?? ''}
+                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                              />
+                                            </div>
+                                            <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
                                           </div>
                                         </div>
  
@@ -6937,7 +6982,7 @@ const [notificationError, setNotificationError] = useState('');
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
+                                        <button type="button" onClick={() => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
@@ -7041,15 +7086,34 @@ const [notificationError, setNotificationError] = useState('');
                                             <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
                                               <div style={{ flex: '2 1 150px', minWidth: 0 }}>
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
-                                                <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                                <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                               </div>
                                               <div style={{ flex: '1 1 80px', minWidth: 0 }}>
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
                                                 <input type="text" placeholder="3 rnd" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                                               </div>
-                                              <div style={{ flex: '1 1 90px', minWidth: 0 }}>
+                                              <div style={{ flex: '1 1 120px', minWidth: 0 }}>
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
-                                                <input type="text" placeholder="1' oppure no" value={block.warmRest || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                  <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="0"
+                                                    value={block.warmRestMin ?? ''}
+                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                                  />
+                                                  <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+                                                  <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="0"
+                                                    value={block.warmRestSec ?? ''}
+                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                                  />
+                                                </div>
+                                                <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
                                               </div>
                                             </div>
  
@@ -7388,7 +7452,7 @@ const [notificationError, setNotificationError] = useState('');
                                               <div key={bIdx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '3px solid #10b981', borderRadius: '8px', padding: '9px 11px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
                                                   <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000', flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
-                                                    {blk.name || `Esercizio ${bIdx + 1}`}
+                                                    {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}
                                                   </span>
                                                   {blockData.score && (
                                                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', background: '#ecfdf5', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
@@ -8019,7 +8083,7 @@ const [notificationError, setNotificationError] = useState('');
                                               onClick={() => toggleBlockCollapse(blockKey)}
                                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', cursor: 'pointer' }}
                                             >
-                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name}</div>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : '')}</div>
                                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                                                 {(blk.type === 'wod' || blk.type === 'test') && (
                                                   <button
@@ -8077,8 +8141,11 @@ const [notificationError, setNotificationError] = useState('');
                                                     </button>
  
                                                     {(() => {
-                                                      const grezzo = String(blk.warmRest || '').trim();
-                                                      const senza = !grezzo || /^(no|nessuno|niente|0)$/i.test(grezzo);
+                                                      const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
+                                                      const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
+                                                      const totale = mm * 60 + ss;
+                                                      const grezzo = mmss(totale);
+                                                      const senza = totale <= 0;
                                                       if (senza) {
                                                         return (
                                                           <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
@@ -8086,10 +8153,9 @@ const [notificationError, setNotificationError] = useState('');
                                                           </span>
                                                         );
                                                       }
-                                                      const sec = parseRestSeconds(grezzo);
                                                       return (
                                                         <button
-                                                          onClick={() => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 60, daImpostare: true }); }}
+                                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
                                                           style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '7px', padding: '9px', borderRadius: '8px', border: '1px solid #fcd34d', background: '#fef3c7', color: '#92400e', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
                                                         >
                                                           <Icona nome="timer" size={13} /> Rest tra i round: {grezzo}
