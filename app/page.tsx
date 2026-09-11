@@ -3122,7 +3122,8 @@ const [notificationError, setNotificationError] = useState('');
     // Se la data di nascita fa cambiare categoria (maggiorenne/minorenne), l'informativa
     // da accettare è un'altra: il consenso va ripreso da capo.
     const dataPrecedente = isCoachEditing
-      ? coachAllPersonalData[userId]?.birth_date      : savedBirthDate;
+      ? coachAllPersonalData[userId]?.birth_date
+      : savedBirthDate;
     const cambiaCategoria = isMinorenne(dataPrecedente) !== isMinorenne(data.birth_date);
  
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
@@ -4276,14 +4277,24 @@ const [notificationError, setNotificationError] = useState('');
         </div>
  
         {periodoProgressi === 'scelto' && (
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ marginBottom: '9px' }}>
               <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Dal</label>
-              <input type="date" value={daData} onChange={(e: any) => setDaData(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+              <input
+                type="date"
+                value={daData}
+                onChange={(e: any) => setDaData(e.target.value)}
+                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: '#fff' }}
+              />
             </div>
-            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+            <div>
               <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Al</label>
-              <input type="date" value={aData} onChange={(e: any) => setAData(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+              <input
+                type="date"
+                value={aData}
+                onChange={(e: any) => setAData(e.target.value)}
+                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: '#fff' }}
+              />
             </div>
           </div>
         )}
@@ -6072,8 +6083,7 @@ const [notificationError, setNotificationError] = useState('');
                         {exerciseLibrary.filter((e: any) => !e.dismissed && !e.pr_kind).map((e: any) => (
                           <option key={e.id} value={e.name} />
                         ))}
-                      </datalist>
-                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      </datalist>                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
  
