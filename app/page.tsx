@@ -1041,6 +1041,71 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
   );
 }
  
+// Finestra con i progressi di carico di un programma
+function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
+  if (!dati) return null;
+ 
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.75)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
+    >
+      <div
+        onClick={(e: any) => e.stopPropagation()}
+        style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '82vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <div style={{ padding: '16px 18px', borderBottom: '1px solid #e2e8f0' }}>
+          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px' }}>PROGRESSI DI CARICO</span>
+          <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#000', marginTop: '2px', overflowWrap: 'anywhere' }}>{titolo}</span>
+          <span style={{ display: 'block', fontSize: '13px', color: dati.migliorati > 0 ? '#047857' : '#64748b', fontWeight: 'bold', marginTop: '6px' }}>
+            {perAtleta
+              ? (dati.migliorati > 0
+                  ? `Sei migliorato in ${dati.migliorati} ${dati.migliorati === 1 ? 'esercizio' : 'esercizi'} su ${dati.totale}`
+                  : 'Nessun aumento di carico in questo programma')
+              : `${dati.migliorati} ${dati.migliorati === 1 ? 'esercizio migliorato' : 'esercizi migliorati'} su ${dati.totale}`}
+          </span>
+        </div>
+ 
+        <div style={{ padding: '14px 18px', overflowY: 'auto', flex: 1 }}>
+          {dati.esercizi.map((ex: any, i: number) => (
+            <div key={i} style={{ marginBottom: '14px' }}>
+              <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: '#000', marginBottom: '5px', overflowWrap: 'anywhere' }}>
+                {ex.nome}
+              </span>
+              {ex.righe.map((r: any, k: number) => {
+                const colore = r.diff > 0 ? '#047857' : r.diff < 0 ? '#b91c1c' : '#64748b';
+                const sfondo = r.diff > 0 ? '#ecfdf5' : r.diff < 0 ? '#fef2f2' : '#f8fafc';
+                return (
+                  <div key={k} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', background: sfondo, borderRadius: '7px', padding: '8px 10px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '12.5px', color: '#334155' }}>
+                      <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: colore, whiteSpace: 'nowrap' }}>
+                      {r.diff > 0 ? '+' : ''}{r.diff} kg{r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+ 
+          {dati.esclusi > 0 && (
+            <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#94a3b8', lineHeight: 1.5 }}>
+              {dati.esclusi} {dati.esclusi === 1 ? 'serie esclusa' : 'serie escluse'} dal confronto: per essere confrontabili servono almeno due volte lo stesso esercizio con lo stesso numero di ripetizioni.
+            </p>
+          )}
+        </div>
+ 
+        <div style={{ padding: '12px 18px', borderTop: '1px solid #e2e8f0' }}>
+          <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '9px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+            Chiudi
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
 // Campo del timer: minuti e secondi separati, come si legge un cronometro.
 // Una casella lasciata vuota vale zero.
 function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
@@ -2024,6 +2089,7 @@ export default function TrainingApp() {
   const [cercaPersonal, setCercaPersonal] = useState('');
   const [cercaProgrammi, setCercaProgrammi] = useState('');
   const [cercaEsercizi, setCercaEsercizi] = useState('');
+  const [progressiAperti, setProgressiAperti] = useState<any>(null);
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -2311,8 +2377,7 @@ const [notificationError, setNotificationError] = useState('');
         const daysRemaining = getCalendarDaysDifference(prog.endDate);
         if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
  
-        const dayText =
-          daysRemaining === 0
+        const dayText =          daysRemaining === 0
             ? 'scade oggi'
             : `scade tra ${daysRemaining} giorni`;
  
@@ -3904,6 +3969,117 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
+  // Confronta il primo e l'ultimo carico inserito per ogni esercizio di forza
+  // dentro un programma. Serve per il riepilogo dei progressi.
+  const progressiDelProgramma = (prog: any, risultati: any) => {
+    if (!prog || !risultati) return [];
+ 
+    const settimane = normalizeProgramWeeks(prog);
+    const raccolta: { [chiave: string]: any } = {};
+ 
+    settimane.forEach((sett: any, wi: number) => {
+      (sett?.days || []).forEach((giorno: any, di: number) => {
+        (giorno?.blocks || []).forEach((blk: any, bi: number) => {
+          if (blk?.type !== 'forza' || !blk?.name) return;
+ 
+          const dato = risultati[`${wi}_${di}_${bi}`];
+          const kg = parseWeightValue(dato?.score);
+          if (!kg) return;
+ 
+          const chiave = String(blk.name).toLowerCase().replace(/[^a-z0-9]/g, '');
+          const voce = { kg, reps: blk.reps || null, settimana: sett.weekName || `Settimana ${wi + 1}`, ordine: wi * 100 + di };
+ 
+          if (!raccolta[chiave]) {
+            raccolta[chiave] = { nome: blk.name, primo: voce, ultimo: voce, quante: 1 };
+            return;
+          }
+          const r = raccolta[chiave];
+          r.quante += 1;
+          if (voce.ordine < r.primo.ordine) r.primo = voce;
+          if (voce.ordine > r.ultimo.ordine) r.ultimo = voce;
+        });
+      });
+    });
+ 
+    // Un solo dato non dice nulla sull'andamento: lo scarto
+    return Object.values(raccolta)
+      .filter((r: any) => r.quante > 1 && r.primo.ordine !== r.ultimo.ordine)
+      .map((r: any) => {
+        const stesseReps = String(r.primo.reps ?? '') === String(r.ultimo.reps ?? '');
+        const diffKg = Math.round((r.ultimo.kg - r.primo.kg) * 10) / 10;
+        const diffPct = r.primo.kg > 0 ? Math.round(((r.ultimo.kg - r.primo.kg) / r.primo.kg) * 1000) / 10 : 0;
+ 
+        // Con ripetizioni diverse il confronto diretto ingannerebbe:
+        // uso il massimale stimato, che tiene conto anche delle ripetizioni
+        const rep1 = parseWeightValue(r.primo.reps) || 1;
+        const rep2 = parseWeightValue(r.ultimo.reps) || 1;
+        const stima1 = r.primo.kg * (1 + rep1 / 30);
+        const stima2 = r.ultimo.kg * (1 + rep2 / 30);
+        const diffStima = Math.round((stima2 - stima1) * 10) / 10;
+        const diffStimaPct = stima1 > 0 ? Math.round(((stima2 - stima1) / stima1) * 1000) / 10 : 0;
+ 
+        return { ...r, stesseReps, diffKg, diffPct, stima1: Math.round(stima1 * 10) / 10, stima2: Math.round(stima2 * 10) / 10, diffStima, diffStimaPct };
+      })
+      .sort((a: any, b: any) => (b.stesseReps ? b.diffPct : b.diffStimaPct) - (a.stesseReps ? a.diffPct : a.diffStimaPct));
+  };
+ 
+  // Progressi di carico dentro un programma: confronta il primo e l'ultimo
+  // carico inserito per ogni esercizio, ma solo tra serie con le stesse
+  // ripetizioni — altrimenti il confronto non direbbe nulla.
+  const calcolaProgressi = (prog: any, risultati: any) => {
+    if (!prog || !risultati) return null;
+ 
+    const settimane = normalizeProgramWeeks(prog);
+    const raccolta: { [esercizio: string]: { [reps: string]: { kg: number; ordine: number }[] } } = {};
+    let scartati = 0;
+ 
+    settimane.forEach((sett: any, wi: number) => {
+      (sett?.days || []).forEach((giorno: any, di: number) => {
+        (giorno?.blocks || []).forEach((blk: any, bi: number) => {
+          if (blk?.type !== 'forza' || !blk?.name) return;
+ 
+          const kg = parseWeightValue(risultati[`${wi}_${di}_${bi}`]?.score);
+          if (!kg) return;
+ 
+          const reps = String(blk.reps ?? '').trim();
+          if (!reps) { scartati++; return; }
+ 
+          if (!raccolta[blk.name]) raccolta[blk.name] = {};
+          if (!raccolta[blk.name][reps]) raccolta[blk.name][reps] = [];
+          raccolta[blk.name][reps].push({ kg, ordine: wi * 1000 + di * 10 + bi });
+        });
+      });
+    });
+ 
+    const esercizi: any[] = [];
+    let migliorati = 0;
+    let esclusi = 0;
+ 
+    Object.keys(raccolta).forEach((nome) => {
+      const righe: any[] = [];
+ 
+      Object.keys(raccolta[nome]).forEach((reps) => {
+        const serie = raccolta[nome][reps].sort((a, b) => a.ordine - b.ordine);
+        if (serie.length < 2) { esclusi++; return; }
+ 
+        const primo = serie[0].kg;
+        const ultimo = serie[serie.length - 1].kg;
+        const diff = Math.round((ultimo - primo) * 10) / 10;
+        const perc = primo > 0 ? Math.round((diff / primo) * 100) : 0;
+        righe.push({ reps, primo, ultimo, diff, perc, volte: serie.length });
+      });
+ 
+      if (righe.length === 0) return;
+      righe.sort((a, b) => (parseInt(a.reps, 10) || 0) - (parseInt(b.reps, 10) || 0));
+      if (righe.some((r) => r.diff > 0)) migliorati++;
+      esercizi.push({ nome, righe });
+    });
+ 
+    if (esercizi.length === 0) return null;
+    esercizi.sort((a, b) => a.nome.localeCompare(b.nome));
+    return { esercizi, migliorati, totale: esercizi.length, esclusi: esclusi + scartati };
+  };
+ 
   // Confronto per la ricerca: ignora maiuscole e accenti
   const contiene = (testo: any, cerca: string) => {
     if (!cerca.trim()) return true;
@@ -5111,6 +5287,15 @@ const [notificationError, setNotificationError] = useState('');
         );
       })()}
  
+      {progressiAperti && (
+        <FinestraProgressi
+          dati={progressiAperti.dati}
+          titolo={progressiAperti.titolo}
+          perAtleta={progressiAperti.perAtleta}
+          onClose={() => setProgressiAperti(null)}
+        />
+      )}
+ 
       {timerConfig && (
         <WorkoutTimer
           config={timerConfig}
@@ -5515,7 +5700,8 @@ const [notificationError, setNotificationError] = useState('');
                   <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
                   </div>
  
-                  {coachMaxSubTab === 'strength' && (                  <div>
+                  {coachMaxSubTab === 'strength' && (
+                  <div>
                     <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
                       <span style={{ fontSize: '13px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
                       <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>
@@ -7679,6 +7865,18 @@ const [notificationError, setNotificationError] = useState('');
                                             {String(athName).trim().charAt(0).toUpperCase()}
                                           </span>
                                           <span style={{ fontSize: '13px', color: '#0284c7', fontWeight: 'bold', overflowWrap: 'anywhere' }}>{athName}</span>
+                                          {(() => {
+                                            const p = calcolaProgressi(prog, resObj);
+                                            if (!p) return null;
+                                            return (
+                                              <button
+                                                onClick={() => setProgressiAperti({ dati: p, titolo: `${athName} — ${prog.title}`, perAtleta: false })}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginLeft: 'auto', background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '999px', padding: '5px 10px', color: '#047857', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 }}
+                                              >
+                                                <Icona nome="grafico" size={12} /> {p.migliorati}/{p.totale}
+                                              </button>
+                                            );
+                                          })()}
                                         </div>
  
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -8206,6 +8404,25 @@ const [notificationError, setNotificationError] = useState('');
                         })()}
                       </div>
  
+                      {(() => {
+                        const prog_ = calcolaProgressi(prog, athleteResults[prog.id]);
+                        if (!prog_) return null;
+                        return (
+                          <button
+                            onClick={() => setProgressiAperti({ dati: prog_, titolo: prog.title, perAtleta: true })}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '14px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #6ee7b7', background: '#ecfdf5', cursor: 'pointer' }}
+                          >
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <Icona nome="grafico" size={17} style={{ color: '#047857' }} />
+                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#047857' }}>I tuoi progressi</span>
+                            </span>
+                            <span style={{ fontSize: '12px', color: '#059669', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                              {prog_.migliorati}/{prog_.totale}
+                            </span>
+                          </button>
+                        );
+                      })()}
+ 
                       {(prog.trainingTips || prog.nutritionTips) && (() => {
                         const aperto = openTipsProgram === prog.id;
                         const daLeggere = consigliDaLeggere(prog);
@@ -8465,8 +8682,7 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
                                                     <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
                                                     <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
-                                                        {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
-                                                    </span>
+                                                        {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}                                                    </span>
                                                     {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                                     {(() => {
                                                       const bench = BENCHMARK_WODS.find((b) => b.name === blk.name);
