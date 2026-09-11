@@ -2090,6 +2090,11 @@ export default function TrainingApp() {
   const [cercaProgrammi, setCercaProgrammi] = useState('');
   const [cercaEsercizi, setCercaEsercizi] = useState('');
   const [progressiAperti, setProgressiAperti] = useState<any>(null);
+  const [storicoCarichi, setStoricoCarichi] = useState<any[]>([]);
+  const [storicoCarichiCoach, setStoricoCarichiCoach] = useState<{ [athleteId: string]: any[] }>({});
+  const [periodoProgressi, setPeriodoProgressi] = useState<'30' | '90' | '180' | 'tutto' | 'scelto'>('90');
+  const [daData, setDaData] = useState('');
+  const [aData, setAData] = useState('');
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -2203,7 +2208,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [newPrName, setNewPrName] = useState('');
@@ -2243,7 +2248,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi'>('anagrafici');
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
@@ -2377,7 +2382,8 @@ const [notificationError, setNotificationError] = useState('');
         const daysRemaining = getCalendarDaysDifference(prog.endDate);
         if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
  
-        const dayText =          daysRemaining === 0
+        const dayText =
+          daysRemaining === 0
             ? 'scade oggi'
             : `scade tra ${daysRemaining} giorni`;
  
@@ -2531,6 +2537,7 @@ const [notificationError, setNotificationError] = useState('');
         fetchAllPersonalDataForCoach();
         fetchAllSubscriptionsForCoach();
         fetchAllCompetitionsForCoach();
+        fetchStoricoCarichiCoach();
         fetchTrialCta();
       } else {
         fetchAthleteResults();
@@ -2539,6 +2546,7 @@ const [notificationError, setNotificationError] = useState('');
         fetchPersonalData(session.user.id);
         fetchSubscription(session.user.id);
         fetchCompetitions(session.user.id);
+        fetchStoricoCarichi(session.user.id);
         fetchTrialCta();
       }
  
@@ -3114,8 +3122,7 @@ const [notificationError, setNotificationError] = useState('');
     // Se la data di nascita fa cambiare categoria (maggiorenne/minorenne), l'informativa
     // da accettare è un'altra: il consenso va ripreso da capo.
     const dataPrecedente = isCoachEditing
-      ? coachAllPersonalData[userId]?.birth_date
-      : savedBirthDate;
+      ? coachAllPersonalData[userId]?.birth_date      : savedBirthDate;
     const cambiaCategoria = isMinorenne(dataPrecedente) !== isMinorenne(data.birth_date);
  
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
@@ -3732,6 +3739,44 @@ const [notificationError, setNotificationError] = useState('');
     }
   };
  
+  // Registra il carico nello storico, con la data del giorno.
+  // Serve a chi ripete la stessa settimana: nella scheda il valore viene
+  // sovrascritto, qui invece ogni giornata resta.
+  const registraCarico = async (programId: string, blockKey: string, valore: string, athleteId: string) => {
+    try {
+      const kg = parseWeightValue(valore);
+      if (!kg) return;
+ 
+      // risalgo all'esercizio dal programma e dalla posizione del blocco
+      const prog = programLibrary.find((p: any) => p.id === programId);
+      if (!prog) return;
+ 
+      const [wi, di, bi] = String(blockKey).split('_').map((n) => parseInt(n, 10));
+      const settimane = normalizeProgramWeeks(prog);
+      const blk = settimane[wi]?.days?.[di]?.blocks?.[bi];
+      if (!blk || blk.type !== 'forza' || !blk.name) return;
+ 
+      const oggi = new Date();
+      const giorno = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, '0')}-${String(oggi.getDate()).padStart(2, '0')}`;
+ 
+      await supabase.from('load_history').upsert(
+        {
+          athlete_id: athleteId,
+          program_id: programId,
+          block_key: blockKey,
+          exercise: blk.name,
+          reps: String(blk.reps ?? ''),
+          load_kg: kg,
+          raw_score: String(valore || '').trim(),
+          day: giorno,
+        },
+        { onConflict: 'athlete_id, program_id, block_key, day' }
+      );
+    } catch (e) {
+      // se lo storico non si salva, il risultato nella scheda resta comunque
+    }
+  };
+ 
   const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string) => {
     if (athleteIdOverride) {
       // Il coach sta inserendo un risultato per conto di un atleto (es. durante il personal)
@@ -3755,6 +3800,7 @@ const [notificationError, setNotificationError] = useState('');
         { onConflict: 'program_id, athlete_id' }
       );
  
+      if (field === 'score') registraCarico(programId, blockKey, value, athleteIdOverride);
       return;
     }
  
@@ -3775,6 +3821,8 @@ const [notificationError, setNotificationError] = useState('');
       },
       { onConflict: 'program_id, athlete_id' }
     );
+ 
+    if (field === 'score') registraCarico(programId, blockKey, value, session.user.id);
  
   };
  
@@ -4023,6 +4071,85 @@ const [notificationError, setNotificationError] = useState('');
       .sort((a: any, b: any) => (b.stesseReps ? b.diffPct : b.diffStimaPct) - (a.stesseReps ? a.diffPct : a.diffStimaPct));
   };
  
+  const fetchStoricoCarichi = async (athleteId: string) => {
+    const { data } = await supabase
+      .from('load_history')
+      .select('*')
+      .eq('athlete_id', athleteId)
+      .order('day', { ascending: true });
+    setStoricoCarichi(data || []);
+  };
+ 
+  const fetchStoricoCarichiCoach = async () => {
+    const { data } = await supabase
+      .from('load_history')
+      .select('*')
+      .order('day', { ascending: true });
+    const map: { [k: string]: any[] } = {};
+    (data || []).forEach((r: any) => {
+      if (!map[r.athlete_id]) map[r.athlete_id] = [];
+      map[r.athlete_id].push(r);
+    });
+    setStoricoCarichiCoach(map);
+  };
+ 
+  // Progressi calcolati sullo storico per data: funziona anche per chi ripete
+  // la stessa settimana, dove nella scheda il carico viene sovrascritto
+  const progressiDaStorico = (righe: any[], programId?: string) => {
+    if (!righe || righe.length === 0) return null;
+ 
+    const utili = programId ? righe.filter((r: any) => r.program_id === programId) : righe;
+    if (utili.length === 0) return null;
+ 
+    const raccolta: { [esercizio: string]: { [reps: string]: any[] } } = {};
+    utili.forEach((r: any) => {
+      const nome = r.exercise;
+      const reps = String(r.reps ?? '').trim() || '—';
+      if (!raccolta[nome]) raccolta[nome] = {};
+      if (!raccolta[nome][reps]) raccolta[nome][reps] = [];
+      raccolta[nome][reps].push(r);
+    });
+ 
+    const esercizi: any[] = [];
+    let migliorati = 0;
+    let esclusi = 0;
+ 
+    Object.keys(raccolta).forEach((nome) => {
+      const righeEx: any[] = [];
+ 
+      Object.keys(raccolta[nome]).forEach((reps) => {
+        const serie = raccolta[nome][reps].sort((a: any, b: any) => String(a.day).localeCompare(String(b.day)));
+        if (serie.length < 2) { esclusi++; return; }
+ 
+        const primo = Number(serie[0].load_kg);
+        const ultimo = Number(serie[serie.length - 1].load_kg);
+        const diff = Math.round((ultimo - primo) * 10) / 10;
+        const perc = primo > 0 ? Math.round((diff / primo) * 100) : 0;
+        righeEx.push({ reps, primo, ultimo, diff, perc, volte: serie.length });
+      });
+ 
+      if (righeEx.length === 0) return;
+      righeEx.sort((a, b) => (parseInt(a.reps, 10) || 0) - (parseInt(b.reps, 10) || 0));
+      if (righeEx.some((r) => r.diff > 0)) migliorati++;
+      esercizi.push({ nome, righe: righeEx });
+    });
+ 
+    if (esercizi.length === 0) return null;
+    esercizi.sort((a, b) => a.nome.localeCompare(b.nome));
+    return { esercizi, migliorati, totale: esercizi.length, esclusi };
+  };
+ 
+  // Unisce i due modi: prima prova con lo storico per data, che copre anche
+  // le settimane ripetute; se non basta ricade sul confronto dentro il programma
+  const progressiCompleti = (prog: any, risultati: any, righeStorico: any[]) => {
+    const daStorico = progressiDaStorico(righeStorico, prog?.id);
+    const dentroProgramma = calcolaProgressi(prog, risultati);
+ 
+    if (!daStorico) return dentroProgramma;
+    if (!dentroProgramma) return daStorico;
+    return daStorico.esercizi.length >= dentroProgramma.esercizi.length ? daStorico : dentroProgramma;
+  };
+ 
   // Progressi di carico dentro un programma: confronta il primo e l'ultimo
   // carico inserito per ogni esercizio, ma solo tra serie con le stesse
   // ripetizioni — altrimenti il confronto non direbbe nulla.
@@ -4078,6 +4205,129 @@ const [notificationError, setNotificationError] = useState('');
     if (esercizi.length === 0) return null;
     esercizi.sort((a, b) => a.nome.localeCompare(b.nome));
     return { esercizi, migliorati, totale: esercizi.length, esclusi: esclusi + scartati };
+  };
+ 
+  // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
+  // filtrando per periodo. Gli esercizi migliori vanno in cima.
+  const pannelloProgressi = (righe: any[], perAtleta: boolean) => {
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+ 
+    let dal: string | null = null;
+    let al: string | null = null;
+ 
+    if (periodoProgressi === 'scelto') {
+      dal = daData || null;
+      al = aData || null;
+    } else if (periodoProgressi !== 'tutto') {
+      const d = new Date(oggi);
+      d.setDate(d.getDate() - parseInt(periodoProgressi, 10));
+      dal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+ 
+    const nelPeriodo = (righe || []).filter((r: any) => {
+      const g = String(r.day);
+      if (dal && g < dal) return false;
+      if (al && g > al) return false;
+      return true;
+    });
+ 
+    const dati = progressiDaStorico(nelPeriodo);
+ 
+    // Ordino per miglioramento: prima quelli cresciuti di più
+    if (dati) {
+      dati.esercizi.sort((a: any, b: any) => {
+        const mA = Math.max(...a.righe.map((r: any) => r.perc));
+        const mB = Math.max(...b.righe.map((r: any) => r.perc));
+        return mB - mA;
+      });
+    }
+ 
+    const bottone = (k: string, etichetta: string) => (
+      <button
+        key={k}
+        onClick={() => setPeriodoProgressi(k as any)}
+        style={{
+          padding: '7px 12px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+          fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap',
+          background: periodoProgressi === k ? '#10b981' : '#e2e8f0',
+          color: periodoProgressi === k ? '#fff' : '#334155',
+        }}
+      >
+        {etichetta}
+      </button>
+    );
+ 
+    return (
+      <div>
+        <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#10b981' }}>📈 Progressi</h4>
+        <p style={{ margin: '0 0 12px 0', fontSize: '11.5px', color: '#64748b', lineHeight: 1.45 }}>
+          {perAtleta
+            ? 'Come sono cresciuti i tuoi carichi, su tutti i programmi che hai fatto.'
+            : 'Crescita dei carichi su tutti i programmi, non solo quello in corso.'}
+        </p>
+ 
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          {bottone('30', 'Ultimo mese')}
+          {bottone('90', '3 mesi')}
+          {bottone('180', '6 mesi')}
+          {bottone('tutto', 'Sempre')}
+          {bottone('scelto', 'Scegli date')}
+        </div>
+ 
+        {periodoProgressi === 'scelto' && (
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+              <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Dal</label>
+              <input type="date" value={daData} onChange={(e: any) => setDaData(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+            </div>
+            <div style={{ flex: '1 1 130px', minWidth: 0 }}>
+              <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Al</label>
+              <input type="date" value={aData} onChange={(e: any) => setAData(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+            </div>
+          </div>
+        )}
+ 
+        {!dati ? (
+          <p style={{ fontSize: '12.5px', color: '#94a3b8', lineHeight: 1.5, margin: 0 }}>
+            Nessun dato da confrontare in questo periodo. Per calcolare un progresso serve lo stesso esercizio, con lo stesso numero di ripetizioni, almeno due volte.
+          </p>
+        ) : (
+          <>
+            <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '9px', padding: '11px 13px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 'bold', color: '#047857' }}>
+                {perAtleta
+                  ? (dati.migliorati > 0 ? `Sei migliorato in ${dati.migliorati} ${dati.migliorati === 1 ? 'esercizio' : 'esercizi'} su ${dati.totale}` : 'Nessun aumento in questo periodo')
+                  : `${dati.migliorati} su ${dati.totale} in crescita`}
+              </span>
+            </div>
+ 
+            {dati.esercizi.map((ex: any, i: number) => (
+              <div key={i} style={{ marginBottom: '13px' }}>
+                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: '#000', marginBottom: '5px', overflowWrap: 'anywhere' }}>
+                  {ex.nome}
+                </span>
+                {ex.righe.map((r: any, k: number) => {
+                  const colore = r.diff > 0 ? '#047857' : r.diff < 0 ? '#b91c1c' : '#64748b';
+                  const sfondo = r.diff > 0 ? '#ecfdf5' : r.diff < 0 ? '#fef2f2' : '#f8fafc';
+                  return (
+                    <div key={k} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', background: sfondo, borderRadius: '7px', padding: '8px 10px', marginBottom: '5px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '12.5px', color: '#334155' }}>
+                        <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
+                        <span style={{ color: '#94a3b8' }}> · {r.volte} volte</span>
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: colore, whiteSpace: 'nowrap' }}>
+                        {r.diff > 0 ? '+' : ''}{r.diff} kg{r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+    );
   };
  
   // Confronto per la ricerca: ignora maiuscole e accenti
@@ -5630,6 +5880,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
                     <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'gare' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
+                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'progressi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'progressi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>📈 Progressi</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -5690,6 +5941,8 @@ const [notificationError, setNotificationError] = useState('');
                   })()}
  
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
+ 
+                  {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false)}
  
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
@@ -7866,7 +8119,7 @@ const [notificationError, setNotificationError] = useState('');
                                           </span>
                                           <span style={{ fontSize: '13px', color: '#0284c7', fontWeight: 'bold', overflowWrap: 'anywhere' }}>{athName}</span>
                                           {(() => {
-                                            const p = calcolaProgressi(prog, resObj);
+                                            const p = progressiCompleti(prog, resObj, storicoCarichiCoach[ath.id] || []);
                                             if (!p) return null;
                                             return (
                                               <button
@@ -8011,6 +8264,7 @@ const [notificationError, setNotificationError] = useState('');
               <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
                 <button onClick={() => setAthleteProfileTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'gare' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
+                <button onClick={() => setAthleteProfileTab('progressi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'progressi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'progressi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>📈 Progressi</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
@@ -8063,6 +8317,8 @@ const [notificationError, setNotificationError] = useState('');
               )}
  
               {athleteProfileTab === 'gare' && pannelloCompetizioni(session.user.id, competitions, false)}
+ 
+              {athleteProfileTab === 'progressi' && pannelloProgressi(storicoCarichi, true)}
  
               {athleteProfileTab === 'maxes' && (
               <>
@@ -8405,7 +8661,7 @@ const [notificationError, setNotificationError] = useState('');
                       </div>
  
                       {(() => {
-                        const prog_ = calcolaProgressi(prog, athleteResults[prog.id]);
+                        const prog_ = progressiCompleti(prog, athleteResults[prog.id], storicoCarichi);
                         if (!prog_) return null;
                         return (
                           <button
@@ -8682,7 +8938,8 @@ const [notificationError, setNotificationError] = useState('');
                                                   <div style={{ background: '#eff6ff', padding: '12px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
                                                     <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
                                                     <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
-                                                        {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}                                                    </span>
+                                                        {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                                    </span>
                                                     {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
                                                     {(() => {
                                                       const bench = BENCHMARK_WODS.find((b) => b.name === blk.name);
