@@ -2223,6 +2223,7 @@ export default function TrainingApp() {
   const [libEditId, setLibEditId] = useState<string | null>(null);
   const [libEditName, setLibEditName] = useState('');
   const [libEditVideo, setLibEditVideo] = useState('');
+  const [libEditAlias, setLibEditAlias] = useState('');
   const [editingExerciseName, setEditingExerciseName] = useState('');
   const [showExerciseManager, setShowExerciseManager] = useState(false);
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
@@ -2246,8 +2247,7 @@ export default function TrainingApp() {
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
-  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
-  const [anamnesisSaving, setAnamnesisSaving] = useState(false);
+  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);  const [anamnesisSaving, setAnamnesisSaving] = useState(false);
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi'>('anagrafici');
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
@@ -3327,7 +3327,7 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     const { error } = await supabase.from('exercises_library')
-      .update({ name: nuovoNome, video_url: libEditVideo.trim() })
+      .update({ name: nuovoNome, video_url: libEditVideo.trim(), aliases: libEditAlias.trim() })
       .eq('id', ex.id);
  
     if (error) {
@@ -3356,6 +3356,7 @@ const [notificationError, setNotificationError] = useState('');
     setLibEditId(null);
     setLibEditName('');
     setLibEditVideo('');
+    setLibEditAlias('');
     fetchExerciseLibrary();
   };
  
@@ -4339,6 +4340,49 @@ const [notificationError, setNotificationError] = useState('');
         )}
       </div>
     );
+  };
+ 
+  // Cerca nel testo di un WOD i nomi degli esercizi presenti in libreria.
+  // Riconosce anche le abbreviazioni che hai indicato negli alias.
+  const trovaEserciziNelTesto = (testo: string, giaPresenti: any[]) => {
+    if (!testo || !testo.trim()) return [];
+ 
+    const pulisci = (s: any) => String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+ 
+    const testoPulito = ' ' + pulisci(testo) + ' ';
+    const nomiGia = new Set((giaPresenti || []).map((it: any) => pulisci(it?.name)).filter(Boolean));
+ 
+    const trovati: any[] = [];
+ 
+    exerciseLibrary
+      .filter((ex: any) => !ex.dismissed && ex.name)
+      .forEach((ex: any) => {
+        const nome = pulisci(ex.name);
+        if (!nome || nomiGia.has(nome)) return;
+        if (trovati.some((t) => pulisci(t.name) === nome)) return;
+ 
+        // il nome per esteso, più le eventuali abbreviazioni
+        const forme = [nome];
+        String(ex.aliases || '')
+          .split(',')
+          .map((a: string) => pulisci(a))
+          .filter(Boolean)
+          .forEach((a: string) => forme.push(a));
+ 
+        // cerco la forma come parola intera, non dentro un'altra parola
+        const presente = forme.some((f) => testoPulito.includes(' ' + f + ' '));
+        if (presente) trovati.push({ name: ex.name, videoUrl: ex.video_url || '' });
+      });
+ 
+    // gli esercizi con il nome più lungo per primi: sono i più specifici
+    trovati.sort((a, b) => String(b.name).length - String(a.name).length);
+    return trovati;
   };
  
   // Confronto per la ricerca: ignora maiuscole e accenti
@@ -6083,7 +6127,8 @@ const [notificationError, setNotificationError] = useState('');
                         {exerciseLibrary.filter((e: any) => !e.dismissed && !e.pr_kind).map((e: any) => (
                           <option key={e.id} value={e.name} />
                         ))}
-                      </datalist>                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      </datalist>
+                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
  
@@ -7245,6 +7290,26 @@ const [notificationError, setNotificationError] = useState('');
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                         <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
  
+                                          {(() => {
+                                            const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
+                                            if (trovati.length === 0) return null;
+                                            return (
+                                              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
+                                                <span style={{ display: 'block', fontSize: '11.5px', color: '#1e40af', marginBottom: '7px', lineHeight: 1.45 }}>
+                                                  <strong>{trovati.length === 1 ? 'Trovato 1 esercizio' : `Trovati ${trovati.length} esercizi`} in libreria:</strong>{' '}
+                                                  {trovati.map((t: any) => t.name).join(' · ')}
+                                                </span>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => aggiornaWarmItems('edit', actualWIdx, actualDIdx, bIdx, [...(block.items || []), ...trovati])}
+                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                >
+                                                  <Icona nome="piu" size={12} /> Aggiungi con i video
+                                                </button>
+                                              </div>
+                                            );
+                                          })()}
+ 
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
                                           Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
                                         </label>
@@ -7395,11 +7460,25 @@ const [notificationError, setNotificationError] = useState('');
                               onKeyDown={(e) => { if (e.key === 'Enter') salvaEsercizioLibreria(ex); }}
                               style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '10px' }}
                             />
+                            <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                              Abbreviazioni <span style={{ color: '#94a3b8' }}>(facoltative, separate da virgola)</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="es. DU, DUs"
+                              value={libEditAlias}
+                              onChange={(e) => setLibEditAlias(e.target.value)}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '6px' }}
+                            />
+                            <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '0 0 10px 0', lineHeight: 1.45 }}>
+                              Servono a riconoscere l&apos;esercizio nel testo dei WOD: scrivendo &quot;DU&quot; qui, un WOD con &quot;50 DU&quot; propone questo esercizio.
+                            </p>
+ 
                             <div style={{ display: 'flex', gap: '7px' }}>
                               <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                 Salva
                               </button>
-                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); }} style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); setLibEditAlias(''); }} style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                 Annulla
                               </button>
                             </div>
@@ -7437,7 +7516,7 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                           ) : (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
+                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); setLibEditAlias(ex.aliases || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
                               <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
                           )}
@@ -7850,6 +7929,26 @@ const [notificationError, setNotificationError] = useState('');
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                             <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
+ 
+                                              {(() => {
+                                                const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
+                                                if (trovati.length === 0) return null;
+                                                return (
+                                                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
+                                                    <span style={{ display: 'block', fontSize: '11.5px', color: '#1e40af', marginBottom: '7px', lineHeight: 1.45 }}>
+                                                      <strong>{trovati.length === 1 ? 'Trovato 1 esercizio' : `Trovati ${trovati.length} esercizi`} in libreria:</strong>{' '}
+                                                      {trovati.map((t: any) => t.name).join(' · ')}
+                                                    </span>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => aggiornaWarmItems('free', actualWIdx, actualDIdx, bIdx, [...(block.items || []), ...trovati])}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                    >
+                                                      <Icona nome="piu" size={12} /> Aggiungi con i video
+                                                    </button>
+                                                  </div>
+                                                );
+                                              })()}
  
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
                                               Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
