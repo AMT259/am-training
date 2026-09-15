@@ -1950,7 +1950,7 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
     case 'chiudi':
       return <svg {...comuni}><path d="M18 6L6 18M6 6l12 12" /></svg>;
     case 'riduci':
-      return <svg {...comuni}><path d="M6 9l6 6 6-6" /></svg>;
+      return <svg {...comuni}><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /></svg>;
     default:
       return null;
   }
@@ -4644,7 +4644,8 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           );
         })}
-         {showCompForm ? (
+ 
+        {showCompForm ? (
           <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>
               Nome della gara
@@ -7205,8 +7206,7 @@ const [notificationError, setNotificationError] = useState('');
                                       <optgroup label="Metcon">
                                         {metconPRNames.map((n: string) => <option key={n} value={n}>{`Max Effort ${n}`}</option>)}
                                       </optgroup>
-                                      <optgroup label="Gymnastics">
-                                        {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
+                                      <optgroup label="Gymnastics">                                        {gymPRNames.map((n: string) => <option key={n} value={n}>{`Max Rep ${n}`}</option>)}
                                       </optgroup>
                                       <optgroup label="Benchmark WOD">
                                         {BENCHMARK_NAMES.map((n: string) => <option key={n} value={n}>{n}</option>)}
