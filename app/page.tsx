@@ -2247,7 +2247,8 @@ export default function TrainingApp() {
   const [coachAthleteMaxes, setCoachAthleteMaxes] = useState<{ [athleteId: string]: any }>({});
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
-  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);  const [anamnesisSaving, setAnamnesisSaving] = useState(false);
+  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
+  const [anamnesisSaving, setAnamnesisSaving] = useState(false);
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi'>('anagrafici');
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
@@ -6988,8 +6989,7 @@ const [notificationError, setNotificationError] = useState('');
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
  
                 return (
-                  <div key={actualWIdx} style={{ marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
+                  <div key={actualWIdx} style={{ marginBottom: '16px' }}>                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
                       <input
                         type="text"
                         value={week.weekName}
@@ -8245,22 +8245,34 @@ const [notificationError, setNotificationError] = useState('');
                                           {blocksOfActiveDay.map((blk: any, bIdx: number) => {
                                             const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
                                             const blockData = resObj[blockKey];
-                                            if (!blockData || (!blockData.score && !blockData.notes)) return null;
+                                            const compilato = !!(blockData && (String(blockData.score || '').trim() || String(blockData.notes || '').trim() || blockData.done));
+                                            const nome = blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`);
  
                                             return (
-                                              <div key={bIdx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '3px solid #10b981', borderRadius: '8px', padding: '9px 11px' }}>
+                                              <div key={bIdx} style={{ background: compilato ? '#ffffff' : '#fef2f2', border: compilato ? '1px solid #bbf7d0' : '1px dashed #fca5a5', borderRadius: '8px', padding: '10px 12px', marginBottom: '7px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                                                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#000', flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>
-                                                    {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}
+                                                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#334155' : '#991b1b', overflowWrap: 'anywhere' }}>
+                                                    {nome}
                                                   </span>
-                                                  {blockData.score && (
-                                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', background: '#ecfdf5', borderRadius: '6px', padding: '2px 9px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                                      {blockData.score}
-                                                    </span>
+                                                  {compilato ? (
+                                                    blockData.score ? (
+                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', whiteSpace: 'nowrap' }}>{blockData.score}</span>
+                                                    ) : (
+                                                      <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>solo note</span>
+                                                    )
+                                                  ) : (
+                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#b91c1c', whiteSpace: 'nowrap' }}>non inserito</span>
                                                   )}
                                                 </div>
-                                                {blockData.notes && (
-                                                  <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748b', lineHeight: 1.5, fontStyle: 'italic', overflowWrap: 'anywhere' }}>
+ 
+                                                {(blk.sets || blk.reps || blk.load) && (
+                                                  <span style={{ display: 'block', fontSize: '10.5px', color: '#94a3b8', marginTop: '3px' }}>
+                                                    {[blk.sets && `${blk.sets}x`, blk.reps, blk.load].filter(Boolean).join(' \u00b7 ')}
+                                                  </span>
+                                                )}
+ 
+                                                {blockData?.notes && (
+                                                  <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45 }}>
                                                     &ldquo;{blockData.notes}&rdquo;
                                                   </p>
                                                 )}
@@ -8744,7 +8756,7 @@ const [notificationError, setNotificationError] = useState('');
                   const giorniRimasti = scaduto ? GIORNI_VISIBILITA_DOPO_SCADENZA - giorniScaduto : null;
  
                   return (
-                    <div key={prog.id} style={{ background: scaduto ? '#fef2f2' : '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '14px', border: scaduto ? '2px solid #ef4444' : '1px solid #d8dde3', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: scaduto ? '#fef2f2' : '#ffffff', color: '#000000', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : '1px solid #d8dde3', marginBottom: '20px' }}>
                       {scaduto && (
                         <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '11px 13px', marginBottom: '14px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
                           <span style={{ fontSize: '17px', flexShrink: 0 }}>⛔</span>
@@ -8844,7 +8856,12 @@ const [notificationError, setNotificationError] = useState('');
                                 setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
                               }
                             }}
-                            style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: currentProgramActiveWeek === week.weekName ? '#0284c7' : '#e2e8f0', color: currentProgramActiveWeek === week.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                            style={{
+                              padding: '7px 14px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+                              fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0,
+                              background: currentProgramActiveWeek === week.weekName ? '#334155' : '#e8edf3',
+                              color: currentProgramActiveWeek === week.weekName ? '#fff' : '#64748b',
+                            }}
                           >
                             {week.weekName}
                           </button>
@@ -8854,15 +8871,53 @@ const [notificationError, setNotificationError] = useState('');
                       {currentWeekObj?.days ? (
                         <div>
                           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
-                            {currentWeekObj.days.map((day: any, idx: number) => (
-                              <button
-                                key={idx}
-                                onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: currentProgramActiveDay === day.dayName ? '#10b981' : '#f1f5f9', color: currentProgramActiveDay === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                              >
-                                {day.dayName}
-                              </button>
-                            ))}
+                            {currentWeekObj.days.map((day: any, idx: number) => {
+                              const attivo = currentProgramActiveDay === day.dayName;
+ 
+                              // quanti blocchi di quel giorno hanno un risultato compilato
+                              const wReale = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
+                              const blocchi = (day.blocks || []).filter((b: any) => b?.type !== 'warmup');
+                              const fatti = blocchi.filter((b: any, bi: number) => {
+                                const r = athleteResults[prog.id]?.[`${wReale}_${idx}_${bi}`];
+                                return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done);
+                              }).length;
+                              const totale = blocchi.length;
+                              const completo = totale > 0 && fatti === totale;
+ 
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={() => setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                  style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '7px',
+                                    padding: '9px 15px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+                                    fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0,
+                                    background: attivo ? 'linear-gradient(160deg, #10b981 0%, #059669 100%)' : '#e8edf3',
+                                    color: attivo ? '#fff' : '#334155',
+                                    boxShadow: attivo ? '0 3px 9px rgba(5,150,105,0.4)' : 'none',
+                                    transition: 'background .15s ease',
+                                  }}
+                                >
+                                  {day.dayName}
+                                  {totale > 0 && (
+                                    <span
+                                      title={`${fatti} di ${totale} compilati`}
+                                      style={{
+                                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                        minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px',
+                                        fontSize: '10px', fontWeight: 'bold',
+                                        background: completo ? (attivo ? 'rgba(255,255,255,0.28)' : '#10b981')
+                                          : fatti > 0 ? (attivo ? 'rgba(255,255,255,0.22)' : '#fcd34d')
+                                          : (attivo ? 'rgba(255,255,255,0.18)' : '#cbd5e1'),
+                                        color: attivo ? '#fff' : completo ? '#fff' : '#334155',
+                                      }}
+                                    >
+                                      {completo ? <Icona nome="spunta" size={11} /> : `${fatti}/${totale}`}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
                           </div>
  
                           {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
@@ -8872,7 +8927,7 @@ const [notificationError, setNotificationError] = useState('');
                             const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
  
                             return (
-                              <div key={realDayIndex} style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                              <div key={realDayIndex} style={{ background: '#eef2f7', padding: '14px', borderRadius: '12px', border: '1px solid #dbe3ec', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
                                 <div
                                   onClick={() => toggleProgramDayCollapse(dayCollapseKey)}
                                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: isDayClosed ? '0' : '12px', cursor: 'pointer' }}
@@ -8899,7 +8954,7 @@ const [notificationError, setNotificationError] = useState('');
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
  
                                         return (
-                                          <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                                          <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid #e6ebf2', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
                                             <div
                                               onClick={() => toggleBlockCollapse(blockKey)}
                                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', cursor: 'pointer' }}
