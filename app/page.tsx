@@ -1802,6 +1802,44 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   );
 }
  
+// Stile unico per i pulsanti a pillola di tutta l'app: quello scelto
+// in colore pieno con una piccola ombra, gli altri in grigio chiaro.
+function pillola(attivo: boolean, colore = '#10b981', dim: 'grande' | 'medio' | 'piccolo' = 'medio'): React.CSSProperties {
+  const misure = {
+    grande: { padding: '11px 16px', fontSize: '14px' },
+    medio: { padding: '9px 14px', fontSize: '13px' },
+    piccolo: { padding: '7px 12px', fontSize: '12px' },
+  }[dim];
+ 
+  return {
+    ...misure,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    borderRadius: '999px',
+    border: 'none',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    background: attivo ? colore : '#e8edf3',
+    color: attivo ? '#ffffff' : '#475569',
+    boxShadow: attivo ? '0 3px 9px rgba(0,0,0,0.22)' : 'none',
+    transition: 'background .15s ease',
+  };
+}
+ 
+// Riga di pulsanti che scorre in orizzontale invece di andare a capo
+const rigaPillole: React.CSSProperties = {
+  display: 'flex',
+  gap: '7px',
+  overflowX: 'auto',
+  paddingBottom: '4px',
+  marginBottom: '14px',
+  WebkitOverflowScrolling: 'touch',
+};
+ 
 // Icone disegnate per i pulsanti: nitide a ogni dimensione e uguali
 // su tutti i telefoni, a differenza delle emoji
 function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?: React.CSSProperties }) {
@@ -3991,8 +4029,7 @@ const [notificationError, setNotificationError] = useState('');
     if (dest < 0 || dest >= copia.length) return;
     [copia[i], copia[dest]] = [copia[dest], copia[i]];
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
-  };
- 
+  }; 
   const togliWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, (attuali || []).filter((_: any, k: number) => k !== i));
   };
@@ -5928,15 +5965,15 @@ const [notificationError, setNotificationError] = useState('');
                   <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Dati Anagrafici</button>
-                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Anamnesi</button>
-                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'abbonamento' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'abbonamento' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Abbonamento</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici'), flex: '1 1 auto' }}>Dati Anagrafici</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ ...pillola(coachAthleteDetailTab === 'anamnesi'), flex: '1 1 auto' }}>Anamnesi</button>
+                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento'), flex: '1 1 auto' }}>Abbonamento</button>
                   </div>
  
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'maxes' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'gare' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
-                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: coachAthleteDetailTab === 'progressi' ? '#10b981' : '#e2e8f0', color: coachAthleteDetailTab === 'progressi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>📈 Progressi</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
+                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi'), flex: '1 1 auto' }}>📈 Progressi</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -6530,7 +6567,7 @@ const [notificationError, setNotificationError] = useState('');
                                 <button
                                   key={day.dayName}
                                   onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                  style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: activeDayName === day.dayName ? '#10b981' : '#f1f5f9', color: activeDayName === day.dayName ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                  style={{ ...pillola(activeDayName === day.dayName, '#10b981', 'piccolo') }}
                                 >
                                   {day.dayName}
                                 </button>
@@ -6989,7 +7026,8 @@ const [notificationError, setNotificationError] = useState('');
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
  
                 return (
-                  <div key={actualWIdx} style={{ marginBottom: '16px' }}>                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
+                  <div key={actualWIdx} style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
                       <input
                         type="text"
                         value={week.weekName}
@@ -7069,9 +7107,9 @@ const [notificationError, setNotificationError] = useState('');
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
+                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
+                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
+                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
                                     <button type="button" onClick={() => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                   </div>
                                   <div style={{ display: 'flex', gap: '4px' }}>
@@ -7387,9 +7425,9 @@ const [notificationError, setNotificationError] = useState('');
                 boxShadow: menuAgganciato ? '0 6px 14px rgba(0,0,0,0.45)' : 'none',
                 transition: 'padding .16s ease, margin .16s ease',
               }}>
-                <button onClick={() => setActiveTab('create')} style={{ flex: 1, padding: menuAgganciato ? '7px 10px' : '10px', borderRadius: '8px', background: activeTab === 'create' ? '#10b981' : '#2e2e33', color: activeTab === 'create' ? '#fff' : '#d4d4d8', border: activeTab === 'create' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Crea Programma</button>
-                <button onClick={() => setActiveTab('library')} style={{ flex: 1, padding: menuAgganciato ? '7px 10px' : '10px', borderRadius: '8px', background: activeTab === 'library' ? '#10b981' : '#2e2e33', color: activeTab === 'library' ? '#fff' : '#d4d4d8', border: activeTab === 'library' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Programmi</button>
-                <button onClick={() => setActiveTab('exercises')} style={{ flex: 1, padding: menuAgganciato ? '7px 10px' : '10px', borderRadius: '8px', background: activeTab === 'exercises' ? '#10b981' : '#2e2e33', color: activeTab === 'exercises' ? '#fff' : '#d4d4d8', border: activeTab === 'exercises' ? '2px solid #10b981' : '2px solid #52525b', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Libreria Esercizi 🏋️‍♂️</button>
+                <button onClick={() => setActiveTab('create')} style={{ ...pillola(activeTab === 'create'), flex: '1 1 auto' }}>Crea Programma</button>
+                <button onClick={() => setActiveTab('library')} style={{ ...pillola(activeTab === 'library'), flex: '1 1 auto' }}>Libreria Programmi</button>
+                <button onClick={() => setActiveTab('exercises')} style={{ ...pillola(activeTab === 'exercises'), flex: '1 1 auto' }}>Libreria Esercizi 🏋️‍♂️</button>
               </div>
  
               {activeTab === 'exercises' ? (
@@ -7715,9 +7753,9 @@ const [notificationError, setNotificationError] = useState('');
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
                                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'forza' ? '#10b981' : '#f1f5f9', color: block.type === 'forza' ? '#fff' : '#000', cursor: 'pointer' }}>FORZA</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'wod' ? '#10b981' : '#f1f5f9', color: block.type === 'wod' ? '#fff' : '#000', cursor: 'pointer' }}>WOD</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'test' ? '#10b981' : '#f1f5f9', color: block.type === 'test' ? '#fff' : '#000', cursor: 'pointer' }}>TEST</button>
+                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
+                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
+                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
                                         <button type="button" onClick={() => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                       </div>
                                       <div style={{ display: 'flex', gap: '4px' }}>
@@ -8026,7 +8064,7 @@ const [notificationError, setNotificationError] = useState('');
                       <button
                         key={v.k}
                         onClick={() => setLibraryView(v.k as any)}
-                        style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '9px 10px', borderRadius: '8px', border: 'none', background: libraryView === v.k ? '#10b981' : '#e2e8f0', color: libraryView === v.k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                        style={{ ...pillola(libraryView === v.k, '#334155'), flex: '1 1 auto' }}
                       >
                         {v.t}{v.n > 0 ? ` (${v.n})` : ''}
                       </button>
@@ -8046,7 +8084,7 @@ const [notificationError, setNotificationError] = useState('');
                         <button
                           key={f.k}
                           onClick={() => setLibraryFilter(f.k as any)}
-                          style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 11px', borderRadius: '8px', border: 'none', background: libraryFilter === f.k ? f.col : '#e2e8f0', color: libraryFilter === f.k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                          style={{ ...pillola(libraryFilter === f.k, f.col, 'piccolo'), flex: '1 1 auto' }}
                         >
                           {f.t} ({f.n})
                         </button>
@@ -8186,15 +8224,52 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
  
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
-                              {activeWeekObj?.days?.map((day: any) => (
-                                <button
-                                  key={day.dayName}
-                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeDay === day.dayName ? '#10b981' : '#e2e8f0', color: activeDay === day.dayName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {day.dayName}
-                                </button>
-                              ))}
+                              {activeWeekObj?.days?.map((day: any, dIdx: number) => {
+                                const attivo = activeDay === day.dayName;
+ 
+                                // quanto hanno compilato gli atleti assegnati su quel giorno
+                                const wReale = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                                const blocchi = (day.blocks || []).filter((b: any) => b?.type !== 'warmup');
+                                const chiEsegue = assignedList.length > 0 ? assignedList : athletes;
+                                let fatti = 0;
+                                let attesi = 0;
+                                chiEsegue.forEach((a: any) => {
+                                  const suoi = progResultsByAthlete[a.id];
+                                  if (!suoi) return;
+                                  blocchi.forEach((b: any, bi: number) => {
+                                    attesi++;
+                                    const r = suoi[`${wReale}_${dIdx}_${bi}`];
+                                    if (r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done)) fatti++;
+                                  });
+                                });
+                                const completo = attesi > 0 && fatti === attesi;
+ 
+                                return (
+                                  <button
+                                    key={day.dayName}
+                                    onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                    style={{ ...pillola(attivo, '#10b981', 'piccolo') }}
+                                  >
+                                    {day.dayName}
+                                    {attesi > 0 && (
+                                      <span
+                                        title={`${fatti} di ${attesi} compilati`}
+                                        style={{
+                                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                          minWidth: '18px', height: '18px', borderRadius: '999px', padding: '0 5px',
+                                          fontSize: '9.5px', fontWeight: 'bold',
+                                          background: completo ? (attivo ? 'rgba(255,255,255,0.28)' : '#10b981')
+                                            : fatti > 0 ? (attivo ? 'rgba(255,255,255,0.22)' : '#fcd34d')
+                                            : (attivo ? 'rgba(255,255,255,0.18)' : '#cbd5e1'),
+                                          color: attivo || completo ? '#fff' : '#334155',
+                                        }}
+                                      >
+                                        {completo ? <Icona nome="spunta" size={10} /> : `${fatti}/${attesi}`}
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
                             </div>
  
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
@@ -8377,15 +8452,15 @@ const [notificationError, setNotificationError] = useState('');
           {activeTab === 'profile' ? (
             <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anagrafici' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anagrafici' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Dati Anagrafici</button>
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'anamnesi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'anamnesi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Anamnesi</button>
-                <button onClick={() => setAthleteProfileTab('privacy')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '8px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'privacy' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'privacy' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Privacy</button>
+                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ ...pillola(athleteProfileTab === 'anagrafici'), flex: '1 1 auto' }}>Dati Anagrafici</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ ...pillola(athleteProfileTab === 'anamnesi'), flex: '1 1 auto' }}>Anamnesi</button>
+                <button onClick={() => setAthleteProfileTab('privacy')} style={{ ...pillola(athleteProfileTab === 'privacy'), flex: '1 1 auto' }}>Privacy</button>
               </div>
  
               <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'maxes' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'maxes' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Massimali</button>
-                <button onClick={() => setAthleteProfileTab('gare')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'gare' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'gare' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>🎯 Gare</button>
-                <button onClick={() => setAthleteProfileTab('progressi')} style={{ flex: '1 1 auto', minWidth: 'fit-content', padding: '13px 10px', borderRadius: '8px', border: 'none', background: athleteProfileTab === 'progressi' ? '#10b981' : '#e2e8f0', color: athleteProfileTab === 'progressi' ? '#fff' : '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>📈 Progressi</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
+                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi'), flex: '1 1 auto' }}>📈 Progressi</button>
               </div>
  
               {athleteProfileTab === 'anagrafici' && (
