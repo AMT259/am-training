@@ -1097,7 +1097,7 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
         </div>
  
         <div style={{ padding: '12px 18px', borderTop: '1px solid #e2e8f0' }}>
-          <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '9px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
             Chiudi
           </button>
         </div>
@@ -1509,16 +1509,16 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         </button>
  
         {unoAUno && attivo && r1InLavoro && (
-          <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
             ✓ Round
           </button>
         )}
         {attivo || preparazione !== null ? (
-          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="pausa" size={14} /></button>
+          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="pausa" size={14} /></button>
         ) : (
-          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
+          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
         )}
-        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
+        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#3a3a40', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
       </div>
     );
   }
@@ -1572,16 +1572,16 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
         </button>
  
         {unoAUno && attivo && r1InLavoro && (
-          <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
             ✓ Round
           </button>
         )}
         {(attivo || preparazione !== null) ? (
-          <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
+          <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#3a3a40', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
         ) : (
-          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
+          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
         )}
-        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '8px', border: 'none', background: '#3a3a40', color: '#a1a1aa', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
+        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#3a3a40', color: '#a1a1aa', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
       </div>
     );
   }
@@ -1589,7 +1589,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
   // Schermata di scelta del tipo di timer
   if (!scelta) {
     const opzione = (titolo: string, descrizione: string, icona: string, onClick: () => void) => (
-      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', border: '1px solid #3a3a40', background: '#26262a', cursor: 'pointer', marginBottom: '9px' }}>
+      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid #3a3a40', background: '#26262a', cursor: 'pointer', marginBottom: '9px' }}>
         <span style={{ fontSize: '24px' }}>{icona}</span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
@@ -1623,7 +1623,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
           >
             <Icona nome="occhio" size={14} /> Vedi la scheda
           </button>
-          <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', marginTop: '8px' }}>Chiudi</button>
+          <button onClick={onClose} style={{ ...btn('#3a3a40'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
         </div>
       </div>
     );
@@ -1740,7 +1740,7 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
             {unoAUno && attivo && r1InLavoro && (
               <button
                 onClick={chiudiRound}
-                style={{ marginTop: '22px', padding: '16px 30px', borderRadius: '12px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}
+                style={{ marginTop: '22px', padding: '16px 30px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}
               >
                 <Icona nome="spunta" size={17} /> Round finito
               </button>
@@ -1885,6 +1885,8 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
       return <svg {...comuni}><path d="M9 4v16M15 4v16" /></svg>;
     case 'play':
       return <svg {...comuni} fill="currentColor" stroke="none"><path d="M7 4l13 8-13 8z" /></svg>;
+    case 'campana':
+      return <svg {...comuni}><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0" /></svg>;
     case 'chiudi':
       return <svg {...comuni}><path d="M18 6L6 18M6 6l12 12" /></svg>;
     case 'riduci':
@@ -4029,7 +4031,8 @@ const [notificationError, setNotificationError] = useState('');
     if (dest < 0 || dest >= copia.length) return;
     [copia[i], copia[dest]] = [copia[dest], copia[i]];
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
-  }; 
+  };
+ 
   const togliWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, (attuali || []).filter((_: any, k: number) => k !== i));
   };
@@ -4615,17 +4618,17 @@ const [notificationError, setNotificationError] = useState('');
               onChange={(e) => setNewComp({ ...newComp, notes: e.target.value })}
               style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }}
             />
-            <div style={{ display: 'flex', gap: '7px' }}>
-              <button onClick={() => salvaCompetizione(athleteId, isCoach)} style={{ flex: 1, padding: '11px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              <button onClick={() => salvaCompetizione(athleteId, isCoach)} style={{ flex: 1, minWidth: 0, padding: '11px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
                 {editCompId ? 'Salva modifiche' : 'Aggiungi gara'}
               </button>
-              <button onClick={() => { setShowCompForm(false); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ padding: '11px 16px', borderRadius: '6px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+              <button onClick={() => { setShowCompForm(false); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
                 Annulla
               </button>
             </div>
           </div>
         ) : (
-          <button onClick={() => { setShowCompForm(true); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+          <button onClick={() => { setShowCompForm(true); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
             ➕ Aggiungi una gara
           </button>
         )}
@@ -5222,7 +5225,7 @@ const [notificationError, setNotificationError] = useState('');
           <button
             onClick={cambiaPassword}
             disabled={passwordSaving}
-            style={{ padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: passwordSaving ? 0.6 : 1 }}
+            style={{ padding: '14px', borderRadius: '999px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: passwordSaving ? 0.6 : 1 }}
           >
             {passwordSaving ? 'Salvataggio...' : 'Salva e accedi'}
           </button>
@@ -5296,7 +5299,7 @@ const [notificationError, setNotificationError] = useState('');
             </p>
             <button
               onClick={() => { setSignupDoneEmail(''); setPassword(''); }}
-              style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '8px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: '#10b981', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
             >
               Ho confermato, vai all&apos;accesso
             </button>
@@ -5350,7 +5353,7 @@ const [notificationError, setNotificationError] = useState('');
                       key={k}
                       type="button"
                       onClick={() => setSignupGender(k)}
-                      style={{ flex: 1, padding: '12px', borderRadius: '8px', border: signupGender === k ? '2px solid #10b981' : '1px solid #3a3a40', background: signupGender === k ? '#10b981' : '#26262a', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                      style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: signupGender === k ? '2px solid #10b981' : '1px solid #3a3a40', background: signupGender === k ? '#10b981' : '#26262a', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
                     >
                       {label}
                     </button>
@@ -5400,7 +5403,7 @@ const [notificationError, setNotificationError] = useState('');
           <button
             type="submit"
             disabled={authLoading}
-            style={{ padding: '12px', borderRadius: '8px', background: authLoading ? '#0e8f65' : '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: authLoading ? 'wait' : 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            style={{ padding: '12px', borderRadius: '999px', background: authLoading ? '#0e8f65' : '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: authLoading ? 'wait' : 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
           >
             {authLoading && (
               <span style={{ width: '15px', height: '15px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
@@ -5456,7 +5459,7 @@ const [notificationError, setNotificationError] = useState('');
                 <button
                   disabled={!policyScrolledToEnd}
                   onClick={() => { setPrivacyConsent(true); setShowPrivacyPolicy(false); }}
-                  style={{ width: '100%', padding: '13px', borderRadius: '8px', background: policyScrolledToEnd ? '#10b981' : '#cbd5e1', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: policyScrolledToEnd ? '#10b981' : '#cbd5e1', color: '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
                 >
                   {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'}
                 </button>
@@ -5599,9 +5602,9 @@ const [notificationError, setNotificationError] = useState('');
                       key={s.chiave}
                       type="button"
                       onClick={() => setDupTargets(scelta ? dupTargets.filter((k) => k !== s.chiave) : [...dupTargets, s.chiave])}
-                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', marginBottom: '7px', borderRadius: '8px', cursor: 'pointer', background: scelta ? '#ecfdf5' : '#f8fafc', border: scelta ? '2px solid #10b981' : '1px solid #e2e8f0' }}
+                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', marginBottom: '7px', borderRadius: '999px', cursor: 'pointer', background: scelta ? '#ecfdf5' : '#f8fafc', border: scelta ? '2px solid #10b981' : '1px solid #e2e8f0' }}
                     >
-                      <span style={{ width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#fff', background: scelta ? '#10b981' : '#e2e8f0' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#fff', background: scelta ? '#10b981' : '#e2e8f0' }}>
                         {scelta ? '\u2713' : ''}
                       </span>
                       <span style={{ flex: 1, minWidth: 0 }}>
@@ -5618,10 +5621,10 @@ const [notificationError, setNotificationError] = useState('');
               </div>
  
               <div style={{ padding: '12px 20px 18px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={confermaDuplica} style={{ flex: 1, padding: '13px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                <button type="button" onClick={confermaDuplica} style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
                   {dupTargets.length === 0 ? 'Duplica qui' : `Duplica in ${dupTargets.length} sedute`}
                 </button>
-                <button type="button" onClick={() => { setDupBlock(null); setDupTargets([]); }} style={{ padding: '13px 18px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                <button type="button" onClick={() => { setDupBlock(null); setDupTargets([]); }} style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
                   Annulla
                 </button>
               </div>
@@ -5656,7 +5659,7 @@ const [notificationError, setNotificationError] = useState('');
               {prBadge.exercise} — {prBadge.headline}
             </p>
             <p style={{ fontSize: '14px', margin: '0 0 20px 0', opacity: 0.95 }}>{prBadge.subtitle}</p>
-            <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '10px', background: '#ffffff', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+            <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: '#ffffff', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
               Grande! 💪
             </button>
           </div>
@@ -5669,7 +5672,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ fontSize: '30px', marginBottom: '10px' }}>💪</div>
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.85, marginBottom: '12px', fontWeight: 'bold' }}>AM Training</div>
             <p style={{ fontSize: '18px', lineHeight: 1.5, margin: '0 0 22px 0', fontWeight: 'bold', whiteSpace: 'pre-line' }}>{dailyQuote}</p>
-            <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '10px', background: '#ffffff', color: '#059669', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+            <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '999px', background: '#ffffff', color: '#059669', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
               Ready to start
             </button>
           </div>
@@ -5698,11 +5701,11 @@ const [notificationError, setNotificationError] = useState('');
               <button
                 onClick={acceptPrivacyConsent}
                 disabled={!consentGateChecked || consentSaving}
-                style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '8px', background: consentGateChecked ? '#10b981' : '#cbd5e1', color: '#fff', fontWeight: 'bold', border: 'none', cursor: consentGateChecked ? 'pointer' : 'not-allowed', fontSize: '14px' }}
+                style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: consentGateChecked ? '#10b981' : '#cbd5e1', color: '#fff', fontWeight: 'bold', border: 'none', cursor: consentGateChecked ? 'pointer' : 'not-allowed', fontSize: '14px' }}
               >
                 {consentSaving ? 'Salvataggio...' : 'Accetto e continuo'}
               </button>
-              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '8px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '14px' }}>
                 Esci
               </button>
             </div>
@@ -5733,12 +5736,15 @@ const [notificationError, setNotificationError] = useState('');
                 color: '#fff',
                 width: '40px',
                 height: '40px',
-                borderRadius: '10px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                fontSize: '18px'
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
-              🔔
+              <Icona nome="campana" size={19} />
               {notifications.some(n => !n.is_read) && (
                 <span style={{
                   position: 'absolute',
@@ -5893,7 +5899,7 @@ const [notificationError, setNotificationError] = useState('');
             )}
           </div>
  
-          <button onClick={handleLogout} style={{ background: '#2e2e33', border: '1px solid #3f3f46', color: '#fff', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+          <button onClick={handleLogout} style={{ background: '#2e2e33', border: '1px solid #3f3f46', color: '#fff', padding: '8px 16px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
         </div>
       </header>
  
@@ -5918,7 +5924,7 @@ const [notificationError, setNotificationError] = useState('');
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
                   <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', color: '#000', boxSizing: 'border-box' }} />
                 </div>
-                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
+                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
                   {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
                 </button>
               </form>
@@ -5948,7 +5954,7 @@ const [notificationError, setNotificationError] = useState('');
                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
-                <button type="button" onClick={saveTrialCta} style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
                   Salva invito
                 </button>
               </div>
@@ -5959,7 +5965,7 @@ const [notificationError, setNotificationError] = useState('');
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
-                    <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
+                    <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
                   </div>
  
                   <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
@@ -5970,7 +5976,7 @@ const [notificationError, setNotificationError] = useState('');
                     <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento'), flex: '1 1 auto' }}>Abbonamento</button>
                   </div>
  
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
                     <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
                     <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi'), flex: '1 1 auto' }}>📈 Progressi</button>
@@ -6008,7 +6014,7 @@ const [notificationError, setNotificationError] = useState('');
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Sesso</label>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
-                              <button key={k} type="button" onClick={() => updateField('gender', k)} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: athData.gender === k ? '#10b981' : '#e2e8f0', color: athData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                              <button key={k} type="button" onClick={() => updateField('gender', k)} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: athData.gender === k ? '#10b981' : '#e2e8f0', color: athData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
                             ))}
                           </div>
                         </div>
@@ -6025,7 +6031,7 @@ const [notificationError, setNotificationError] = useState('');
                         <button
                           disabled={personalDataSaving}
                           onClick={() => savePersonalData(selectedCoachAthlete.id, athData, true)}
-                          style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                          style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
                         >
                           {personalDataSaving ? 'Salvataggio...' : 'Salva Dati Anagrafici'}
                         </button>
@@ -6039,11 +6045,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
-                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
-                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
-                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: coachMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
                   </div>
  
                   {coachMaxSubTab === 'strength' && (
@@ -6068,7 +6074,7 @@ const [notificationError, setNotificationError] = useState('');
                             <option key={e.id} value={e.name} />
                           ))}
                         </datalist>
-                        <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                        <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                       </div>
  
                       <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
@@ -6091,8 +6097,8 @@ const [notificationError, setNotificationError] = useState('');
                                     style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', color: '#000', fontSize: '12px' }}
                                     autoFocus
                                   />
-                                  <button onClick={() => renameExerciseEverywhere(ex.id, ex.name, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
-                                  <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
+                                  <button onClick={() => renameExerciseEverywhere(ex.id, ex.name, editingExerciseName)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
+                                  <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#e2e8f0', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
                                 </>
                               ) : (
                                 <>
@@ -6100,7 +6106,7 @@ const [notificationError, setNotificationError] = useState('');
                                     <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
                                     <span style={{ fontSize: '13px', color: '#000' }}>{ex.name}</span>
                                   </label>
-                                  <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>\u270f\ufe0f Rinomina</button>
+                                  <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>\u270f\ufe0f Rinomina</button>
                                 </>
                               )}
                             </div>
@@ -6166,7 +6172,7 @@ const [notificationError, setNotificationError] = useState('');
                           <option key={e.id} value={e.name} />
                         ))}
                       </datalist>
-                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
  
@@ -6210,7 +6216,7 @@ const [notificationError, setNotificationError] = useState('');
                           <option key={e.id} value={e.name} />
                         ))}
                       </datalist>
-                      <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
                     </div>
                   </div>
  
@@ -6254,7 +6260,7 @@ const [notificationError, setNotificationError] = useState('');
                             <span style={{ fontWeight: 'bold', color: '#000', fontSize: '15px' }}>{b.name}</span>
                             <div style={{ display: 'flex', gap: '4px' }}>
                               {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
-                                <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                                <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
                               ))}
                             </div>
                           </div>
@@ -6387,7 +6393,7 @@ const [notificationError, setNotificationError] = useState('');
                         <button
                           disabled={anamnesisSaving}
                           onClick={() => saveAnamnesis(selectedCoachAthlete.id, athAnamnesi, true)}
-                          style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                          style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
                         >
                           {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
                         </button>
@@ -6417,7 +6423,7 @@ const [notificationError, setNotificationError] = useState('');
                   {!showAddAthlete ? (
                     <button
                       onClick={() => setShowAddAthlete(true)}
-                      style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '10px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                      style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
                     >
                       ➕ Aggiungi atleta manualmente
                     </button>
@@ -6451,7 +6457,7 @@ const [notificationError, setNotificationError] = useState('');
                           <label style={{ fontSize: '11px', color: '#64748b', display: 'block', marginBottom: '4px' }}>Sesso</label>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
-                              <button key={k} type="button" onClick={() => setNewAthlete({ ...newAthlete, gender: k })} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: newAthlete.gender === k ? '#10b981' : '#e2e8f0', color: newAthlete.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                              <button key={k} type="button" onClick={() => setNewAthlete({ ...newAthlete, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: newAthlete.gender === k ? '#10b981' : '#e2e8f0', color: newAthlete.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
                             ))}
                           </div>
                         </div>
@@ -6471,10 +6477,10 @@ const [notificationError, setNotificationError] = useState('');
                         </div>
  
                         <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
-                          <button onClick={creaAtletaManuale} disabled={addingAthlete} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: addingAthlete ? 0.6 : 1 }}>
+                          <button onClick={creaAtletaManuale} disabled={addingAthlete} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: addingAthlete ? 0.6 : 1 }}>
                             {addingAthlete ? 'Creazione...' : 'Crea atleta'}
                           </button>
-                          <button onClick={() => { setShowAddAthlete(false); setNewAthlete(emptyNewAthlete); }} style={{ padding: '12px 16px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                          <button onClick={() => { setShowAddAthlete(false); setNewAthlete(emptyNewAthlete); }} style={{ padding: '12px 16px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
                             Annulla
                           </button>
                         </div>
@@ -6518,7 +6524,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Personal di: {selAthlete?.full_name || selAthlete?.email}</h3>
-                      <button onClick={() => setPersonalSelectedAthleteId('')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Cambia atleta</button>
+                      <button onClick={() => setPersonalSelectedAthleteId('')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Cambia atleta</button>
                     </div>
  
                     {athletePersonalPrograms.length === 0 ? (
@@ -6555,7 +6561,7 @@ const [notificationError, setNotificationError] = useState('');
                                     setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
                                     if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
                                   }}
-                                  style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#e2e8f0', color: activeWeekName === w.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                  style={{ padding: '6px 12px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#e2e8f0', color: activeWeekName === w.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                 >
                                   {w.weekName}
                                 </button>
@@ -6651,9 +6657,9 @@ const [notificationError, setNotificationError] = useState('');
                                         ))}
                                         <button
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '8px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                         >
-                                          <span style={{ width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
                                             {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
                                           </span>
                                           <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#92400e' }}>
@@ -6704,9 +6710,9 @@ const [notificationError, setNotificationError] = useState('');
                                         )}
                                         <button
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                         >
-                                          <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                          <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
                                             {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '\u2713' : ''}
                                           </span>
                                           <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#334155' }}>
@@ -6729,7 +6735,7 @@ const [notificationError, setNotificationError] = useState('');
                                             <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
                                               <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
                                                 {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
-                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, personalSelectedAthleteId); }} style={{ padding: '3px 10px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, personalSelectedAthleteId); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
                                                 ))}
                                               </div>
                                               <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
@@ -6914,7 +6920,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Modifica Programma</h3>
-                <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
+                <button onClick={() => setEditingProgram(null)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
               </div>
  
               <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
@@ -6951,7 +6957,7 @@ const [notificationError, setNotificationError] = useState('');
                     <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
-                        <button key={k} type="button" onClick={() => setEditingProgram({ ...editingProgram, trialGender: k })} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: (editingProgram.trialGender || '') === k ? '#10b981' : '#e2e8f0', color: (editingProgram.trialGender || '') === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                        <button key={k} type="button" onClick={() => setEditingProgram({ ...editingProgram, trialGender: k })} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: (editingProgram.trialGender || '') === k ? '#10b981' : '#e2e8f0', color: (editingProgram.trialGender || '') === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
                       ))}
                     </div>
                     <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
@@ -6970,7 +6976,7 @@ const [notificationError, setNotificationError] = useState('');
                       ? []
                       : (editingProgram.assignedAthleteIds || []);
                   setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
-                }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                   <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                   <option value="all">🌍 Tutti gli atleti</option>
                   <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
@@ -7007,11 +7013,11 @@ const [notificationError, setNotificationError] = useState('');
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
                     const isSelected = selectedWeekView === week.weekName;
                     return (
-                      <div key={wIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                      <div key={wIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
                         <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                           {week.weekName}
                         </button>
-                        <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
                           <button onClick={() => moveEditingWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
                           <button onClick={() => cloneEditingWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
                           <button onClick={() => moveEditingWeekOrder(wIdx, 'right')} disabled={wIdx === editingProgram.weeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === editingProgram.weeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === editingProgram.weeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
@@ -7048,7 +7054,7 @@ const [notificationError, setNotificationError] = useState('');
                             setSelectedWeekView(updated.weeks[0].weekName);
                             if (updated.weeks[0].days?.length > 0) setSelectedDayView(updated.weeks[0].days[0].dayName);
                           }
-                        }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
+                        }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                       )}
                     </div>
  
@@ -7056,11 +7062,11 @@ const [notificationError, setNotificationError] = useState('');
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
                         return (
-                          <div key={dIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                          <div key={dIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
                             <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                               {day.dayName}
                             </button>
-                            <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
                               <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
                               <button onClick={() => cloneEditingDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
                               <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
@@ -7068,7 +7074,7 @@ const [notificationError, setNotificationError] = useState('');
                           </div>
                         );
                       })}
-                      <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
+                      <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                     </div>
  
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
@@ -7095,7 +7101,7 @@ const [notificationError, setNotificationError] = useState('');
                                 updated.weeks[actualWIdx].days.splice(actualDIdx, 1);
                                 setEditingProgram(updated);
                                 if (updated.weeks[actualWIdx].days.length > 0) setSelectedDayView(updated.weeks[actualWIdx].days[0].dayName);
-                              }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
+                              }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                             )}
                           </div>
  
@@ -7110,18 +7116,18 @@ const [notificationError, setNotificationError] = useState('');
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
                                     <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
-                                    <button type="button" onClick={() => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
+                                    <button type="button" onClick={() => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, minWidth: 0, padding: '6px', borderRadius: '999px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                   </div>
-                                  <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                    <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
                                     <button type="button" onClick={() => {
                                       const updated = JSON.parse(JSON.stringify(editingProgram));
                                       updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
                                       setEditingProgram(updated);
-                                    }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
+                                    }} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
                                   </div>
                                 </div>
  
@@ -7173,7 +7179,7 @@ const [notificationError, setNotificationError] = useState('');
                                         <button
                                           type="button"
                                           onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
-                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
                                         >
                                           ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
                                         </button>
@@ -7192,7 +7198,7 @@ const [notificationError, setNotificationError] = useState('');
                                                 <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#10b981' }}>{bench.name}</span>
                                                 <div style={{ display: 'flex', gap: '3px' }}>
                                                   {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
-                                                    <button key={k} type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '5px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                    <button key={k} type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
                                                   ))}
                                                 </div>
                                               </div>
@@ -7259,13 +7265,13 @@ const [notificationError, setNotificationError] = useState('');
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
                                                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
                                               />
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="su" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="giu" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="cestino" size={14} />
                                               </button>
                                             </div>
@@ -7275,7 +7281,7 @@ const [notificationError, setNotificationError] = useState('');
                                         ))}
  
  
-                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                           <Icona nome="piu" size={13} /> Aggiungi esercizio
                                         </button>
  
@@ -7369,19 +7375,19 @@ const [notificationError, setNotificationError] = useState('');
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
                                                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }}
                                               />
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="su" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="giu" size={14} />
                                               </button>
-                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                 <Icona nome="cestino" size={14} />
                                               </button>
                                             </div>
                                           </div>
                                         ))}
-                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
                                           <Icona nome="piu" size={12} /> Aggiungi esercizio con video
                                         </button>
                                       </div>
@@ -7391,7 +7397,7 @@ const [notificationError, setNotificationError] = useState('');
                               </div>
                             );
                           })}
-                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
+                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
                         </div>
                       );
                     })}
@@ -7407,13 +7413,14 @@ const [notificationError, setNotificationError] = useState('');
                 <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
               </div>
  
-              <button onClick={saveEditedProgram} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
+              <button onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
             </div>
           ) : (
             <div>
               <div id="menu-coach-ancora" />
               <div style={{
                 display: 'flex',
+                flexWrap: 'wrap',
                 gap: '8px',
                 marginBottom: menuAgganciato ? '10px' : '20px',
                 position: menuAgganciato ? 'sticky' : 'static',
@@ -7425,16 +7432,49 @@ const [notificationError, setNotificationError] = useState('');
                 boxShadow: menuAgganciato ? '0 6px 14px rgba(0,0,0,0.45)' : 'none',
                 transition: 'padding .16s ease, margin .16s ease',
               }}>
-                <button onClick={() => setActiveTab('create')} style={{ ...pillola(activeTab === 'create'), flex: '1 1 auto' }}>Crea Programma</button>
-                <button onClick={() => setActiveTab('library')} style={{ ...pillola(activeTab === 'library'), flex: '1 1 auto' }}>Libreria Programmi</button>
-                <button onClick={() => setActiveTab('exercises')} style={{ ...pillola(activeTab === 'exercises'), flex: '1 1 auto' }}>Libreria Esercizi 🏋️‍♂️</button>
+                <button
+                  onClick={() => setActiveTab('create')}
+                  style={{
+                    ...pillola(activeTab === 'create'),
+                    flex: '1 1 0', minWidth: 0,
+                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
+                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  Crea Programma
+                </button>
+                <button
+                  onClick={() => setActiveTab('library')}
+                  style={{
+                    ...pillola(activeTab === 'library'),
+                    flex: '1 1 0', minWidth: 0,
+                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
+                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  Libreria Programmi
+                </button>
+                <button
+                  onClick={() => setActiveTab('exercises')}
+                  style={{
+                    ...pillola(activeTab === 'exercises'),
+                    flex: '1 1 0', minWidth: 0,
+                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
+                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  Libreria Esercizi
+                </button>
               </div>
  
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '18px', margin: 0, color: '#10b981' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
-                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '8px', border: 'none', background: showDeletedExercises ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '999px', border: 'none', background: showDeletedExercises ? '#10b981' : '#64748b', color: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
                       {showDeletedExercises ? 'Torna agli esercizi' : '🗑️ Cestino'}
                     </button>
                   </div>
@@ -7449,7 +7489,7 @@ const [notificationError, setNotificationError] = useState('');
                         <option value="metcon">⏱️ Metcon — risultato a tempo</option>
                         <option value="gym">🤸 Ginnastica — massimo di ripetizioni</option>
                       </select>
-                      <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
+                      <button type="submit" style={{ padding: '10px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
                     </form>
                   )}
  
@@ -7513,10 +7553,10 @@ const [notificationError, setNotificationError] = useState('');
                             </p>
  
                             <div style={{ display: 'flex', gap: '7px' }}>
-                              <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                              <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                 Salva
                               </button>
-                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); setLibEditAlias(''); }} style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); setLibEditAlias(''); }} style={{ padding: '10px 15px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                 Annulla
                               </button>
                             </div>
@@ -7549,13 +7589,13 @@ const [notificationError, setNotificationError] = useState('');
                           </div>
                           {showDeletedExercises ? (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                              <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
+                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                              <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
                             </div>
                           ) : (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); setLibEditAlias(ex.aliases || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
-                              <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                              <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); setLibEditAlias(ex.aliases || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
+                              <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
                           )}
                         </div>
@@ -7601,7 +7641,7 @@ const [notificationError, setNotificationError] = useState('');
                         <label style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
-                            <button key={k} type="button" onClick={() => setProgramTrialGender(k)} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: programTrialGender === k ? '#10b981' : '#e2e8f0', color: programTrialGender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                            <button key={k} type="button" onClick={() => setProgramTrialGender(k)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: programTrialGender === k ? '#10b981' : '#e2e8f0', color: programTrialGender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
                           ))}
                         </div>
                         <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
@@ -7619,7 +7659,7 @@ const [notificationError, setNotificationError] = useState('');
                       if (v === 'none') setSelectedAthleteIds([]);
                       // arrivando da "tutti", riparto senza nessuna spunta
                       if (v === 'selected' && prev === 'all') setSelectedAthleteIds([]);
-                    }} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
+                    }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', marginBottom: '12px', background: '#fff' }}>
                       <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
                       <option value="all">🌍 Tutti gli atleti</option>
                       <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
@@ -7652,11 +7692,11 @@ const [notificationError, setNotificationError] = useState('');
                       {programWeeks.map((week, wIdx) => {
                         const isSelected = selectedWeekView === week.weekName;
                         return (
-                          <div key={wIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                          <div key={wIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
                             <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                               {week.weekName}
                             </button>
-                            <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
                               <button onClick={() => moveWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
                               <button onClick={() => cloneWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
                               <button onClick={() => moveWeekOrder(wIdx, 'right')} disabled={wIdx === programWeeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === programWeeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === programWeeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
@@ -7664,7 +7704,7 @@ const [notificationError, setNotificationError] = useState('');
                           </div>
                         );
                       })}
-                      <button onClick={addWeek} style={{ padding: '6px 12px', background: '#10b981', border: 'none', color: '#ffffff', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Settimana</button>
+                      <button onClick={addWeek} style={{ padding: '6px 12px', background: '#10b981', border: 'none', color: '#ffffff', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Settimana</button>
                     </div>
                   </div>
  
@@ -7694,7 +7734,7 @@ const [notificationError, setNotificationError] = useState('');
                                 setSelectedWeekView(upd[0].weekName);
                                 if (upd[0].days?.length > 0) setSelectedDayView(upd[0].days[0].dayName);
                               }
-                            }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
+                            }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                           )}
                         </div>
  
@@ -7702,11 +7742,11 @@ const [notificationError, setNotificationError] = useState('');
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
                             return (
-                              <div key={dIdx} style={{ display: 'flex', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
+                              <div key={dIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
                                 <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                                   {day.dayName}
                                 </button>
-                                <div style={{ display: 'flex', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
                                   <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
                                   <button onClick={() => cloneDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
                                   <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
@@ -7714,7 +7754,7 @@ const [notificationError, setNotificationError] = useState('');
                               </div>
                             );
                           })}
-                          <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
+                          <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
                         </div>
  
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
@@ -7741,7 +7781,7 @@ const [notificationError, setNotificationError] = useState('');
                                     upd[actualWIdx].days.splice(actualDIdx, 1);
                                     setProgramWeeks(upd);
                                     if (upd[actualWIdx].days.length > 0) setSelectedDayView(upd[actualWIdx].days[0].dayName);
-                                  }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
+                                  }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                                 )}
                               </div>
  
@@ -7756,14 +7796,14 @@ const [notificationError, setNotificationError] = useState('');
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
                                         <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
-                                        <button type="button" onClick={() => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, padding: '6px', borderRadius: '4px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
+                                        <button type="button" onClick={() => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, minWidth: 0, padding: '6px', borderRadius: '999px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
                                       </div>
-                                      <div style={{ display: 'flex', gap: '4px' }}>
-                                        <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
-                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
-                                        <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                        <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
+                                        <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
                                       </div>
                                     </div>
  
@@ -7813,7 +7853,7 @@ const [notificationError, setNotificationError] = useState('');
                                             <button
                                               type="button"
                                               onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
-                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
                                             >
                                               ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
                                             </button>
@@ -7832,7 +7872,7 @@ const [notificationError, setNotificationError] = useState('');
                                                     <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#10b981' }}>{bench.name}</span>
                                                     <div style={{ display: 'flex', gap: '3px' }}>
                                                       {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
-                                                        <button key={k} type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '5px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                        <button key={k} type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
                                                       ))}
                                                     </div>
                                                   </div>
@@ -7899,13 +7939,13 @@ const [notificationError, setNotificationError] = useState('');
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
                                                     style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
                                                   />
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="su" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="giu" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="cestino" size={14} />
                                                   </button>
                                                 </div>
@@ -7915,7 +7955,7 @@ const [notificationError, setNotificationError] = useState('');
                                             ))}
  
  
-                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
                                               <Icona nome="piu" size={13} /> Aggiungi esercizio
                                             </button>
  
@@ -8009,19 +8049,19 @@ const [notificationError, setNotificationError] = useState('');
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
                                                     style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', color: '#000', fontSize: '12.5px' }}
                                                   />
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="su" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="giu" size={14} />
                                                   </button>
-                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#fee2e2', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#b91c1c', cursor: 'pointer', flexShrink: 0 }}>
                                                     <Icona nome="cestino" size={14} />
                                                   </button>
                                                 </div>
                                               </div>
                                             ))}
-                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
                                               <Icona nome="piu" size={12} /> Aggiungi esercizio con video
                                             </button>
                                           </div>
@@ -8031,7 +8071,7 @@ const [notificationError, setNotificationError] = useState('');
                                   </div>
                                 );
                               })}
-                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
+                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
                             </div>
                           );
                         })}
@@ -8048,7 +8088,7 @@ const [notificationError, setNotificationError] = useState('');
                     <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
                   </div>
  
-                  <button onClick={saveProgramToLibrary} style={{ width: '100%', padding: '14px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
+                  <button onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
                 </div>
               ) : (
                 <div>
@@ -8180,16 +8220,16 @@ const [notificationError, setNotificationError] = useState('');
  
                               </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '6px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                               {showDeletedPrograms ? (
                                 <>
-                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
-                                  <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} /> Elimina definitivamente</button>
+                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} /> Elimina definitivamente</button>
                                 </>
                               ) : (
                                 <>
-                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#fef3c7' : '#f4f4f5', border: prog.visibility === 'none' ? '1px solid #fcd34d' : '1px solid #d4d4d8', color: prog.visibility === 'none' ? '#92400e' : '#3f3f46', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
-                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#fef3c7' : '#f4f4f5', border: prog.visibility === 'none' ? '1px solid #fcd34d' : '1px solid #d4d4d8', color: prog.visibility === 'none' ? '#92400e' : '#3f3f46', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
+                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
                                   <button onClick={() => {
                                     const progToEdit = JSON.parse(JSON.stringify(prog));
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
@@ -8198,8 +8238,8 @@ const [notificationError, setNotificationError] = useState('');
                                       setSelectedWeekView(progToEdit.weeks[0].weekName);
                                       if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
                                     }
-                                  }} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
-                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '5px 10px', borderRadius: '7px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                                  }} style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
                                 </>
                               )}
                             </div>
@@ -8216,7 +8256,7 @@ const [notificationError, setNotificationError] = useState('');
                                     setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
                                     if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
                                   }}
-                                  style={{ padding: '4px 8px', borderRadius: '4px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#cbd5e1', color: '#fff', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                  style={{ padding: '4px 8px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#cbd5e1', color: '#fff', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
                                 >
                                   {w.weekName}
                                 </button>
@@ -8227,23 +8267,6 @@ const [notificationError, setNotificationError] = useState('');
                               {activeWeekObj?.days?.map((day: any, dIdx: number) => {
                                 const attivo = activeDay === day.dayName;
  
-                                // quanto hanno compilato gli atleti assegnati su quel giorno
-                                const wReale = weeks.findIndex((w: any) => w.weekName === activeWeekName);
-                                const blocchi = (day.blocks || []).filter((b: any) => b?.type !== 'warmup');
-                                const chiEsegue = assignedList.length > 0 ? assignedList : athletes;
-                                let fatti = 0;
-                                let attesi = 0;
-                                chiEsegue.forEach((a: any) => {
-                                  const suoi = progResultsByAthlete[a.id];
-                                  if (!suoi) return;
-                                  blocchi.forEach((b: any, bi: number) => {
-                                    attesi++;
-                                    const r = suoi[`${wReale}_${dIdx}_${bi}`];
-                                    if (r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done)) fatti++;
-                                  });
-                                });
-                                const completo = attesi > 0 && fatti === attesi;
- 
                                 return (
                                   <button
                                     key={day.dayName}
@@ -8251,29 +8274,13 @@ const [notificationError, setNotificationError] = useState('');
                                     style={{ ...pillola(attivo, '#10b981', 'piccolo') }}
                                   >
                                     {day.dayName}
-                                    {attesi > 0 && (
-                                      <span
-                                        title={`${fatti} di ${attesi} compilati`}
-                                        style={{
-                                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                          minWidth: '18px', height: '18px', borderRadius: '999px', padding: '0 5px',
-                                          fontSize: '9.5px', fontWeight: 'bold',
-                                          background: completo ? (attivo ? 'rgba(255,255,255,0.28)' : '#10b981')
-                                            : fatti > 0 ? (attivo ? 'rgba(255,255,255,0.22)' : '#fcd34d')
-                                            : (attivo ? 'rgba(255,255,255,0.18)' : '#cbd5e1'),
-                                          color: attivo || completo ? '#fff' : '#334155',
-                                        }}
-                                      >
-                                        {completo ? <Icona nome="spunta" size={10} /> : `${fatti}/${attesi}`}
-                                      </span>
-                                    )}
                                   </button>
                                 );
                               })}
                             </div>
  
                             <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                              {Object.keys(progResultsByAthlete).length === 0 ? (
+                              {Object.keys(progResultsByAthlete).length === 0 && assignedList.length === 0 ? (
                                 <span style={{ fontSize: '11px', color: '#64748b' }}>Nessun risultato registrato.</span>
                               ) : (
                                 (() => {
@@ -8283,16 +8290,14 @@ const [notificationError, setNotificationError] = useState('');
  
                                   const blocksOfActiveDay = activeWeekObj.days[dayIndex].blocks || [];
  
-                                  return athletes.map((ath) => {
-                                    const resObj = progResultsByAthlete[ath.id];
-                                    if (!resObj) return null;
+                                  // Mostro tutti gli atleti che devono fare il programma, anche
+                                  // quelli che non hanno ancora compilato: serve a vedere chi è indietro
+                                  const destinatari = assignedList.length > 0
+                                    ? assignedList
+                                    : athletes.filter((a: any) => progResultsByAthlete[a.id]);
  
-                                    const hasResultsForThisDay = blocksOfActiveDay.some((_: any, bIdx: number) => {
-                                      const blockKey = `${wIndex}_${dayIndex}_${bIdx}`;
-                                      return resObj[blockKey]?.score || resObj[blockKey]?.notes;
-                                    });
- 
-                                    if (!hasResultsForThisDay) return null;
+                                  return destinatari.map((ath: any) => {
+                                    const resObj = progResultsByAthlete[ath.id] || {};
                                     const athName = ath.full_name || ath.email;
  
                                     return (
@@ -8302,6 +8307,31 @@ const [notificationError, setNotificationError] = useState('');
                                             {String(athName).trim().charAt(0).toUpperCase()}
                                           </span>
                                           <span style={{ fontSize: '13px', color: '#0284c7', fontWeight: 'bold', overflowWrap: 'anywhere' }}>{athName}</span>
+                                          {(() => {
+                                            const blocchi = blocksOfActiveDay.filter((b: any) => b?.type !== 'warmup');
+                                            if (blocchi.length === 0) return null;
+ 
+                                            const fatti = blocchi.filter((b: any, bi: number) => {
+                                              const r = resObj[`${wIndex}_${dayIndex}_${bi}`];
+                                              return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done);
+                                            }).length;
+                                            const completo = fatti === blocchi.length;
+ 
+                                            return (
+                                              <span
+                                                title={`${fatti} di ${blocchi.length} esercizi compilati`}
+                                                style={{
+                                                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '3px',
+                                                  minWidth: '20px', height: '20px', borderRadius: '999px', padding: '0 7px',
+                                                  fontSize: '10px', fontWeight: 'bold', flexShrink: 0,
+                                                  background: completo ? '#10b981' : fatti > 0 ? '#fcd34d' : '#e2e8f0',
+                                                  color: completo ? '#fff' : '#334155',
+                                                }}
+                                              >
+                                                {completo ? <Icona nome="spunta" size={11} /> : `${fatti}/${blocchi.length}`}
+                                              </span>
+                                            );
+                                          })()}
                                           {(() => {
                                             const p = progressiCompleti(prog, resObj, storicoCarichiCoach[ath.id] || []);
                                             if (!p) return null;
@@ -8378,7 +8408,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
                 <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
-                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a', cursor: 'pointer' }} />
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', boxSizing: 'border-box', maxHeight: '150px', objectFit: 'cover', borderRadius: '999px', border: '1px solid #26262a', cursor: 'pointer' }} />
                 </a>
               ) : (
                 <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a' }} />
@@ -8410,7 +8440,7 @@ const [notificationError, setNotificationError] = useState('');
                   <button
                     key={s.k}
                     onClick={() => chooseTrial(s.k)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#ffffff', cursor: 'pointer' }}
                   >
                     <span style={{ fontSize: '26px' }}>{s.icon}</span>
                     <span style={{ flex: 1 }}>
@@ -8439,7 +8469,7 @@ const [notificationError, setNotificationError] = useState('');
                   href={trialCta.link_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: '#ffffff', color: '#059669', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
+                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '999px', background: '#ffffff', color: '#059669', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
                 >
                   Scopri le programmazioni
                 </a>
@@ -8457,7 +8487,7 @@ const [notificationError, setNotificationError] = useState('');
                 <button onClick={() => setAthleteProfileTab('privacy')} style={{ ...pillola(athleteProfileTab === 'privacy'), flex: '1 1 auto' }}>Privacy</button>
               </div>
  
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
                 <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
                 <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi'), flex: '1 1 auto' }}>📈 Progressi</button>
@@ -8488,7 +8518,7 @@ const [notificationError, setNotificationError] = useState('');
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>Sesso</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
-                        <button key={k} type="button" onClick={() => setPersonalData({ ...personalData, gender: k })} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: personalData.gender === k ? '#10b981' : '#e2e8f0', color: personalData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                        <button key={k} type="button" onClick={() => setPersonalData({ ...personalData, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: personalData.gender === k ? '#10b981' : '#e2e8f0', color: personalData.gender === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
                       ))}
                     </div>
                   </div>
@@ -8505,7 +8535,7 @@ const [notificationError, setNotificationError] = useState('');
                   <button
                     disabled={personalDataSaving}
                     onClick={() => savePersonalData(session.user.id, personalData, false)}
-                    style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                    style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
                   >
                     {personalDataSaving ? 'Salvataggio...' : 'Salva Dati Anagrafici'}
                   </button>
@@ -8518,11 +8548,11 @@ const [notificationError, setNotificationError] = useState('');
  
               {athleteProfileTab === 'maxes' && (
               <>
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
-                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
-                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
-                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, padding: '7px', borderRadius: '8px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'strength' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'metcon' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'gym' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : '#f1f5f9', color: athleteMaxSubTab === 'bench' ? '#fff' : '#334155', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
               </div>
  
               {athleteMaxSubTab === 'strength' && (
@@ -8637,7 +8667,7 @@ const [notificationError, setNotificationError] = useState('');
                         <span style={{ fontWeight: 'bold', color: '#000', fontSize: '16px' }}>{b.name}</span>
                         <div style={{ display: 'flex', gap: '4px' }}>
                           {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
-                            <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                            <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
                           ))}
                         </div>
                       </div>
@@ -8715,7 +8745,7 @@ const [notificationError, setNotificationError] = useState('');
                   <button
                     disabled={anamnesisSaving}
                     onClick={() => saveAnamnesis(session.user.id, anamnesis, false)}
-                    style={{ padding: '12px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                    style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
                   >
                     {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
                   </button>
@@ -8749,7 +8779,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>🔑 Cambia password</span>
                     {!showChangePassword ? (
-                      <button onClick={() => setShowChangePassword(true)} style={{ padding: '10px 16px', borderRadius: '8px', background: '#475569', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                      <button onClick={() => setShowChangePassword(true)} style={{ padding: '10px 16px', borderRadius: '999px', background: '#475569', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
                         Imposta una nuova password
                       </button>
                     ) : (
@@ -8757,10 +8787,10 @@ const [notificationError, setNotificationError] = useState('');
                         <input type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                         <input type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button onClick={cambiaPassword} disabled={passwordSaving} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: passwordSaving ? 0.6 : 1 }}>
+                          <button onClick={cambiaPassword} disabled={passwordSaving} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: passwordSaving ? 0.6 : 1 }}>
                             {passwordSaving ? 'Salvataggio...' : 'Salva'}
                           </button>
-                          <button onClick={() => { setShowChangePassword(false); setNewPassword(''); setNewPassword2(''); }} style={{ padding: '10px 16px', borderRadius: '8px', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                          <button onClick={() => { setShowChangePassword(false); setNewPassword(''); setNewPassword2(''); }} style={{ padding: '10px 16px', borderRadius: '999px', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
                             Annulla
                           </button>
                         </div>
@@ -8771,7 +8801,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>📥 Scarica i tuoi dati</span>
                     <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 10px 0', lineHeight: 1.4 }}>Ottieni una copia completa di tutti i dati che ti riguardano (anagrafica, anamnesi, massimali, risultati, programmi assegnati) in un file leggibile.</p>
-                    <button onClick={downloadMyData} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '8px', background: '#0284c7', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
+                    <button onClick={downloadMyData} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '999px', background: '#0284c7', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
                       {accountActionLoading ? 'Attendere...' : 'Scarica i miei dati'}
                     </button>
                   </div>
@@ -8779,7 +8809,7 @@ const [notificationError, setNotificationError] = useState('');
                   <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '14px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#991b1b', display: 'block', marginBottom: '6px' }}><Icona nome="cestino" size={12} /> Elimina il tuo account</span>
                     <p style={{ fontSize: '12px', color: '#7f1d1d', margin: '0 0 10px 0', lineHeight: 1.4 }}>Cancella definitivamente l&apos;account e tutti i dati associati: anagrafica, anamnesi, massimali e risultati. L&apos;operazione non è reversibile.</p>
-                    <button onClick={deleteMyAccount} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '8px', background: '#dc2626', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
+                    <button onClick={deleteMyAccount} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '999px', background: '#dc2626', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
                       {accountActionLoading ? 'Attendere...' : 'Elimina account'}
                     </button>
                   </div>
@@ -8862,7 +8892,7 @@ const [notificationError, setNotificationError] = useState('');
                         return (
                           <button
                             onClick={() => setProgressiAperti({ dati: prog_, titolo: prog.title, perAtleta: true })}
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '14px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #6ee7b7', background: '#ecfdf5', cursor: 'pointer' }}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '14px', padding: '12px 14px', borderRadius: '999px', border: '1px solid #6ee7b7', background: '#ecfdf5', cursor: 'pointer' }}
                           >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <Icona nome="grafico" size={17} style={{ color: '#047857' }} />
@@ -8882,7 +8912,7 @@ const [notificationError, setNotificationError] = useState('');
                         <div style={{ marginBottom: '14px' }}>
                           <button
                             onClick={() => apriConsigli(prog.id, aperto)}
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer' }}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid #fde68a', background: '#fffbeb', cursor: 'pointer' }}
                           >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span style={{ fontSize: '18px' }}>💡</span>
@@ -8898,8 +8928,8 @@ const [notificationError, setNotificationError] = useState('');
                             <div style={{ marginTop: '8px' }}>
                               {prog.trainingTips && prog.nutritionTips && (
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
-                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: tipsTab === 'training' ? '#10b981' : '#f1f5f9', color: tipsTab === 'training' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
-                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : '#f1f5f9', color: tipsTab === 'nutrition' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
+                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? '#10b981' : '#f1f5f9', color: tipsTab === 'training' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
+                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : '#f1f5f9', color: tipsTab === 'nutrition' ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
                                 </div>
                               )}
  
@@ -9050,7 +9080,7 @@ const [notificationError, setNotificationError] = useState('');
                                                     <Icona nome="video" size={13} /> Video
                                                   </a>
                                                 )}
-                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#000', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                               </div>
                                             </div>
  
@@ -9110,9 +9140,9 @@ const [notificationError, setNotificationError] = useState('');
                                                     ))}
                                                     <button
                                                       onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '8px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                                     >
-                                                      <span style={{ width: '20px', height: '20px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#fde68a' }}>
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#fde68a' }}>
                                                         {athleteResults[prog.id]?.[blockKey]?.done && <Icona nome="spunta" size={13} />}
                                                       </span>
                                                       <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#92400e' }}>
@@ -9163,9 +9193,9 @@ const [notificationError, setNotificationError] = useState('');
                                                     )}
                                                     <button
                                                       onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '8px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
                                                     >
-                                                      <span style={{ width: '22px', height: '22px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                                      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
                                                         {athleteResults[prog.id]?.[blockKey]?.done ? '\u2713' : ''}
                                                       </span>
                                                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#334155' }}>
@@ -9188,7 +9218,7 @@ const [notificationError, setNotificationError] = useState('');
                                                         <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
                                                           <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
                                                             {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
-                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '3px 10px', borderRadius: '6px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
                                                             ))}
                                                           </div>
                                                           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
