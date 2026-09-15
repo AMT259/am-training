@@ -1385,52 +1385,108 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
  
       if (unoAUno) {
         if (r1InLavoro) { setTrascorsi(base + passati); return; }
-        setRestano((v: number) => {
-          if (v > 1) {
-            if (v <= 4) bip(660, 0.08);
-            return v - 1;
-          }
-          // recupero finito: parte il round successivo
-          bip(1000, 0.3);
-          vibra([120, 60, 120]);
-          riferimento.current = null;
-          setR1Round((n: number) => n + 1);
-          setR1InLavoro(true);
-          setTrascorsi(0);
-          return 0;
-        });
+ 
+        // recupero calcolato sull'orologio: al rientro dall'app il tempo è quello vero
+        const restaR1 = base - passati;
+        if (restaR1 > 0) {
+          if (restaR1 <= 4) bip(660, 0.08);
+          setRestano(restaR1);
+          return;
+        }
+ 
+        bip(1000, 0.3);
+        vibra([120, 60, 120]);
+        riferimento.current = null;
+        setR1Round((n: number) => n + 1);
+        setR1InLavoro(true);
+        setTrascorsi(0);
+        setRestano(0);
         return;
       }
  
-      setRestano((v: number) => {
-        if (v > 1) {
-          if (v <= 4) bip(660, 0.08);
-          return v - 1;
-        }
+      // Conto alla rovescia sull'orologio: se l'app resta in sottofondo e il battito
+      // si ferma, al rientro il tempo si riallinea. Se nel frattempo sono passate
+      // più fasi, le recupero una dopo l'altra fino a quella giusta.
+      const resta = base - passati;
  
-        // fase conclusa: se era lavoro, la annoto nel resoconto
-        const conclusa = fasi[fase];
+      if (resta > 0) {
+        if (resta <= 4) bip(660, 0.08);
+        setRestano(resta);
+        return;
+      }
+ 
+      let indice = fase;
+      let avanzo = -resta;
+      const nuoviGiri: { round: number; secondi: number }[] = [];
+ 
+      while (indice < fasi.length) {
+        const conclusa = fasi[indice];
         if (conclusa && (conclusa.nome === 'Lavoro' || String(conclusa.nome).startsWith('Minuto'))) {
-          setGiri((g: { round: number; secondi: number }[]) => [...g, { round: conclusa.round || g.length + 1, secondi: conclusa.secondi }]);
+          nuoviGiri.push({ round: conclusa.round || nuoviGiri.length + 1, secondi: conclusa.secondi });
         }
+        indice++;
+        if (indice >= fasi.length) break;
+        if (avanzo < fasi[indice].secondi) break;
+        avanzo -= fasi[indice].secondi;
+      }
  
-        const prossima = fase + 1;
-        if (prossima >= fasi.length) {
-          bip(1200, 0.6);
-          vibra([200, 80, 200, 80, 200]);
-          setAttivo(false);
-          return 0;
-        }
-        bip(1000, 0.25);
-        vibra(150);
-        riferimento.current = null;
-        setFase(prossima);
-        return fasi[prossima].secondi;
-      });
+      if (nuoviGiri.length > 0) {
+        setGiri((g: { round: number; secondi: number }[]) => [...g, ...nuoviGiri]);
+      }
+ 
+      if (indice >= fasi.length) {
+        bip(1200, 0.6);
+        vibra([200, 80, 200, 80, 200]);
+        setAttivo(false);
+        setFase(fasi.length - 1);
+        setRestano(0);
+        return;
+      }
+ 
+      bip(1000, 0.25);
+      vibra(150);
+      riferimento.current = { inizio: Date.now() - avanzo * 1000, base: fasi[indice].secondi };
+      setFase(indice);
+      setRestano(fasi[indice].secondi - avanzo);
     }, 1000);
  
     return () => clearInterval(t);
   }, [attivo, fase, fasi.length, libero, unoAUno, r1InLavoro, r1Round]);
+ 
+  // Il recupero dei blocchi di forza si chiude da solo quando scade:
+  // hai finito la pausa e devi tornare sotto il bilanciere, non chiudere una finestra
+  useEffect(() => {
+    if (scelta?.tipo !== 'recupero') return;
+    if (!partito || attivo || restano > 0) return;
+ 
+    const t = setTimeout(() => onClose(), 1400);
+    return () => clearTimeout(t);
+  }, [scelta, partito, attivo, restano]);
+ 
+  // Tornando nell'app dopo che il telefono si è bloccato, riallineo subito
+  // il tempo invece di aspettare il battito successivo
+  useEffect(() => {
+    const alRientro = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!attivo || !riferimento.current) return;
+ 
+      const passati = Math.floor((Date.now() - riferimento.current.inizio) / 1000);
+      const base = riferimento.current.base || 0;
+ 
+      if (libero || (unoAUno && r1InLavoro)) {
+        setTrascorsi(base + passati);
+      } else {
+        setRestano(Math.max(0, base - passati));
+      }
+    };
+ 
+    document.addEventListener('visibilitychange', alRientro);
+    window.addEventListener('focus', alRientro);
+    return () => {
+      document.removeEventListener('visibilitychange', alRientro);
+      window.removeEventListener('focus', alRientro);
+    };
+  }, [attivo, libero, unoAUno, r1InLavoro]);
  
   const ferma = () => { setAttivo(false); setPreparazione(null); riferimento.current = null; };
   const azzera = () => {
@@ -4588,8 +4644,7 @@ const [notificationError, setNotificationError] = useState('');
             </div>
           );
         })}
- 
-        {showCompForm ? (
+         {showCompForm ? (
           <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
             <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '4px' }}>
               Nome della gara
