@@ -5705,7 +5705,7 @@ const [notificationError, setNotificationError] = useState('');
               >
                 {consentSaving ? 'Salvataggio...' : 'Accetto e continuo'}
               </button>
-              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: '#f1f5f9', color: '#000', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: '#fef2f2', color: '#b91c1c', fontWeight: 'bold', border: '1px solid #fca5a5', cursor: 'pointer', fontSize: '14px' }}>
                 Esci
               </button>
             </div>
@@ -5899,7 +5899,7 @@ const [notificationError, setNotificationError] = useState('');
             )}
           </div>
  
-          <button onClick={handleLogout} style={{ background: '#2e2e33', border: '1px solid #3f3f46', color: '#fff', padding: '8px 16px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid #7f1d1d', color: '#fca5a5', padding: '8px 16px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
         </div>
       </header>
  
@@ -8408,7 +8408,7 @@ const [notificationError, setNotificationError] = useState('');
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               {bannerData.link_url ? (
                 <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
-                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', boxSizing: 'border-box', maxHeight: '150px', objectFit: 'cover', borderRadius: '999px', border: '1px solid #26262a', cursor: 'pointer' }} />
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', boxSizing: 'border-box', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a', cursor: 'pointer' }} />
                 </a>
               ) : (
                 <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid #26262a' }} />
@@ -8469,7 +8469,7 @@ const [notificationError, setNotificationError] = useState('');
                   href={trialCta.link_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '999px', background: '#ffffff', color: '#059669', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
+                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: '#ffffff', color: '#059669', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
                 >
                   Scopri le programmazioni
                 </a>
