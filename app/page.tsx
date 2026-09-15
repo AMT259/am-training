@@ -1840,6 +1840,10 @@ const rigaPillole: React.CSSProperties = {
   WebkitOverflowScrolling: 'touch',
 };
  
+// Il sito dove vendi le programmazioni: toccando il logo si apre questo.
+// Se cambi negozio, basta modificare questo indirizzo.
+const SITO_NEGOZIO = 'https://a-m-training.sumupstore.com/prodotti';
+ 
 // Icone disegnate per i pulsanti: nitide a ogni dimensione e uguali
 // su tutti i telefoni, a differenza delle emoji
 function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?: React.CSSProperties }) {
@@ -5715,7 +5719,15 @@ const [notificationError, setNotificationError] = useState('');
  
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #2e2e33', paddingBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-          <AmtLogo style={{ width: '46px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
+          <a
+            href={SITO_NEGOZIO}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Vai alle programmazioni"
+            style={{ display: 'flex', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
+          >
+            <AmtLogo style={{ width: '46px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
+          </a>
           <div style={{ minWidth: 0 }}>
             <h2 style={{ fontSize: '22px', color: '#10b981', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px', lineHeight: 1.1 }}>AMTraining</h2>
             <span style={{ fontSize: '11px', color: '#71717a', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
