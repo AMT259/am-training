@@ -624,6 +624,15 @@ const RPE_TABLE: { [rpe: string]: number[] } = {
   '6':   [86.3, 83.7, 81.1, 78.6, 76.2, 73.9, 70.7, 68.0, 65.3, 62.6, 60.9, 59.0],
 };
  
+// Da uno score con più carichi ("80 / 85 / 90") prende il più alto:
+// è la serie migliore, quella che dice davvero se sta crescendo.
+function caricoMigliore(testo: any): number | null {
+  if (testo === null || testo === undefined) return null;
+  const numeri = String(testo).replace(/,/g, '.').match(/\d+(?:\.\d+)?/g);
+  if (!numeri || numeri.length === 0) return null;
+  return Math.max(...numeri.map((n: string) => parseFloat(n)));
+}
+ 
 function parseWeightValue(s: any): number | null {
   if (s === null || s === undefined) return null;
   const m = String(s).replace(',', '.').match(/(\d+(?:\.\d+)?)/);
@@ -1106,6 +1115,156 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
   );
 }
  
+// Legge lo schema delle ripetizioni scritto dal coach e dice quante caselle
+// servono, con l'etichetta giusta. "4" serie x "6" rip -> quattro caselle da 6.
+// "12-10-8" -> tre caselle, una per ogni numero.
+function serieDaBlocco(blk: any): { reps: string }[] {
+  // Nei WOD il numero di round lo decidi tu in fase di programmazione:
+  // le caselle escono senza etichetta, perché il risultato può essere
+  // un tempo o delle ripetizioni a seconda del workout.
+  if (blk?.type === 'wod' || blk?.type === 'test') {
+    const nRound = parseInt(String(blk?.scoreRounds ?? ''), 10) || 0;
+    if (nRound > 0) return Array.from({ length: Math.min(nRound, 30) }, () => ({ reps: '' }));
+    return [{ reps: '' }];
+  }
+ 
+  const testoReps = String(blk?.reps ?? '').trim();
+  const nSerie = parseInt(String(blk?.sets ?? ''), 10) || 0;
+ 
+  // schema a scalare: 12-10-8, 21/15/9, 5,5,3
+  const pezzi = testoReps.split(/[-\/,]/).map((s) => s.trim()).filter(Boolean);
+  if (pezzi.length > 1) {
+    return pezzi.map((p) => ({ reps: p }));
+  }
+ 
+  // serie uguali
+  if (nSerie > 0) {
+    return Array.from({ length: Math.min(nSerie, 12) }, () => ({ reps: testoReps }));
+  }
+ 
+  return [{ reps: testoReps }];
+}
+ 
+// Schermata per inserire il carico di ogni serie, più le note.
+// Il riepilogo che resta nel campo score è la stringa "80 / 85 / 90".
+function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
+  const serie = serieDaBlocco(blk);
+  const iniziali = String(valore || '').split(/\s*[\/]\s*/).map((s: string) => s.trim());
+ 
+  const [carichi, setCarichi] = useState<string[]>(
+    serie.map((_: any, i: number) => iniziali[i] || '')
+  );
+  const [noteLocali, setNoteLocali] = useState(String(note || ''));
+  const [nascosto, setNascosto] = useState(false);
+ 
+  const riepilogo = carichi.map((c) => c.trim()).filter(Boolean).join(' / ');
+ 
+  if (nascosto) {
+    return (
+      <button
+        onClick={() => setNascosto(false)}
+        style={{
+          position: 'fixed', left: '50%', transform: 'translateX(-50%)',
+          bottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+          zIndex: 5000, display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '12px 20px', borderRadius: '999px', border: 'none',
+          background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)',
+          color: '#fff', fontWeight: 'bold', fontSize: '14px',
+          cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.5)',
+        }}
+      >
+        ↩ Torna ai carichi
+      </button>
+    );
+  }
+ 
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.78)', zIndex: 4500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }}
+    >
+      <div
+        onClick={(e: any) => e.stopPropagation()}
+        style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+      >
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0' }}>
+          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px' }}>
+            {blk?.type === 'wod' || blk?.type === 'test' ? 'I TUOI RISULTATI' : 'I TUOI CARICHI'}
+          </span>
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#000', marginTop: '2px', overflowWrap: 'anywhere' }}>
+            {blk?.name || 'Esercizio'}
+          </span>
+        </div>
+ 
+        <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
+          {serie.map((s: any, i: number) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '9px' }}>
+              <span style={{ width: '74px', flexShrink: 0, fontSize: '12px', color: '#64748b', fontWeight: 'bold' }}>
+                {serie.length === 1
+                  ? (blk?.type === 'wod' || blk?.type === 'test' ? 'Risultato' : 'Carico')
+                  : (blk?.type === 'wod' || blk?.type === 'test' ? `Round ${i + 1}` : `${i + 1}ª serie`)}
+                {s.reps ? <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontWeight: 'normal' }}>{s.reps} rip</span> : null}
+              </span>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder={blk?.type === 'wod' || blk?.type === 'test' ? '—' : 'kg'}
+                value={carichi[i] || ''}
+                onFocus={(e: any) => e.target.select()}
+                onChange={(e: any) => {
+                  const copia = [...carichi];
+                  copia[i] = e.target.value;
+                  setCarichi(copia);
+                }}
+                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
+              />
+            </div>
+          ))}
+ 
+          <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
+            {blk?.type === 'wod' || blk?.type === 'test'
+              ? 'I round che non completi lasciali vuoti: non vengono conteggiati.'
+              : 'Le serie che non fai lasciale vuote: non vengono conteggiate.'}
+          </p>
+ 
+          <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '5px' }}>
+            Note personali
+          </label>
+          <textarea
+            rows={3}
+            placeholder="Sensazioni, difficoltà, cosa migliorare..."
+            value={noteLocali}
+            onChange={(e: any) => setNoteLocali(e.target.value)}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+          />
+ 
+          <button
+            onClick={() => setNascosto(true)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', margin: '14px auto 0 auto', padding: '9px 18px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            <Icona nome="occhio" size={14} /> Vedi la scheda
+          </button>
+        </div>
+ 
+        <div style={{ padding: '12px 16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => onSalva(riepilogo, noteLocali)}
+            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+          >
+            Salva
+          </button>
+          <button
+            onClick={onClose}
+            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+          >
+            Annulla
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
 // Campo del timer: minuti e secondi separati, come si legge un cronometro.
 // Una casella lasciata vuota vale zero.
 function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
@@ -1227,7 +1386,7 @@ function tempoDaValore(valore: any): number | null {
 }
  
 // Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
-function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: () => void; onRidotto?: (v: boolean) => void }) {
+function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: any; onClose: () => void; onRidotto?: (v: boolean) => void; onSalvaTempi?: (tempi: string) => void }) {
   const [scelta, setScelta] = useState<any>(config?.tipo === 'scelta' ? null : config);
   const [fase, setFase] = useState(0);
   const [restano, setRestano] = useState<number>(config?.tipo === 'recupero' ? (config.secondi || 0) : 0);
@@ -1825,6 +1984,15 @@ function WorkoutTimer({ config, onClose, onRidotto }: { config: any; onClose: ()
                 </div>
               ))}
  
+              {unoAUno && finito && onSalvaTempi && (
+                <button
+                  onClick={() => onSalvaTempi(giri.map((g: any) => mmss(g.secondi)).join(' / '))}
+                  style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '10px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                >
+                  <Icona nome="spunta" size={14} /> Salva i tempi nel risultato
+                </button>
+              )}
+ 
               {giri.length > 1 && (
                 <div style={{ marginTop: '9px', paddingTop: '9px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                   <span style={{ fontSize: '11px', color: '#a1a1aa' }}>Totale <strong style={{ color: '#fff' }}>{mmss(totale)}</strong></span>
@@ -2199,6 +2367,7 @@ export default function TrainingApp() {
   const [progrSett, setProgrSett] = useState<{ [k: string]: string }>({});
   const [progrGiorno, setProgrGiorno] = useState<{ [k: string]: string }>({});
   const [risultatiAperti, setRisultatiAperti] = useState<any>(null);
+  const [scoreAperto, setScoreAperto] = useState<any>(null);
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -2312,7 +2481,7 @@ export default function TrainingApp() {
   const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi' | 'risultati'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [newPrName, setNewPrName] = useState('');
@@ -3600,8 +3769,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
     if (numeric && numeric > 0) {
-      const prevRaw = kind === 'tempo' ? getSavedOf(aid)[exercise]?.time : getSavedOf(aid)[exercise]?.reps;
-      const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
+      const prevRaw = kind === 'tempo' ? getSavedOf(aid)[exercise]?.time : getSavedOf(aid)[exercise]?.reps;      const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
       await recordMaxHistory(aid, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
       setSavedOf(aid, updatedAll);
  
@@ -3851,10 +4019,6 @@ const [notificationError, setNotificationError] = useState('');
   // sovrascritto, qui invece ogni giornata resta.
   const registraCarico = async (programId: string, blockKey: string, valore: string, athleteId: string) => {
     try {
-      const kg = parseWeightValue(valore);
-      if (!kg) return;
- 
-      // risalgo all'esercizio dal programma e dalla posizione del blocco
       const prog = programLibrary.find((p: any) => p.id === programId);
       if (!prog) return;
  
@@ -3866,19 +4030,41 @@ const [notificationError, setNotificationError] = useState('');
       const oggi = new Date();
       const giorno = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, '0')}-${String(oggi.getDate()).padStart(2, '0')}`;
  
-      await supabase.from('load_history').upsert(
-        {
+      // Ogni serie diventa una riga con le SUE ripetizioni: così il report può
+      // dire "sul 12 rip sei passato da 80 a 85", non solo il carico più alto.
+      const serie = serieDaBlocco(blk);
+      const carichi = String(valore || '').split(/\s*[\/]\s*/).map((s) => s.trim());
+ 
+      // uno score con un solo numero vale per tutto il blocco
+      const righe = carichi.length > 1 && serie.length > 1
+        ? carichi.map((cr, i) => ({ kg: parseWeightValue(cr), reps: serie[i]?.reps ?? String(blk.reps ?? ''), pos: i }))
+        : [{ kg: caricoMigliore(valore), reps: String(blk.reps ?? ''), pos: 0 }];
+ 
+      // prima ripulisco le righe di quel blocco in quella giornata, così
+      // correggendo un valore non restano i vecchi
+      await supabase.from('load_history')
+        .delete()
+        .eq('athlete_id', athleteId)
+        .eq('program_id', programId)
+        .eq('block_key', blockKey)
+        .eq('day', giorno);
+ 
+      const daSalvare = righe
+        .filter((r: any) => r.kg)
+        .map((r: any) => ({
           athlete_id: athleteId,
           program_id: programId,
-          block_key: blockKey,
+          block_key: `${blockKey}#${r.pos}`,
           exercise: blk.name,
-          reps: String(blk.reps ?? ''),
-          load_kg: kg,
+          reps: String(r.reps ?? ''),
+          load_kg: r.kg,
           raw_score: String(valore || '').trim(),
           day: giorno,
-        },
-        { onConflict: 'athlete_id, program_id, block_key, day' }
-      );
+        }));
+ 
+      if (daSalvare.length === 0) return;
+ 
+      await supabase.from('load_history').upsert(daSalvare, { onConflict: 'athlete_id, program_id, block_key, day' });
     } catch (e) {
       // se lo storico non si salva, il risultato nella scheda resta comunque
     }
@@ -4208,8 +4394,18 @@ const [notificationError, setNotificationError] = useState('');
     const utili = programId ? righe.filter((r: any) => r.program_id === programId) : righe;
     if (utili.length === 0) return null;
  
-    const raccolta: { [esercizio: string]: { [reps: string]: any[] } } = {};
+    // Di ogni giornata e schema di ripetizioni tengo la serie migliore:
+    // così quattro serie da 6 dello stesso giorno contano come un dato solo
+    const perGiorno: { [chiave: string]: any } = {};
     utili.forEach((r: any) => {
+      const reps = String(r.reps ?? '').trim() || '—';
+      const chiave = `${r.exercise}|${reps}|${r.day}`;
+      const attuale = perGiorno[chiave];
+      if (!attuale || Number(r.load_kg) > Number(attuale.load_kg)) perGiorno[chiave] = r;
+    });
+ 
+    const raccolta: { [esercizio: string]: { [reps: string]: any[] } } = {};
+    Object.values(perGiorno).forEach((r: any) => {
       const nome = r.exercise;
       const reps = String(r.reps ?? '').trim() || '—';
       if (!raccolta[nome]) raccolta[nome] = {};
@@ -4387,7 +4583,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 return (
                   <div key={ath.id} style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#0284c7', overflowWrap: 'anywhere' }}>
                         {ath.full_name || ath.email}
                       </span>
@@ -4396,6 +4592,18 @@ const [notificationError, setNotificationError] = useState('');
                           {fatti}/{blocchi.length}
                         </span>
                       )}
+                      {(() => {
+                        const p = progressiCompleti(prog, suoi, storicoCarichiCoach[ath.id] || []);
+                        if (!p) return null;
+                        return (
+                          <button
+                            onClick={() => { setRisultatiAperti(null); setProgressiAperti({ dati: p, titolo: `${ath.full_name || ath.email} \u2014 ${prog.title}`, perAtleta: false }); }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: '999px', padding: '3px 9px', color: '#047857', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 }}
+                          >
+                            <Icona nome="grafico" size={11} /> {p.migliorati}/{p.totale}
+                          </button>
+                        );
+                      })()}
                     </div>
  
                     {blocchi.map((blk: any, bi: number) => {
@@ -4431,7 +4639,7 @@ const [notificationError, setNotificationError] = useState('');
   // Tutti i programmi di un atleta con i suoi risultati, compresi quelli
   // scaduti che lui non vede più. Sta nel profilo perché la domanda qui è
   // "come sta andando questa persona", non "chi ha fatto questo programma".
-  const pannelloProgrammiRisultati = (athleteId: string) => {
+  const pannelloProgrammiRisultati = (athleteId: string, perAtleta?: boolean) => {
     const suoi = programLibrary
       .filter((p: any) => !p.isDeleted)
       .filter((p: any) => {
@@ -4445,18 +4653,19 @@ const [notificationError, setNotificationError] = useState('');
     if (suoi.length === 0) {
       return (
         <div>
-          <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#10b981' }}>📋 Programmi e risultati</h4>
-          <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8' }}>Nessun programma assegnato a questo atleta.</p>
+          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px', marginBottom: '7px' }}>
+            {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
+          </span>
+          <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8' }}>Nessun programma.</p>
         </div>
       );
     }
  
     return (
       <div>
-        <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#10b981' }}>📋 Programmi e risultati</h4>
-        <p style={{ margin: '0 0 12px 0', fontSize: '11.5px', color: '#64748b', lineHeight: 1.45 }}>
-          Tutti i programmi di questo atleta, anche quelli scaduti che lui non vede più.
-        </p>
+        <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px', marginBottom: '9px' }}>
+          {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
+        </span>
  
         {suoi.map((prog: any) => {
           const aperto = progrApertoId === prog.id;
@@ -4489,7 +4698,7 @@ const [notificationError, setNotificationError] = useState('');
           return (
             <div key={prog.id} style={{ background: '#ffffff', border: scaduto ? '1px solid #fca5a5' : '1px solid #e2e8f0', borderRadius: '10px', marginBottom: '9px', overflow: 'hidden' }}>
               <button
-                onClick={() => setProgrApertoId(aperto ? null : prog.id)}
+                onClick={() => { if (!perAtleta) setProgrApertoId(aperto ? null : prog.id); }}
                 style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', padding: '12px', background: scaduto ? '#fef2f2' : '#f8fafc', border: 'none', cursor: 'pointer', textAlign: 'left' }}
               >
                 <span style={{ minWidth: 0 }}>
@@ -4506,12 +4715,31 @@ const [notificationError, setNotificationError] = useState('');
                       {fatti}/{attesi}
                     </span>
                   )}
-                  <Icona nome={aperto ? 'su' : 'giu'} size={15} style={{ color: '#64748b' }} />
+                  {!perAtleta && <Icona nome={aperto ? 'su' : 'giu'} size={15} style={{ color: '#64748b' }} />}
                 </span>
               </button>
  
-              {aperto && (
+              {aperto && !perAtleta && (
                 <div style={{ padding: '12px', borderTop: '1px solid #e2e8f0' }}>
+                  {(() => {
+                    const p = progressiCompleti(prog, risultati, storicoCarichiCoach[athleteId] || []);
+                    if (!p) return null;
+                    return (
+                      <button
+                        onClick={() => setProgressiAperti({ dati: p, titolo: prog.title, perAtleta: false })}
+                        style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '11px', padding: '11px 13px', borderRadius: '10px', border: '1px solid #6ee7b7', background: '#ecfdf5', cursor: 'pointer' }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Icona nome="grafico" size={16} style={{ color: '#047857' }} />
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#047857' }}>Miglioramenti di questo programma</span>
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#059669', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                          {p.migliorati}/{p.totale}
+                        </span>
+                      </button>
+                    );
+                  })()}
+ 
                   <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '3px' }}>
                     {settimane.map((w: any) => (
                       <button
@@ -4751,23 +4979,6 @@ const [notificationError, setNotificationError] = useState('');
           {numero(mesi > 0 ? mesi : '—', mesi === 1 ? 'mese' : 'mesi')}
         </div>
  
-        {conclusi.length > 0 && (
-          <div style={{ marginBottom: '16px' }}>
-            <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px', marginBottom: '7px' }}>
-              PERCORSI COMPLETATI
-            </span>
-            {conclusi.slice(0, 12).map((p: any) => (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 11px', marginBottom: '5px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#334155', overflowWrap: 'anywhere' }}>
-                  {p.title}
-                </span>
-                <span style={{ fontSize: '10.5px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                  {formatDateToIT(p.startDate)} → {formatDateToIT(p.endDate)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
@@ -4835,6 +5046,12 @@ const [notificationError, setNotificationError] = useState('');
         </p>
  
         {athleteId && riepilogoPercorso(athleteId, righe, perAtleta)}
+ 
+        {!perAtleta && athleteId && (
+          <div style={{ marginBottom: '20px' }}>
+            {pannelloProgrammiRisultati(athleteId)}
+          </div>
+        )}
  
         <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px', marginBottom: '9px' }}>
           CRESCITA DEI CARICHI
@@ -4908,6 +5125,12 @@ const [notificationError, setNotificationError] = useState('');
               </div>
             ))}
           </>
+        )}
+ 
+        {athleteId && (
+          <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid #e2e8f0' }}>
+            {pannelloProgrammiRisultati(athleteId, perAtleta)}
+          </div>
         )}
       </div>
     );
@@ -4992,7 +5215,7 @@ const [notificationError, setNotificationError] = useState('');
             if (!sameName(blk?.name, nomeEsercizio)) continue;
  
             const grezzo = risultati[`${wi}_${di}_${bi}`]?.score;
-            const kg = parseWeightValue(grezzo);
+            const kg = caricoMigliore(grezzo);
             if (!kg) continue;
  
             const chiave = String(blk.reps ?? '');
@@ -6163,6 +6386,21 @@ const [notificationError, setNotificationError] = useState('');
         );
       })()}
  
+      {scoreAperto && (
+        <FinestraScore
+          blk={scoreAperto.blk}
+          valore={athleteResults[scoreAperto.progId]?.[scoreAperto.key]?.score}
+          note={athleteResults[scoreAperto.progId]?.[scoreAperto.key]?.notes}
+          onClose={() => setScoreAperto(null)}
+          onSalva={(carico: string, note: string) => {
+            handleResultChange(scoreAperto.progId, scoreAperto.key, 'score', carico);
+            handleResultChange(scoreAperto.progId, scoreAperto.key, 'notes', note);
+            maybeUpdateMaxFromScore(session.user.id, scoreAperto.blk?.name, scoreAperto.blk?.reps, carico, false);
+            setScoreAperto(null);
+          }}
+        />
+      )}
+ 
       {finestraRisultati()}
  
       {progressiAperti && (
@@ -6179,6 +6417,11 @@ const [notificationError, setNotificationError] = useState('');
           config={timerConfig}
           onClose={() => { setTimerConfig(null); setTimerRidotto(false); }}
           onRidotto={setTimerRidotto}
+          onSalvaTempi={timerConfig.progId ? (tempi: string) => {
+            handleResultChange(timerConfig.progId, timerConfig.key, 'score', tempi);
+            setTimerConfig(null);
+            setTimerRidotto(false);
+          } : undefined}
         />
       )}
  
@@ -6520,7 +6763,6 @@ const [notificationError, setNotificationError] = useState('');
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
                     <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
                     <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi'), flex: '1 1 auto' }}>🚀 Percorso</button>
-                    <button onClick={() => setCoachAthleteDetailTab('risultati')} style={{ ...pillola(coachAthleteDetailTab === 'risultati'), flex: '1 1 auto' }}>📋 Risultati</button>
                   </div>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
@@ -6584,7 +6826,6 @@ const [notificationError, setNotificationError] = useState('');
  
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
  
-                  {coachAthleteDetailTab === 'risultati' && pannelloProgrammiRisultati(selectedCoachAthlete.id)}
  
                   {coachAthleteDetailTab === 'maxes' && (
                   <div>
@@ -7890,6 +8131,33 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                         <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
+                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
+                                          Round da compilare <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                        </label>
+                                        <input
+                                          type="text"
+                                          inputMode="numeric"
+                                          placeholder="es. 5"
+                                          value={block.scoreRounds || ''}
+                                          onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                          style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                        />
+                                        <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 0 0', lineHeight: 1.45 }}>
+                                          Lascia vuoto se il risultato è un numero solo (AMRAP, tempo totale). Compila con il numero dei round se vuoi un risultato per ciascuno.
+                                        </p>
+                                        <div style={{ marginTop: '9px' }}>
+                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
+                                            Round <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo: crea una casella per round nei risultati)</span>
+                                          </label>
+                                          <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="es. 5"
+                                            value={block.wodRounds || ''}
+                                            onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                          />
+                                        </div>
  
                                           {(() => {
                                             const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
@@ -8025,7 +8293,8 @@ const [notificationError, setNotificationError] = useState('');
                 >
                   Libreria Esercizi
                 </button>
-              </div> 
+              </div>
+ 
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -8577,6 +8846,33 @@ const [notificationError, setNotificationError] = useState('');
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                             <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
+                                              Round da compilare <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                            </label>
+                                            <input
+                                              type="text"
+                                              inputMode="numeric"
+                                              placeholder="es. 5"
+                                              value={block.scoreRounds || ''}
+                                              onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                            />
+                                            <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 0 0', lineHeight: 1.45 }}>
+                                              Lascia vuoto se il risultato è un numero solo (AMRAP, tempo totale). Compila con il numero dei round se vuoi un risultato per ciascuno.
+                                            </p>
+                                            <div style={{ marginTop: '9px' }}>
+                                              <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
+                                                Round <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo: crea una casella per round nei risultati)</span>
+                                              </label>
+                                              <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                placeholder="es. 5"
+                                                value={block.wodRounds || ''}
+                                                onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                              />
+                                            </div>
  
                                               {(() => {
                                                 const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
@@ -9499,7 +9795,7 @@ const [notificationError, setNotificationError] = useState('');
                                                 {(blk.type === 'wod' || blk.type === 'test') && (
                                                   <button
                                                     type="button"
-                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
+                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
                                                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
                                                   >
                                                       <Icona nome="timer" size={13} /> Timer
@@ -9756,6 +10052,14 @@ const [notificationError, setNotificationError] = useState('');
                                                 {blk.type !== 'warmup' && (
                                                 <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
+                                                  {((blk.type === 'forza' && !isMobility(blk.name)) || ((blk.type === 'wod' || blk.type === 'test') && (parseInt(String(blk.scoreRounds ?? ''), 10) || 0) > 1)) && (
+                                                    <button
+                                                      onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk })}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(5,150,105,0.32)' }}
+                                                    >
+                                                      <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Inserisci i risultati'}
+                                                    </button>
+                                                  )}
                                                   <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
                                                     {!isMobility(blk.name) && blk.type !== 'warmup' && (
                                                     <div>
