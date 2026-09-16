@@ -1201,14 +1201,18 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '9px' }}>
               <span style={{ width: '74px', flexShrink: 0, fontSize: '12px', color: '#64748b', fontWeight: 'bold' }}>
                 {serie.length === 1
-                  ? (blk?.type === 'wod' || blk?.type === 'test' ? 'Risultato' : 'Carico')
+                  ? (blk?.type === 'wod' || blk?.type === 'test' ? 'Il tuo score' : 'Carico')
                   : (blk?.type === 'wod' || blk?.type === 'test' ? `Round ${i + 1}` : `${i + 1}ª serie`)}
                 {s.reps ? <span style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontWeight: 'normal' }}>{s.reps} rip</span> : null}
               </span>
               <input
                 type="text"
-                inputMode="decimal"
-                placeholder={blk?.type === 'wod' || blk?.type === 'test' ? '—' : 'kg'}
+                inputMode={blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal'}
+                placeholder={
+                  blk?.type === 'wod' || blk?.type === 'test'
+                    ? (serie.length > 1 ? '—' : 'tempo, round o ripetizioni')
+                    : 'kg'
+                }
                 value={carichi[i] || ''}
                 onFocus={(e: any) => e.target.select()}
                 onChange={(e: any) => {
@@ -1221,11 +1225,14 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
             </div>
           ))}
  
-          <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
-            {blk?.type === 'wod' || blk?.type === 'test'
-              ? 'I round che non completi lasciali vuoti: non vengono conteggiati.'
-              : 'Le serie che non fai lasciale vuote: non vengono conteggiate.'}
-          </p>
+          {serie.length > 1 && (
+            <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
+              {blk?.type === 'wod' || blk?.type === 'test'
+                ? 'I round che non completi lasciali vuoti: non vengono conteggiati.'
+                : 'Le serie che non fai lasciale vuote: non vengono conteggiate.'}
+            </p>
+          )}
+          {serie.length === 1 && <div style={{ height: '10px' }} />}
  
           <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '5px' }}>
             Note personali
@@ -1923,12 +1930,12 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
         {preparazione !== null ? (
           <>
-            <span style={{ display: 'block', fontSize: '14px', color: '#fbbf24', letterSpacing: '2px', marginBottom: '10px' }}>PRONTI</span>
-            <span style={{ display: 'block', fontSize: '96px', fontWeight: 'bold', color: '#f59e0b', lineHeight: 1 }}>{preparazione}</span>
+            <span style={{ display: 'block', fontSize: '18px', color: '#fbbf24', letterSpacing: '4px', marginBottom: '12px', fontWeight: 'bold' }}>PRONTI</span>
+            <span style={{ display: 'block', fontSize: '120px', fontWeight: 'bold', color: '#f59e0b', lineHeight: 1 }}>{preparazione}</span>
           </>
         ) : (
           <>
-            <span style={{ display: 'block', fontSize: '13px', color: unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7') : coloreSfondo, letterSpacing: '2px', marginBottom: '6px', fontWeight: 'bold' }}>
+            <span style={{ display: 'block', fontSize: '20px', color: unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7') : coloreSfondo, letterSpacing: '3px', marginBottom: '8px', fontWeight: 'bold' }}>
               {finito ? 'FINITO'
                 : libero ? 'TEMPO LIBERO'
                 : unoAUno ? (r1InLavoro ? 'LAVORO' : 'RECUPERO')
@@ -1936,19 +1943,19 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
             </span>
  
             {unoAUno && !finito && (
-              <span style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '10px' }}>
+              <span style={{ display: 'block', fontSize: '16px', color: '#d4d4d8', marginBottom: '12px', fontWeight: 'bold' }}>
                 Round {Math.min(r1Round, scelta.round)} di {scelta.round}
                 {!r1InLavoro && r1UltimoLavoro > 0 && ` · hai impiegato ${mmss(r1UltimoLavoro)}`}
               </span>
             )}
  
             {!unoAUno && totaleRound && faseCorrente?.round && !finito && (
-              <span style={{ display: 'block', fontSize: '13px', color: '#a1a1aa', marginBottom: '10px' }}>
+              <span style={{ display: 'block', fontSize: '16px', color: '#d4d4d8', marginBottom: '12px', fontWeight: 'bold' }}>
                 Round {faseCorrente.round} di {totaleRound}
               </span>
             )}
  
-            <span style={{ display: 'block', fontSize: '76px', fontWeight: 'bold', color: '#fff', lineHeight: 1.05, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ display: 'block', fontSize: '96px', fontWeight: 'bold', color: '#fff', lineHeight: 1, fontVariantNumeric: 'tabular-nums', letterSpacing: '-2px' }}>
               {libero ? mmss(trascorsi) : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano)) : mmss(restano)}
             </span>
  
@@ -1986,7 +1993,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
               {unoAUno && finito && onSalvaTempi && (
                 <button
-                  onClick={() => onSalvaTempi(giri.map((g: any) => mmss(g.secondi)).join(' / '))}
+                  onClick={() => { const tot = giri.reduce((a: number, g: any) => a + g.secondi, 0); onSalvaTempi(`${mmss(tot)} (${giri.map((g: any) => mmss(g.secondi)).join(' / ')})`); }}
                   style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '10px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
                 >
                   <Icona nome="spunta" size={14} /> Salva i tempi nel risultato
@@ -2368,6 +2375,7 @@ export default function TrainingApp() {
   const [progrGiorno, setProgrGiorno] = useState<{ [k: string]: string }>({});
   const [risultatiAperti, setRisultatiAperti] = useState<any>(null);
   const [scoreAperto, setScoreAperto] = useState<any>(null);
+  const [messaggio, setMessaggio] = useState<string | null>(null);
   const [dupBlock, setDupBlock] = useState<any>(null);
   const [dupTargets, setDupTargets] = useState<string[]>([]);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -3788,7 +3796,8 @@ const [notificationError, setNotificationError] = useState('');
       }
     }
   };
-   // ---- BENCHMARK ----
+ 
+  // ---- BENCHMARK ----
   const handleBenchTyping = (name: string, raw: string, level: string, athleteId?: string) => {
     const aid = athleteId || session.user.id;
     const cur = getMaxesOf(aid);
@@ -5222,6 +5231,12 @@ const [notificationError, setNotificationError] = useState('');
     return trovati;
   };
  
+  // Messaggio di conferma che compare in alto e sparisce da solo
+  const avvisa = (testo: string) => {
+    setMessaggio(testo);
+    setTimeout(() => setMessaggio(null), 3200);
+  };
+ 
   // Confronto per la ricerca: ignora maiuscole e accenti
   const contiene = (testo: any, cerca: string) => {
     if (!cerca.trim()) return true;
@@ -5870,6 +5885,15 @@ const [notificationError, setNotificationError] = useState('');
         days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }]
       }]);
       fetchProgramLibrary();
+ 
+      const quanti = (programVisibility === 'all')
+        ? athletes.length
+        : (selectedAthleteIds || []).length;
+      avvisa(
+        quanti > 0
+          ? `Programma creato e assegnato a ${quanti} ${quanti === 1 ? 'atleta' : 'atleti'}`
+          : 'Programma creato e salvato in libreria'
+      );
     }
   };
  
@@ -5887,7 +5911,7 @@ const [notificationError, setNotificationError] = useState('');
     if (error) {
       alert('Errore: ' + error.message);
     } else {
-      alert('Programma duplicato con successo!');
+      avvisa('Programma duplicato');
       fetchProgramLibrary();
     }
   };
@@ -5940,7 +5964,7 @@ const [notificationError, setNotificationError] = useState('');
     if (error) {
       alert('Errore: ' + error.message);
     } else {
-      alert('Programma aggiornato con successo!');
+      avvisa('Programma aggiornato');
       setEditingProgram(null);
       fetchProgramLibrary();
     }
@@ -6428,6 +6452,23 @@ const [notificationError, setNotificationError] = useState('');
           </div>
         );
       })()}
+ 
+      {messaggio && (
+        <div
+          style={{
+            position: 'fixed', top: 'calc(14px + env(safe-area-inset-top, 0px))',
+            left: '50%', transform: 'translateX(-50%)', zIndex: 6000,
+            display: 'flex', alignItems: 'center', gap: '9px',
+            background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)',
+            color: '#fff', padding: '12px 20px', borderRadius: '999px',
+            fontSize: '13.5px', fontWeight: 'bold',
+            boxShadow: '0 8px 22px rgba(0,0,0,0.45)',
+            maxWidth: 'calc(100% - 28px)', boxSizing: 'border-box',
+          }}
+        >
+          <Icona nome="spunta" size={16} /> {messaggio}
+        </div>
+      )}
  
       {scoreAperto && (
         <FinestraScore
@@ -7947,6 +7988,10 @@ const [notificationError, setNotificationError] = useState('');
                                       padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
                                       fontSize: '12.5px', fontWeight: 'bold',
                                       border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
+    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+    paddingRight: '30px',
                                       background: block.type === 'warmup' ? '#f59e0b'
                                         : block.type === 'wod' ? '#2563eb'
                                         : block.type === 'test' ? '#7c3aed'
@@ -8657,6 +8702,10 @@ const [notificationError, setNotificationError] = useState('');
                                           padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
                                           fontSize: '12.5px', fontWeight: 'bold',
                                           border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
+    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+    paddingRight: '30px',
                                           background: block.type === 'warmup' ? '#f59e0b'
                                             : block.type === 'wod' ? '#2563eb'
                                             : block.type === 'test' ? '#7c3aed'
@@ -9803,9 +9852,9 @@ const [notificationError, setNotificationError] = useState('');
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                        const usaFinestra =
-                                          (blk.type === 'forza' && !isMobility(blk.name)) ||
-                                          ((blk.type === 'wod' || blk.type === 'test') && (parseInt(String(blk.scoreRounds ?? ''), 10) || 0) > 1);
+                                        // La finestra dei risultati vale ovunque serva un punteggio.
+                                        // Restano fuori Mobility e riscaldamento, che hanno la spunta.
+                                        const usaFinestra = blk.type !== 'warmup' && !isMobility(blk.name);
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
  
                                         return (
@@ -10082,7 +10131,7 @@ const [notificationError, setNotificationError] = useState('');
                                                       onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk })}
                                                       style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(5,150,105,0.32)' }}
                                                     >
-                                                      <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Inserisci i risultati'}
+                                                      <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Segna il risultato'}
                                                     </button>
                                                   )}
                                                   {usaFinestra ? (
@@ -10094,11 +10143,25 @@ const [notificationError, setNotificationError] = useState('');
                                                       if (!punteggio && !note) return null;
                                                       return (
                                                         <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '9px 11px' }}>
-                                                          {punteggio && (
-                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere' }}>
-                                                              {punteggio}
-                                                            </span>
-                                                          )}                                                          {note && (
+                                                          {punteggio && (() => {
+                                                            // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il
+                                                            // totale in grande e i parziali sotto, in piccolo
+                                                            const parti = punteggio.match(/^(.+?)\s*\((.+)\)$/);
+                                                            if (parti) {
+                                                              return (
+                                                                <>
+                                                                  <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: '#047857' }}>{parti[1]}</span>
+                                                                  <span style={{ display: 'block', fontSize: '11.5px', color: '#64748b', marginTop: '2px', overflowWrap: 'anywhere' }}>{parti[2]}</span>
+                                                                </>
+                                                              );
+                                                            }
+                                                            return (
+                                                              <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere' }}>
+                                                                {punteggio}
+                                                              </span>
+                                                            );
+                                                          })()}
+                                                          {note && (
                                                             <p style={{ margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
                                                               {note}
                                                             </p>
