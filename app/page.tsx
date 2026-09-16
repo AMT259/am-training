@@ -897,7 +897,27 @@ function preparaAudio() {
 }
  
 function bip(frequenza: number, durata: number) {
-  // strada 1: elemento audio con suono incorporato
+  // Una strada sola per volta: se il canale audio del browser funziona uso
+  // quello, altrimenti ripiego sul file incorporato. Usarli insieme faceva
+  // sentire il suono doppio sui telefoni dove vanno entrambi.
+  try {
+    if (canaleAudio && canaleAudio.state !== 'closed') {
+      if (canaleAudio.state === 'suspended') canaleAudio.resume();
+ 
+      const osc = canaleAudio.createOscillator();
+      const gain = canaleAudio.createGain();
+      osc.connect(gain);
+      gain.connect(canaleAudio.destination);
+      osc.frequency.value = frequenza;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.5, canaleAudio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, canaleAudio.currentTime + durata);
+      osc.start();
+      osc.stop(canaleAudio.currentTime + durata);
+      return;
+    }
+  } catch (e) { /* passo al ripiego */ }
+ 
   try {
     const el = durata >= 0.3 ? elemLungo : elemCorto;
     if (el) {
@@ -905,22 +925,6 @@ function bip(frequenza: number, durata: number) {
       const p = el.play();
       if (p && p.catch) p.catch(() => { /* bloccato */ });
     }
-  } catch (e) { /* niente */ }
- 
-  // strada 2: canale audio del browser
-  try {
-    if (!canaleAudio) return;
-    if (canaleAudio.state === 'suspended') canaleAudio.resume();
-    const osc = canaleAudio.createOscillator();
-    const gain = canaleAudio.createGain();
-    osc.connect(gain);
-    gain.connect(canaleAudio.destination);
-    osc.frequency.value = frequenza;
-    osc.type = 'square';
-    gain.gain.setValueAtTime(0.5, canaleAudio.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, canaleAudio.currentTime + durata);
-    osc.start();
-    osc.stop(canaleAudio.currentTime + durata);
   } catch (e) { /* niente suono */ }
 }
  
@@ -1450,12 +1454,19 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
   // Uno a uno: chiude il round di lavoro e fa partire un recupero di pari durata
   const chiudiRound = () => {
     const misurato = Math.max(1, trascorsi);
+    const ultimo = r1Round >= (scelta?.round || 1);
+ 
     setR1UltimoLavoro(misurato);
     setGiri((g: { round: number; secondi: number }[]) => [...g, { round: r1Round, secondi: misurato }]);
-    bip(1000, 0.25);
-    vibra(150);
  
-    if (r1Round >= (scelta?.round || 1)) {
+    // un solo segnale: quello di fine sessione se era l'ultimo round,
+    // altrimenti quello di cambio fase
+    if (!ultimo) {
+      bip(1000, 0.25);
+      vibra(150);
+    }
+ 
+    if (ultimo) {
       bip(1200, 0.6);
       vibra([200, 80, 200, 80, 200]);
       setAttivo(false);
@@ -1524,7 +1535,8 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       return;
     }
     const t = setTimeout(() => {
-      if (preparazione <= 4) bip(660, 0.1);
+      // all'ultimo secondo taccio: subito dopo suona il segnale di partenza
+      if (preparazione <= 4 && preparazione > 1) bip(660, 0.1);
       setPreparazione(preparazione - 1);
     }, 1000);
     return () => clearTimeout(t);
@@ -6554,8 +6566,7 @@ const [notificationError, setNotificationError] = useState('');
             </div>
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#334155', lineHeight: 1.4, marginBottom: '14px' }}>
               <input type="checkbox" checked={consentGateChecked} onChange={(e) => setConsentGateChecked(e.target.checked)} style={{ marginTop: '3px', flexShrink: 0 }} />
-              <span>Ho letto l&apos;informativa e acconsento al trattamento dei miei dati personali, inclusi i dati relativi allo stato di salute, per la programmazione degli allenamenti.</span>
-            </label>
+              <span>Ho letto l&apos;informativa e acconsento al trattamento dei miei dati personali, inclusi i dati relativi allo stato di salute, per la programmazione degli allenamenti.</span>            </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
                 onClick={acceptPrivacyConsent}
