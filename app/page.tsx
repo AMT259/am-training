@@ -1930,12 +1930,12 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       <div style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
         {preparazione !== null ? (
           <>
-            <span style={{ display: 'block', fontSize: '18px', color: '#fbbf24', letterSpacing: '4px', marginBottom: '12px', fontWeight: 'bold' }}>PRONTI</span>
-            <span style={{ display: 'block', fontSize: '120px', fontWeight: 'bold', color: '#f59e0b', lineHeight: 1 }}>{preparazione}</span>
+            <span style={{ display: 'block', fontSize: '22px', color: '#fbbf24', letterSpacing: '6px', marginBottom: '14px', fontWeight: 'bold' }}>PRONTI</span>
+            <span style={{ display: 'block', fontSize: 'clamp(110px, 34vw, 170px)', fontWeight: 'bold', color: '#f59e0b', lineHeight: 0.95 }}>{preparazione}</span>
           </>
         ) : (
           <>
-            <span style={{ display: 'block', fontSize: '20px', color: unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7') : coloreSfondo, letterSpacing: '3px', marginBottom: '8px', fontWeight: 'bold' }}>
+            <span style={{ display: 'block', fontSize: '24px', color: unoAUno ? (r1InLavoro ? '#10b981' : '#0284c7') : coloreSfondo, letterSpacing: '4px', marginBottom: '10px', fontWeight: 'bold' }}>
               {finito ? 'FINITO'
                 : libero ? 'TEMPO LIBERO'
                 : unoAUno ? (r1InLavoro ? 'LAVORO' : 'RECUPERO')
@@ -1943,26 +1943,26 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
             </span>
  
             {unoAUno && !finito && (
-              <span style={{ display: 'block', fontSize: '16px', color: '#d4d4d8', marginBottom: '12px', fontWeight: 'bold' }}>
+              <span style={{ display: 'block', fontSize: '19px', color: '#e4e4e7', marginBottom: '14px', fontWeight: 'bold' }}>
                 Round {Math.min(r1Round, scelta.round)} di {scelta.round}
                 {!r1InLavoro && r1UltimoLavoro > 0 && ` · hai impiegato ${mmss(r1UltimoLavoro)}`}
               </span>
             )}
  
             {!unoAUno && totaleRound && faseCorrente?.round && !finito && (
-              <span style={{ display: 'block', fontSize: '16px', color: '#d4d4d8', marginBottom: '12px', fontWeight: 'bold' }}>
+              <span style={{ display: 'block', fontSize: '19px', color: '#e4e4e7', marginBottom: '14px', fontWeight: 'bold' }}>
                 Round {faseCorrente.round} di {totaleRound}
               </span>
             )}
  
-            <span style={{ display: 'block', fontSize: '96px', fontWeight: 'bold', color: '#fff', lineHeight: 1, fontVariantNumeric: 'tabular-nums', letterSpacing: '-2px' }}>
+            <span style={{ display: 'block', fontSize: 'clamp(84px, 26vw, 128px)', fontWeight: 'bold', color: '#fff', lineHeight: 0.95, fontVariantNumeric: 'tabular-nums', letterSpacing: '-3px' }}>
               {libero ? mmss(trascorsi) : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano)) : mmss(restano)}
             </span>
  
             {unoAUno && attivo && r1InLavoro && (
               <button
                 onClick={chiudiRound}
-                style={{ marginTop: '22px', padding: '16px 30px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '17px', cursor: 'pointer' }}
+                style={{ marginTop: '26px', padding: '19px 34px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '20px', cursor: 'pointer' }}
               >
                 <Icona nome="spunta" size={17} /> Round finito
               </button>
@@ -7980,30 +7980,31 @@ const [notificationError, setNotificationError] = useState('');
                             return (
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
-                                  <select
-                                    value={block.type || 'forza'}
-                                    onChange={(e) => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, e.target.value)}
-                                    style={{
-                                      flex: '1 1 140px', minWidth: 0, boxSizing: 'border-box',
-                                      padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
-                                      fontSize: '12.5px', fontWeight: 'bold',
-                                      border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
-    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-    paddingRight: '30px',
-                                      background: block.type === 'warmup' ? '#f59e0b'
-                                        : block.type === 'wod' ? '#2563eb'
-                                        : block.type === 'test' ? '#7c3aed'
-                                        : '#10b981',
-                                      color: '#ffffff',
-                                    }}
-                                  >
-                                    <option value="warmup">WARM UP</option>
-                                    <option value="forza">FORZA</option>
-                                    <option value="wod">WOD</option>
-                                    <option value="test">TEST</option>
-                                  </select>
+                                  <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
+                                    <select
+                                      value={block.type || 'forza'}
+                                      onChange={(e) => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, e.target.value)}
+                                      style={{
+                                        width: '100%', boxSizing: 'border-box',
+                                        padding: '9px 30px 9px 14px', borderRadius: '999px', cursor: 'pointer',
+                                        fontSize: '12.5px', fontWeight: 'bold',
+                                        border: 'none', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+                                        background: block.type === 'warmup' ? '#f59e0b'
+                                          : block.type === 'wod' ? '#2563eb'
+                                          : block.type === 'test' ? '#7c3aed'
+                                          : '#10b981',
+                                        color: '#ffffff',
+                                      }}
+                                    >
+                                      <option value="warmup">WARM UP</option>
+                                      <option value="forza">FORZA</option>
+                                      <option value="wod">WOD</option>
+                                      <option value="test">TEST</option>
+                                    </select>
+                                    <span style={{ position: 'absolute', right: '11px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', color: '#fff' }}>
+                                      <Icona nome="giu" size={14} />
+                                    </span>
+                                  </div>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                     <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
@@ -8694,30 +8695,31 @@ const [notificationError, setNotificationError] = useState('');
                                 return (
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
-                                      <select
-                                        value={block.type || 'forza'}
-                                        onChange={(e) => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, e.target.value)}
-                                        style={{
-                                          flex: '1 1 140px', minWidth: 0, boxSizing: 'border-box',
-                                          padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
-                                          fontSize: '12.5px', fontWeight: 'bold',
-                                          border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
-    backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-    paddingRight: '30px',
-                                          background: block.type === 'warmup' ? '#f59e0b'
-                                            : block.type === 'wod' ? '#2563eb'
-                                            : block.type === 'test' ? '#7c3aed'
-                                            : '#10b981',
-                                          color: '#ffffff',
-                                        }}
-                                      >
-                                        <option value="warmup">WARM UP</option>
-                                        <option value="forza">FORZA</option>
-                                        <option value="wod">WOD</option>
-                                        <option value="test">TEST</option>
-                                      </select>
+                                      <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
+                                        <select
+                                          value={block.type || 'forza'}
+                                          onChange={(e) => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, e.target.value)}
+                                          style={{
+                                            width: '100%', boxSizing: 'border-box',
+                                            padding: '9px 30px 9px 14px', borderRadius: '999px', cursor: 'pointer',
+                                            fontSize: '12.5px', fontWeight: 'bold',
+                                            border: 'none', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+                                            background: block.type === 'warmup' ? '#f59e0b'
+                                              : block.type === 'wod' ? '#2563eb'
+                                              : block.type === 'test' ? '#7c3aed'
+                                              : '#10b981',
+                                            color: '#ffffff',
+                                          }}
+                                        >
+                                          <option value="warmup">WARM UP</option>
+                                          <option value="forza">FORZA</option>
+                                          <option value="wod">WOD</option>
+                                          <option value="test">TEST</option>
+                                        </select>
+                                        <span style={{ position: 'absolute', right: '11px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', color: '#fff' }}>
+                                          <Icona nome="giu" size={14} />
+                                        </span>
+                                      </div>
                                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                         <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
