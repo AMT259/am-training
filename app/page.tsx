@@ -3769,7 +3769,8 @@ const [notificationError, setNotificationError] = useState('');
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
     if (numeric && numeric > 0) {
-      const prevRaw = kind === 'tempo' ? getSavedOf(aid)[exercise]?.time : getSavedOf(aid)[exercise]?.reps;      const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
+      const prevRaw = kind === 'tempo' ? getSavedOf(aid)[exercise]?.time : getSavedOf(aid)[exercise]?.reps;
+      const prima = kind === 'tempo' ? timeToSeconds(prevRaw) : parseWeightValue(prevRaw);
       await recordMaxHistory(aid, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
       setSavedOf(aid, updatedAll);
  
@@ -3787,8 +3788,7 @@ const [notificationError, setNotificationError] = useState('');
       }
     }
   };
- 
-  // ---- BENCHMARK ----
+   // ---- BENCHMARK ----
   const handleBenchTyping = (name: string, raw: string, level: string, athleteId?: string) => {
     const aid = athleteId || session.user.id;
     const cur = getMaxesOf(aid);
@@ -4918,6 +4918,50 @@ const [notificationError, setNotificationError] = useState('');
       .sort((a: any, b: any) => String(b.prog.endDate || '').localeCompare(String(a.prog.endDate || '')));
   };
  
+  // Lo storico per data parte da quando è stata creata la tabella: per non
+  // lasciare vuota la crescita dei carichi, ricavo le righe anche dai risultati
+  // già presenti nei programmi, usando la data di inizio come riferimento.
+  const storicoDaiRisultati = (athleteId: string, perAtleta: boolean) => {
+    const righe: any[] = [];
+ 
+    programLibrary
+      .filter((p: any) => !p.isDeleted)
+      .forEach((prog: any) => {
+        const ris = perAtleta ? athleteResults[prog.id] : coachAllResults[prog.id]?.[athleteId];
+        if (!ris) return;
+ 
+        const base = String(prog.startDate || '').split('T')[0];
+        const settimane = normalizeProgramWeeks(prog);
+ 
+        settimane.forEach((w: any, wi: number) => {
+          (w?.days || []).forEach((d: any, di: number) => {
+            (d?.blocks || []).forEach((blk: any, bi: number) => {
+              if (blk?.type !== 'forza' || !blk?.name) return;
+              const kg = caricoMigliore(ris[`${wi}_${di}_${bi}`]?.score);
+              if (!kg) return;
+ 
+              // sposto la data di una settimana per volta, così l'ordine è giusto
+              let giorno = base;
+              const d0 = parseLocalDate(base);
+              if (d0) {
+                d0.setDate(d0.getDate() + wi * 7 + di);
+                giorno = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`;
+              }
+ 
+              righe.push({
+                exercise: blk.name,
+                reps: String(blk.reps ?? ''),
+                load_kg: kg,
+                day: giorno,
+              });
+            });
+          });
+        });
+      });
+ 
+    return righe;
+  };
+ 
   // Riepilogo del percorso: quanto ha fatto, cosa ha concluso, quanto è cresciuto.
   // Sta in cima alla tab, prima dei progressi di carico.
   const riepilogoPercorso = (athleteId: string, righeStorico: any[], perAtleta: boolean) => {
@@ -5001,7 +5045,11 @@ const [notificationError, setNotificationError] = useState('');
       dal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
  
-    const nelPeriodo = (righe || []).filter((r: any) => {
+    const fonte = (righe && righe.length > 0)
+      ? righe
+      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
+ 
+    const nelPeriodo = fonte.filter((r: any) => {
       const g = String(r.day);
       if (dal && g < dal) return false;
       if (al && g > al) return false;
@@ -5047,11 +5095,6 @@ const [notificationError, setNotificationError] = useState('');
  
         {athleteId && riepilogoPercorso(athleteId, righe, perAtleta)}
  
-        {!perAtleta && athleteId && (
-          <div style={{ marginBottom: '20px' }}>
-            {pannelloProgrammiRisultati(athleteId)}
-          </div>
-        )}
  
         <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px', marginBottom: '9px' }}>
           CRESCITA DEI CARICHI
@@ -8131,33 +8174,6 @@ const [notificationError, setNotificationError] = useState('');
                                       <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                         <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                         <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
-                                          Round da compilare <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
-                                        </label>
-                                        <input
-                                          type="text"
-                                          inputMode="numeric"
-                                          placeholder="es. 5"
-                                          value={block.scoreRounds || ''}
-                                          onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
-                                          style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
-                                        />
-                                        <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 0 0', lineHeight: 1.45 }}>
-                                          Lascia vuoto se il risultato è un numero solo (AMRAP, tempo totale). Compila con il numero dei round se vuoi un risultato per ciascuno.
-                                        </p>
-                                        <div style={{ marginTop: '9px' }}>
-                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
-                                            Round <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo: crea una casella per round nei risultati)</span>
-                                          </label>
-                                          <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            placeholder="es. 5"
-                                            value={block.wodRounds || ''}
-                                            onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
-                                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
-                                          />
-                                        </div>
  
                                           {(() => {
                                             const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
@@ -8179,9 +8195,25 @@ const [notificationError, setNotificationError] = useState('');
                                             );
                                           })()}
  
-                                        <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
-                                          Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
-                                        </label>
+                                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
+                                          <div style={{ flex: 1, minWidth: 0 }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
+                                              Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                            </label>
+                                          </div>
+                                          <div style={{ width: '92px', flexShrink: 0 }}>
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
+                                            <input
+                                              type="text"
+                                              inputMode="numeric"
+                                              placeholder="—"
+                                              value={block.scoreRounds || ''}
+                                              onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                              title="Quante caselle dare all'atleta per il risultato. Vuoto = una sola."
+                                              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                            />
+                                          </div>
+                                        </div>
                                         {(block.items || []).map((it: any, i: number) => (
                                           <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
                                             <CampoEsercizio
@@ -8846,33 +8878,6 @@ const [notificationError, setNotificationError] = useState('');
                                           <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</label>
                                             <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px' }} />
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
-                                              Round da compilare <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
-                                            </label>
-                                            <input
-                                              type="text"
-                                              inputMode="numeric"
-                                              placeholder="es. 5"
-                                              value={block.scoreRounds || ''}
-                                              onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
-                                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
-                                            />
-                                            <p style={{ fontSize: '10.5px', color: '#94a3b8', margin: '4px 0 0 0', lineHeight: 1.45 }}>
-                                              Lascia vuoto se il risultato è un numero solo (AMRAP, tempo totale). Compila con il numero dei round se vuoi un risultato per ciascuno.
-                                            </p>
-                                            <div style={{ marginTop: '9px' }}>
-                                              <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
-                                                Round <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo: crea una casella per round nei risultati)</span>
-                                              </label>
-                                              <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                placeholder="es. 5"
-                                                value={block.wodRounds || ''}
-                                                onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
-                                                style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
-                                              />
-                                            </div>
  
                                               {(() => {
                                                 const trovati = trovaEserciziNelTesto(block.wodNotes, block.items);
@@ -8894,9 +8899,25 @@ const [notificationError, setNotificationError] = useState('');
                                                 );
                                               })()}
  
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', margin: '10px 0 3px 0' }}>
-                                              Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
-                                            </label>
+                                            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
+                                              <div style={{ flex: 1, minWidth: 0 }}>
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>
+                                                  Esercizi con video <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>(facoltativo)</span>
+                                                </label>
+                                              </div>
+                                              <div style={{ width: '92px', flexShrink: 0 }}>
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Round</label>
+                                                <input
+                                                  type="text"
+                                                  inputMode="numeric"
+                                                  placeholder="—"
+                                                  value={block.scoreRounds || ''}
+                                                  onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                                  title="Quante caselle dare all'atleta per il risultato. Vuoto = una sola."
+                                                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                                />
+                                              </div>
+                                            </div>
                                             {(block.items || []).map((it: any, i: number) => (
                                               <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
                                                 <CampoEsercizio
@@ -9782,6 +9803,9 @@ const [notificationError, setNotificationError] = useState('');
                                       day.blocks?.map((blk: any, bIdx: number) => {
                                         const blockKey = `ath_${prog.id}_${realWeekIndex}_${realDayIndex}_${bIdx}`;
                                         const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                        const usaFinestra =
+                                          (blk.type === 'forza' && !isMobility(blk.name)) ||
+                                          ((blk.type === 'wod' || blk.type === 'test') && (parseInt(String(blk.scoreRounds ?? ''), 10) || 0) > 1);
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
  
                                         return (
@@ -10049,10 +10073,11 @@ const [notificationError, setNotificationError] = useState('');
                                                   </div>
                                                 )}
  
+ 
                                                 {blk.type !== 'warmup' && (
                                                 <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
-                                                  {((blk.type === 'forza' && !isMobility(blk.name)) || ((blk.type === 'wod' || blk.type === 'test') && (parseInt(String(blk.scoreRounds ?? ''), 10) || 0) > 1)) && (
+                                                  {usaFinestra && (
                                                     <button
                                                       onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk })}
                                                       style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(5,150,105,0.32)' }}
@@ -10060,6 +10085,28 @@ const [notificationError, setNotificationError] = useState('');
                                                       <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Inserisci i risultati'}
                                                     </button>
                                                   )}
+                                                  {usaFinestra ? (
+                                                    /* Con la finestra dei carichi il riepilogo si legge qui, non si digita */
+                                                    (() => {
+                                                      const dato = athleteResults[prog.id]?.[resultKey];
+                                                      const punteggio = String(dato?.score || '').trim();
+                                                      const note = String(dato?.notes || '').trim();
+                                                      if (!punteggio && !note) return null;
+                                                      return (
+                                                        <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '9px 11px' }}>
+                                                          {punteggio && (
+                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere' }}>
+                                                              {punteggio}
+                                                            </span>
+                                                          )}                                                          {note && (
+                                                            <p style={{ margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
+                                                              {note}
+                                                            </p>
+                                                          )}
+                                                        </div>
+                                                      );
+                                                    })()
+                                                  ) : (
                                                   <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
                                                     {!isMobility(blk.name) && blk.type !== 'warmup' && (
                                                     <div>
@@ -10087,6 +10134,7 @@ const [notificationError, setNotificationError] = useState('');
                                                       <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
                                                     </div>
                                                   </div>
+                                                  )}
                                                 </div>
                                                 )}
                                               </div>
