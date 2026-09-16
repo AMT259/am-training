@@ -3540,8 +3540,7 @@ const [notificationError, setNotificationError] = useState('');
     else setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updated });
   };
  
-  const getSavedOf = (athleteId: string) =>
-    athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
+  const getSavedOf = (athleteId: string) =>    athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
  
   const setSavedOf = (athleteId: string, updated: any) => {
     if (athleteId === session?.user?.id) setSavedMaxes(updated);
@@ -4921,7 +4920,8 @@ const [notificationError, setNotificationError] = useState('');
             if (quanti > 0) seduteFatte++;
           });
         });
-         return { prog: p, sedute, seduteFatte, esercizi, eserciziFatti };
+ 
+        return { prog: p, sedute, seduteFatte, esercizi, eserciziFatti };
       })
       .filter((x: any) => x.sedute > 0)
       .sort((a: any, b: any) => String(b.prog.endDate || '').localeCompare(String(a.prog.endDate || '')));
@@ -5717,6 +5717,20 @@ const [notificationError, setNotificationError] = useState('');
  
   const removeBlockFromFreeDay = (wIdx: number, dayIndex: number, blockIndex: number) => {
     const updated = JSON.parse(JSON.stringify(programWeeks));
+    const blocco = updated[wIdx].days[dayIndex].blocks[blockIndex];
+ 
+    // chiedo conferma solo se c'è qualcosa da perdere
+    const pieno = blocco && (
+      String(blocco.name || '').trim() ||
+      String(blocco.wodNotes || '').trim() ||
+      String(blocco.notes || '').trim() ||
+      (blocco.items || []).length > 0
+    );
+    if (pieno) {
+      const nome = String(blocco.name || '').trim() || 'questo esercizio';
+      if (!confirm(`Eliminare ${nome}?`)) return;
+    }
+ 
     updated[wIdx].days[dayIndex].blocks.splice(blockIndex, 1);
     setProgramWeeks(updated);
   };
@@ -7933,12 +7947,22 @@ const [notificationError, setNotificationError] = useState('');
                       />
                       {editingProgram.weeks.length > 1 && (
                         <button onClick={() => {
+                          // conferma prima di eliminare: dico anche cosa si perde
+                          const g = (week.days || []).length;
+                          const e = (week.days || []).reduce((t: number, d: any) => t + (d.blocks || []).length, 0);
+                          const dettaglio = e > 0
+                            ? ` con ${g} ${g === 1 ? 'giorno' : 'giorni'} e ${e} ${e === 1 ? 'esercizio' : 'esercizi'}`
+                            : (g > 0 ? ` con ${g} ${g === 1 ? 'giorno' : 'giorni'}` : '');
+                          if (!confirm(`Eliminare "${week.weekName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
+ 
                           const updated = JSON.parse(JSON.stringify(editingProgram));
                           updated.weeks.splice(actualWIdx, 1);
                           setEditingProgram(updated);
-                          if (updated.weeks.length > 0) {
-                            setSelectedWeekView(updated.weeks[0].weekName);
-                            if (updated.weeks[0].days?.length > 0) setSelectedDayView(updated.weeks[0].days[0].dayName);
+                          // resto sulla settimana vicina invece di tornare alla prima
+                          const vicina = updated.weeks[Math.min(actualWIdx, updated.weeks.length - 1)];
+                          if (vicina) {
+                            setSelectedWeekView(vicina.weekName);
+                            if (vicina.days?.length > 0) setSelectedDayView(vicina.days[0].dayName);
                           }
                         }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                       )}
@@ -8000,10 +8024,17 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                             {week.days.length > 1 && (
                               <button onClick={() => {
+                                // conferma prima di eliminare il giorno
+                                const e = (day.blocks || []).length;
+                                const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
+                                if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
+ 
                                 const updated = JSON.parse(JSON.stringify(editingProgram));
                                 updated.weeks[actualWIdx].days.splice(actualDIdx, 1);
                                 setEditingProgram(updated);
-                                if (updated.weeks[actualWIdx].days.length > 0) setSelectedDayView(updated.weeks[actualWIdx].days[0].dayName);
+                                // resto sul giorno vicino invece di tornare al primo
+                                const vicino = updated.weeks[actualWIdx].days[Math.min(actualDIdx, updated.weeks[actualWIdx].days.length - 1)];
+                                if (vicino) setSelectedDayView(vicino.dayName);
                               }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                             )}
                           </div>
@@ -8046,6 +8077,18 @@ const [notificationError, setNotificationError] = useState('');
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
                                     <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
                                     <button type="button" onClick={() => {
+                                      // chiedo conferma solo se c'e' qualcosa da perdere
+                                      const pieno = block && (
+                                        String(block.name || '').trim() ||
+                                        String(block.wodNotes || '').trim() ||
+                                        String(block.notes || '').trim() ||
+                                        (block.items || []).length > 0
+                                      );
+                                      if (pieno) {
+                                        const nome = String(block.name || '').trim() || 'questo esercizio';
+                                        if (!confirm(`Eliminare ${nome}?`)) return;
+                                      }
+ 
                                       const updated = JSON.parse(JSON.stringify(editingProgram));
                                       updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
                                       setEditingProgram(updated);
@@ -8683,12 +8726,22 @@ const [notificationError, setNotificationError] = useState('');
                           />
                           {programWeeks.length > 1 && (
                             <button onClick={() => {
+                              // conferma prima di eliminare: dico anche cosa si perde
+                              const g = (week.days || []).length;
+                              const e = (week.days || []).reduce((t: number, d: any) => t + (d.blocks || []).length, 0);
+                              const dettaglio = e > 0
+                                ? ` con ${g} ${g === 1 ? 'giorno' : 'giorni'} e ${e} ${e === 1 ? 'esercizio' : 'esercizi'}`
+                                : (g > 0 ? ` con ${g} ${g === 1 ? 'giorno' : 'giorni'}` : '');
+                              if (!confirm(`Eliminare "${week.weekName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
+ 
                               const upd = JSON.parse(JSON.stringify(programWeeks));
                               upd.splice(actualWIdx, 1);
                               setProgramWeeks(upd);
-                              if (upd.length > 0) {
-                                setSelectedWeekView(upd[0].weekName);
-                                if (upd[0].days?.length > 0) setSelectedDayView(upd[0].days[0].dayName);
+                              // resto sulla settimana vicina invece di tornare alla prima
+                              const vicina = upd[Math.min(actualWIdx, upd.length - 1)];
+                              if (vicina) {
+                                setSelectedWeekView(vicina.weekName);
+                                if (vicina.days?.length > 0) setSelectedDayView(vicina.days[0].dayName);
                               }
                             }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
                           )}
@@ -8750,10 +8803,17 @@ const [notificationError, setNotificationError] = useState('');
                                 </div>
                                 {week.days.length > 1 && (
                                   <button onClick={() => {
+                                    // conferma prima di eliminare il giorno
+                                    const e = (day.blocks || []).length;
+                                    const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
+                                    if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
+ 
                                     const upd = JSON.parse(JSON.stringify(programWeeks));
                                     upd[actualWIdx].days.splice(actualDIdx, 1);
                                     setProgramWeeks(upd);
-                                    if (upd[actualWIdx].days.length > 0) setSelectedDayView(upd[actualWIdx].days[0].dayName);
+                                    // resto sul giorno vicino invece di tornare al primo
+                                    const vicino = upd[actualWIdx].days[Math.min(actualDIdx, upd[actualWIdx].days.length - 1)];
+                                    if (vicino) setSelectedDayView(vicino.dayName);
                                   }} style={{ background: '#fee2e2', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
                                 )}
                               </div>
