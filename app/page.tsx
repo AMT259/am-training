@@ -7336,7 +7336,8 @@ const [notificationError, setNotificationError] = useState('');
                                             </span>
                                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
                                               <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
-                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}                                              </span>
+                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
+                                              </span>
                                               {usati.length > 1 && (
                                                 <span style={{ fontSize: '10px', color: '#94a3b8' }}>
                                                   {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
@@ -7653,13 +7654,27 @@ const [notificationError, setNotificationError] = useState('');
  
                             return (
                               <div key={block.id || bIdx} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
-                                    <button type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
-                                    <button type="button" onClick={() => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, minWidth: 0, padding: '6px', borderRadius: '999px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
-                                  </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
+                                  <select
+                                    value={block.type || 'forza'}
+                                    onChange={(e) => scegliTipoBlocco('edit', actualWIdx, actualDIdx, bIdx, e.target.value)}
+                                    style={{
+                                      flex: '1 1 140px', minWidth: 0, boxSizing: 'border-box',
+                                      padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
+                                      fontSize: '12.5px', fontWeight: 'bold',
+                                      border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
+                                      background: block.type === 'warmup' ? '#f59e0b'
+                                        : block.type === 'wod' ? '#2563eb'
+                                        : block.type === 'test' ? '#7c3aed'
+                                        : '#10b981',
+                                      color: '#ffffff',
+                                    }}
+                                  >
+                                    <option value="warmup">WARM UP</option>
+                                    <option value="forza">FORZA</option>
+                                    <option value="wod">WOD</option>
+                                    <option value="test">TEST</option>
+                                  </select>
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                     <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                     <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
@@ -8010,8 +8025,7 @@ const [notificationError, setNotificationError] = useState('');
                 >
                   Libreria Esercizi
                 </button>
-              </div>
- 
+              </div> 
               {activeTab === 'exercises' ? (
                 <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -8333,13 +8347,27 @@ const [notificationError, setNotificationError] = useState('');
  
                                 return (
                                   <div key={block.id} style={{ background: '#ffffff', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid #cbd5e1' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', flex: '1 1 200px', minWidth: 0 }}>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'forza')} style={{ ...pillola(block.type === 'forza', '#10b981', 'piccolo'), flex: '1 1 auto' }}>FORZA</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'wod')} style={{ ...pillola(block.type === 'wod', '#2563eb', 'piccolo'), flex: '1 1 auto' }}>WOD</button>
-                                        <button type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'type', 'test')} style={{ ...pillola(block.type === 'test', '#7c3aed', 'piccolo'), flex: '1 1 auto' }}>TEST</button>
-                                        <button type="button" onClick={() => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, 'warmup')} style={{ flex: 1, minWidth: 0, padding: '6px', borderRadius: '999px', border: 'none', fontWeight: 'bold', fontSize: '11px', background: block.type === 'warmup' ? '#10b981' : '#f1f5f9', color: block.type === 'warmup' ? '#fff' : '#000', cursor: 'pointer' }}>WARM UP</button>
-                                      </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
+                                      <select
+                                        value={block.type || 'forza'}
+                                        onChange={(e) => scegliTipoBlocco('free', actualWIdx, actualDIdx, bIdx, e.target.value)}
+                                        style={{
+                                          flex: '1 1 140px', minWidth: 0, boxSizing: 'border-box',
+                                          padding: '9px 12px', borderRadius: '999px', cursor: 'pointer',
+                                          fontSize: '12.5px', fontWeight: 'bold',
+                                          border: 'none', appearance: 'none', WebkitAppearance: 'none', textAlign: 'center',
+                                          background: block.type === 'warmup' ? '#f59e0b'
+                                            : block.type === 'wod' ? '#2563eb'
+                                            : block.type === 'test' ? '#7c3aed'
+                                            : '#10b981',
+                                          color: '#ffffff',
+                                        }}
+                                      >
+                                        <option value="warmup">WARM UP</option>
+                                        <option value="forza">FORZA</option>
+                                        <option value="wod">WOD</option>
+                                        <option value="test">TEST</option>
+                                      </select>
                                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                         <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
                                         <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
