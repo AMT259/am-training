@@ -3540,7 +3540,8 @@ const [notificationError, setNotificationError] = useState('');
     else setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updated });
   };
  
-  const getSavedOf = (athleteId: string) =>    athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
+  const getSavedOf = (athleteId: string) =>
+    athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
  
   const setSavedOf = (athleteId: string, updated: any) => {
     if (athleteId === session?.user?.id) setSavedMaxes(updated);
@@ -6837,8 +6838,7 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
                 <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
                   Salva invito
-                </button>
-              </div>
+                </button>              </div>
             </div>
           ) : coachSubView === 'athletes' ? (
             <div>
@@ -8551,7 +8551,9 @@ const [notificationError, setNotificationError] = useState('');
                         <div key={ex.id} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0' }}>
                           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                             <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{ex.name}</div>
-                            <div style={{ fontSize: '11px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.video_url || 'Nessun video'}</div>
+                            <div style={{ fontSize: '11px', color: ex.video_url ? '#0284c7' : '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {ex.video_url ? 'Video disponibile' : 'Nessun video'}
+                            </div>
                             {ex.pr_kind ? (
                               <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? '#dbeafe' : '#fce7f3', color: ex.pr_kind === 'metcon' ? '#1e40af' : '#9d174d', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
                                 {ex.pr_kind === 'metcon' ? '⏱️ Metcon PR' : '🤸 Gymnastics PR'}
@@ -8575,6 +8577,16 @@ const [notificationError, setNotificationError] = useState('');
                             </div>
                           ) : (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              {ex.video_url && (
+                                <a
+                                  href={ex.video_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', borderRadius: '999px', padding: '7px 12px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}
+                                >
+                                  <Icona nome="video" size={12} /> Video
+                                </a>
+                              )}
                               <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); setLibEditAlias(ex.aliases || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
                               <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
                             </div>
