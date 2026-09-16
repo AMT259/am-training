@@ -4921,8 +4921,7 @@ const [notificationError, setNotificationError] = useState('');
             if (quanti > 0) seduteFatte++;
           });
         });
- 
-        return { prog: p, sedute, seduteFatte, esercizi, eserciziFatti };
+         return { prog: p, sedute, seduteFatte, esercizi, eserciziFatti };
       })
       .filter((x: any) => x.sedute > 0)
       .sort((a: any, b: any) => String(b.prog.endDate || '').localeCompare(String(a.prog.endDate || '')));
@@ -7882,19 +7881,37 @@ const [notificationError, setNotificationError] = useState('');
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
                     const isSelected = selectedWeekView === week.weekName;
                     return (
-                      <div key={wIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                        <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          {week.weekName}
-                        </button>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                          <button onClick={() => moveEditingWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                          <button onClick={() => cloneEditingWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                          <button onClick={() => moveEditingWeekOrder(wIdx, 'right')} disabled={wIdx === editingProgram.weeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === editingProgram.weeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === editingProgram.weeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                        </div>
-                      </div>
+                      <button
+                        key={wIdx}
+                        onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }}
+                        style={{ ...pillola(isSelected, '#334155', 'piccolo') }}
+                      >
+                        {week.weekName}
+                      </button>
                     );
                   })}
                 </div>
+ 
+                {(() => {
+                  const tutte = editingProgram.weeks || [];
+                  const pos = tutte.findIndex((w: any) => w.weekName === selectedWeekView);
+                  if (pos < 0) return null;
+                  const sett = tutte[pos];
+                  const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#475569', cursor: 'pointer' };
+                  return (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      <button onClick={() => moveEditingWeekOrder(pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
+                        <Icona nome="su" size={12} /> Sposta su
+                      </button>
+                      <button onClick={() => moveEditingWeekOrder(pos, 'right')} disabled={pos === tutte.length - 1} style={{ ...azione, opacity: pos === tutte.length - 1 ? 0.4 : 1 }}>
+                        <Icona nome="giu" size={12} /> Sposta giù
+                      </button>
+                      <button onClick={() => cloneEditingWeek(sett)} style={azione}>
+                        <Icona nome="duplica" size={12} /> Duplica
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
  
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
@@ -7931,20 +7948,37 @@ const [notificationError, setNotificationError] = useState('');
                       {week.days?.map((day: any, dIdx: number) => {
                         const isSelected = selectedDayView === day.dayName;
                         return (
-                          <div key={dIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                            <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                              {day.dayName}
-                            </button>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                              <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                              <button onClick={() => cloneEditingDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                              <button onClick={() => moveEditingDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                            </div>
-                          </div>
+                          <button
+                            key={dIdx}
+                            onClick={() => setSelectedDayView(day.dayName)}
+                            style={{ ...pillola(isSelected, '#10b981', 'piccolo') }}
+                          >
+                            {day.dayName}
+                          </button>
                         );
                       })}
-                      <button onClick={() => addEditingDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
+                      <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, '#10b981', 'piccolo'), background: '#ecfdf5', color: '#047857', border: '1px dashed #10b981' }}>+ Giorno</button>
                     </div>
+ 
+                    {(() => {
+                      const giorni = week.days || [];
+                      const pos = giorni.findIndex((d: any) => d.dayName === selectedDayView);
+                      if (pos < 0) return null;
+                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#475569', cursor: 'pointer' };
+                      return (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                          <button onClick={() => moveEditingDayOrder(actualWIdx, pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
+                            <Icona nome="su" size={12} /> Sposta su
+                          </button>
+                          <button onClick={() => moveEditingDayOrder(actualWIdx, pos, 'right')} disabled={pos === giorni.length - 1} style={{ ...azione, opacity: pos === giorni.length - 1 ? 0.4 : 1 }}>
+                            <Icona nome="giu" size={12} /> Sposta giù
+                          </button>
+                          <button onClick={() => cloneEditingDay(actualWIdx, giorni[pos])} style={azione}>
+                            <Icona nome="duplica" size={12} /> Duplica
+                          </button>
+                        </div>
+                      );
+                    })()}
  
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                       const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
@@ -7992,7 +8026,8 @@ const [notificationError, setNotificationError] = useState('');
                                         border: 'none', appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
                                         background: block.type === 'warmup' ? '#f59e0b'
                                           : block.type === 'wod' ? '#2563eb'
-                                          : block.type === 'test' ? '#7c3aed'                                          : '#10b981',
+                                          : block.type === 'test' ? '#7c3aed'
+                                          : '#10b981',
                                         color: '#ffffff',
                                       }}
                                     >
@@ -8595,20 +8630,38 @@ const [notificationError, setNotificationError] = useState('');
                       {programWeeks.map((week, wIdx) => {
                         const isSelected = selectedWeekView === week.weekName;
                         return (
-                          <div key={wIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#ffffff', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                            <button onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                              {week.weekName}
-                            </button>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                              <button onClick={() => moveWeekOrder(wIdx, 'left')} disabled={wIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                              <button onClick={() => cloneWeek(week)} title="Clona settimana" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                              <button onClick={() => moveWeekOrder(wIdx, 'right')} disabled={wIdx === programWeeks.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: wIdx === programWeeks.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: wIdx === programWeeks.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                            </div>
-                          </div>
+                          <button
+                            key={wIdx}
+                            onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }}
+                            style={{ ...pillola(isSelected, '#334155', 'piccolo') }}
+                          >
+                            {week.weekName}
+                          </button>
                         );
                       })}
-                      <button onClick={addWeek} style={{ padding: '6px 12px', background: '#10b981', border: 'none', color: '#ffffff', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Settimana</button>
+                      <button onClick={addWeek} style={{ ...pillola(false, '#10b981', 'piccolo'), background: '#ecfdf5', color: '#047857', border: '1px dashed #10b981' }}>+ Settimana</button>
                     </div>
+ 
+                    {(() => {
+                      const tutte = programWeeks || [];
+                      const pos = tutte.findIndex((w: any) => w.weekName === selectedWeekView);
+                      if (pos < 0) return null;
+                      const sett = tutte[pos];
+                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#475569', cursor: 'pointer' };
+                      return (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                          <button onClick={() => moveWeekOrder(pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
+                            <Icona nome="su" size={12} /> Sposta su
+                          </button>
+                          <button onClick={() => moveWeekOrder(pos, 'right')} disabled={pos === tutte.length - 1} style={{ ...azione, opacity: pos === tutte.length - 1 ? 0.4 : 1 }}>
+                            <Icona nome="giu" size={12} /> Sposta giù
+                          </button>
+                          <button onClick={() => cloneWeek(sett)} style={azione}>
+                            <Icona nome="duplica" size={12} /> Duplica
+                          </button>
+                        </div>
+                      );
+                    })()}
                   </div>
  
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
@@ -8645,20 +8698,37 @@ const [notificationError, setNotificationError] = useState('');
                           {week.days.map((day: any, dIdx: number) => {
                             const isSelected = selectedDayView === day.dayName;
                             return (
-                              <div key={dIdx} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', background: isSelected ? '#10b981' : '#f1f5f9', borderRadius: '8px', padding: '4px 6px', border: '1px solid #cbd5e1', gap: '4px', whiteSpace: 'nowrap' }}>
-                                <button onClick={() => setSelectedDayView(day.dayName)} style={{ padding: '4px 6px', border: 'none', background: 'transparent', color: isSelected ? '#fff' : '#000', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                                  {day.dayName}
-                                </button>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px', borderLeft: '1px solid ' + (isSelected ? 'rgba(255,255,255,0.4)' : '#cbd5e1'), paddingLeft: '4px' }}>
-                                  <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'left')} disabled={dIdx === 0} title="Sposta a sinistra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === 0 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === 0 ? 'default' : 'pointer', fontSize: '10px' }}>⬅️</button>
-                                  <button onClick={() => cloneDay(actualWIdx, day)} title="Clona giorno" style={{ background: 'transparent', border: 'none', padding: '2px', color: isSelected ? '#fff' : '#334155', fontSize: '11px', cursor: 'pointer' }}>📋</button>
-                                  <button onClick={() => moveDayOrder(actualWIdx, dIdx, 'right')} disabled={dIdx === week.days.length - 1} title="Sposta a destra" style={{ background: 'transparent', border: 'none', padding: '2px', color: dIdx === week.days.length - 1 ? '#cbd5e1' : (isSelected ? '#fff' : '#334155'), cursor: dIdx === week.days.length - 1 ? 'default' : 'pointer', fontSize: '10px' }}>➡️</button>
-                                </div>
-                              </div>
+                              <button
+                                key={dIdx}
+                                onClick={() => setSelectedDayView(day.dayName)}
+                                style={{ ...pillola(isSelected, '#10b981', 'piccolo') }}
+                              >
+                                {day.dayName}
+                              </button>
                             );
                           })}
-                          <button onClick={() => addDay(actualWIdx)} style={{ padding: '6px 12px', background: '#ffffff', border: '1px dashed #10b981', color: '#10b981', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>+ Giorno</button>
+                          <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, '#10b981', 'piccolo'), background: '#ecfdf5', color: '#047857', border: '1px dashed #10b981' }}>+ Giorno</button>
                         </div>
+ 
+                        {(() => {
+                          const giorni = week.days || [];
+                          const pos = giorni.findIndex((d: any) => d.dayName === selectedDayView);
+                          if (pos < 0) return null;
+                          const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#475569', cursor: 'pointer' };
+                          return (
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                              <button onClick={() => moveDayOrder(actualWIdx, pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
+                                <Icona nome="su" size={12} /> Sposta su
+                              </button>
+                              <button onClick={() => moveDayOrder(actualWIdx, pos, 'right')} disabled={pos === giorni.length - 1} style={{ ...azione, opacity: pos === giorni.length - 1 ? 0.4 : 1 }}>
+                                <Icona nome="giu" size={12} /> Sposta giù
+                              </button>
+                              <button onClick={() => cloneDay(actualWIdx, giorni[pos])} style={azione}>
+                                <Icona nome="duplica" size={12} /> Duplica
+                              </button>
+                            </div>
+                          );
+                        })()}
  
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
                           const actualDIdx = week.days.findIndex((d: any) => d.dayName === selectedDayView);
