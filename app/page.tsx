@@ -2111,6 +2111,10 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
       return <svg {...comuni}><path d="M17.9 17.9A10.4 10.4 0 0112 20c-7 0-11-8-11-8a19 19 0 015.1-6M9.9 4.2A10.5 10.5 0 0112 4c7 0 11 8 11 8a19 19 0 01-2.2 3.2M1 1l22 22M9.9 9.9a3 3 0 004.2 4.2" /></svg>;
     case 'piu':
       return <svg {...comuni}><path d="M12 5v14M5 12h14" /></svg>;
+    case 'sinistra':
+      return <svg {...comuni}><path d="M15 18l-6-6 6-6" /></svg>;
+    case 'destra':
+      return <svg {...comuni}><path d="M9 18l6-6-6-6" /></svg>;
     case 'su':
       return <svg {...comuni}><path d="M18 15l-6-6-6 6" /></svg>;
     case 'giu':
@@ -2487,10 +2491,10 @@ export default function TrainingApp() {
     .map((e: any) => e.name);
  
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
-  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'personal' | 'banner'>('programs');
+  const [coachSubView, setCoachSubView] = useState<'programs' | 'athletes' | 'banner'>('programs');
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi' | 'personal'>('anagrafici');
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
   const [newPrName, setNewPrName] = useState('');
@@ -2531,7 +2535,7 @@ export default function TrainingApp() {
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
@@ -5913,11 +5917,15 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const duplicateProgram = async (prog: any) => {
+    // La copia nasce come bozza e senza date: prima la adatti, poi decidi
+    // a chi assegnarla. Assegnarla subito significherebbe mandare agli atleti
+    // un programma identico a quello che hanno già.
     const duplicatedProgram = {
       title: `${prog.title} (Copia)`,
-      start_date: prog.startDate || null,
-      end_date: prog.endDate || null,
-      assigned_athlete_ids: prog.assignedAthleteIds || [],
+      start_date: null,
+      end_date: null,
+      assigned_athlete_ids: [],
+      visibility: 'none',
       weeks: prog.weeks || normalizeProgramWeeks(prog)
     };
  
@@ -5926,7 +5934,7 @@ const [notificationError, setNotificationError] = useState('');
     if (error) {
       alert('Errore: ' + error.message);
     } else {
-      avvisa('Programma duplicato');
+      avvisa('Copia creata come bozza');
       fetchProgramLibrary();
     }
   };
@@ -6838,7 +6846,8 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
                 <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
                   Salva invito
-                </button>              </div>
+                </button>
+              </div>
             </div>
           ) : coachSubView === 'athletes' ? (
             <div>
@@ -6852,16 +6861,23 @@ const [notificationError, setNotificationError] = useState('');
                   <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici'), flex: '1 1 auto' }}>Dati Anagrafici</button>
-                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ ...pillola(coachAthleteDetailTab === 'anamnesi'), flex: '1 1 auto' }}>Anamnesi</button>
-                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento'), flex: '1 1 auto' }}>Abbonamento</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Dati anagrafici</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ ...pillola(coachAthleteDetailTab === 'anamnesi', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Anamnesi</button>
+                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Abbonamento</button>
                   </div>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
-                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
-                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi'), flex: '1 1 auto' }}>🚀 Percorso</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🏋🏻 Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🎯 Gare</button>
+                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', '#10b981', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🚀 Percorso</button>
                   </div>
+ 
+                  <button
+                    onClick={() => setCoachAthleteDetailTab('personal')}
+                    style={{ ...pillola(coachAthleteDetailTab === 'personal', '#2563eb', 'grande'), width: '100%', boxSizing: 'border-box', marginBottom: '16px' }}
+                  >
+                    📝 Personal
+                  </button>
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
                     const athData = coachAllPersonalData[selectedCoachAthlete.id] || emptyPersonalData;
@@ -6923,6 +6939,368 @@ const [notificationError, setNotificationError] = useState('');
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
+ 
+                  {coachAthleteDetailTab === 'personal' && (() => {
+                const selAthlete = athletes.find((a: any) => a.id === selectedCoachAthlete.id);
+                const athletePersonalPrograms = programLibrary.filter(
+                  (p: any) => !p.isDeleted && p.assignedAthleteIds?.includes(selectedCoachAthlete.id)
+                );
+ 
+                return (
+                  <div>
+ 
+                    {athletePersonalPrograms.length === 0 ? (
+                      <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                        <p style={{ color: '#64748b' }}>Nessuna scheda assegnata a questo atleta.</p>
+                      </div>
+                    ) : (
+                      athletePersonalPrograms.map((prog: any) => {
+                        const weeks = normalizeProgramWeeks(prog);
+                        const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
+                        const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
+                        const activeDayName = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
+                        const realWeekIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+                        const activeDayObj = activeWeekObj?.days?.find((d: any) => d.dayName === activeDayName);
+                        const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
+ 
+                        return (
+                          <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '16px' }}>
+                            <div
+                              onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+                            >
+                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
+                              <span style={{ fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
+                            </div>
+ 
+                            {personalExpandedProgramId === prog.id && (
+                            <>
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
+                              {weeks.map((w: any) => (
+                                <button
+                                  key={w.weekName}
+                                  onClick={() => {
+                                    setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
+                                    if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
+                                  }}
+                                  style={{ padding: '6px 12px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#e2e8f0', color: activeWeekName === w.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                >
+                                  {w.weekName}
+                                </button>
+                              ))}
+                            </div>
+ 
+                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
+                              {activeWeekObj?.days?.map((day: any) => (
+                                <button
+                                  key={day.dayName}
+                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
+                                  style={{ ...pillola(activeDayName === day.dayName, '#10b981', 'piccolo') }}
+                                >
+                                  {day.dayName}
+                                </button>
+                              ))}
+                            </div>
+ 
+                            {(!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) ? (
+                              <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
+                            ) : (
+                              activeDayObj.blocks.map((blk: any, bIdx: number) => {
+                                const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
+                                const currentScore = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.score || '';
+                                const currentNotes = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.notes || '';
+ 
+                                return (
+                                  <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}</span>
+                                      {(blk.type === 'wod' || blk.type === 'test') && (
+                                        <button
+                                          type="button"
+                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                        >
+                                            <Icona nome="timer" size={13} /> Timer
+                                        </button>
+                                      )}
+                                    </div>
+ 
+                                    {blk.type === 'warmup' ? (
+                                      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
+                                        {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
+                                          <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                            {parseInt(String(blk.rounds), 10)} round
+                                          </span>
+                                        )}
+                                        {(blk.items || []).length === 0 && (
+                                          <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
+                                        )}
+                                        {(blk.items || []).map((it: any, i: number) => (
+                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                              {it.name}
+                                            </span>
+ 
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                              {it.value}
+                                            </span>
+ 
+                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
+                                              {it.videoUrl && (
+                                                <a
+                                                  href={it.videoUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                  title="Guarda il video"
+                                                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                                >
+                                                  <Icona nome="video" size={12} />
+                                                </a>
+                                              )}
+                                            </span>
+ 
+                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
+                                              {(() => {
+                                                const sec = tempoDaValore(it.value);
+                                                if (!sec) return null;
+                                                return (
+                                                  <button
+                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
+                                                    title="Avvia il timer"
+                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
+                                                  >
+                                                    <Icona nome="timer" size={14} />
+                                                  </button>
+                                                );
+                                              })()}
+                                            </span>
+                                          </div>
+                                        ))}
+                                        <button
+                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                        >
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
+                                          </span>
+                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#047857' : '#92400e' }}>
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
+                                          </span>
+                                        </button>
+ 
+                                        {(() => {
+                                          const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
+                                          const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
+                                          const totale = mm * 60 + ss;
+                                          const grezzo = mmss(totale);
+                                          const senza = totale <= 0;
+                                          if (senza) {
+                                            return (
+                                              <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
+                                                Nessun recupero tra i round
+                                              </span>
+                                            );
+                                          }
+                                          return (
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
+                                              <span style={{ fontSize: '12px', color: '#92400e' }}>
+                                                Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
+                                              </span>
+                                              <button
+                                                onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                              >
+                                                <Icona nome="timer" size={13} /> Avvia timer
+                                              </button>
+                                            </div>
+                                          );
+                                        })()}
+ 
+                                        {blk.notes && (
+                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                            {blk.notes}
+                                          </p>
+                                        )}
+                                      </div>
+                                    ) : isMobility(blk.name) ? (
+                                      <div>
+                                        {blk.wodNotes && (
+                                          <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                            <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                          </div>
+                                        )}
+                                        <button
+                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                        >
+                                          <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '\u2713' : ''}
+                                          </span>
+                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#047857' : '#334155' }}>
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
+                                          </span>
+                                        </button>
+                                      </div>
+                                    ) : blk.type === 'test' ? (
+                                      <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
+                                        <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
+                                            {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
+                                        </span>
+                                        {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                        {(() => {
+                                          const bench = BENCHMARK_WODS.find((b) => b.name === blk.name);
+                                          if (!bench) return null;
+                                          const lvl = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.level || blk.benchLevel || 'rx';
+                                          return (
+                                            <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
+                                              <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                                {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
+                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, selectedCoachAthlete.id); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                ))}
+                                              </div>
+                                              <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                              <div style={{ fontSize: '10px', color: '#b45309', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    ) : blk.type === 'forza' ? (
+                                      <>
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
+                                        </div>
+                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REP</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
+                                        </div>
+                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
+                                        </div>
+                                        {(() => {
+                                          const secRec = parseRestSeconds(blk.rest);
+                                          return (
+                                          <div
+                                            onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
+                                            style={{ background: '#ecfdf5', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #6ee7b7', cursor: 'pointer' }}
+                                          >
+                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
+                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
+                                          <span style={{ display: 'block', fontSize: '8px', color: '#047857', fontWeight: 'bold' }}>⏱️</span>
+                                          </div>
+                                          ); })()}
+                                      </div>
+ 
+                                      {(() => {
+                                        const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], blk.name));
+                                        if (hint) {
+                                          return (
+                                            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                              <span style={{ display: 'block', fontSize: '9px', color: '#1e40af' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
+                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
+                                            </div>
+                                          );
+                                        }
+ 
+                                        const usati = ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps);
+                                        if (!usati || usati.length === 0) return null;
+                                        return (
+                                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                            <span style={{ display: 'block', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
+                                              {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVA USATO' : 'CARICHI GIÀ USATI'}
+                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
+                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
+                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
+                                              </span>
+                                              {usati.length > 1 && (
+                                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
+                                      </>
+                                    ) : (
+                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
+                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                      </div>
+                                    )}
+ 
+                                    {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
+                                        {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
+                                          <a
+                                            key={i}
+                                            href={it.videoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '6px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
+                                          >
+                                            <Icona nome="video" size={12} /> {it.name}
+                                          </a>
+                                        ))}
+                                      </div>
+                                    )}
+ 
+                                    {blk.type === 'forza' && blk.notes && (
+                                      <div style={{ background: '#fffbeb', padding: '8px', borderRadius: '6px', border: '1px solid #fde68a', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
+                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                      </div>
+                                    )}
+ 
+                                    <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                      <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
+                                      <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
+                                        {!isMobility(blk.name) && blk.type !== 'warmup' && (
+                                        <div>
+                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
+                                          {(() => {
+                                            const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
+                                            const mode = bench ? bench.type
+                                              : metconPRNames.includes(blk.name) ? 'time'
+                                              : gymPRNames.includes(blk.name) ? 'reps'
+                                              : 'text';
+                                            const lvl = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.level || blk.benchLevel || 'rx';
+                                            return (
+                                              <ScoreInput
+                                                mode={mode}
+                                                value={currentScore}
+                                                onChange={(v: string) => handleResultChange(prog.id, resultKey, 'score', v, selectedCoachAthlete.id)}
+                                                onCommit={(v: string) => maybeUpdateMaxFromScore(selectedCoachAthlete.id, blk.name || '', blk.reps, v, true, blk.type, lvl)}
+                                              />
+                                            );
+                                          })()}
+                                        </div>
+                                        )}
+                                        <div>
+                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
+                                          <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, selectedCoachAthlete.id)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                            </>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                );
+                  })()}
  
  
                   {coachAthleteDetailTab === 'maxes' && (
@@ -7394,410 +7772,6 @@ const [notificationError, setNotificationError] = useState('');
                 </div>
               )}
             </div>
-          ) : coachSubView === 'personal' ? (
-            <div>
-              {personalSelectedAthleteId ? (() => {
-                const selAthlete = athletes.find((a: any) => a.id === personalSelectedAthleteId);
-                const athletePersonalPrograms = programLibrary.filter(
-                  (p: any) => !p.isDeleted && p.assignedAthleteIds?.includes(personalSelectedAthleteId)
-                );
- 
-                return (
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <h3 style={{ fontSize: '18px', color: '#10b981', margin: 0 }}>Personal di: {selAthlete?.full_name || selAthlete?.email}</h3>
-                      <button onClick={() => setPersonalSelectedAthleteId('')} style={{ background: '#f1f5f9', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Cambia atleta</button>
-                    </div>
- 
-                    {athletePersonalPrograms.length === 0 ? (
-                      <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                        <p style={{ color: '#64748b' }}>Nessuna scheda assegnata a questo atleta.</p>
-                      </div>
-                    ) : (
-                      athletePersonalPrograms.map((prog: any) => {
-                        const weeks = normalizeProgramWeeks(prog);
-                        const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
-                        const activeWeekObj = weeks.find((w: any) => w.weekName === activeWeekName) || weeks[0];
-                        const activeDayName = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
-                        const realWeekIndex = weeks.findIndex((w: any) => w.weekName === activeWeekName);
-                        const activeDayObj = activeWeekObj?.days?.find((d: any) => d.dayName === activeDayName);
-                        const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
- 
-                        return (
-                          <div key={prog.id} style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #d8dde3', marginBottom: '16px' }}>
-                            <div
-                              onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
-                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
-                            >
-                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#10b981', fontSize: '16px' }}>{prog.title}</h4>
-                              <span style={{ fontSize: '18px', color: '#10b981', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
-                            </div>
- 
-                            {personalExpandedProgramId === prog.id && (
-                            <>
-                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
-                              {weeks.map((w: any) => (
-                                <button
-                                  key={w.weekName}
-                                  onClick={() => {
-                                    setCoachSelectedWeek(prev => ({ ...prev, [prog.id]: w.weekName }));
-                                    if (w.days && w.days.length > 0) setCoachSelectedDay(prev => ({ ...prev, [prog.id]: w.days[0].dayName }));
-                                  }}
-                                  style={{ padding: '6px 12px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#e2e8f0', color: activeWeekName === w.weekName ? '#fff' : '#000', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                                >
-                                  {w.weekName}
-                                </button>
-                              ))}
-                            </div>
- 
-                            <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
-                              {activeWeekObj?.days?.map((day: any) => (
-                                <button
-                                  key={day.dayName}
-                                  onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
-                                  style={{ ...pillola(activeDayName === day.dayName, '#10b981', 'piccolo') }}
-                                >
-                                  {day.dayName}
-                                </button>
-                              ))}
-                            </div>
- 
-                            {(!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) ? (
-                              <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
-                            ) : (
-                              activeDayObj.blocks.map((blk: any, bIdx: number) => {
-                                const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
-                                const currentScore = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.score || '';
-                                const currentNotes = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.notes || '';
- 
-                                return (
-                                  <div key={bIdx} style={{ background: '#ffffff', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}</span>
-                                      {(blk.type === 'wod' || blk.type === 'test') && (
-                                        <button
-                                          type="button"
-                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
-                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
-                                        >
-                                            <Icona nome="timer" size={13} /> Timer
-                                        </button>
-                                      )}
-                                    </div>
- 
-                                    {blk.type === 'warmup' ? (
-                                      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
-                                        {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
-                                          <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
-                                            {parseInt(String(blk.rounds), 10)} round
-                                          </span>
-                                        )}
-                                        {(blk.items || []).length === 0 && (
-                                          <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
-                                        )}
-                                        {(blk.items || []).map((it: any, i: number) => (
-                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
-                                              {it.name}
-                                            </span>
- 
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
-                                              {it.value}
-                                            </span>
- 
-                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
-                                              {it.videoUrl && (
-                                                <a
-                                                  href={it.videoUrl}
-                                                  target="_blank"
-                                                  rel="noopener noreferrer"
-                                                  onClick={(e) => e.stopPropagation()}
-                                                  title="Guarda il video"
-                                                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
-                                                >
-                                                  <Icona nome="video" size={12} />
-                                                </a>
-                                              )}
-                                            </span>
- 
-                                            <span style={{ display: 'flex', justifyContent: 'center' }}>
-                                              {(() => {
-                                                const sec = tempoDaValore(it.value);
-                                                if (!sec) return null;
-                                                return (
-                                                  <button
-                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: sec }); }}
-                                                    title="Avvia il timer"
-                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', cursor: 'pointer', boxShadow: '0 2px 5px rgba(5,150,105,0.35)' }}
-                                                  >
-                                                    <Icona nome="timer" size={14} />
-                                                  </button>
-                                                );
-                                              })()}
-                                            </span>
-                                          </div>
-                                        ))}
-                                        <button
-                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
-                                        >
-                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
-                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
-                                          </span>
-                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#92400e' }}>
-                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
-                                          </span>
-                                        </button>
- 
-                                        {(() => {
-                                          const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
-                                          const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
-                                          const totale = mm * 60 + ss;
-                                          const grezzo = mmss(totale);
-                                          const senza = totale <= 0;
-                                          if (senza) {
-                                            return (
-                                              <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
-                                                Nessun recupero tra i round
-                                              </span>
-                                            );
-                                          }
-                                          return (
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
-                                              <span style={{ fontSize: '12px', color: '#92400e' }}>
-                                                Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
-                                              </span>
-                                              <button
-                                                onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
-                                              >
-                                                <Icona nome="timer" size={13} /> Avvia timer
-                                              </button>
-                                            </div>
-                                          );
-                                        })()}
- 
-                                        {blk.notes && (
-                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
-                                            {blk.notes}
-                                          </p>
-                                        )}
-                                      </div>
-                                    ) : isMobility(blk.name) ? (
-                                      <div>
-                                        {blk.wodNotes && (
-                                          <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
-                                            <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
-                                          </div>
-                                        )}
-                                        <button
-                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '' : 'si', personalSelectedAthleteId)}
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
-                                        >
-                                          <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
-                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '\u2713' : ''}
-                                          </span>
-                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? '#047857' : '#334155' }}>
-                                            {coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
-                                          </span>
-                                        </button>
-                                      </div>
-                                    ) : blk.type === 'test' ? (
-                                      <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '6px', border: '1px solid #bfdbfe', marginBottom: '8px', textAlign: 'center' }}>
-                                        <span style={{ fontSize: '16px', color: '#1e3a8a', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
-                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#1e40af', letterSpacing: '0.5px' }}>
-                                            {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
-                                        </span>
-                                        {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
-                                        {(() => {
-                                          const bench = BENCHMARK_WODS.find((b) => b.name === blk.name);
-                                          if (!bench) return null;
-                                          const lvl = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.level || blk.benchLevel || 'rx';
-                                          return (
-                                            <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
-                                              <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-                                                {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
-                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, personalSelectedAthleteId); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#10b981' : '#e2e8f0', color: lvl === k ? '#fff' : '#334155', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
-                                                ))}
-                                              </div>
-                                              <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
-                                              <div style={{ fontSize: '10px', color: '#b45309', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
-                                            </div>
-                                          );
-                                        })()}
-                                      </div>
-                                    ) : blk.type === 'forza' ? (
-                                      <>
-                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
-                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
-                                        </div>
-                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REP</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
-                                        </div>
-                                        <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
-                                        </div>
-                                        {(() => {
-                                          const secRec = parseRestSeconds(blk.rest);
-                                          return (
-                                          <div
-                                            onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
-                                            style={{ background: '#ecfdf5', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #6ee7b7', cursor: 'pointer' }}
-                                          >
-                                          <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
-                                          <span style={{ display: 'block', fontSize: '8px', color: '#047857', fontWeight: 'bold' }}>⏱️</span>
-                                          </div>
-                                          ); })()}
-                                      </div>
- 
-                                      {(() => {
-                                        const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[personalSelectedAthleteId], blk.name));
-                                        if (hint) {
-                                          return (
-                                            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
-                                              <span style={{ display: 'block', fontSize: '9px', color: '#1e40af' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
-                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#1d4ed8' }}>{hint}</span>
-                                            </div>
-                                          );
-                                        }
- 
-                                        const usati = ultimoCaricoUsatoPer(personalSelectedAthleteId, blk.name, blk.reps);
-                                        if (!usati || usati.length === 0) return null;
-                                        return (
-                                          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
-                                            <span style={{ display: 'block', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
-                                              {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVA USATO' : 'CARICHI GIÀ USATI'}
-                                            </span>
-                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
-                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
-                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
-                                              </span>
-                                              {usati.length > 1 && (
-                                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })()}
-                                      </>
-                                    ) : (
-                                      <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
-                                        <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
-                                      </div>
-                                    )}
- 
-                                    {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
-                                        {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
-                                          <a
-                                            key={i}
-                                            href={it.videoUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '6px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
-                                          >
-                                            <Icona nome="video" size={12} /> {it.name}
-                                          </a>
-                                        ))}
-                                      </div>
-                                    )}
- 
-                                    {blk.type === 'forza' && blk.notes && (
-                                      <div style={{ background: '#fffbeb', padding: '8px', borderRadius: '6px', border: '1px solid #fde68a', marginBottom: '10px' }}>
-                                        <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
-                                      </div>
-                                    )}
- 
-                                    <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                                      <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
-                                      <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
-                                        {!isMobility(blk.name) && blk.type !== 'warmup' && (
-                                        <div>
-                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Score / Carico</label>
-                                          {(() => {
-                                            const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
-                                            const mode = bench ? bench.type
-                                              : metconPRNames.includes(blk.name) ? 'time'
-                                              : gymPRNames.includes(blk.name) ? 'reps'
-                                              : 'text';
-                                            const lvl = coachAllResults[prog.id]?.[personalSelectedAthleteId]?.[resultKey]?.level || blk.benchLevel || 'rx';
-                                            return (
-                                              <ScoreInput
-                                                mode={mode}
-                                                value={currentScore}
-                                                onChange={(v: string) => handleResultChange(prog.id, resultKey, 'score', v, personalSelectedAthleteId)}
-                                                onCommit={(v: string) => maybeUpdateMaxFromScore(personalSelectedAthleteId, blk.name || '', blk.reps, v, true, blk.type, lvl)}
-                                              />
-                                            );
-                                          })()}
-                                        </div>
-                                        )}
-                                        <div>
-                                          <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>Note del coach</label>
-                                          <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, personalSelectedAthleteId)} style={{ width: '100%', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            )}
-                            </>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                );
-              })() : (
-                <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#10b981' }}>Seleziona un Atleta per il Personal</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ position: 'relative', marginBottom: '12px' }}>
-                    <input
-                      type="text"
-                      placeholder="Cerca un atleta..."
-                      value={cercaPersonal}
-                      onChange={(e: any) => setCercaPersonal(e.target.value)}
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', background: '#fff' }}
-                    />
-                    {cercaPersonal && (
-                      <button onClick={() => setCercaPersonal('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex' }}>
-                        <Icona nome="chiudi" size={15} />
-                      </button>
-                    )}
-                  </div>
- 
-                    {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaPersonal)).length === 0 && (
-                      <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0 }}>
-                        {cercaPersonal ? `Nessun atleta con "${cercaPersonal}".` : 'Nessun atleta registrato.'}
-                      </p>
-                    )}
-                    {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaPersonal)).map((a: any) => (
-                      <div
-                        key={a.id}
-                        onClick={() => setPersonalSelectedAthleteId(a.id)}
-                        style={{ padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                      >
-                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '14px', color: '#000' }}>{a.full_name || a.email}</span>
-                        <span style={{ fontSize: '12px', color: '#10b981' }}>Vai al Personal →</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           ) : editingProgram ? (
             <div style={{ background: '#fafafa', color: '#000000', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -7915,10 +7889,10 @@ const [notificationError, setNotificationError] = useState('');
                   return (
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                       <button onClick={() => moveEditingWeekOrder(pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
-                        <Icona nome="su" size={12} /> Sposta su
+                        <Icona nome="sinistra" size={12} /> Sposta a sinistra
                       </button>
                       <button onClick={() => moveEditingWeekOrder(pos, 'right')} disabled={pos === tutte.length - 1} style={{ ...azione, opacity: pos === tutte.length - 1 ? 0.4 : 1 }}>
-                        <Icona nome="giu" size={12} /> Sposta giù
+                        <Icona nome="destra" size={12} /> Sposta a destra
                       </button>
                       <button onClick={() => cloneEditingWeek(sett)} style={azione}>
                         <Icona nome="duplica" size={12} /> Duplica
@@ -7992,10 +7966,10 @@ const [notificationError, setNotificationError] = useState('');
                       return (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
                           <button onClick={() => moveEditingDayOrder(actualWIdx, pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
-                            <Icona nome="su" size={12} /> Sposta su
+                            <Icona nome="sinistra" size={12} /> Sposta a sinistra
                           </button>
                           <button onClick={() => moveEditingDayOrder(actualWIdx, pos, 'right')} disabled={pos === giorni.length - 1} style={{ ...azione, opacity: pos === giorni.length - 1 ? 0.4 : 1 }}>
-                            <Icona nome="giu" size={12} /> Sposta giù
+                            <Icona nome="destra" size={12} /> Sposta a destra
                           </button>
                           <button onClick={() => cloneEditingDay(actualWIdx, giorni[pos])} style={azione}>
                             <Icona nome="duplica" size={12} /> Duplica
@@ -8706,10 +8680,10 @@ const [notificationError, setNotificationError] = useState('');
                       return (
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
                           <button onClick={() => moveWeekOrder(pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
-                            <Icona nome="su" size={12} /> Sposta su
+                            <Icona nome="sinistra" size={12} /> Sposta a sinistra
                           </button>
                           <button onClick={() => moveWeekOrder(pos, 'right')} disabled={pos === tutte.length - 1} style={{ ...azione, opacity: pos === tutte.length - 1 ? 0.4 : 1 }}>
-                            <Icona nome="giu" size={12} /> Sposta giù
+                            <Icona nome="destra" size={12} /> Sposta a destra
                           </button>
                           <button onClick={() => cloneWeek(sett)} style={azione}>
                             <Icona nome="duplica" size={12} /> Duplica
@@ -8783,10 +8757,10 @@ const [notificationError, setNotificationError] = useState('');
                           return (
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
                               <button onClick={() => moveDayOrder(actualWIdx, pos, 'left')} disabled={pos === 0} style={{ ...azione, opacity: pos === 0 ? 0.4 : 1 }}>
-                                <Icona nome="su" size={12} /> Sposta su
+                                <Icona nome="sinistra" size={12} /> Sposta a sinistra
                               </button>
                               <button onClick={() => moveDayOrder(actualWIdx, pos, 'right')} disabled={pos === giorni.length - 1} style={{ ...azione, opacity: pos === giorni.length - 1 ? 0.4 : 1 }}>
-                                <Icona nome="giu" size={12} /> Sposta giù
+                                <Icona nome="destra" size={12} /> Sposta a destra
                               </button>
                               <button onClick={() => cloneDay(actualWIdx, giorni[pos])} style={azione}>
                                 <Icona nome="duplica" size={12} /> Duplica
@@ -10384,7 +10358,6 @@ const [notificationError, setNotificationError] = useState('');
           ? [
               { key: 'programs', icon: '📋', label: 'Programmi' },
               { key: 'athletes', icon: '👤', label: 'Profili' },
-              { key: 'personal', icon: '📝', label: 'Personal' },
               { key: 'banner', icon: '📢', label: 'Banner' },
             ]
           : [
