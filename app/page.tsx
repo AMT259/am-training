@@ -8682,7 +8682,95 @@ const [notificationError, setNotificationError] = useState('');
  
   // nessuna modifica al database: viaggia con il resto della scheda.
  
-  const toggleVisibilitaSettimana = (wIdx: number) => {
+  //
+ 
+  // L'interruttore agisce subito, senza passare da "Salva Modifiche": scrivo
+ 
+  // solo la colonna weeks, e la scrivo partendo dalla copia che sta gia' sul
+ 
+  // database. Cosi' le altre modifiche ancora aperte nell'editor restano
+ 
+  // in sospeso e non finiscono all'atleta per sbaglio.
+ 
+  const applicaVisibilitaSubito = async (wIdx: number, dIdx: number | null, nascosto: boolean) => {
+ 
+    if (!editingProgram?.id) return;
+ 
+    const salvato = programLibrary.find((p: any) => p.id === editingProgram.id);
+ 
+    if (!salvato) return;
+ 
+ 
+ 
+    const settimane = JSON.parse(JSON.stringify(normalizeProgramWeeks(salvato)));
+ 
+ 
+ 
+    // aggancio per nome, con l'indice come riserva: se la settimana o il giorno
+ 
+    // non esistono ancora sul database (appena aggiunti), non c'e' nulla da
+ 
+    // nascondere — l'atleta non li vede comunque finche' non salvi.
+ 
+    const nomeSett = editingProgram.weeks?.[wIdx]?.weekName;
+ 
+    let ws = settimane.findIndex((w: any) => w.weekName === nomeSett);
+ 
+    if (ws < 0) ws = wIdx;
+ 
+    const settimana = settimane[ws];
+ 
+    if (!settimana) return;
+ 
+ 
+ 
+    if (dIdx === null) {
+ 
+      settimana.hidden = nascosto;
+ 
+    } else {
+ 
+      const nomeGiorno = editingProgram.weeks?.[wIdx]?.days?.[dIdx]?.dayName;
+ 
+      let ds = (settimana.days || []).findIndex((d: any) => d.dayName === nomeGiorno);
+ 
+      if (ds < 0) ds = dIdx;
+ 
+      if (!settimana.days?.[ds]) return;
+ 
+      settimana.days[ds].hidden = nascosto;
+ 
+    }
+ 
+ 
+ 
+    const { error } = await supabase
+ 
+      .from('programs')
+ 
+      .update({ weeks: settimane, days: settimane[0]?.days || [] })
+ 
+      .eq('id', editingProgram.id);
+ 
+ 
+ 
+    if (error) {
+ 
+      alert('Errore: ' + error.message);
+ 
+      return;
+ 
+    }
+ 
+ 
+ 
+    fetchProgramLibrary();
+ 
+  };
+ 
+ 
+ 
+  const toggleVisibilitaSettimana = async (wIdx: number) => {
  
     if (!editingProgram) return;
  
@@ -8696,11 +8784,15 @@ const [notificationError, setNotificationError] = useState('');
  
     setEditingProgram(aggiornato);
  
+    await applicaVisibilitaSubito(wIdx, null, !!w.hidden);
+ 
+    avvisa(w.hidden ? "Settimana nascosta all'atleta" : "Settimana di nuovo visibile all'atleta");
+ 
   };
  
  
  
-  const toggleVisibilitaGiorno = (wIdx: number, dIdx: number) => {
+  const toggleVisibilitaGiorno = async (wIdx: number, dIdx: number) => {
  
     if (!editingProgram) return;
  
@@ -8713,6 +8805,10 @@ const [notificationError, setNotificationError] = useState('');
     d.hidden = !d.hidden;
  
     setEditingProgram(aggiornato);
+ 
+    await applicaVisibilitaSubito(wIdx, dIdx, !!d.hidden);
+ 
+    avvisa(d.hidden ? "Giorno nascosto all'atleta" : "Giorno di nuovo visibile all'atleta");
  
   };
  
@@ -8728,7 +8824,7 @@ const [notificationError, setNotificationError] = useState('');
  
       onClick={onClick}
  
-      title={nascosto ? "L'atleta non vede questa parte del programma" : "L'atleta vede questa parte del programma"}
+      title={nascosto ? "L'atleta non vede questa parte del programma (si applica subito)" : "L'atleta vede questa parte del programma (si applica subito)"}
  
       style={{
  
@@ -12087,7 +12183,6 @@ const [notificationError, setNotificationError] = useState('');
       .update({
  
         title: editingProgram.title,
- 
         start_date: editingProgram.trialStyle ? null : (editingProgram.startDate || null),
  
         end_date: editingProgram.trialStyle ? null : (editingProgram.endDate || null),
@@ -13351,6 +13446,7 @@ const [notificationError, setNotificationError] = useState('');
             rel="noopener noreferrer"
  
             title="Vai alle programmazioni"
+ 
             style={{ display: 'flex', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
  
           >
