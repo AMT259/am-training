@@ -5822,13 +5822,13 @@ const [notificationError, setNotificationError] = useState('');
  
         if (weeks.length > 0 && !selectedWeeksByProgram[prog.id]) {
  
-          initialWeeks[prog.id] = weeks[0].weekName;
+          const primaVisibile = weeks.find((w: any) => !w?.hidden) || weeks[0];
  
-          if (weeks[0].days && weeks[0].days.length > 0) {
+          initialWeeks[prog.id] = primaVisibile.weekName;
  
-            initialDays[prog.id] = weeks[0].days[0].dayName;
+          const primoGiornoVisibile = (primaVisibile.days || []).find((d: any) => !d?.hidden);
  
-          }
+          if (primoGiornoVisibile) initialDays[prog.id] = primoGiornoVisibile.dayName;
  
         }
  
@@ -8023,7 +8023,8 @@ const [notificationError, setNotificationError] = useState('');
     const isCorrection = await wasRecordedToday(match, repsInt, 'scheda');
  
  
-     if (!isCorrection && previous !== null && weight <= previous) return;
+ 
+    if (!isCorrection && previous !== null && weight <= previous) return;
  
     if (isCorrection && previous !== null && weight === previous) return;
  
@@ -8674,6 +8675,84 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
+ 
+  // Visibilita' di settimane e giorni verso l'atleta. Il flag vive dentro il
+ 
+  // programma (weeks[].hidden e weeks[].days[].hidden), quindi non serve
+ 
+  // nessuna modifica al database: viaggia con il resto della scheda.
+ 
+  const toggleVisibilitaSettimana = (wIdx: number) => {
+ 
+    if (!editingProgram) return;
+ 
+    const aggiornato = JSON.parse(JSON.stringify(editingProgram));
+ 
+    const w = aggiornato.weeks[wIdx];
+ 
+    if (!w) return;
+ 
+    w.hidden = !w.hidden;
+ 
+    setEditingProgram(aggiornato);
+ 
+  };
+ 
+ 
+ 
+  const toggleVisibilitaGiorno = (wIdx: number, dIdx: number) => {
+ 
+    if (!editingProgram) return;
+ 
+    const aggiornato = JSON.parse(JSON.stringify(editingProgram));
+ 
+    const d = aggiornato.weeks?.[wIdx]?.days?.[dIdx];
+ 
+    if (!d) return;
+ 
+    d.hidden = !d.hidden;
+ 
+    setEditingProgram(aggiornato);
+ 
+  };
+ 
+ 
+ 
+  // Il pulsante occhio, uguale per settimane e giorni.
+ 
+  const pulsanteVisibilita = (nascosto: boolean, onClick: () => void) => (
+ 
+    <button
+ 
+      type="button"
+ 
+      onClick={onClick}
+ 
+      title={nascosto ? "L'atleta non vede questa parte del programma" : "L'atleta vede questa parte del programma"}
+ 
+      style={{
+ 
+        display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0,
+ 
+        background: nascosto ? '#fee2e2' : '#ecfdf5',
+ 
+        border: `1px solid ${nascosto ? '#fca5a5' : '#6ee7b7'}`,
+ 
+        color: nascosto ? '#b91c1c' : '#047857',
+ 
+        padding: '6px 11px', borderRadius: '999px', cursor: 'pointer',
+ 
+        fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap',
+ 
+      }}
+ 
+    >
+ 
+      {nascosto ? '\u{1F6AB} Nascosta' : '\u{1F441} Visibile'}
+ 
+    </button>
+ 
+  );
  
   // Confronta il primo e l'ultimo carico inserito per ogni esercizio di forza
  
@@ -13272,7 +13351,6 @@ const [notificationError, setNotificationError] = useState('');
             rel="noopener noreferrer"
  
             title="Vai alle programmazioni"
- 
             style={{ display: 'flex', alignItems: 'center', flexShrink: 0, cursor: 'pointer' }}
  
           >
@@ -15294,7 +15372,8 @@ const [notificationError, setNotificationError] = useState('');
                     const athAnamnesi = coachAllAnamnesis[selectedCoachAthlete.id] || emptyAnamnesis;
  
                     const updateField = (field: string, value: string) => {
-                       setCoachAllAnamnesis({
+ 
+                      setCoachAllAnamnesis({
  
                         ...coachAllAnamnesis,
  
@@ -15816,7 +15895,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       >
  
-                        {week.weekName}
+                        {week.hidden ? `\u{1F6AB} ${week.weekName}` : week.weekName}
  
                       </button>
  
@@ -15882,7 +15961,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: '#e2e8f0', padding: '10px', borderRadius: '8px' }}>
  
                       <input
  
@@ -15905,6 +15984,8 @@ const [notificationError, setNotificationError] = useState('');
                         style={{ fontWeight: 'bold', color: '#141416', fontSize: '15px', background: '#ffffff', border: '1px solid #cbd5e1', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
  
                       />
+ 
+                      {pulsanteVisibilita(!!week.hidden, () => toggleVisibilitaSettimana(actualWIdx))}
  
                       {editingProgram.weeks.length > 1 && (
  
@@ -15970,7 +16051,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           >
  
-                            {day.dayName}
+                            {day.hidden ? `\u{1F6AB} ${day.dayName}` : day.dayName}
  
                           </button>
  
@@ -16032,7 +16113,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div key={actualDIdx} style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
  
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
  
@@ -16059,6 +16140,8 @@ const [notificationError, setNotificationError] = useState('');
                               />
  
                             </div>
+ 
+                            {pulsanteVisibilita(!!day.hidden, () => toggleVisibilitaGiorno(actualWIdx, actualDIdx))}
  
                             {week.days.length > 1 && (
  
@@ -19602,11 +19685,27 @@ const [notificationError, setNotificationError] = useState('');
  
                   const weeks = normalizeProgramWeeks(prog);
  
-                  const currentProgramActiveWeek = selectedWeeksByProgram[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
+                  const settimaneVisibili = weeks.filter((w: any) => !w?.hidden);
  
-                  const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || weeks[0];
+                  const sceltaSett = selectedWeeksByProgram[prog.id];
  
-                  const currentProgramActiveDay = selectedDaysByProgram[prog.id] || (currentWeekObj?.days && currentWeekObj.days.length > 0 ? currentWeekObj.days[0].dayName : '');
+                  const currentProgramActiveWeek = (sceltaSett && settimaneVisibili.some((w: any) => w.weekName === sceltaSett))
+ 
+                    ? sceltaSett
+ 
+                    : (settimaneVisibili[0]?.weekName || '');
+ 
+                  const currentWeekObj = weeks.find((w: any) => w.weekName === currentProgramActiveWeek) || settimaneVisibili[0];
+ 
+                  const giorniVisibili = (currentWeekObj?.days || []).filter((d: any) => !d?.hidden);
+ 
+                  const sceltaGiorno = selectedDaysByProgram[prog.id];
+ 
+                  const currentProgramActiveDay = (sceltaGiorno && giorniVisibili.some((d: any) => d.dayName === sceltaGiorno))
+ 
+                    ? sceltaGiorno
+ 
+                    : (giorniVisibili[0]?.dayName || '');
  
                   const giorniScaduto = giorniDallaScadenza(prog.endDate);
  
@@ -19800,7 +19899,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
  
-                        {weeks.map((week: any) => (
+                        {weeks.map((week: any) => week?.hidden ? null : (
  
                           <button
  
@@ -19812,7 +19911,9 @@ const [notificationError, setNotificationError] = useState('');
  
                               if (week.days && week.days.length > 0) {
  
-                                setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: week.days[0].dayName }));
+                                const primoVisibile = (week.days || []).find((d: any) => !d?.hidden);
+ 
+                                if (primoVisibile) setSelectedDaysByProgram(prev => ({ ...prev, [prog.id]: primoVisibile.dayName }));
  
                               }
  
@@ -19849,6 +19950,8 @@ const [notificationError, setNotificationError] = useState('');
                           <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
  
                             {currentWeekObj.days.map((day: any, idx: number) => {
+ 
+                              if (day?.hidden) return null;
  
                               const attivo = currentProgramActiveDay === day.dayName;
  
@@ -19946,7 +20049,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                          {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay).map((day: any) => {
+                          {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay && !d?.hidden).map((day: any) => {
  
                             const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
  
