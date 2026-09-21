@@ -8172,7 +8172,12 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-  const handleResultChange = async (programId: string, blockKey: string, field: string, value: string, athleteIdOverride?: string) => {
+  const handleResultChange = async (programId: string, blockKey: string, field: string | { [k: string]: string }, value?: string, athleteIdOverride?: string) => {
+ 
+    // un solo punto di verita': o un campo singolo, o piu' campi insieme. Scriverli
+    // in due chiamate separate significava costruirli entrambi sullo stesso stato
+    // vecchio, e la seconda scrittura cancellava la prima.
+    const campi: { [k: string]: string } = typeof field === 'string' ? { [field]: value ?? '' } : field;
  
     if (athleteIdOverride) {
  
@@ -8186,7 +8191,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-      const updatedBlockResults = { ...currentBlockResults, [field]: value };
+      const updatedBlockResults = { ...currentBlockResults, ...campi };
  
       const updatedAthleteResults = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
  
@@ -8218,7 +8223,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-      if (field === 'score') registraCarico(programId, blockKey, value, athleteIdOverride);
+      if (campi.score !== undefined) registraCarico(programId, blockKey, campi.score, athleteIdOverride);
  
       return;
  
@@ -8232,7 +8237,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-    const updatedBlockResults = { ...currentBlockResults, [field]: value };
+    const updatedBlockResults = { ...currentBlockResults, ...campi };
  
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
  
@@ -8262,7 +8267,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-    if (field === 'score') registraCarico(programId, blockKey, value, session.user.id);
+    if (campi.score !== undefined) registraCarico(programId, blockKey, campi.score, session.user.id);
  
  
  
@@ -12183,6 +12188,7 @@ const [notificationError, setNotificationError] = useState('');
       .update({
  
         title: editingProgram.title,
+ 
         start_date: editingProgram.trialStyle ? null : (editingProgram.startDate || null),
  
         end_date: editingProgram.trialStyle ? null : (editingProgram.endDate || null),
@@ -13243,9 +13249,7 @@ const [notificationError, setNotificationError] = useState('');
  
           onSalva={(carico: string, note: string) => {
  
-            handleResultChange(scoreAperto.progId, scoreAperto.key, 'score', carico);
- 
-            handleResultChange(scoreAperto.progId, scoreAperto.key, 'notes', note);
+            handleResultChange(scoreAperto.progId, scoreAperto.key, { score: carico, notes: note });
  
             maybeUpdateMaxFromScore(session.user.id, scoreAperto.blk?.name, scoreAperto.blk?.reps, carico, false);
  
@@ -16859,7 +16863,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               value={block.scoreRounds || ''}
  
-                                              onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+                                              onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreRounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
  
                                               title="Quante caselle dare all'atleta per il risultato. Vuoto = una sola."
  
