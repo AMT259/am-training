@@ -4885,6 +4885,7 @@ export default function TrainingApp() {
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
  
   const [programVisibility, setProgramVisibility] = useState<'none' | 'all' | 'selected'>('selected');
+ 
   const [programTrialStyle, setProgramTrialStyle] = useState('');
  
   const [programTrialGender, setProgramTrialGender] = useState('');
@@ -8022,8 +8023,7 @@ const [notificationError, setNotificationError] = useState('');
     const isCorrection = await wasRecordedToday(match, repsInt, 'scheda');
  
  
- 
-    if (!isCorrection && previous !== null && weight <= previous) return;
+     if (!isCorrection && previous !== null && weight <= previous) return;
  
     if (isCorrection && previous !== null && weight === previous) return;
  
@@ -8615,6 +8615,8 @@ const [notificationError, setNotificationError] = useState('');
  
     const sistema = (blocco: any) => {
  
+      const precedente = blocco.type;
+ 
       blocco.type = tipo;
  
       if (tipo === 'warmup' && (!blocco.name || !String(blocco.name).trim())) {
@@ -8623,6 +8625,28 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
+ 
+      if (tipo !== 'forza') {
+ 
+        blocco.sets = '';
+ 
+        blocco.reps = '';
+ 
+        blocco.load = '';
+ 
+        blocco.rest = '';
+ 
+      } else if (precedente && precedente !== 'forza') {
+ 
+        blocco.sets = 4;
+ 
+        blocco.reps = '10';
+ 
+        blocco.load = '70%';
+ 
+        blocco.rest = '90 sec';
+ 
+      }
     };
  
  
@@ -9268,7 +9292,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {aperto && (
                             <div style={{ padding: '0 10px 10px 10px' }}>
-                              {(blk.sets || blk.reps || blk.load || blk.rest) && (
+                              {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
                                 <span style={{ display: 'block', fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
                                   {[
                                     blk.sets && `${blk.sets} serie`,
@@ -9304,7 +9328,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </p>
                               )}
  
-                              {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(blk.type === 'warmup' && (blk.items || []).length > 0) && !(blk.sets || blk.reps || blk.load || blk.rest) && (
+                              {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(blk.type === 'warmup' && (blk.items || []).length > 0) && !((blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest)) && (
                                 <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>Nessun dettaglio aggiuntivo per questo esercizio.</p>
                               )}
                             </div>
@@ -9711,7 +9735,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {/* Cosa gli avevi chiesto: serie, ripetizioni, carico, recupero */}
  
-                          {(blk.sets || blk.reps || blk.load || blk.rest) && (
+                          {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
  
                             <span style={{ display: 'block', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
  
@@ -13900,7 +13924,8 @@ const [notificationError, setNotificationError] = useState('');
                           disabled={personalDataSaving}
  
                           onClick={() => savePersonalData(selectedCoachAthlete.id, athData, true)}
-                           style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+ 
+                          style={{ padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
  
                         >
  
@@ -15269,8 +15294,7 @@ const [notificationError, setNotificationError] = useState('');
                     const athAnamnesi = coachAllAnamnesis[selectedCoachAthlete.id] || emptyAnamnesis;
  
                     const updateField = (field: string, value: string) => {
- 
-                      setCoachAllAnamnesis({
+                       setCoachAllAnamnesis({
  
                         ...coachAllAnamnesis,
  
