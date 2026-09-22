@@ -14491,7 +14491,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           return (
  
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
  
                                               <span style={{ fontSize: '12px', color: '#92400e' }}>
  
@@ -14503,11 +14503,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
  
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                                title="Avvia il recupero"
+ 
+                                                aria-label="Avvia il recupero"
+ 
+                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
  
                                               >
  
-                                                <Icona nome="timer" size={13} /> Avvia timer
+                                                <Icona nome="timer" size={16} />
  
                                               </button>
  
@@ -16731,7 +16735,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
-                                          <Icona nome="piu" size={13} /> Aggiungi esercizio
+                                          Aggiungi esercizio
  
                                         </button>
  
@@ -16975,7 +16979,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
  
-                                          <Icona nome="piu" size={12} /> Aggiungi esercizio con video
+                                          Aggiungi esercizio con video
  
                                         </button>
  
@@ -16993,7 +16997,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           })}
  
-                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
+                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
                         </div>
  
@@ -18277,7 +18281,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #10b981', background: '#ecfdf5', color: '#047857', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
-                                              <Icona nome="piu" size={13} /> Aggiungi esercizio
+                                              Aggiungi esercizio
  
                                             </button>
  
@@ -18521,7 +18525,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
  
-                                              <Icona nome="piu" size={12} /> Aggiungi esercizio con video
+                                              Aggiungi esercizio con video
  
                                             </button>
  
@@ -18539,7 +18543,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               })}
  
-                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>+ Aggiungi Esercizio</button>
+                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#f1f5f9', border: 'none', color: '#000', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
                             </div>
  
@@ -20471,7 +20475,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       return (
  
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d', flexWrap: 'wrap' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
  
                                                           <span style={{ fontSize: '12px', color: '#92400e' }}>
  
@@ -20483,11 +20487,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                                             onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
  
-                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 14px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+                                                            title="Avvia il recupero"
+ 
+                                                            aria-label="Avvia il recupero"
+ 
+                                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
  
                                                           >
  
-                                                            <Icona nome="timer" size={13} /> Avvia timer
+                                                            <Icona nome="timer" size={16} />
  
                                                           </button>
  
