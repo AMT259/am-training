@@ -15497,8 +15497,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
  
-                            {REP_SCHEMES.map((reps) => (
- 
+                            {REP_SCHEMES.map((reps) => ( 
                               <div key={reps} style={{ background: '#ffffff', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
  
                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
@@ -15927,7 +15926,8 @@ const [notificationError, setNotificationError] = useState('');
  
                             <option value="hybrid">🏃 Hybrid</option>
  
-                            <option value="cross">🤸 Cross Training</option> 
+                            <option value="cross">🤸 Cross Training</option>
+ 
                           </select>
  
                           <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.4, display: 'block' }}>
@@ -17172,7 +17172,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
  
-                                                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
+                                                style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
  
                                               />
  
@@ -17188,7 +17188,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                style={{ flex: '1 1 96px', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
+                                                style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
  
                                               />
  
@@ -18777,7 +18777,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
  
-                                                    style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
+                                                    style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
  
                                                   />
  
@@ -18793,7 +18793,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                    style={{ flex: '1 1 96px', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
+                                                    style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
  
                                                   />
  
