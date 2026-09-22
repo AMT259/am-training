@@ -7377,6 +7377,7 @@ const [notificationError, setNotificationError] = useState('');
           type: 'anamnesi',
  
           title: 'Anamnesi aggiornata',
+ 
           message: `${personalData.full_name || session.user.email} ha compilato/aggiornato la sua anamnesi.`
  
         }),
@@ -13853,6 +13854,7 @@ const [notificationError, setNotificationError] = useState('');
               flexShrink: 0,
  
             }}
+ 
           >
  
             <Icona nome="timer" size={19} />
@@ -14701,41 +14703,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(blk.items || []).map((it: any, i: number) => (
  
-                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? (blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a') : 'none' }}>
+                                          <React.Fragment key={i}>
+ 
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
  
                                             <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#334155' : '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                               {it.name}
- 
-                                              {it.rest ? (() => {
- 
-                                                const secRecEx = tempoDaValore(it.rest);
- 
-                                                if (!secRecEx) {
- 
-                                                  return <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#94a3b8', marginTop: '2px' }}>{`rec. ${it.rest}`}</span>;
- 
-                                                }
- 
-                                                return (
- 
-                                                  <button
- 
-                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
- 
-                                                    title="Avvia questo recupero"
- 
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '3px', padding: '2px 9px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
- 
-                                                  >
- 
-                                                    <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
- 
-                                                  </button>
- 
-                                                );
- 
-                                              })() : null}
  
                                             </span>
  
@@ -14810,6 +14784,50 @@ const [notificationError, setNotificationError] = useState('');
                                             </span>
  
                                           </div>
+ 
+                                            {i < (blk.items.length - 1) && (() => {
+ 
+                                              const linea = blk.type === 'superserie' ? '#e2e8f0' : '#fde68a';
+ 
+                                              const secRecEx = it.rest ? tempoDaValore(it.rest) : 0;
+ 
+                                              return (
+ 
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 
+                                                  <span style={{ flex: 1, height: '1px', background: linea }} />
+ 
+                                                  {it.rest ? (secRecEx ? (
+ 
+                                                    <button
+ 
+                                                      onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
+ 
+                                                      title="Avvia questo recupero"
+ 
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: '#ffffff', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+ 
+                                                    >
+ 
+                                                      <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
+ 
+                                                    </button>
+ 
+                                                  ) : (
+ 
+                                                    <span style={{ flexShrink: 0, fontSize: '10.5px', color: '#94a3b8', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+ 
+                                                  )) : null}
+ 
+                                                  <span style={{ flex: 1, height: '1px', background: linea }} />
+ 
+                                                </div>
+ 
+                                              );
+ 
+                                            })()}
+ 
+                                          </React.Fragment>
  
                                         ))}
  
@@ -15909,8 +15927,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             <option value="hybrid">🏃 Hybrid</option>
  
-                            <option value="cross">🤸 Cross Training</option>
- 
+                            <option value="cross">🤸 Cross Training</option> 
                           </select>
  
                           <span style={{ fontSize: '11px', color: '#64748b', lineHeight: 1.4, display: 'block' }}>
@@ -20879,41 +20896,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {(blk.items || []).map((it: any, i: number) => (
  
-                                                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? (blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a') : 'none' }}>
+                                                      <React.Fragment key={i}>
+ 
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
  
                                                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#334155' : '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.name}
- 
-                                                          {it.rest ? (() => {
- 
-                                                            const secRecEx = tempoDaValore(it.rest);
- 
-                                                            if (!secRecEx) {
- 
-                                                              return <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#94a3b8', marginTop: '2px' }}>{`rec. ${it.rest}`}</span>;
- 
-                                                            }
- 
-                                                            return (
- 
-                                                              <button
- 
-                                                                onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
- 
-                                                                title="Avvia questo recupero"
- 
-                                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '3px', padding: '2px 9px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
- 
-                                                              >
- 
-                                                                <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
- 
-                                                              </button>
- 
-                                                            );
- 
-                                                          })() : null}
  
                                                         </span>
  
@@ -20988,6 +20977,50 @@ const [notificationError, setNotificationError] = useState('');
                                                         </span>
  
                                                       </div>
+ 
+                                                        {i < (blk.items.length - 1) && (() => {
+ 
+                                                          const linea = blk.type === 'superserie' ? '#e2e8f0' : '#fde68a';
+ 
+                                                          const secRecEx = it.rest ? tempoDaValore(it.rest) : 0;
+ 
+                                                          return (
+ 
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 
+                                                              <span style={{ flex: 1, height: '1px', background: linea }} />
+ 
+                                                              {it.rest ? (secRecEx ? (
+ 
+                                                                <button
+ 
+                                                                  onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
+ 
+                                                                  title="Avvia questo recupero"
+ 
+                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: '#ffffff', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+ 
+                                                                >
+ 
+                                                                  <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
+ 
+                                                                </button>
+ 
+                                                              ) : (
+ 
+                                                                <span style={{ flexShrink: 0, fontSize: '10.5px', color: '#94a3b8', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+ 
+                                                              )) : null}
+ 
+                                                              <span style={{ flex: 1, height: '1px', background: linea }} />
+ 
+                                                            </div>
+ 
+                                                          );
+ 
+                                                        })()}
+ 
+                                                      </React.Fragment>
  
                                                     ))}
  
