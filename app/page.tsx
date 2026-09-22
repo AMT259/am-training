@@ -2282,6 +2282,326 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
 // Il riepilogo che resta nel campo score è la stringa "80 / 85 / 90".
  
+// Il riquadro di un risultato gia' inserito. Uno solo, usato sia dall'atleta
+ 
+// sia dal coach, cosi' le due viste non possono piu' divergere.
+ 
+function RiepilogoScore({ punteggio, note }: { punteggio: string; note: string }) {
+ 
+  if (!punteggio && !note) return null;
+ 
+ 
+ 
+  // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
+ 
+  // grande e i parziali sotto, in piccolo
+ 
+  const parti = punteggio ? punteggio.match(/^(.+?)\s*\((.+)\)$/) : null;
+ 
+ 
+ 
+  return (
+ 
+    <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '9px 11px' }}>
+ 
+      {punteggio && (parti ? (
+ 
+        <>
+ 
+          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: '#047857' }}>{parti[1]}</span>
+ 
+          <span style={{ display: 'block', fontSize: '11.5px', color: '#64748b', marginTop: '2px', overflowWrap: 'anywhere' }}>{parti[2]}</span>
+ 
+        </>
+ 
+      ) : (
+ 
+        <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere' }}>{punteggio}</span>
+ 
+      ))}
+ 
+      {note && (
+ 
+        <p style={{ margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{note}</p>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// I blocchi fatti di un elenco di esercizi: il warm up e la superserie.
+ 
+// Condividono editor e visualizzazione; cambia che la superserie ha gli score.
+ 
+function haElenco(t: any) {
+ 
+  return t === 'warmup' || t === 'superserie';
+ 
+}
+ 
+ 
+ 
+function nomeElenco(t: any) {
+ 
+  return t === 'superserie' ? 'Superserie' : 'Warm up';
+ 
+}
+ 
+// La finestra della superserie: una riga per esercizio e, dentro, una casella
+ 
+// per round. Nello score finisce il riepilogo "Panca: 40 / 45 \u00b7 Rematore: 30",
+ 
+// mentre i valori singoli restano in 'items' per poterli riaprire e correggere.
+ 
+function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
+ 
+  const items = (blk?.items || []).filter((it: any) => it && (it.name || it.value));
+ 
+  const nRound = Math.min(Math.max(parseInt(String(blk?.rounds ?? ''), 10) || 1, 1), 12);
+ 
+ 
+ 
+  const iniziali = (() => {
+ 
+    try {
+ 
+      const salvati = JSON.parse(String(dato?.items || '[]'));
+ 
+      if (Array.isArray(salvati)) return salvati;
+ 
+    } catch (e) {
+ 
+      // un salvataggio vecchio o illeggibile non deve impedire di scrivere: riparto vuoto
+ 
+    }
+ 
+    return [];
+ 
+  })();
+ 
+ 
+ 
+  const [valori, setValori] = useState<string[][]>(
+ 
+    items.map((_: any, i: number) =>
+ 
+      Array.from({ length: nRound }, (_v: any, r: number) => String(iniziali?.[i]?.[r] ?? ''))
+ 
+    )
+ 
+  );
+ 
+ 
+ 
+  const [noteLocali, setNoteLocali] = useState(String(dato?.notes || ''));
+ 
+ 
+ 
+  const scrivi = (i: number, r: number, v: string) => {
+ 
+    const copia = valori.map((riga: string[]) => [...riga]);
+ 
+    copia[i][r] = v;
+ 
+    setValori(copia);
+ 
+  };
+ 
+ 
+ 
+  // gli esercizi lasciati in bianco non finiscono nel riepilogo
+ 
+  const riepilogo = items
+ 
+    .map((it: any, i: number) => {
+ 
+      const fatti = (valori[i] || []).map((v: string) => String(v).trim()).filter(Boolean);
+ 
+      if (fatti.length === 0) return null;
+ 
+      return `${it.name || `Esercizio ${i + 1}`}: ${fatti.join(' / ')}`;
+ 
+    })
+ 
+    .filter(Boolean)
+ 
+    .join('  \u00b7  ');
+ 
+ 
+ 
+  return (
+ 
+    <div
+ 
+      onClick={onClose}
+ 
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.78)', zIndex: 4500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }}
+ 
+    >
+ 
+      <div
+ 
+        onClick={(e: any) => e.stopPropagation()}
+ 
+        style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+ 
+      >
+ 
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid #e2e8f0' }}>
+ 
+          <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px' }}>
+ 
+            LA TUA SUPERSERIE
+ 
+          </span>
+ 
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#000', marginTop: '2px', overflowWrap: 'anywhere' }}>
+ 
+            {blk?.name || 'Superserie'}{nRound > 1 ? ` \u00b7 ${nRound} round` : ''}
+ 
+          </span>
+ 
+        </div>
+ 
+ 
+ 
+        <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
+ 
+          {items.length === 0 && (
+ 
+            <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
+ 
+              Questa superserie non ha ancora esercizi.
+ 
+            </p>
+ 
+          )}
+ 
+ 
+ 
+          {items.map((it: any, i: number) => (
+ 
+            <div key={i} style={{ marginBottom: '13px' }}>
+ 
+              <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 'bold', color: '#334155', overflowWrap: 'anywhere' }}>
+ 
+                {it.name || `Esercizio ${i + 1}`}
+ 
+                {it.value ? <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>{` \u00b7 ${it.value}`}</span> : null}
+ 
+              </span>
+ 
+ 
+ 
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '5px' }}>
+ 
+                {Array.from({ length: nRound }).map((_v: any, r: number) => (
+ 
+                  <div key={r} style={{ flex: '1 1 70px', minWidth: 0 }}>
+ 
+                    {nRound > 1 && (
+ 
+                      <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '2px', textAlign: 'center' }}>
+ 
+                        {`Round ${r + 1}`}
+ 
+                      </span>
+ 
+                    )}
+ 
+                    <input
+ 
+                      type="text"
+ 
+                      inputMode="decimal"
+ 
+                      placeholder="—"
+ 
+                      value={valori[i]?.[r] || ''}
+ 
+                      onFocus={(e: any) => e.target.select()}
+ 
+                      onChange={(e: any) => scrivi(i, r, e.target.value)}
+ 
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '10px 4px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '15px', fontWeight: 'bold', textAlign: 'center' }}
+ 
+                    />
+ 
+                  </div>
+ 
+                ))}
+ 
+              </div>
+ 
+            </div>
+ 
+          ))}
+ 
+ 
+ 
+          <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', margin: '4px 0 5px 0' }}>
+ 
+            Note personali
+ 
+          </label>
+ 
+          <textarea
+ 
+            rows={3}
+ 
+            placeholder="Sensazioni, difficoltà, cosa migliorare..."
+ 
+            value={noteLocali}
+ 
+            onChange={(e: any) => setNoteLocali(e.target.value)}
+ 
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+          />
+ 
+        </div>
+ 
+ 
+ 
+        <div style={{ padding: '12px 16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px' }}>
+ 
+          <button
+ 
+            onClick={() => onSalva(riepilogo, noteLocali, JSON.stringify(valori))}
+ 
+            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+ 
+          >
+ 
+            Salva
+ 
+          </button>
+ 
+          <button
+ 
+            onClick={onClose}
+ 
+            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#e2e8f0', color: '#334155', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+ 
+          >
+ 
+            Annulla
+ 
+          </button>
+ 
+        </div>
+ 
+      </div>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const serie = serieDaBlocco(blk);
@@ -6927,8 +7247,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
- 
-  const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
+   const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
  
     if (data) {
  
@@ -8625,9 +8944,9 @@ const [notificationError, setNotificationError] = useState('');
  
       blocco.type = tipo;
  
-      if (tipo === 'warmup' && (!blocco.name || !String(blocco.name).trim())) {
+      if (haElenco(tipo) && (!blocco.name || !String(blocco.name).trim())) {
  
-        blocco.name = 'Warm up';
+        blocco.name = nomeElenco(tipo);
  
       }
  
@@ -9489,7 +9808,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </p>
                               )}
  
-                              {blk.type === 'warmup' && (blk.items || []).length > 0 && (
+                              {haElenco(blk.type) && (blk.items || []).length > 0 && (
                                 <span style={{ display: 'block', fontSize: '11px', color: '#64748b', marginBottom: '6px', lineHeight: 1.5 }}>
                                   {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 ? `${parseInt(String(blk.rounds), 10)} round · ` : ''}
                                   {(blk.items || []).map((it: any) => `${it.name}${it.value ? ' ' + it.value : ''}`).join(' · ')}
@@ -9508,7 +9827,7 @@ const [notificationError, setNotificationError] = useState('');
                                 </p>
                               )}
  
-                              {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(blk.type === 'warmup' && (blk.items || []).length > 0) && !((blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest)) && (
+                              {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(haElenco(blk.type) && (blk.items || []).length > 0) && !((blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest)) && (
                                 <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8' }}>Nessun dettaglio aggiuntivo per questo esercizio.</p>
                               )}
                             </div>
@@ -9875,7 +10194,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
  
-                      const nome = blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`);
+                      const nome = blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`);
  
  
  
@@ -9953,7 +10272,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {/* Gli esercizi del riscaldamento */}
  
-                          {blk.type === 'warmup' && (blk.items || []).length > 0 && (
+                          {haElenco(blk.type) && (blk.items || []).length > 0 && (
  
                             <span style={{ display: 'block', fontSize: '11px', color: '#64748b', marginTop: '4px', lineHeight: 1.5 }}>
  
@@ -13236,22 +13555,48 @@ const [notificationError, setNotificationError] = useState('');
  
  
       {scoreAperto && (
+        scoreAperto.blk?.type === 'superserie' ? (
+ 
+          <FinestraSuperserie
+ 
+            blk={scoreAperto.blk}
+ 
+            dato={scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId]?.[scoreAperto.key] : athleteResults[scoreAperto.progId]?.[scoreAperto.key]}
+ 
+            onClose={() => setScoreAperto(null)}
+ 
+            onSalva={(riep: string, note: string, valori: string) => {
+ 
+              const perAtleta = scoreAperto.athleteId;
+ 
+              handleResultChange(scoreAperto.progId, scoreAperto.key, { score: riep, notes: note, items: valori }, undefined, perAtleta);
+ 
+              setScoreAperto(null);
+ 
+            }}
+ 
+          />
+ 
+        ) : (
+ 
  
         <FinestraScore
  
           blk={scoreAperto.blk}
  
-          valore={athleteResults[scoreAperto.progId]?.[scoreAperto.key]?.score}
+          valore={(scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId]?.[scoreAperto.key] : athleteResults[scoreAperto.progId]?.[scoreAperto.key])?.score}
  
-          note={athleteResults[scoreAperto.progId]?.[scoreAperto.key]?.notes}
+          note={(scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId]?.[scoreAperto.key] : athleteResults[scoreAperto.progId]?.[scoreAperto.key])?.notes}
  
           onClose={() => setScoreAperto(null)}
  
           onSalva={(carico: string, note: string) => {
  
-            handleResultChange(scoreAperto.progId, scoreAperto.key, { score: carico, notes: note });
+            const perAtleta = scoreAperto.athleteId;
  
-            maybeUpdateMaxFromScore(session.user.id, scoreAperto.blk?.name, scoreAperto.blk?.reps, carico, false);
+            handleResultChange(scoreAperto.progId, scoreAperto.key, { score: carico, notes: note }, undefined, perAtleta);
+ 
+            maybeUpdateMaxFromScore(perAtleta || session.user.id, scoreAperto.blk?.name, scoreAperto.blk?.reps, carico, !!perAtleta, scoreAperto.blk?.type, scoreAperto.lvl);
  
             setScoreAperto(null);
  
@@ -13259,7 +13604,7 @@ const [notificationError, setNotificationError] = useState('');
  
         />
  
-      )}
+      ))}
  
  
  
@@ -13508,7 +13853,6 @@ const [notificationError, setNotificationError] = useState('');
               flexShrink: 0,
  
             }}
- 
           >
  
             <Icona nome="timer" size={19} />
@@ -14311,7 +14655,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
-                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bIdx + 1}`)}</span>
+                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981', overflowWrap: 'anywhere' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</span>
  
                                       {(blk.type === 'wod' || blk.type === 'test') && (
  
@@ -14335,13 +14679,13 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                    {blk.type === 'warmup' ? (
+                                    {haElenco(blk.type) ? (
  
-                                      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
+                                      <div style={{ background: blk.type === 'superserie' ? '#ffffff' : '#fffbeb', border: blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
  
                                         {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
-                                          <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                          <span style={{ display: 'inline-block', background: blk.type === 'superserie' ? '#c2410c' : '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
                                             {parseInt(String(blk.rounds), 10)} round
  
@@ -14351,23 +14695,53 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(blk.items || []).length === 0 && (
  
-                                          <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
+                                          <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? '#64748b' : '#a16207' }}>Nessun esercizio inserito.</span>
  
                                         )}
  
                                         {(blk.items || []).map((it: any, i: number) => (
  
-                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? (blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a') : 'none' }}>
  
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#334155' : '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                               {it.name}
+ 
+                                              {it.rest ? (() => {
+ 
+                                                const secRecEx = tempoDaValore(it.rest);
+ 
+                                                if (!secRecEx) {
+ 
+                                                  return <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#94a3b8', marginTop: '2px' }}>{`rec. ${it.rest}`}</span>;
+ 
+                                                }
+ 
+                                                return (
+ 
+                                                  <button
+ 
+                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
+ 
+                                                    title="Avvia questo recupero"
+ 
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '3px', padding: '2px 9px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+ 
+                                                  >
+ 
+                                                    <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
+ 
+                                                  </button>
+ 
+                                                );
+ 
+                                              })() : null}
  
                                             </span>
  
  
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
  
                                               {it.value}
  
@@ -14465,6 +14839,53 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(() => {
  
+                                          const mm = parseInt(String(blk.warmRestExMin ?? ''), 10) || 0;
+ 
+                                          const ss = parseInt(String(blk.warmRestExSec ?? ''), 10) || 0;
+ 
+                                          const totale = mm * 60 + ss;
+ 
+                                          const grezzo = mmss(totale);
+ 
+                                          const senza = totale <= 0;
+ 
+                                          if (senza) return null;
+ 
+ 
+                                          return (
+ 
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
+ 
+                                              <span style={{ fontSize: '12px', color: '#92400e' }}>
+ 
+                                                Rest tra gli esercizi <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
+ 
+                                              </span>
+ 
+                                              <button
+ 
+                                                onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
+ 
+                                                title="Avvia il recupero"
+ 
+                                                aria-label="Avvia il recupero"
+ 
+                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+ 
+                                              >
+ 
+                                                <Icona nome="timer" size={16} />
+ 
+                                              </button>
+ 
+                                            </div>
+ 
+                                          );
+ 
+                                        })()}
+ 
+                                        {(() => {
+ 
                                           const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
  
                                           const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
@@ -14479,7 +14900,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             return (
  
-                                              <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
+                                              <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? '#64748b' : '#a16207', marginTop: '7px', textAlign: 'center' }}>
  
                                                 Nessun recupero tra i round
  
@@ -14525,7 +14946,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {blk.notes && (
  
-                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                             {blk.notes}
  
@@ -14809,6 +15230,46 @@ const [notificationError, setNotificationError] = useState('');
  
                                       <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
  
+                                      {(blk.type !== 'warmup' && !isMobility(blk.name)) ? (
+ 
+                                        (() => {
+ 
+                                          const dato = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey];
+ 
+                                          const lvl = dato?.level || blk.benchLevel;
+ 
+                                          return (
+ 
+                                            <>
+ 
+                                              <button
+ 
+                                                onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk, athleteId: selectedCoachAthlete.id, lvl })}
+ 
+                                                style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(5,150,105,0.32)' }}
+ 
+                                              >
+ 
+                                                <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Segna il risultato'}
+ 
+                                              </button>
+ 
+                                              <RiepilogoScore
+ 
+                                                punteggio={String(dato?.score || '').trim()}
+ 
+                                                note={String(dato?.notes || '').trim()}
+ 
+                                              />
+ 
+                                            </>
+ 
+                                          );
+ 
+                                        })()
+ 
+                                      ) : (
+ 
                                       <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
  
                                         {!isMobility(blk.name) && blk.type !== 'warmup' && (
@@ -14862,6 +15323,8 @@ const [notificationError, setNotificationError] = useState('');
                                         </div>
  
                                       </div>
+ 
+                                      )}
  
                                     </div>
  
@@ -16281,6 +16744,28 @@ const [notificationError, setNotificationError] = useState('');
  
                               />
  
+                              {(() => {
+ 
+                                const quanti = (day.blocks || []).length;
+ 
+                                return (
+ 
+                                  <span
+ 
+                                    title={quanti === 1 ? 'Un blocco in questo giorno' : `${quanti} blocchi in questo giorno`}
+ 
+                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: '#e2e8f0', color: '#334155', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+ 
+                                  >
+ 
+                                    {quanti === 1 ? '1 blocco' : `${quanti} blocchi`}
+ 
+                                  </span>
+ 
+                                );
+ 
+                              })()}
+ 
                             </div>
  
                             {pulsanteVisibilita(!!day.hidden, () => toggleVisibilitaGiorno(actualWIdx, actualDIdx))}
@@ -16333,6 +16818,18 @@ const [notificationError, setNotificationError] = useState('');
  
                                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
+                                  <span
+ 
+                                    title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
+ 
+                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: '#1f2937', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
+ 
+                                  >
+ 
+                                    {bIdx + 1}
+ 
+                                  </span>
+ 
                                   <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
  
                                     <select
@@ -16353,6 +16850,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                         background: block.type === 'warmup' ? '#f59e0b'
  
+                                        : block.type === 'superserie' ? '#c2410c'
+ 
                                           : block.type === 'wod' ? '#2563eb'
  
                                           : block.type === 'test' ? '#7c3aed'
@@ -16366,6 +16865,8 @@ const [notificationError, setNotificationError] = useState('');
                                     >
  
                                       <option value="warmup">WARM UP</option>
+ 
+                                      <option value="superserie">SUPERSERIE</option>
  
                                       <option value="forza">FORZA</option>
  
@@ -16493,7 +16994,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     </div>
  
-                                  ) : block.type === 'warmup' ? (
+                                  ) : haElenco(block.type) ? (
  
                                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>
  
@@ -16515,7 +17016,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   <div>
  
-                                    {block.type !== 'warmup' && (
+                                    {!haElenco(block.type) && (
  
                                     <div style={{ marginBottom: '10px' }}>
  
@@ -16593,7 +17094,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                       </div>
  
-                                    ) : block.type === 'warmup' ? (
+                                    ) : haElenco(block.type) ? (
  
                                       <div>
  
@@ -16603,7 +17104,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                            <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                            <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
  
                                           </div>
  
@@ -16661,6 +17162,52 @@ const [notificationError, setNotificationError] = useState('');
  
                                           </div>
  
+                                          <div style={{ flex: '1 1 120px', minWidth: 0 }}>
+ 
+                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra gli esercizi</label>
+ 
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+ 
+                                              <input
+ 
+                                                type="text"
+ 
+                                                inputMode="numeric"
+ 
+                                                placeholder="0"
+ 
+                                                value={block.warmRestExMin ?? ''}
+ 
+                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                              />
+ 
+                                              <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+ 
+                                              <input
+ 
+                                                type="text"
+ 
+                                                inputMode="numeric"
+ 
+                                                placeholder="0"
+ 
+                                                value={block.warmRestExSec ?? ''}
+ 
+                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                              />
+ 
+                                            </div>
+ 
+                                            <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
+ 
+                                          </div>
+ 
                                         </div>
  
  
@@ -16685,7 +17232,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                               <input
  
@@ -16700,6 +17247,23 @@ const [notificationError, setNotificationError] = useState('');
                                                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
  
                                               />
+ 
+                                              <input
+ 
+                                                type="text"
+ 
+                                                placeholder="rec."
+ 
+                                                title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
+ 
+                                                value={it.rest || ''}
+ 
+                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
+ 
+                                                style={{ flex: '0 0 74px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                              />
+ 
  
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -17865,6 +18429,28 @@ const [notificationError, setNotificationError] = useState('');
  
                                   />
  
+                                  {(() => {
+ 
+                                    const quanti = (day.blocks || []).length;
+ 
+                                    return (
+ 
+                                      <span
+ 
+                                        title={quanti === 1 ? 'Un blocco in questo giorno' : `${quanti} blocchi in questo giorno`}
+ 
+                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: '#e2e8f0', color: '#334155', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+ 
+                                      >
+ 
+                                        {quanti === 1 ? '1 blocco' : `${quanti} blocchi`}
+ 
+                                      </span>
+ 
+                                    );
+ 
+                                  })()}
+ 
                                 </div>
  
                                 {week.days.length > 1 && (
@@ -17915,6 +18501,18 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
+                                      <span
+ 
+                                        title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
+ 
+                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: '#1f2937', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
+ 
+                                      >
+ 
+                                        {bIdx + 1}
+ 
+                                      </span>
+ 
                                       <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
  
                                         <select
@@ -17935,6 +18533,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                             background: block.type === 'warmup' ? '#f59e0b'
  
+                                            : block.type === 'superserie' ? '#c2410c'
+ 
                                               : block.type === 'wod' ? '#2563eb'
  
                                               : block.type === 'test' ? '#7c3aed'
@@ -17948,6 +18548,8 @@ const [notificationError, setNotificationError] = useState('');
                                         >
  
                                           <option value="warmup">WARM UP</option>
+ 
+                                          <option value="superserie">SUPERSERIE</option>
  
                                           <option value="forza">FORZA</option>
  
@@ -18043,7 +18645,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         </div>
  
-                                      ) : block.type === 'warmup' ? (
+                                      ) : haElenco(block.type) ? (
  
                                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#92400e' }}>{block.name || 'Warm up'}</span>
  
@@ -18061,7 +18663,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                       <div>
  
-                                        {block.type !== 'warmup' && (
+                                        {!haElenco(block.type) && (
  
                                         <div style={{ marginBottom: '10px' }}>
  
@@ -18139,7 +18741,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           </div>
  
-                                        ) : block.type === 'warmup' ? (
+                                        ) : haElenco(block.type) ? (
  
                                           <div>
  
@@ -18149,7 +18751,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                                <input type="text" placeholder="Warm up" value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', 'Warm up'); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
+                                                <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px' }} />
  
                                               </div>
  
@@ -18207,6 +18809,52 @@ const [notificationError, setNotificationError] = useState('');
  
                                               </div>
  
+                                              <div style={{ flex: '1 1 120px', minWidth: 0 }}>
+ 
+                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra gli esercizi</label>
+ 
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+ 
+                                                  <input
+ 
+                                                    type="text"
+ 
+                                                    inputMode="numeric"
+ 
+                                                    placeholder="0"
+ 
+                                                    value={block.warmRestExMin ?? ''}
+ 
+                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                  />
+ 
+                                                  <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
+ 
+                                                  <input
+ 
+                                                    type="text"
+ 
+                                                    inputMode="numeric"
+ 
+                                                    placeholder="0"
+ 
+                                                    value={block.warmRestExSec ?? ''}
+ 
+                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                  />
+ 
+                                                </div>
+ 
+                                                <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
+ 
+                                              </div>
+ 
                                             </div>
  
  
@@ -18231,7 +18879,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                                   <input
  
@@ -18246,6 +18894,23 @@ const [notificationError, setNotificationError] = useState('');
                                                     style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
  
                                                   />
+ 
+                                                  <input
+ 
+                                                    type="text"
+ 
+                                                    placeholder="rec."
+ 
+                                                    title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
+ 
+                                                    value={it.rest || ''}
+ 
+                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
+ 
+                                                    style={{ flex: '0 0 74px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                  />
+ 
  
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -20275,7 +20940,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             >
  
-                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name || (blk.type === 'warmup' ? 'Warm up' : '')}</div>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
  
                                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
  
@@ -20319,13 +20984,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                               <div>
  
-                                                {blk.type === 'warmup' ? (
+                                                {haElenco(blk.type) ? (
  
-                                                  <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
+                                                  <div style={{ background: blk.type === 'superserie' ? '#ffffff' : '#fffbeb', border: blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a', borderRadius: '10px', padding: '12px' }}>
  
                                                     {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
-                                                      <span style={{ display: 'inline-block', background: '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                                      <span style={{ display: 'inline-block', background: blk.type === 'superserie' ? '#c2410c' : '#f59e0b', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
                                                         {parseInt(String(blk.rounds), 10)} round
  
@@ -20335,23 +21000,53 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {(blk.items || []).length === 0 && (
  
-                                                      <span style={{ fontSize: '12px', color: '#a16207' }}>Nessun esercizio inserito.</span>
+                                                      <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? '#64748b' : '#a16207' }}>Nessun esercizio inserito.</span>
  
                                                     )}
  
                                                     {(blk.items || []).map((it: any, i: number) => (
  
-                                                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? '1px solid #fde68a' : 'none' }}>
+                                                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: i < (blk.items.length - 1) ? (blk.type === 'superserie' ? '1px solid #e2e8f0' : '1px solid #fde68a') : 'none' }}>
  
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#334155' : '#78350f', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.name}
+ 
+                                                          {it.rest ? (() => {
+ 
+                                                            const secRecEx = tempoDaValore(it.rest);
+ 
+                                                            if (!secRecEx) {
+ 
+                                                              return <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#94a3b8', marginTop: '2px' }}>{`rec. ${it.rest}`}</span>;
+ 
+                                                            }
+ 
+                                                            return (
+ 
+                                                              <button
+ 
+                                                                onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
+ 
+                                                                title="Avvia questo recupero"
+ 
+                                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '3px', padding: '2px 9px', borderRadius: '999px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#475569', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+ 
+                                                              >
+ 
+                                                                <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
+ 
+                                                              </button>
+ 
+                                                            );
+ 
+                                                          })() : null}
  
                                                         </span>
  
  
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
  
                                                           {it.value}
  
@@ -20449,6 +21144,53 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {(() => {
  
+                                                      const mm = parseInt(String(blk.warmRestExMin ?? ''), 10) || 0;
+ 
+                                                      const ss = parseInt(String(blk.warmRestExSec ?? ''), 10) || 0;
+ 
+                                                      const totale = mm * 60 + ss;
+ 
+                                                      const grezzo = mmss(totale);
+ 
+                                                      const senza = totale <= 0;
+ 
+                                                      if (senza) return null;
+ 
+ 
+                                                      return (
+ 
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
+ 
+                                                          <span style={{ fontSize: '12px', color: '#92400e' }}>
+ 
+                                                            Rest tra gli esercizi <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
+ 
+                                                          </span>
+ 
+                                                          <button
+ 
+                                                            onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
+ 
+                                                            title="Avvia il recupero"
+ 
+                                                            aria-label="Avvia il recupero"
+ 
+                                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
+ 
+                                                          >
+ 
+                                                            <Icona nome="timer" size={16} />
+ 
+                                                          </button>
+ 
+                                                        </div>
+ 
+                                                      );
+ 
+                                                    })()}
+ 
+                                                    {(() => {
+ 
                                                       const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
  
                                                       const ss = parseInt(String(blk.warmRestSec ?? ''), 10) || 0;
@@ -20463,7 +21205,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         return (
  
-                                                          <span style={{ display: 'block', fontSize: '11px', color: '#a16207', marginTop: '7px', textAlign: 'center' }}>
+                                                          <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? '#64748b' : '#a16207', marginTop: '7px', textAlign: 'center' }}>
  
                                                             Nessun recupero tra i round
  
@@ -20509,7 +21251,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {blk.notes && (
  
-                                                      <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                      <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                                         {blk.notes}
  
@@ -20809,7 +21551,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <button
  
-                                                      onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk })}
+                                                      onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk, lvl: athleteResults[prog.id]?.[resultKey]?.level || blk.benchLevel })}
  
                                                       style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(5,150,105,0.32)' }}
  
@@ -20829,67 +21571,20 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       const dato = athleteResults[prog.id]?.[resultKey];
  
-                                                      const punteggio = String(dato?.score || '').trim();
- 
-                                                      const note = String(dato?.notes || '').trim();
- 
-                                                      if (!punteggio && !note) return null;
- 
                                                       return (
  
-                                                        <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '9px 11px' }}>
+                                                        <RiepilogoScore
  
-                                                          {punteggio && (() => {
+                                                          punteggio={String(dato?.score || '').trim()}
  
-                                                            // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il
+                                                          note={String(dato?.notes || '').trim()}
  
-                                                            // totale in grande e i parziali sotto, in piccolo
- 
-                                                            const parti = punteggio.match(/^(.+?)\s*\((.+)\)$/);
- 
-                                                            if (parti) {
- 
-                                                              return (
- 
-                                                                <>
- 
-                                                                  <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: '#047857' }}>{parti[1]}</span>
- 
-                                                                  <span style={{ display: 'block', fontSize: '11.5px', color: '#64748b', marginTop: '2px', overflowWrap: 'anywhere' }}>{parti[2]}</span>
- 
-                                                                </>
- 
-                                                              );
- 
-                                                            }
- 
-                                                            return (
- 
-                                                              <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere' }}>
- 
-                                                                {punteggio}
- 
-                                                              </span>
- 
-                                                            );
- 
-                                                          })()}
- 
-                                                          {note && (
- 
-                                                            <p style={{ margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
- 
-                                                              {note}
- 
-                                                            </p>
- 
-                                                          )}
- 
-                                                        </div>
+                                                        />
  
                                                       );
  
                                                     })()
+ 
  
                                                   ) : (
  
