@@ -13477,6 +13477,44 @@ const [notificationError, setNotificationError] = useState('');
  
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
+          <button
+ 
+            onClick={() => { preparaAudio(); if (timerConfig) return; setTimerConfig({ tipo: 'scelta' }); }}
+ 
+            title={timerConfig ? 'Timer in corso' : 'Timer'}
+ 
+            style={{
+ 
+              background: timerConfig ? '#064e3b' : '#2e2e33',
+ 
+              border: `1px solid ${timerConfig ? '#10b981' : '#3f3f46'}`,
+ 
+              color: timerConfig ? '#6ee7b7' : '#fff',
+ 
+              width: '40px',
+ 
+              height: '40px',
+ 
+              borderRadius: '999px',
+ 
+              cursor: timerConfig ? 'default' : 'pointer',
+ 
+              display: 'flex',
+ 
+              alignItems: 'center',
+ 
+              justifyContent: 'center',
+ 
+              flexShrink: 0,
+ 
+            }}
+ 
+          >
+ 
+            <Icona nome="timer" size={19} />
+ 
+          </button>
+ 
           <div style={{ position: 'relative' }}>
  
             <button
