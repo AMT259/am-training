@@ -7247,7 +7247,8 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
-   const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
+ 
+  const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
  
     if (data) {
  
@@ -7376,7 +7377,6 @@ const [notificationError, setNotificationError] = useState('');
           type: 'anamnesi',
  
           title: 'Anamnesi aggiornata',
- 
           message: `${personalData.full_name || session.user.email} ha compilato/aggiornato la sua anamnesi.`
  
         }),
@@ -14813,6 +14813,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                         ))}
  
+                                        {blk.type !== 'superserie' && (
+ 
                                         <button
  
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
@@ -14835,54 +14837,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                         </button>
  
+                                        )}
  
  
-                                        {(() => {
- 
-                                          const mm = parseInt(String(blk.warmRestExMin ?? ''), 10) || 0;
- 
-                                          const ss = parseInt(String(blk.warmRestExSec ?? ''), 10) || 0;
- 
-                                          const totale = mm * 60 + ss;
- 
-                                          const grezzo = mmss(totale);
- 
-                                          const senza = totale <= 0;
- 
-                                          if (senza) return null;
- 
- 
-                                          return (
- 
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
- 
-                                              <span style={{ fontSize: '12px', color: '#92400e' }}>
- 
-                                                Rest tra gli esercizi <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
- 
-                                              </span>
- 
-                                              <button
- 
-                                                onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
- 
-                                                title="Avvia il recupero"
- 
-                                                aria-label="Avvia il recupero"
- 
-                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
- 
-                                              >
- 
-                                                <Icona nome="timer" size={16} />
- 
-                                              </button>
- 
-                                            </div>
- 
-                                          );
- 
-                                        })()}
  
                                         {(() => {
  
@@ -17162,52 +17119,6 @@ const [notificationError, setNotificationError] = useState('');
  
                                           </div>
  
-                                          <div style={{ flex: '1 1 120px', minWidth: 0 }}>
- 
-                                            <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra gli esercizi</label>
- 
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
- 
-                                              <input
- 
-                                                type="text"
- 
-                                                inputMode="numeric"
- 
-                                                placeholder="0"
- 
-                                                value={block.warmRestExMin ?? ''}
- 
-                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
- 
-                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
- 
-                                              />
- 
-                                              <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
- 
-                                              <input
- 
-                                                type="text"
- 
-                                                inputMode="numeric"
- 
-                                                placeholder="0"
- 
-                                                value={block.warmRestExSec ?? ''}
- 
-                                                onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
- 
-                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
- 
-                                              />
- 
-                                            </div>
- 
-                                            <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
- 
-                                          </div>
- 
                                         </div>
  
  
@@ -17232,7 +17143,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                            <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                               <input
  
@@ -17252,7 +17163,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 type="text"
  
-                                                placeholder="rec."
+                                                placeholder="rec. 1:30"
  
                                                 title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
  
@@ -17260,10 +17171,14 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                style={{ flex: '0 0 74px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                                style={{ flex: '1 1 96px', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
  
                                               />
  
+ 
+                                            </div>
+ 
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -18809,52 +18724,6 @@ const [notificationError, setNotificationError] = useState('');
  
                                               </div>
  
-                                              <div style={{ flex: '1 1 120px', minWidth: 0 }}>
- 
-                                                <label style={{ fontSize: '10px', color: '#64748b', display: 'block', marginBottom: '3px' }}>Rest tra gli esercizi</label>
- 
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
- 
-                                                  <input
- 
-                                                    type="text"
- 
-                                                    inputMode="numeric"
- 
-                                                    placeholder="0"
- 
-                                                    value={block.warmRestExMin ?? ''}
- 
-                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
- 
-                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
- 
-                                                  />
- 
-                                                  <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>:</span>
- 
-                                                  <input
- 
-                                                    type="text"
- 
-                                                    inputMode="numeric"
- 
-                                                    placeholder="0"
- 
-                                                    value={block.warmRestExSec ?? ''}
- 
-                                                    onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestExSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
- 
-                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
- 
-                                                  />
- 
-                                                </div>
- 
-                                                <span style={{ display: 'block', fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
- 
-                                              </div>
- 
                                             </div>
  
  
@@ -18879,7 +18748,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                                <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                                   <input
  
@@ -18899,7 +18768,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     type="text"
  
-                                                    placeholder="rec."
+                                                    placeholder="rec. 1:30"
  
                                                     title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
  
@@ -18907,10 +18776,14 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                    style={{ flex: '0 0 74px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13px', textAlign: 'center' }}
+                                                    style={{ flex: '1 1 96px', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px', textAlign: 'center' }}
  
                                                   />
  
+ 
+                                                </div>
+ 
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -21118,6 +20991,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     ))}
  
+                                                    {blk.type !== 'superserie' && (
+ 
                                                     <button
  
                                                       onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
@@ -21140,54 +21015,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     </button>
  
+                                                    )}
  
  
-                                                    {(() => {
- 
-                                                      const mm = parseInt(String(blk.warmRestExMin ?? ''), 10) || 0;
- 
-                                                      const ss = parseInt(String(blk.warmRestExSec ?? ''), 10) || 0;
- 
-                                                      const totale = mm * 60 + ss;
- 
-                                                      const grezzo = mmss(totale);
- 
-                                                      const senza = totale <= 0;
- 
-                                                      if (senza) return null;
- 
- 
-                                                      return (
- 
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#fef3c7', border: '1px solid #fcd34d' }}>
- 
-                                                          <span style={{ fontSize: '12px', color: '#92400e' }}>
- 
-                                                            Rest tra gli esercizi <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
- 
-                                                          </span>
- 
-                                                          <button
- 
-                                                            onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: totale }); }}
- 
-                                                            title="Avvia il recupero"
- 
-                                                            aria-label="Avvia il recupero"
- 
-                                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(5,150,105,0.35)' }}
- 
-                                                          >
- 
-                                                            <Icona nome="timer" size={16} />
- 
-                                                          </button>
- 
-                                                        </div>
- 
-                                                      );
- 
-                                                    })()}
  
                                                     {(() => {
  
