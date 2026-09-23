@@ -9613,7 +9613,17 @@ const [notificationError, setNotificationError] = useState('');
  
     const dIdx = (settObj?.days || []).findIndex((d: any) => d.dayName === giorno);
  
-    const blocchi = (settObj?.days?.[dIdx]?.blocks || []).filter((b: any) => b?.type !== 'warmup');
+    const tuttiBlocchi = settObj?.days?.[dIdx]?.blocks || [];
+ 
+    // tengo gli indici originali: le chiavi dei risultati sono costruite su quelli,
+ 
+    // e filtrando i warm up gli indici della lista filtrata non corrispondono piu'
+ 
+    // il warm up conta come gli altri: se e' spuntato, il giorno e' piu' avanti
+ 
+    const indiciBlocchi = tuttiBlocchi.map((_b: any, bi: number) => bi);
+ 
+    const blocchi = indiciBlocchi.map((bi: number) => tuttiBlocchi[bi]);
  
  
  
@@ -9705,7 +9715,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 const suoi = perAtleta[ath.id] || {};
  
-                const fatti = blocchi.filter((b: any, bi: number) => {
+                const fatti = indiciBlocchi.filter((bi: number) => {
  
                   const r = suoi[`${wIdx}_${dIdx}_${bi}`];
  
@@ -9768,9 +9778,11 @@ const [notificationError, setNotificationError] = useState('');
  
  
                     {blocchi.map((blk: any, bi: number) => {
-                      const dato = suoi[`${wIdx}_${dIdx}_${bi}`];
+ 
+                      const bReale = indiciBlocchi[bi];
+                      const dato = suoi[`${wIdx}_${dIdx}_${bReale}`];
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
-                      const chiaveDettaglio = `${ath.id}_${wIdx}_${dIdx}_${bi}`;
+                      const chiaveDettaglio = `${ath.id}_${wIdx}_${dIdx}_${bReale}`;
                       const aperto = dettaglioEsercizioAperto === chiaveDettaglio;
  
                       return (
@@ -9780,7 +9792,7 @@ const [notificationError, setNotificationError] = useState('');
                             style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '9px', padding: '7px 10px', flexWrap: 'wrap', cursor: 'pointer' }}
                           >
                             <span style={{ fontSize: '11.5px', color: compilato ? '#334155' : '#991b1b', overflowWrap: 'anywhere' }}>
-                              {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bi + 1}`)}
+                              {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bReale + 1}`)}
                             </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#047857' : '#b91c1c', whiteSpace: 'nowrap' }}>
@@ -10111,9 +10123,13 @@ const [notificationError, setNotificationError] = useState('');
  
                     {(settObj?.days || []).map((d: any, di: number) => {
  
-                      const bl = (d.blocks || []).filter((b: any) => b?.type !== 'warmup');
+                      const tuttiDelGiorno = d.blocks || [];
  
-                      const f = bl.filter((b: any, bi: number) => {
+                      const indiciDelGiorno = tuttiDelGiorno.map((_b: any, bi: number) => bi);
+ 
+                      const bl = indiciDelGiorno.map((bi: number) => tuttiDelGiorno[bi]);
+ 
+                      const f = indiciDelGiorno.filter((bi: number) => {
  
                         const r = risultati[`${wIdx}_${di}_${bi}`];
  
@@ -15497,7 +15513,8 @@ const [notificationError, setNotificationError] = useState('');
  
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
  
-                            {REP_SCHEMES.map((reps) => ( 
+                            {REP_SCHEMES.map((reps) => (
+ 
                               <div key={reps} style={{ background: '#ffffff', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
  
                                 <span style={{ fontSize: '10px', color: '#64748b', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
@@ -20658,9 +20675,13 @@ const [notificationError, setNotificationError] = useState('');
  
                               const wReale = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
  
-                              const blocchi = (day.blocks || []).filter((b: any) => b?.type !== 'warmup');
+                              const tuttiDelGiorno = day.blocks || [];
  
-                              const fatti = blocchi.filter((b: any, bi: number) => {
+                              const indiciDelGiorno = tuttiDelGiorno.map((_b: any, bi: number) => bi);
+ 
+                              const blocchi = indiciDelGiorno.map((bi: number) => tuttiDelGiorno[bi]);
+ 
+                              const fatti = indiciDelGiorno.filter((bi: number) => {
  
                                 const r = athleteResults[prog.id]?.[`${wReale}_${idx}_${bi}`];
  
@@ -21028,21 +21049,21 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <button
  
-                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
+                                                      onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #fcd34d', background: athleteResults[prog.id]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
  
                                                     >
  
-                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#fde68a' }}>
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', background: athleteResults[prog.id]?.[resultKey]?.done ? '#10b981' : '#fde68a' }}>
  
-                                                        {athleteResults[prog.id]?.[blockKey]?.done && <Icona nome="spunta" size={13} />}
+                                                        {athleteResults[prog.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
  
                                                       </span>
  
-                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#92400e' }}>
+                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? '#047857' : '#92400e' }}>
  
-                                                        {athleteResults[prog.id]?.[blockKey]?.done ? 'Completato' : 'Segna come fatto'}
+                                                        {athleteResults[prog.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
  
                                                       </span>
  
@@ -21140,21 +21161,21 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <button
  
-                                                      onClick={() => handleResultChange(prog.id, blockKey, 'done', athleteResults[prog.id]?.[blockKey]?.done ? '' : 'si')}
+                                                      onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[blockKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[blockKey]?.done ? '#ecfdf5' : '#ffffff' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid #10b981' : '1px solid #cbd5e1', background: athleteResults[prog.id]?.[resultKey]?.done ? '#ecfdf5' : '#ffffff' }}
  
                                                     >
  
-                                                      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[blockKey]?.done ? '#10b981' : '#e2e8f0' }}>
+                                                      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: athleteResults[prog.id]?.[resultKey]?.done ? '#10b981' : '#e2e8f0' }}>
  
-                                                        {athleteResults[prog.id]?.[blockKey]?.done ? '\u2713' : ''}
+                                                        {athleteResults[prog.id]?.[resultKey]?.done ? '\u2713' : ''}
  
                                                       </span>
  
-                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[blockKey]?.done ? '#047857' : '#334155' }}>
+                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? '#047857' : '#334155' }}>
  
-                                                        {athleteResults[prog.id]?.[blockKey]?.done ? 'Completata' : 'Segna come fatta'}
+                                                        {athleteResults[prog.id]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
  
                                                       </span>
  
