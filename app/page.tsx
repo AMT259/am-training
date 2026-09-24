@@ -14727,6 +14727,24 @@ const [notificationError, setNotificationError] = useState('');
  
                                               {it.name}
  
+                                              {String(it.load || '').trim() ? (() => {
+ 
+                                                const suggerito = computeLoadHint(it.load, it.value, trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], it.name));
+ 
+                                                return (
+ 
+                                                  <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#64748b', marginTop: '2px' }}>
+ 
+                                                    {it.load}
+ 
+                                                    {suggerito ? <span style={{ color: '#1d4ed8', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
+ 
+                                                  </span>
+ 
+                                                );
+ 
+                                              })() : null}
+ 
                                             </span>
  
  
@@ -14805,7 +14823,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               const linea = blk.type === 'superserie' ? '#e2e8f0' : '#fde68a';
  
-                                              const secRecEx = it.rest ? tempoDaValore(it.rest) : 0;
+                                              const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
                                               return (
  
@@ -14813,7 +14831,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                   <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                  {it.rest ? (secRecEx ? (
+                                                  {String(it.rest || '').trim() ? (secRecEx ? (
  
                                                     <button
  
@@ -17212,7 +17230,25 @@ const [notificationError, setNotificationError] = useState('');
  
                                             </div>
  
-                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                              <input
+ 
+                                                type="text"
+ 
+                                                placeholder="80% / RPE 8"
+ 
+                                                title="Carico previsto: percentuale sul massimale oppure RPE. Vuoto = nessuna indicazione."
+ 
+                                                value={it.load || ''}
+ 
+                                                onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'load', e.target.value)}
+ 
+                                                style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
+ 
+                                              />
+ 
+                                              <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
+ 
  
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -17231,6 +17267,8 @@ const [notificationError, setNotificationError] = useState('');
                                                 <Icona nome="cestino" size={14} />
  
                                               </button>
+ 
+                                              </span>
  
                                             </div>
  
@@ -18817,7 +18855,25 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 </div>
  
-                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+                                                  <input
+ 
+                                                    type="text"
+ 
+                                                    placeholder="80% / RPE 8"
+ 
+                                                    title="Carico previsto: percentuale sul massimale oppure RPE. Vuoto = nessuna indicazione."
+ 
+                                                    value={it.load || ''}
+ 
+                                                    onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'load', e.target.value)}
+ 
+                                                    style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#000', fontSize: '14px' }}
+ 
+                                                  />
+ 
+                                                  <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
+ 
  
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#f1f5f9', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#475569', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -18836,6 +18892,8 @@ const [notificationError, setNotificationError] = useState('');
                                                     <Icona nome="cestino" size={14} />
  
                                                   </button>
+ 
+                                                  </span>
  
                                                 </div>
  
@@ -20925,6 +20983,24 @@ const [notificationError, setNotificationError] = useState('');
  
                                                           {it.name}
  
+                                                          {String(it.load || '').trim() ? (() => {
+ 
+                                                            const suggerito = computeLoadHint(it.load, it.value, trovaMaxes(athleteMaxes, it.name));
+ 
+                                                            return (
+ 
+                                                              <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#64748b', marginTop: '2px' }}>
+ 
+                                                                {it.load}
+ 
+                                                                {suggerito ? <span style={{ color: '#1d4ed8', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
+ 
+                                                              </span>
+ 
+                                                            );
+ 
+                                                          })() : null}
+ 
                                                         </span>
  
  
@@ -21003,7 +21079,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                           const linea = blk.type === 'superserie' ? '#e2e8f0' : '#fde68a';
  
-                                                          const secRecEx = it.rest ? tempoDaValore(it.rest) : 0;
+                                                          const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
                                                           return (
  
@@ -21011,7 +21087,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                               <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                              {it.rest ? (secRecEx ? (
+                                                              {String(it.rest || '').trim() ? (secRecEx ? (
  
                                                                 <button
  
