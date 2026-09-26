@@ -5648,43 +5648,11 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-    if (role === 'coach') {
+    // La scadenza dei programmi la annuncia il controllo automatico giornaliero
  
-      for (const prog of programLibrary) {
+    // (app/api/cron/expiring-programs): arriva anche ad app chiusa e manda la push.
  
-        if (!prog.endDate || !prog.assignedAthleteIds?.length) continue;
- 
- 
- 
-        const daysRemaining = getCalendarDaysDifference(prog.endDate);
- 
-        if (![10, 7, 2, 0].includes(daysRemaining as number)) continue;
- 
- 
- 
-        const dayText =
- 
-          daysRemaining === 0
- 
-            ? 'scade oggi'
- 
-            : `scade tra ${daysRemaining} giorni`;
- 
- 
- 
-        await createNotificationIfMissing(
- 
-          'Scadenza programma',
- 
-          `Il programma "${prog.title}" ${dayText} (data fine: ${formatDateToIT(prog.endDate)}).`,
- 
-          `program_deadline_${prog.id}_${daysRemaining}`
- 
-        );
- 
-      }
- 
-    }
+    // Qui non serve: farebbe un secondo avviso con un testo diverso.
  
   };
  
@@ -15189,7 +15157,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
  
                                         {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
  
@@ -15235,7 +15203,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                    <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                                    <div style={{ marginTop: '10px', background: '#f1f5f9', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
  
                                       <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
  
@@ -20483,13 +20451,19 @@ const [notificationError, setNotificationError] = useState('');
  
                   const scaduto = giorniScaduto !== null && giorniScaduto > 0;
  
+                  // ultimi sette giorni prima della fine: giorniDallaScadenza e' negativo
+ 
+                  // finche' il programma e' valido, e vale zero il giorno stesso
+ 
+                  const inScadenza = giorniScaduto !== null && giorniScaduto <= 0 && giorniScaduto >= -7;
+ 
                   const giorniRimasti = scaduto ? GIORNI_VISIBILITA_DOPO_SCADENZA - giorniScaduto : null;
  
  
  
                   return (
  
-                    <div key={prog.id} style={{ background: scaduto ? '#fef2f2' : '#ffffff', color: '#000000', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : '1px solid #d8dde3', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: scaduto ? '#fef2f2' : '#ffffff', color: '#000000', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid #d8dde3', marginBottom: '20px' }}>
  
                       {scaduto && (
  
@@ -21467,7 +21441,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
-                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px' }}>
+                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
  
                                                     {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
  
