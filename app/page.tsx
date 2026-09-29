@@ -2662,6 +2662,136 @@ function SelettoreScore({ valore, onChange }: any) {
  
  
  
+// Sistema il valore prima del salvataggio: tempo -> "m:ss", round -> "r+rep".
+ 
+// Le caselle vuote valgono zero; se sono vuote tutte e due il valore resta vuoto.
+ 
+// Un valore senza il separatore (es. un vecchio risultato) non viene toccato.
+ 
+function normalizzaScore(valore: string, tipo: string): string {
+ 
+  const t = String(valore || '').trim();
+ 
+  if (tipo === 'tempo') {
+ 
+    if (!t.includes(':')) return t;
+ 
+    const [m, s] = t.split(':');
+ 
+    if (!(m || '').trim() && !(s || '').trim()) return '';
+ 
+    return `${parseInt(m || '0', 10)}:${String(parseInt(s || '0', 10)).padStart(2, '0')}`;
+ 
+  }
+ 
+  if (tipo === 'round') {
+ 
+    if (!t.includes('+')) return t;
+ 
+    const [r, rep] = t.split('+');
+ 
+    if (!(r || '').trim() && !(rep || '').trim()) return '';
+ 
+    return `${parseInt(r || '0', 10)}+${parseInt(rep || '0', 10)}`;
+ 
+  }
+ 
+  return t;
+ 
+}
+ 
+ 
+ 
+// Due caselle affiancate: min / sec per il tempo, rnd / rep per i round.
+ 
+// Il valore resta una sola stringa ("5:30" oppure "4+12"), come prima.
+ 
+function CaselleDoppie({ tipo, valore, onChange }: any) {
+ 
+  const sep = tipo === 'tempo' ? ':' : '+';
+ 
+  const p = String(valore || '').split(sep);
+ 
+  const a = p[0] || '';
+ 
+  const b = p.length > 1 ? p[1] : '';
+ 
+  const etA = tipo === 'tempo' ? 'MIN' : 'RND';
+ 
+  const etB = tipo === 'tempo' ? 'SEC' : 'REP';
+ 
+  const solo = (t: string, max: number) => t.replace(/[^0-9]/g, '').slice(0, max);
+ 
+  const box: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' };
+ 
+  const etich: React.CSSProperties = { display: 'block', fontSize: '9px', color: '#94a3b8', textAlign: 'center', marginTop: '2px', letterSpacing: '0.5px' };
+ 
+  return (
+ 
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+ 
+      <div style={{ flex: 1, minWidth: 0 }}>
+ 
+        <input
+ 
+          type="text"
+ 
+          inputMode="numeric"
+ 
+          value={a}
+ 
+          onFocus={(e: any) => e.target.select()}
+ 
+          onChange={(e: any) => onChange(`${solo(e.target.value, 3)}${sep}${b}`)}
+ 
+          style={box}
+ 
+        />
+ 
+        <span style={etich}>{etA}</span>
+ 
+      </div>
+ 
+      <span style={{ fontWeight: 'bold', color: '#64748b', paddingTop: '11px' }}>{sep}</span>
+ 
+      <div style={{ flex: 1, minWidth: 0 }}>
+ 
+        <input
+ 
+          type="text"
+ 
+          inputMode="numeric"
+ 
+          value={b}
+ 
+          onFocus={(e: any) => e.target.select()}
+ 
+          onChange={(e: any) => {
+ 
+            let v = solo(e.target.value, tipo === 'tempo' ? 2 : 3);
+ 
+            if (tipo === 'tempo' && v !== '' && parseInt(v, 10) > 59) v = '59';
+ 
+            onChange(`${a}${sep}${v}`);
+ 
+          }}
+ 
+          style={box}
+ 
+        />
+ 
+        <span style={etich}>{etB}</span>
+ 
+      </div>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+ 
+ 
 function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const serie = serieDaBlocco(blk);
@@ -2682,7 +2812,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
  
  
-  const riepilogo = carichi.map((c) => c.trim()).filter(Boolean).join(' / ');
+  const riepilogo = carichi.map((c) => normalizzaScore(c, blk?.scoreUnit || '')).filter(Boolean).join(' / ');
  
  
  
@@ -2778,6 +2908,28 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
               </span>
  
+              {blk?.scoreUnit === 'tempo' || blk?.scoreUnit === 'round' ? (
+ 
+                <CaselleDoppie
+ 
+                  tipo={blk.scoreUnit}
+ 
+                  valore={carichi[i] || ''}
+ 
+                  onChange={(v: string) => {
+ 
+                    const copia = [...carichi];
+ 
+                    copia[i] = v;
+ 
+                    setCarichi(copia);
+ 
+                  }}
+ 
+                />
+ 
+              ) : (
+ 
               <input
  
                 type="text"
@@ -2803,6 +2955,8 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
  
               />
+ 
+              )}
  
             </div>
  
