@@ -2322,7 +2322,7 @@ function RiepilogoScore({ punteggio, note }: { punteggio: string; note: string }
  
       {note && (
  
-        <p style={{ margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{note}</p>
+        <p style={{ overflowWrap: 'anywhere', margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{note}</p>
  
       )}
  
@@ -9968,8 +9968,8 @@ const [notificationError, setNotificationError] = useState('');
                             <span style={{ fontSize: '11.5px', color: compilato ? '#334155' : '#991b1b', overflowWrap: 'anywhere' }}>
                               {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bReale + 1}`)}
                             </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#047857' : '#b91c1c', whiteSpace: 'nowrap' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '100%' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#047857' : '#b91c1c', overflowWrap: 'anywhere', textAlign: 'right' }}>
                                 {compilato ? (dato.score || 'solo note') : 'non inserito'}
                               </span>
                               <Icona nome={aperto ? 'su' : 'giu'} size={12} style={{ color: '#94a3b8' }} />
@@ -9990,7 +9990,7 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                               {blk.type === 'wod' && blk.wodNotes && (
-                                <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#f1f5f9', borderRadius: '6px', padding: '7px 9px' }}>
+                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#f1f5f9', borderRadius: '6px', padding: '7px 9px' }}>
                                   {blk.wodNotes}
                                 </p>
                               )}
@@ -10003,7 +10003,7 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                               {blk.notes && (
-                                <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: '#92400e', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#fffbeb', borderRadius: '6px', padding: '7px 9px' }}>
+                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: '#92400e', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#fffbeb', borderRadius: '6px', padding: '7px 9px' }}>
                                   {blk.notes}
                                 </p>
                               )}
@@ -10405,7 +10405,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               dato.score ? (
  
-                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', whiteSpace: 'nowrap' }}>{dato.score}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#047857', overflowWrap: 'anywhere', textAlign: 'right' }}>{dato.score}</span>
  
                               ) : (
  
@@ -10451,7 +10451,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {blk.type === 'wod' && blk.wodNotes && (
  
-                            <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#f1f5f9', borderRadius: '6px', padding: '7px 9px' }}>
+                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#f1f5f9', borderRadius: '6px', padding: '7px 9px' }}>
  
                               {blk.wodNotes}
  
@@ -10481,7 +10481,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {blk.notes && (
  
-                            <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#92400e', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#fffbeb', borderRadius: '6px', padding: '7px 9px' }}>
+                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: '#92400e', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#fffbeb', borderRadius: '6px', padding: '7px 9px' }}>
  
                               {blk.notes}
  
@@ -14923,7 +14923,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                               {it.value}
  
@@ -15129,7 +15129,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {blk.notes && (
  
-                                          <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                             {blk.notes}
  
@@ -15147,7 +15147,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                            <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                            <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                           </div>
  
@@ -15189,7 +15189,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         </span>
  
-                                        {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                        {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
  
                                         {(() => {
  
@@ -15235,7 +15235,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>SET</span>
  
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.sets}</span>
  
                                         </div>
  
@@ -15243,7 +15243,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REP</span>
  
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.reps}</span>
  
                                         </div>
  
@@ -15251,7 +15251,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>CARICO</span>
  
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.load}</span>
  
                                         </div>
  
@@ -15271,7 +15271,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <span style={{ fontSize: '9px', color: '#64748b', display: 'block' }}>REC.</span>
  
-                                          <span style={{ fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#000' }}>{blk.rest}</span>
  
                                           <span style={{ display: 'block', fontSize: '8px', color: '#047857', fontWeight: 'bold' }}>⏱️</span>
  
@@ -15321,7 +15321,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
  
-                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
+                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                 {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
  
@@ -15329,7 +15329,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               {usati.length > 1 && (
  
-                                                <span style={{ fontSize: '10px', color: '#94a3b8' }}>
+                                                <span style={{ fontSize: '10px', color: '#94a3b8', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                   {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
  
@@ -15353,7 +15353,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
  
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
  
                                       </div>
  
@@ -15401,7 +15401,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
  
-                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
  
                                       </div>
  
@@ -21193,7 +21193,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#475569' : '#b45309', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                                           {it.value}
  
@@ -21399,7 +21399,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {blk.notes && (
  
-                                                      <p style={{ margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#334155' : '#78350f', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#f8fafc' : '#fef3c7', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                                         {blk.notes}
  
@@ -21417,7 +21417,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                                        <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                                        <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                                       </div>
  
@@ -21459,7 +21459,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     </span>
  
-                                                    {blk.target && <span style={{ display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                                    {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: '#1e40af', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
  
                                                     {(() => {
  
@@ -21505,7 +21505,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>SET</span>
  
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.sets}</span>
  
                                                       </div>
  
@@ -21513,7 +21513,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>REP</span>
  
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.reps}</span>
  
                                                       </div>
  
@@ -21525,7 +21525,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>CARICO / RPE</span>
  
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.load}</span>
  
                                                       </div>
  
@@ -21545,7 +21545,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RECUPERO</span>
  
-                                                        <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#000' }}>{blk.rest}</span>
  
                                                         <span style={{ display: 'block', fontSize: '9px', color: '#047857', fontWeight: 'bold', marginTop: '3px' }}>
  
@@ -21601,7 +21601,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
  
-                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', whiteSpace: 'nowrap' }}>
+                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#047857' : '#334155', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                               {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
  
@@ -21609,7 +21609,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                             {usati.length > 1 && (
  
-                                                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                                              <span style={{ fontSize: '11px', color: '#94a3b8', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                                 {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
  
@@ -21631,7 +21631,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</span>
  
-                                                        <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
+                                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#334155' }}>{blk.notes}</p>
  
                                                       </div>
  
@@ -21645,7 +21645,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <span style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>WOD / CIRCUITO</span>
  
-                                                    <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                    <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#334155', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
  
                                                   </div>
  
