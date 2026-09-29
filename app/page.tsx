@@ -2602,6 +2602,66 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
 }
  
+// Tipo di score scelto dal coach per il blocco, in fase di creazione del programma.
+ 
+// Vuoto = etichetta generica "Risultato". Cambia solo l'indicazione che vede
+ 
+// l'atleta: pesi consigliati, massimali e storico dei carichi non lo leggono.
+ 
+const SCORE_UNITS: { [k: string]: { nome: string; placeholder: string } } = {
+ 
+  kg: { nome: 'Kg', placeholder: 'kg' },
+ 
+  rep: { nome: 'Ripetizioni', placeholder: 'rep' },
+ 
+  tempo: { nome: 'Tempo', placeholder: 'mm:ss' },
+ 
+  round: { nome: 'Round + rep', placeholder: 'round+rep' },
+ 
+};
+ 
+ 
+ 
+// Menu a tendina per l'editor del programma (blocchi forza e WOD).
+ 
+function SelettoreScore({ valore, onChange }: any) {
+ 
+  return (
+ 
+    <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+ 
+      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>TIPO DI SCORE</label>
+ 
+      <select
+ 
+        value={valore || ''}
+ 
+        onChange={(e) => onChange(e.target.value)}
+ 
+        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '13px' }}
+ 
+      >
+ 
+        <option value="">Generico (risultato)</option>
+ 
+        <option value="kg">Kg</option>
+ 
+        <option value="rep">Ripetizioni</option>
+ 
+        <option value="tempo">Tempo</option>
+ 
+        <option value="round">Round + rep</option>
+ 
+      </select>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+ 
+ 
 function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const serie = serieDaBlocco(blk);
@@ -2686,7 +2746,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
           <span style={{ display: 'block', fontSize: '10px', color: '#64748b', letterSpacing: '0.5px' }}>
  
-            {blk?.type === 'wod' || blk?.type === 'test' ? 'I TUOI RISULTATI' : 'I TUOI CARICHI'}
+            I TUOI RISULTATI
  
           </span>
  
@@ -2710,7 +2770,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
                 {serie.length === 1
  
-                  ? (blk?.type === 'wod' || blk?.type === 'test' ? 'Il tuo score' : 'Carico')
+                  ? (SCORE_UNITS[blk?.scoreUnit || '']?.nome || 'Risultato')
  
                   : (blk?.type === 'wod' || blk?.type === 'test' ? `Round ${i + 1}` : `${i + 1}ª serie`)}
  
@@ -2722,17 +2782,9 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
                 type="text"
  
-                inputMode={blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal'}
+                inputMode={blk?.scoreUnit === 'kg' ? 'decimal' : blk?.scoreUnit === 'rep' ? 'numeric' : (blk?.scoreUnit === 'tempo' || blk?.scoreUnit === 'round') ? 'text' : (blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal')}
  
-                placeholder={
- 
-                  blk?.type === 'wod' || blk?.type === 'test'
- 
-                    ? (serie.length > 1 ? '—' : 'tempo, round o ripetizioni')
- 
-                    : 'kg'
- 
-                }
+                placeholder={SCORE_UNITS[blk?.scoreUnit || '']?.placeholder || (serie.length > 1 ? '—' : 'Risultato')}
  
                 value={carichi[i] || ''}
  
@@ -15227,7 +15279,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               >
  
-                                                <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Segna il risultato'}
+                                                <Icona nome="modifica" size={14} /> {blk.type === 'forza' && (!blk.scoreUnit || blk.scoreUnit === 'kg') ? 'Inserisci i carichi' : 'Segna il risultato'}
  
                                               </button>
  
@@ -17338,6 +17390,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                         </div>
  
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
+ 
                                         <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
  
                                           <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</label>
@@ -17397,6 +17451,8 @@ const [notificationError, setNotificationError] = useState('');
                                           })()}
  
  
+ 
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
                                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
  
@@ -18963,6 +19019,8 @@ const [notificationError, setNotificationError] = useState('');
  
                                             </div>
  
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
+ 
                                             <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
  
                                               <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>NOTE</label>
@@ -19022,6 +19080,8 @@ const [notificationError, setNotificationError] = useState('');
                                               })()}
  
  
+ 
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
                                             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
  
@@ -21491,7 +21551,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     >
  
-                                                      <Icona nome="modifica" size={14} /> {blk.type === 'forza' ? 'Inserisci i carichi' : 'Segna il risultato'}
+                                                      <Icona nome="modifica" size={14} /> {blk.type === 'forza' && (!blk.scoreUnit || blk.scoreUnit === 'kg') ? 'Inserisci i carichi' : 'Segna il risultato'}
  
                                                     </button>
  
