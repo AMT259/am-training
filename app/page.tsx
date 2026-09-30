@@ -2418,7 +2418,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
     .map((it: any, i: number) => {
  
-      const fatti = (valori[i] || []).map((v: string) => String(v).trim()).filter(Boolean);
+      const fatti = (valori[i] || []).map((v: string) => normalizzaScore(String(v), it.scoreUnit || '')).filter(Boolean);
  
       if (fatti.length === 0) return null;
  
@@ -2492,6 +2492,8 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                 {it.value ? <span style={{ color: '#94a3b8', fontWeight: 'normal' }}>{` \u00b7 ${it.value}`}</span> : null}
  
+                {it.scoreUnit && SCORE_UNITS[it.scoreUnit] ? <span style={{ color: '#059669', fontWeight: 'normal' }}>{` \u00b7 ${SCORE_UNITS[it.scoreUnit].nome}`}</span> : null}
+ 
               </span>
  
  
@@ -2500,7 +2502,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                 {Array.from({ length: nRound }).map((_v: any, r: number) => (
  
-                  <div key={r} style={{ flex: '1 1 70px', minWidth: 0 }}>
+                  <div key={r} style={{ flex: (it.scoreUnit === 'tempo' || it.scoreUnit === 'round') ? '1 1 130px' : '1 1 70px', minWidth: 0 }}>
  
                     {nRound > 1 && (
  
@@ -2512,13 +2514,19 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                     )}
  
+                    {(it.scoreUnit === 'tempo' || it.scoreUnit === 'round') ? (
+ 
+                      <CaselleDoppie tipo={it.scoreUnit} valore={valori[i]?.[r] || ''} onChange={(v: string) => scrivi(i, r, v)} />
+ 
+                    ) : (
+ 
                     <input
  
                       type="text"
  
-                      inputMode="decimal"
+                      inputMode={it.scoreUnit === 'rep' ? 'numeric' : 'decimal'}
  
-                      placeholder="—"
+                      placeholder={SCORE_UNITS[it.scoreUnit || '']?.placeholder || '—'}
  
                       value={valori[i]?.[r] || ''}
  
@@ -2529,6 +2537,8 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
                       style={{ width: '100%', boxSizing: 'border-box', padding: '10px 4px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '15px', fontWeight: 'bold', textAlign: 'center' }}
  
                     />
+ 
+                    )}
  
                   </div>
  
@@ -2602,6 +2612,188 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
 }
  
+// Spunta "segna come fatta" dentro il riquadro dei risultati. Non dipende dal
+ 
+// risultato: si salva nel campo 'done', lo stesso di warm up e mobilità.
+ 
+function SpuntaFatta({ fatto, onChange }: any) {
+ 
+  return (
+ 
+    <button
+ 
+      type="button"
+ 
+      onClick={() => onChange(fatto ? '' : 'si')}
+ 
+      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '999px', cursor: 'pointer', marginTop: '9px', border: fatto ? '2px solid #10b981' : '1px solid #cbd5e1', background: fatto ? '#ecfdf5' : '#ffffff' }}
+ 
+    >
+ 
+      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#fff', background: fatto ? '#10b981' : '#e2e8f0' }}>
+ 
+        {fatto ? '\u2713' : ''}
+ 
+      </span>
+ 
+      <span style={{ fontSize: '13px', fontWeight: 'bold', color: fatto ? '#047857' : '#334155' }}>
+ 
+        {fatto ? 'Completata' : 'Segna come fatta'}
+ 
+      </span>
+ 
+    </button>
+ 
+  );
+ 
+}
+ 
+ 
+ 
+// Menu a tendina del tipo di score per un singolo esercizio della superserie.
+ 
+function SelettoreScoreItem({ valore, onChange }: any) {
+ 
+  return (
+ 
+    <select
+ 
+      value={valore || ''}
+ 
+      onChange={(e) => onChange(e.target.value)}
+ 
+      title="Come si scrive il risultato di questo esercizio"
+ 
+      style={{ width: '100%', boxSizing: 'border-box', padding: '9px 8px', marginBottom: '7px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '6px', fontSize: '13px' }}
+ 
+    >
+ 
+      <option value="">Score: generico</option>
+ 
+      <option value="kg">Score: kg</option>
+ 
+      <option value="rep">Score: ripetizioni</option>
+ 
+      <option value="tempo">Score: tempo</option>
+ 
+      <option value="round">Score: round + rep</option>
+ 
+    </select>
+ 
+  );
+ 
+}
+ 
+ 
+ 
+// Menu della superserie: risultato per ogni esercizio oppure solo la spunta "fatto".
+ 
+function SelettoreModoSuperserie({ valore, onChange }: any) {
+ 
+  return (
+ 
+    <div style={{ background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+ 
+      <label style={{ fontSize: '10px', color: '#64748b', display: 'block' }}>RISULTATO DELLA SUPERSERIE</label>
+ 
+      <select
+ 
+        value={valore === 'spunta' ? 'spunta' : ''}
+ 
+        onChange={(e) => onChange(e.target.value)}
+ 
+        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#ffffff', border: '1px solid #cbd5e1', color: '#000', borderRadius: '4px', fontSize: '13px' }}
+ 
+      >
+ 
+        <option value="">Score per ogni esercizio</option>
+ 
+        <option value="spunta">Solo spunta (fatto / non fatto)</option>
+ 
+      </select>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+ 
+ 
+// Note personali nei blocchi con "solo spunta", dove non si apre la finestra dello score.
+ 
+// Salva da sola dopo una breve pausa nella scrittura e appena si esce dalla casella.
+ 
+function CampoNote({ valore, onSalva }: any) {
+ 
+  const [testo, setTesto] = useState(String(valore || ''));
+ 
+  useEffect(() => {
+ 
+    setTesto(String(valore || ''));
+ 
+  }, [valore]);
+ 
+  useEffect(() => {
+ 
+    if (testo === String(valore || '')) return;
+ 
+    const t = setTimeout(() => onSalva(testo), 700);
+ 
+    return () => clearTimeout(t);
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [testo]);
+ 
+  return (
+ 
+    <textarea
+ 
+      rows={2}
+ 
+      placeholder="Note personali: sensazioni, difficoltà..."
+ 
+      value={testo}
+ 
+      onChange={(e: any) => setTesto(e.target.value)}
+ 
+      onBlur={() => {
+ 
+        if (testo !== String(valore || '')) onSalva(testo);
+ 
+      }}
+ 
+      style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#000', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+    />
+ 
+  );
+ 
+}
+ 
+ 
+ 
+// Quanti blocchi interi da 4 mesi sono passati da una data (0 = meno di 4 mesi).
+ 
+function periodiDa4Mesi(dataIso: string): number {
+ 
+  const da = new Date(dataIso);
+ 
+  if (isNaN(da.getTime())) return 0;
+ 
+  const oggi = new Date();
+ 
+  let mesi = (oggi.getFullYear() - da.getFullYear()) * 12 + (oggi.getMonth() - da.getMonth());
+ 
+  if (oggi.getDate() < da.getDate()) mesi -= 1;
+ 
+  return Math.max(0, Math.floor(mesi / 4));
+ 
+}
+ 
+ 
+ 
 // Tipo di score scelto dal coach per il blocco, in fase di creazione del programma.
  
 // Vuoto = etichetta generica "Risultato". Cambia solo l'indicazione che vede
@@ -2651,6 +2843,8 @@ function SelettoreScore({ valore, onChange }: any) {
         <option value="tempo">Tempo</option>
  
         <option value="round">Round + rep</option>
+ 
+        <option value="spunta">Solo spunta (fatto / non fatto)</option>
  
       </select>
  
@@ -5600,6 +5794,14 @@ export default function TrainingApp() {
  
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
  
+  const [anamnesiUpdatedAt, setAnamnesiUpdatedAt] = useState<string | null>(null);
+ 
+  const [anamnesiPopup, setAnamnesiPopup] = useState<{ id: string; mesi: number; mancante: boolean } | null>(null);
+ 
+  const [anamnesiMancante, setAnamnesiMancante] = useState(false);
+ 
+  const promemoriaAnamnesiRef = React.useRef<string>('');
+ 
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
  
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
@@ -5863,6 +6065,108 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
+ 
+  // Promemoria anamnesi ogni 4 mesi dall'ultimo aggiornamento: una notifica che resta
+ 
+  // nell'elenco finche' non la elimini e un popup che si chiude una volta sola.
+ 
+  // Il popup e' legato alla notifica: se e' ancora "non letta" compare, quando lo chiudi
+ 
+  // la segno letta e non torna piu' (su nessun dispositivo).
+ 
+  const controllaPromemoriaAnamnesi = async (chiave: string, mesi: number, mancante: boolean) => {
+ 
+    const uid = session?.user?.id;
+ 
+    if (!uid) return;
+ 
+    const { data: esistente, error: errCheck } = await supabase
+ 
+      .from('notifications')
+ 
+      .select('id,is_read')
+ 
+      .eq('user_id', uid)
+ 
+      .eq('notification_type', chiave)
+ 
+      .limit(1);
+ 
+    if (errCheck) {
+ 
+      console.error('Errore controllo promemoria anamnesi:', errCheck);
+ 
+      return;
+ 
+    }
+ 
+    if (esistente && esistente.length > 0) {
+ 
+      if (!esistente[0].is_read) setAnamnesiPopup({ id: esistente[0].id, mesi, mancante });
+ 
+      return;
+ 
+    }
+ 
+    const titolo = mancante ? 'Compila la tua anamnesi' : 'Rinnova la tua anamnesi';
+ 
+    const messaggio = mancante ? 'Non hai ancora compilato la tua anamnesi. Ci vuole un minuto e aiuta il coach a costruire programmi adatti a te: vai su Profilo > Anamnesi.' : `Sono passati ${mesi} mesi dall'ultimo aggiornamento della tua anamnesi. Se è cambiato qualcosa, aggiornala da Profilo > Anamnesi.`;
+ 
+    const { data: creata, error } = await supabase
+ 
+      .from('notifications')
+ 
+      .insert([{ user_id: uid, title: titolo, message: messaggio, notification_type: chiave, is_read: false, program_id: null }])
+ 
+      .select('id')
+ 
+      .single();
+ 
+    if (error || !creata) {
+ 
+      console.error('Errore creazione promemoria anamnesi:', error);
+ 
+      return;
+ 
+    }
+ 
+    setAnamnesiPopup({ id: creata.id, mesi, mancante });
+ 
+    await fetchNotifications();
+ 
+    fetch('/api/send-push', {
+ 
+      method: 'POST',
+ 
+      headers: { 'Content-Type': 'application/json' },
+ 
+      body: JSON.stringify({ user_id: uid, title: titolo, message: messaggio }),
+ 
+    }).catch((pushErr) => console.error('Errore invio push:', pushErr));
+ 
+  };
+ 
+  const chiudiPopupAnamnesi = async (vaiAllAnamnesi: boolean) => {
+ 
+    const p = anamnesiPopup;
+ 
+    setAnamnesiPopup(null);
+ 
+    if (vaiAllAnamnesi) {
+ 
+      setActiveTab('profile');
+ 
+      setAthleteProfileTab('anamnesi');
+ 
+    }
+ 
+    if (!p || !session?.user?.id) return;
+ 
+    await supabase.from('notifications').update({ is_read: true }).eq('id', p.id).eq('user_id', session.user.id);
+ 
+    setNotifications((prev) => prev.map((n) => (n.id === p.id ? { ...n, is_read: true } : n)));
+ 
+  };
  
   const deleteNotification = async (notificationId: string) => {
  
@@ -6299,6 +6603,34 @@ const [notificationError, setNotificationError] = useState('');
   }, [session, role, programLibrary]);
  
  
+ 
+  useEffect(() => {
+ 
+    if (role !== 'athlete' || !session?.user?.id) return;
+ 
+    const mancante = !anamnesiUpdatedAt;
+ 
+    // Senza anamnesi si conta dalla data di registrazione dell'account.
+ 
+    const base = anamnesiUpdatedAt || (anamnesiMancante ? (session.user.created_at || null) : null);
+ 
+    if (!base) return;
+ 
+    const mesi = periodiDa4Mesi(base) * 4;
+ 
+    if (mesi < 4) return;
+ 
+    const chiave = mancante ? `anamnesi_reminder_missing_${mesi}` : `anamnesi_reminder_${mesi}_${base.slice(0, 10)}`;
+ 
+    if (promemoriaAnamnesiRef.current === chiave) return;
+ 
+    promemoriaAnamnesiRef.current = chiave;
+ 
+    controllaPromemoriaAnamnesi(chiave, mesi, mancante);
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [session, role, anamnesiUpdatedAt, anamnesiMancante]);
  
   useEffect(() => {
  
@@ -7460,6 +7792,10 @@ const [notificationError, setNotificationError] = useState('');
  
     if (data) {
  
+      setAnamnesiUpdatedAt(data.updated_at || data.created_at || null);
+ 
+      setAnamnesiMancante(false);
+ 
       setAnamnesis({
  
         goal: data.goal || '',
@@ -7477,6 +7813,10 @@ const [notificationError, setNotificationError] = useState('');
     } else {
  
       setAnamnesis(emptyAnamnesis);
+ 
+      setAnamnesiUpdatedAt(null);
+ 
+      setAnamnesiMancante(true);
  
       // Prima volta: porta subito l'atleta a compilare l'anamnesi
  
@@ -7539,6 +7879,10 @@ const [notificationError, setNotificationError] = useState('');
     if (!isCoachEditing) {
  
       setNeedsAnamnesis(false);
+ 
+      setAnamnesiUpdatedAt(new Date().toISOString());
+ 
+      setAnamnesiMancante(false);
  
       fetch('/api/notify-coach', {
  
@@ -8576,7 +8920,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const blk = settimane[wi]?.days?.[di]?.blocks?.[bi];
  
-      if (!blk || blk.type !== 'forza' || !blk.name) return;
+      if (!blk || blk.type !== 'forza' || !blk.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
  
  
@@ -9371,7 +9715,7 @@ const [notificationError, setNotificationError] = useState('');
  
         (giorno?.blocks || []).forEach((blk: any, bi: number) => {
  
-          if (blk?.type !== 'forza' || !blk?.name) return;
+          if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
  
  
@@ -9661,7 +10005,7 @@ const [notificationError, setNotificationError] = useState('');
  
         (giorno?.blocks || []).forEach((blk: any, bi: number) => {
  
-          if (blk?.type !== 'forza' || !blk?.name) return;
+          if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
  
  
@@ -10659,7 +11003,7 @@ const [notificationError, setNotificationError] = useState('');
  
             (d?.blocks || []).forEach((blk: any, bi: number) => {
  
-              if (blk?.type !== 'forza' || !blk?.name) return;
+              if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
               const kg = caricoMigliore(ris[`${wi}_${di}_${bi}`]?.score);
  
@@ -11312,6 +11656,8 @@ const [notificationError, setNotificationError] = useState('');
             if (!sameName(blk?.name, nomeEsercizio)) continue;
  
  
+ 
+            if (blk?.scoreUnit && blk.scoreUnit !== 'kg') continue;
  
             const grezzo = risultati[`${wi}_${di}_${bi}`]?.score;
  
@@ -13905,6 +14251,40 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
+      {anamnesiPopup && !dailyQuote && !showConsentGate && (
+ 
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1600 }}>
+ 
+          <div style={{ background: '#ffffff', color: '#000', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+ 
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}>📋</div>
+ 
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#059669' }}>{anamnesiPopup.mancante ? 'Compila la tua anamnesi' : 'Rinnova la tua anamnesi'}</h3>
+ 
+            <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0', color: '#334155', overflowWrap: 'anywhere' }}>
+ 
+              {anamnesiPopup.mancante ? 'Non hai ancora compilato la tua anamnesi. Ci vuole un minuto e permette al coach di costruire programmi adatti a te.' : `Sono passati ${anamnesiPopup.mesi} mesi dall'ultimo aggiornamento della tua anamnesi. Se è cambiato qualcosa, aggiornala: il coach potrà adattare meglio i tuoi programmi.`}
+ 
+            </p>
+ 
+            <button onClick={() => chiudiPopupAnamnesi(true)} style={{ width: '100%', padding: '12px', borderRadius: '999px', background: '#10b981', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginBottom: '8px' }}>
+ 
+              {anamnesiPopup.mancante ? 'Compila anamnesi' : 'Aggiorna anamnesi'}
+ 
+            </button>
+ 
+            <button onClick={() => chiudiPopupAnamnesi(false)} style={{ width: '100%', padding: '11px', borderRadius: '999px', background: '#ffffff', color: '#475569', fontWeight: 'bold', border: '1px solid #cbd5e1', cursor: 'pointer', fontSize: '14px' }}>
+ 
+              {anamnesiPopup.mancante ? 'Più tardi' : 'Non è cambiato nulla'}
+ 
+            </button>
+ 
+          </div>
+ 
+        </div>
+ 
+      )}
+ 
       {showConsentGate && (
  
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 2000 }}>
@@ -15425,6 +15805,10 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <>
  
+                                              {blk.scoreUnit !== 'spunta' && (
+ 
+                                              <>
+ 
                                               <button
  
                                                 onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk, athleteId: selectedCoachAthlete.id, lvl })}
@@ -15444,6 +15828,12 @@ const [notificationError, setNotificationError] = useState('');
                                                 note={String(dato?.notes || '').trim()}
  
                                               />
+ 
+                                              </>
+ 
+                                              )}
+ 
+                                              {blk.scoreUnit === 'spunta' && (<><SpuntaFatta fatto={!!dato?.done} onChange={(v: string) => handleResultChange(prog.id, resultKey, 'done', v, selectedCoachAthlete.id)} /><CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} /></>)}
  
                                             </>
  
@@ -17349,6 +17739,8 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
+                                        {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
+ 
                                         {(block.items || []).map((it: any, i: number) => (
  
                                           <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
@@ -17403,6 +17795,8 @@ const [notificationError, setNotificationError] = useState('');
  
  
                                             </div>
+ 
+                                            {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
                                               <input
@@ -18978,6 +19372,8 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
+                                        {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
+ 
                                             {(block.items || []).map((it: any, i: number) => (
  
                                               <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
@@ -19032,6 +19428,8 @@ const [notificationError, setNotificationError] = useState('');
  
  
                                                 </div>
+ 
+                                            {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
                                                   <input
@@ -21695,7 +22093,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                   <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
  
-                                                  {usaFinestra && (
+                                                  {usaFinestra && blk.scoreUnit !== 'spunta' && (
  
                                                     <button
  
@@ -21721,6 +22119,10 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       return (
  
+                                                        <>
+ 
+                                                        {blk.scoreUnit !== 'spunta' && (
+ 
                                                         <RiepilogoScore
  
                                                           punteggio={String(dato?.score || '').trim()}
@@ -21728,6 +22130,12 @@ const [notificationError, setNotificationError] = useState('');
                                                           note={String(dato?.notes || '').trim()}
  
                                                         />
+ 
+                                                        )}
+ 
+                                                          {blk.scoreUnit === 'spunta' && (<><SpuntaFatta fatto={!!dato?.done} onChange={(v: string) => handleResultChange(prog.id, resultKey, 'done', v)} /><CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} /></>)}
+ 
+                                                        </>
  
                                                       );
  
