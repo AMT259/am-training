@@ -13196,7 +13196,6 @@ const [notificationError, setNotificationError] = useState('');
   if (recoveryMode) {
  
     return (
- 
       <div style={{ background: '#0B0C0E', color: '#fff', colorScheme: 'dark', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
  
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`}</style>
@@ -15152,6 +15151,7 @@ const [notificationError, setNotificationError] = useState('');
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
  
                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+ 
                             >
  
                               <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#C8F135', fontSize: '16px' }}>{prog.title}</h4>
@@ -17174,7 +17174,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         }}
  
-                        style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
+                        style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
  
                       />
  
@@ -17218,7 +17218,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           }
  
-                        }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
+                        }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
  
                       )}
  
@@ -17308,7 +17308,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 180px', minWidth: 0 }}>
  
                               <input
  
@@ -17328,7 +17328,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 }}
  
-                                style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1 }}
+                                style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
  
                               />
  
@@ -17384,7 +17384,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 if (vicino) setSelectedDayView(vicino.dayName);
  
-                              }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
+                              }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
  
                             )}
  
@@ -18827,7 +18827,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', background: '#343A42', padding: '10px', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: '#343A42', padding: '10px', borderRadius: '8px' }}>
  
                           <input
  
@@ -18847,7 +18847,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             }}
  
-                            style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px' }}
+                            style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
  
                           />
  
@@ -18889,7 +18889,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               }
  
-                            }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Settimana</button>
+                            }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
  
                           )}
  
@@ -18977,9 +18977,9 @@ const [notificationError, setNotificationError] = useState('');
  
                             <div key={actualDIdx} style={{ background: '#1B1E22', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(242,243,245,0.12)' }}>
  
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, marginRight: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 180px', minWidth: 0 }}>
  
                                   <input
  
@@ -18999,7 +18999,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     }}
  
-                                    style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1 }}
+                                    style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
  
                                   />
  
@@ -19053,7 +19053,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     if (vicino) setSelectedDayView(vicino.dayName);
  
-                                  }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina Giorno</button>
+                                  }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
  
                                 )}
  
