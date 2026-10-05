@@ -4230,7 +4230,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     padding: '14px 22px', borderRadius: '10px', border: 'none', background: bg,
  
-    color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+    color: luminosita(bg) > 0.6 ? '#101214' : '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   });
  
@@ -4414,7 +4414,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           </button>
  
-          <button onClick={onClose} style={{ ...btn('#C9CED6'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
+          <button onClick={onClose} style={{ ...btn('#343A42'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
  
         </div>
  
@@ -4528,7 +4528,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             </button>
  
-            <button onClick={() => setScelta(null)} style={btn('#C9CED6')}>Indietro</button>
+            <button onClick={() => setScelta(null)} style={btn('#343A42')}>Indietro</button>
  
           </div>
  
@@ -4762,13 +4762,13 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           {!attivo && preparazione === null && (trascorsi > 0 || fase > 0 || finito) && (
  
-            <button onClick={azzera} style={btn('#C9CED6')}>Azzera</button>
+            <button onClick={azzera} style={btn('#343A42')}>Azzera</button>
  
           )}
  
-          <button onClick={() => setRidotto(true)} style={btn('#38BDF8')}><Icona nome="riduci" size={15} /> Riduci</button>
+          <button onClick={() => setRidotto(true)} style={btn('#0284c7')}><Icona nome="riduci" size={15} /> Riduci</button>
  
-          <button onClick={onClose} style={btn('#C9CED6')}>Chiudi</button>
+          <button onClick={onClose} style={btn('#343A42')}>Chiudi</button>
  
         </div>
  
@@ -4789,6 +4789,22 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
 }
  
  
+ 
+// Luminosità di un colore esadecimale da 0 (nero) a 1 (bianco): serve a scegliere
+ 
+// se sopra un riempimento va il testo scuro o quello chiaro.
+ 
+function luminosita(hex: string): number {
+ 
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || ''));
+ 
+  if (!m) return 0;
+ 
+  const n = parseInt(m[1], 16);
+ 
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+ 
+}
  
 // Stile unico per i pulsanti a pillola di tutta l'app: quello scelto
  
@@ -4832,9 +4848,9 @@ function pillola(attivo: boolean, colore = '#C8F135', dim: 'grande' | 'medio' | 
  
     flexShrink: 0,
  
-    background: attivo ? colore : '#E5E7EB',
+    background: attivo ? colore : '#2D3238',
  
-    color: attivo ? '#ffffff' : '#C9CED6',
+    color: attivo ? (luminosita(colore) > 0.6 ? '#101214' : '#ffffff') : '#C9CED6',
  
     boxShadow: attivo ? '0 3px 9px rgba(0,0,0,0.22)' : 'none',
  
@@ -12620,7 +12636,8 @@ const [notificationError, setNotificationError] = useState('');
     if (newIndex < 0 || newIndex >= blocks.length) return;
  
     const temp = blocks[blockIndex];
-     blocks[blockIndex] = blocks[newIndex];
+ 
+    blocks[blockIndex] = blocks[newIndex];
  
     blocks[newIndex] = temp;
  
@@ -14948,7 +14965,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     onClick={() => setCoachAthleteDetailTab('personal')}
  
-                    style={{ ...pillola(coachAthleteDetailTab === 'personal', '#60A5FA', 'grande'), width: '100%', boxSizing: 'border-box', marginBottom: '16px' }}
+                    style={{ ...pillola(coachAthleteDetailTab === 'personal', '#2563eb', 'grande'), width: '100%', boxSizing: 'border-box', marginBottom: '16px' }}
  
                   >
  
@@ -15135,7 +15152,6 @@ const [notificationError, setNotificationError] = useState('');
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
  
                               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
- 
                             >
  
                               <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#C8F135', fontSize: '16px' }}>{prog.title}</h4>
