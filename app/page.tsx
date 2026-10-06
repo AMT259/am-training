@@ -168,13 +168,13 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
   if (!points) {
  
-    return <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '8px 0 0 0' }}>Caricamento...</p>;
+    return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Caricamento...</p>;
  
   }
  
   if (points.length === 0) {
  
-    return <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio. Si registra automaticamente quando il massimale viene aggiornato o superato in scheda.</p>;
+    return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio. Si registra automaticamente quando il massimale viene aggiornato o superato in scheda.</p>;
  
   }
  
@@ -226,13 +226,13 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
     return (
  
-      <div key={r} style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+      <div key={r} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
  
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
  
-          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#F2F3F5' }}>{r} RM</span>
+          <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{r} RM</span>
  
-          <span style={{ fontSize: '12px', fontWeight: 'bold', color: delta > 0 ? '#C8F135' : '#9AA1AB' }}>
+          <span style={{ fontSize: '12px', fontWeight: 'bold', color: delta > 0 ? 'var(--fg-10b981)' : 'var(--fg-64748b)' }}>
  
             {last} kg{delta > 0 ? ` (+${delta})` : ''}
  
@@ -244,13 +244,13 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
           <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
  
-            <polyline points={coords.join(' ')} fill="none" stroke="#C8F135" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+            <polyline points={coords.join(' ')} fill="none" style={{ stroke: 'var(--fg-10b981)' }} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
  
             {pts.map((p: any, i: number) => {
  
               const { x, y } = xy(p, i);
  
-              return <circle key={i} cx={x} cy={y} r="3.5" fill="#C8F135" />;
+              return <circle key={i} cx={x} cy={y} r="3.5" style={{ fill: 'var(--fg-10b981)' }} />;
  
             })}
  
@@ -258,7 +258,7 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
         ) : (
  
-          <p style={{ fontSize: '11px', color: '#8A919C', margin: '4px 0' }}>Un solo valore registrato: il grafico comparirà dal secondo aggiornamento.</p>
+          <p style={{ fontSize: '11px', color: 'var(--fg-94a3b8)', margin: '4px 0' }}>Un solo valore registrato: il grafico comparirà dal secondo aggiornamento.</p>
  
         )}
  
@@ -266,13 +266,13 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
           {pts.map((p: any, i: number) => (
  
-            <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#2D3238', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: '#C9CED6' }}>
+            <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: 'var(--fg-475569)' }}>
  
               {new Date(p.recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}: <strong>{p.value}</strong>
  
               {onDelete && p.id && (
  
-                <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: '#F87171', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
+                <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: 'var(--fg-ef4444)', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
  
               )}
  
@@ -292,7 +292,7 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
   if (blocks.length === 0) {
  
-    return <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio.</p>;
+    return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio.</p>;
  
   }
  
@@ -304,9 +304,9 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
 function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points: any[]; lowerIsBetter?: boolean; unit: string; onDelete?: (id: string) => void }) {
  
-  if (!points) return <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '8px 0 0 0' }}>Caricamento...</p>;
+  if (!points) return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Caricamento...</p>;
  
-  if (points.length === 0) return <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
+  if (points.length === 0) return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
  
  
  
@@ -348,13 +348,13 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
  
   return (
  
-    <div style={{ marginTop: '10px', background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px' }}>
+    <div style={{ marginTop: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px' }}>
  
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
  
-        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#F2F3F5' }}>Record attuale</span>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>Record attuale</span>
  
-        <span style={{ fontSize: '12px', fontWeight: 'bold', color: improved ? '#C8F135' : '#9AA1AB' }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: improved ? 'var(--fg-10b981)' : 'var(--fg-64748b)' }}>
  
           {fmt(lowerIsBetter ? minV : maxV)}
  
@@ -366,15 +366,15 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
  
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '70px', display: 'block' }}>
  
-          <polyline points={points.map((p: any, i: number) => { const { x, y } = xy(p, i); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ')} fill="none" stroke="#C8F135" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          <polyline points={points.map((p: any, i: number) => { const { x, y } = xy(p, i); return `${x.toFixed(1)},${y.toFixed(1)}`; }).join(' ')} fill="none" style={{ stroke: 'var(--fg-10b981)' }} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
  
-          {points.map((p: any, i: number) => { const { x, y } = xy(p, i); return <circle key={i} cx={x} cy={y} r="3.5" fill="#C8F135" />; })}
+          {points.map((p: any, i: number) => { const { x, y } = xy(p, i); return <circle key={i} cx={x} cy={y} r="3.5" style={{ fill: 'var(--fg-10b981)' }} />; })}
  
         </svg>
  
       ) : (
  
-        <p style={{ fontSize: '11px', color: '#8A919C', margin: '4px 0' }}>Il grafico comparirà dal secondo valore registrato.</p>
+        <p style={{ fontSize: '11px', color: 'var(--fg-94a3b8)', margin: '4px 0' }}>Il grafico comparirà dal secondo valore registrato.</p>
  
       )}
  
@@ -382,13 +382,13 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
  
         {points.map((p: any, i: number) => (
  
-          <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#2D3238', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: '#C9CED6' }}>
+          <span key={p.id || i} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '20px', padding: '2px 6px 2px 8px', fontSize: '10px', color: 'var(--fg-475569)' }}>
  
             {new Date(p.recorded_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}: <strong>{fmt(Number(p.value))}</strong>
  
             {onDelete && p.id && (
  
-              <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: '#F87171', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
+              <button onClick={() => onDelete(p.id)} title="Elimina questo valore" style={{ background: 'none', border: 'none', color: 'var(--fg-ef4444)', cursor: 'pointer', fontSize: '12px', lineHeight: 1, padding: '0 2px' }}>×</button>
  
             )}
  
@@ -518,11 +518,11 @@ function getProgramDateStatus(startDate: any, endDate: any) {
  
     const diff = Math.round((end.getTime() - today.getTime()) / 86400000);
  
-    if (diff < 0) return { color: '#F87171', bg: '#2A1517', icon: '⛔', label: 'Scaduto' };
+    if (diff < 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '⛔', label: 'Scaduto' };
  
-    if (diff === 0) return { color: '#F87171', bg: '#2A1517', icon: '⚠️', label: 'Scade oggi' };
+    if (diff === 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '⚠️', label: 'Scade oggi' };
  
-    if (diff <= 7) return { color: '#FCD34D', bg: '#2B2210', icon: '⏳', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
+    if (diff <= 7) return { color: 'var(--fg-b45309)', bg: 'var(--bg-fef3c7)', icon: '⏳', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
  
   }
  
@@ -530,13 +530,13 @@ function getProgramDateStatus(startDate: any, endDate: any) {
  
   if (start && start.getTime() > today.getTime()) {
  
-    return { color: '#93C5FD', bg: '#0F2236', icon: '🕒', label: 'Non ancora iniziato' };
+    return { color: 'var(--fg-1d4ed8)', bg: 'var(--bg-dbeafe)', icon: '🕒', label: 'Non ancora iniziato' };
  
   }
  
  
  
-  return { color: '#86EFAC', bg: '#16281D', icon: '📅', label: '' };
+  return { color: 'var(--fg-047857)', bg: 'var(--bg-d1fae5)', icon: '📅', label: '' };
  
 }
  
@@ -664,7 +664,7 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
             onClick={(e) => e.stopPropagation()}
  
-            style={{ color: '#38BDF8', fontWeight: 'bold', textDecoration: 'underline' }}
+            style={{ color: 'var(--fg-0284c7)', fontWeight: 'bold', textDecoration: 'underline' }}
  
           >
  
@@ -980,9 +980,9 @@ function numberToRounds(n: number): string {
  
 function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
-  const box: React.CSSProperties = { width: '58px', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' };
+  const box: React.CSSProperties = { width: '58px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center' };
  
-  const sep: React.CSSProperties = { fontWeight: 'bold', color: '#9AA1AB' };
+  const sep: React.CSSProperties = { fontWeight: 'bold', color: 'var(--fg-64748b)' };
  
   const enter = (e: any) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); };
  
@@ -1550,13 +1550,13 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
     prossima.mancano <= 7
  
-      ? { bg: '#2A1517', bordo: '#f87171', testo: '#FCA5A5', forte: '#F87171' }
+      ? { bg: 'var(--bg-fef2f2)', bordo: '#f87171', testo: 'var(--fg-991b1b)', forte: 'var(--fg-dc2626)' }
  
       : prossima.mancano <= 30
  
-        ? { bg: '#2A1B0F', bordo: '#7C4A1E', testo: '#FDBA74', forte: '#FB923C' }
+        ? { bg: 'var(--bg-fff7ed)', bordo: 'var(--bd-fdba74)', testo: 'var(--fg-9a3412)', forte: 'var(--fg-ea580c)' }
  
-        : { bg: '#16281D', bordo: '#2F7D4B', testo: '#86EFAC', forte: '#4ADE80' };
+        : { bg: 'var(--bg-f0fdf4)', bordo: 'var(--bd-86efac)', testo: 'var(--fg-166534)', forte: 'var(--fg-16a34a)' };
  
  
  
@@ -1602,7 +1602,7 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
       {dopo.length > 0 && (
  
-        <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginTop: '9px', paddingTop: '8px', borderTop: `1px solid ${stile.bordo}` }}>
+        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '9px', paddingTop: '8px', borderTop: `1px solid ${stile.bordo}` }}>
  
           poi: {dopo.map((g: any) => `${g.name} (${formatDateToIT(g.event_date)})`).join(' · ')}
  
@@ -1854,7 +1854,7 @@ function costruisciFasi(cfg: any): any[] {
  
   if (cfg.tipo === 'recupero') {
  
-    return [{ nome: 'Recupero', secondi: cfg.secondi, colore: '#38BDF8', round: null }];
+    return [{ nome: 'Recupero', secondi: cfg.secondi, colore: 'var(--fg-0284c7)', round: null }];
  
   }
  
@@ -1866,11 +1866,11 @@ function costruisciFasi(cfg: any): any[] {
  
     for (let r = 1; r <= cfg.round; r++) {
  
-      fasi.push({ nome: 'Lavoro', secondi: cfg.lavoro, colore: '#C8F135', round: r });
+      fasi.push({ nome: 'Lavoro', secondi: cfg.lavoro, colore: 'var(--fg-10b981)', round: r });
  
       if (cfg.riposo > 0 && r < cfg.round) {
  
-        fasi.push({ nome: 'Recupero', secondi: cfg.riposo, colore: '#38BDF8', round: r });
+        fasi.push({ nome: 'Recupero', secondi: cfg.riposo, colore: 'var(--fg-0284c7)', round: r });
  
       }
  
@@ -1888,7 +1888,7 @@ function costruisciFasi(cfg: any): any[] {
  
     for (let r = 1; r <= cfg.round; r++) {
  
-      fasi.push({ nome: `Minuto ${r}`, secondi: cfg.durata, colore: '#C8F135', round: r });
+      fasi.push({ nome: `Minuto ${r}`, secondi: cfg.durata, colore: 'var(--fg-10b981)', round: r });
  
     }
  
@@ -1912,9 +1912,9 @@ function costruisciFasi(cfg: any): any[] {
  
     for (let r = 1; r <= 8; r++) {
  
-      fasi.push({ nome: 'Lavoro', secondi: 20, colore: '#C8F135', round: r });
+      fasi.push({ nome: 'Lavoro', secondi: 20, colore: 'var(--fg-10b981)', round: r });
  
-      fasi.push({ nome: 'Recupero', secondi: 10, colore: '#38BDF8', round: r });
+      fasi.push({ nome: 'Recupero', secondi: 10, colore: 'var(--fg-0284c7)', round: r });
  
     }
  
@@ -2020,7 +2020,7 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
         onChange={(e: any) => { onChange(e.target.value); valutaSpazio(); setAperta(true); }}
  
-        style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px' }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
       />
  
@@ -2036,7 +2036,7 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
             ...(sopra ? { bottom: 'calc(100% + 4px)' } : { top: 'calc(100% + 4px)' }),
  
-            background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px',
+            background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px',
  
             boxShadow: '0 8px 20px rgba(0,0,0,0.18)', maxHeight: '240px', overflowY: 'auto',
  
@@ -2062,9 +2062,9 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
                 padding: '12px 12px', border: 'none', background: 'none', cursor: 'pointer',
  
-                fontSize: '14.5px', color: '#F2F3F5',
+                fontSize: '14.5px', color: 'var(--fg-000000)',
  
-                borderBottom: i < suggeriti.length - 1 ? '1px solid rgba(242,243,245,0.08)' : 'none',
+                borderBottom: i < suggeriti.length - 1 ? '1px solid var(--bd-f1f5f9)' : 'none',
  
               }}
  
@@ -2110,17 +2110,17 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
         onClick={(e: any) => e.stopPropagation()}
  
-        style={{ background: '#23282E', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '82vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '82vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
  
       >
  
-        <div style={{ padding: '16px 18px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+        <div style={{ padding: '16px 18px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-          <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px' }}>PROGRESSI DI CARICO</span>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>PROGRESSI DI CARICO</span>
  
-          <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#F2F3F5', marginTop: '2px', overflowWrap: 'anywhere' }}>{titolo}</span>
+          <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>{titolo}</span>
  
-          <span style={{ display: 'block', fontSize: '13px', color: dati.migliorati > 0 ? '#86EFAC' : '#9AA1AB', fontWeight: 'bold', marginTop: '6px' }}>
+          <span style={{ display: 'block', fontSize: '13px', color: dati.migliorati > 0 ? 'var(--fg-047857)' : 'var(--fg-64748b)', fontWeight: 'bold', marginTop: '6px' }}>
  
             {perAtleta
  
@@ -2144,7 +2144,7 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
             <div key={i} style={{ marginBottom: '14px' }}>
  
-              <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: '#F2F3F5', marginBottom: '5px', overflowWrap: 'anywhere' }}>
+              <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', marginBottom: '5px', overflowWrap: 'anywhere' }}>
  
                 {ex.nome}
  
@@ -2152,15 +2152,15 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
               {ex.righe.map((r: any, k: number) => {
  
-                const colore = r.diff > 0 ? '#86EFAC' : r.diff < 0 ? '#F87171' : '#9AA1AB';
+                const colore = r.diff > 0 ? 'var(--fg-047857)' : r.diff < 0 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)';
  
-                const sfondo = r.diff > 0 ? '#E5E7EB' : r.diff < 0 ? '#FEE2E2' : '#1B1E22';
+                const sfondo = r.diff > 0 ? 'var(--fg-ecfdf5)' : r.diff < 0 ? 'var(--fg-fef2f2)' : 'var(--fg-f8fafc)';
  
                 return (
  
                   <div key={k} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', background: sfondo, borderRadius: '7px', padding: '8px 10px', marginBottom: '5px', flexWrap: 'wrap' }}>
  
-                    <span style={{ fontSize: '12.5px', color: '#E5E7EB' }}>
+                    <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)' }}>
  
                       <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
  
@@ -2186,7 +2186,7 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
           {dati.esclusi > 0 && (
  
-            <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#8A919C', lineHeight: 1.5 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--fg-94a3b8)', lineHeight: 1.5 }}>
  
               {dati.esclusi} {dati.esclusi === 1 ? 'serie esclusa' : 'serie escluse'} dal confronto: per essere confrontabili servono almeno due volte lo stesso esercizio con lo stesso numero di ripetizioni.
  
@@ -2198,9 +2198,9 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
  
  
-        <div style={{ padding: '12px 18px', borderTop: '1px solid rgba(242,243,245,0.12)' }}>
+        <div style={{ padding: '12px 18px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-          <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
             Chiudi
  
@@ -2302,27 +2302,27 @@ function RiepilogoScore({ punteggio, note }: { punteggio: string; note: string }
  
   return (
  
-    <div style={{ background: '#23282E', border: '1px solid #2F7D4B', borderRadius: '8px', padding: '9px 11px' }}>
+    <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-bbf7d0)', borderRadius: '8px', padding: '9px 11px' }}>
  
       {punteggio && (parti ? (
  
         <>
  
-          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: '#86EFAC' }}>{parti[1]}</span>
+          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{parti[1]}</span>
  
-          <span style={{ display: 'block', fontSize: '11.5px', color: '#9AA1AB', marginTop: '2px', overflowWrap: 'anywhere' }}>{parti[2]}</span>
+          <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{parti[2]}</span>
  
         </>
  
       ) : (
  
-        <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: '#86EFAC', overflowWrap: 'anywhere' }}>{punteggio}</span>
+        <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)', overflowWrap: 'anywhere' }}>{punteggio}</span>
  
       ))}
  
       {note && (
  
-        <p style={{ overflowWrap: 'anywhere', margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: '#C9CED6', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{note}</p>
+        <p style={{ overflowWrap: 'anywhere', margin: punteggio ? '5px 0 0 0' : 0, fontSize: '12px', color: 'var(--fg-475569)', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{note}</p>
  
       )}
  
@@ -2446,19 +2446,19 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
         onClick={(e: any) => e.stopPropagation()}
  
-        style={{ background: '#23282E', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
  
       >
  
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-          <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px' }}>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>
  
             LA TUA SUPERSERIE
  
           </span>
  
-          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#F2F3F5', marginTop: '2px', overflowWrap: 'anywhere' }}>
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>
  
             {blk?.name || 'Superserie'}{nRound > 1 ? ` \u00b7 ${nRound} round` : ''}
  
@@ -2472,7 +2472,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
           {items.length === 0 && (
  
-            <p style={{ fontSize: '12.5px', color: '#9AA1AB', margin: 0 }}>
+            <p style={{ fontSize: '12.5px', color: 'var(--fg-64748b)', margin: 0 }}>
  
               Questa superserie non ha ancora esercizi.
  
@@ -2486,13 +2486,13 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
             <div key={i} style={{ marginBottom: '13px' }}>
  
-              <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 'bold', color: '#E5E7EB', overflowWrap: 'anywhere' }}>
+              <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere' }}>
  
                 {it.name || `Esercizio ${i + 1}`}
  
-                {it.value ? <span style={{ color: '#8A919C', fontWeight: 'normal' }}>{` \u00b7 ${it.value}`}</span> : null}
+                {it.value ? <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>{` \u00b7 ${it.value}`}</span> : null}
  
-                {it.scoreUnit && SCORE_UNITS[it.scoreUnit] ? <span style={{ color: '#C8F135', fontWeight: 'normal' }}>{` \u00b7 ${SCORE_UNITS[it.scoreUnit].nome}`}</span> : null}
+                {it.scoreUnit && SCORE_UNITS[it.scoreUnit] ? <span style={{ color: 'var(--fg-059669)', fontWeight: 'normal' }}>{` \u00b7 ${SCORE_UNITS[it.scoreUnit].nome}`}</span> : null}
  
               </span>
  
@@ -2506,7 +2506,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                     {nRound > 1 && (
  
-                      <span style={{ display: 'block', fontSize: '9.5px', color: '#8A919C', fontWeight: 'bold', marginBottom: '2px', textAlign: 'center' }}>
+                      <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', fontWeight: 'bold', marginBottom: '2px', textAlign: 'center' }}>
  
                         {`Round ${r + 1}`}
  
@@ -2534,7 +2534,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                       onChange={(e: any) => scrivi(i, r, e.target.value)}
  
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '10px 4px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '15px', fontWeight: 'bold', textAlign: 'center' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '10px 4px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '15px', fontWeight: 'bold', textAlign: 'center' }}
  
                     />
  
@@ -2552,7 +2552,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
  
  
-          <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', display: 'block', margin: '4px 0 5px 0' }}>
+          <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', margin: '4px 0 5px 0' }}>
  
             Note personali
  
@@ -2568,7 +2568,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
             onChange={(e: any) => setNoteLocali(e.target.value)}
  
-            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
  
           />
  
@@ -2576,13 +2576,13 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
  
  
-        <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(242,243,245,0.12)', display: 'flex', gap: '8px' }}>
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
           <button
  
             onClick={() => onSalva(riepilogo, noteLocali, JSON.stringify(valori))}
  
-            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
  
           >
  
@@ -2594,7 +2594,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
             onClick={onClose}
  
-            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
  
           >
  
@@ -2626,17 +2626,17 @@ function SpuntaFatta({ fatto, onChange }: any) {
  
       onClick={() => onChange(fatto ? '' : 'si')}
  
-      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '999px', cursor: 'pointer', marginTop: '9px', border: fatto ? '2px solid #C8F135' : '1px solid rgba(242,243,245,0.16)', background: fatto ? '#16281D' : '#23282E' }}
+      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '999px', cursor: 'pointer', marginTop: '9px', border: fatto ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: fatto ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
     >
  
-      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: fatto ? '#101214' : '#fff', background: fatto ? '#C8F135' : '#343A42' }}>
+      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: fatto ? 'var(--onacc)' : '#fff', background: fatto ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)' }}>
  
         {fatto ? '\u2713' : ''}
  
       </span>
  
-      <span style={{ fontSize: '13px', fontWeight: 'bold', color: fatto ? '#86EFAC' : '#E5E7EB' }}>
+      <span style={{ fontSize: '13px', fontWeight: 'bold', color: fatto ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
  
         {fatto ? 'Completata' : 'Segna come fatta'}
  
@@ -2664,7 +2664,7 @@ function SelettoreScoreItem({ valore, onChange }: any) {
  
       title="Come si scrive il risultato di questo esercizio"
  
-      style={{ width: '100%', boxSizing: 'border-box', padding: '9px 8px', marginBottom: '7px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '13px' }}
+      style={{ width: '100%', boxSizing: 'border-box', padding: '9px 8px', marginBottom: '7px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }}
  
     >
  
@@ -2692,9 +2692,9 @@ function SelettoreModoSuperserie({ valore, onChange }: any) {
  
   return (
  
-    <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '8px' }}>
+    <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
  
-      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>RISULTATO DELLA SUPERSERIE</label>
+      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RISULTATO DELLA SUPERSERIE</label>
  
       <select
  
@@ -2702,7 +2702,7 @@ function SelettoreModoSuperserie({ valore, onChange }: any) {
  
         onChange={(e) => onChange(e.target.value)}
  
-        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '13px' }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '13px' }}
  
       >
  
@@ -2764,7 +2764,7 @@ function CampoNote({ valore, onSalva }: any) {
  
       }}
  
-      style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+      style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
  
     />
  
@@ -2820,9 +2820,9 @@ function SelettoreScore({ valore, onChange }: any) {
  
   return (
  
-    <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '8px' }}>
+    <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
  
-      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>TIPO DI SCORE</label>
+      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>TIPO DI SCORE</label>
  
       <select
  
@@ -2830,7 +2830,7 @@ function SelettoreScore({ valore, onChange }: any) {
  
         onChange={(e) => onChange(e.target.value)}
  
-        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '13px' }}
+        style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '13px' }}
  
       >
  
@@ -2916,9 +2916,9 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
   const solo = (t: string, max: number) => t.replace(/[^0-9]/g, '').slice(0, max);
  
-  const box: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' };
+  const box: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' };
  
-  const etich: React.CSSProperties = { display: 'block', fontSize: '9px', color: '#8A919C', textAlign: 'center', marginTop: '2px', letterSpacing: '0.5px' };
+  const etich: React.CSSProperties = { display: 'block', fontSize: '9px', color: 'var(--fg-94a3b8)', textAlign: 'center', marginTop: '2px', letterSpacing: '0.5px' };
  
   return (
  
@@ -2946,7 +2946,7 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
       </div>
  
-      <span style={{ fontWeight: 'bold', color: '#9AA1AB', paddingTop: '11px' }}>{sep}</span>
+      <span style={{ fontWeight: 'bold', color: 'var(--fg-64748b)', paddingTop: '11px' }}>{sep}</span>
  
       <div style={{ flex: 1, minWidth: 0 }}>
  
@@ -3028,9 +3028,9 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
           padding: '12px 20px', borderRadius: '999px', border: 'none',
  
-          background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)',
+          background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)',
  
-          color: '#101214', fontWeight: 'bold', fontSize: '14px',
+          color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px',
  
           cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.5)',
  
@@ -3062,19 +3062,19 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
         onClick={(e: any) => e.stopPropagation()}
  
-        style={{ background: '#23282E', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+        style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
  
       >
  
-        <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-          <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px' }}>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>
  
             I TUOI RISULTATI
  
           </span>
  
-          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#F2F3F5', marginTop: '2px', overflowWrap: 'anywhere' }}>
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>
  
             {blk?.name || 'Esercizio'}
  
@@ -3090,7 +3090,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '9px' }}>
  
-              <span style={{ width: '74px', flexShrink: 0, fontSize: '12px', color: '#9AA1AB', fontWeight: 'bold' }}>
+              <span style={{ width: '74px', flexShrink: 0, fontSize: '12px', color: 'var(--fg-64748b)', fontWeight: 'bold' }}>
  
                 {serie.length === 1
  
@@ -3098,7 +3098,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
                   : (blk?.type === 'wod' || blk?.type === 'test' ? `Round ${i + 1}` : `${i + 1}ª serie`)}
  
-                {s.reps ? <span style={{ display: 'block', fontSize: '10px', color: '#8A919C', fontWeight: 'normal' }}>{s.reps} rip</span> : null}
+                {s.reps ? <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>{s.reps} rip</span> : null}
  
               </span>
  
@@ -3146,7 +3146,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
                 }}
  
-                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
+                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' }}
  
               />
  
@@ -3160,7 +3160,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
           {serie.length > 1 && (
  
-            <p style={{ fontSize: '10.5px', color: '#8A919C', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
+            <p style={{ fontSize: '10.5px', color: 'var(--fg-94a3b8)', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
  
               {blk?.type === 'wod' || blk?.type === 'test'
  
@@ -3176,7 +3176,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
  
  
-          <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '5px' }}>
+          <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '5px' }}>
  
             Note personali
  
@@ -3192,7 +3192,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
             onChange={(e: any) => setNoteLocali(e.target.value)}
  
-            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
+            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13.5px', fontFamily: 'inherit', resize: 'vertical' }}
  
           />
  
@@ -3202,7 +3202,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
             onClick={() => setNascosto(true)}
  
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', margin: '14px auto 0 auto', padding: '9px 18px', borderRadius: '999px', border: '1px solid rgba(242,243,245,0.16)', background: '#1B1E22', color: '#C9CED6', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', margin: '14px auto 0 auto', padding: '9px 18px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f8fafc)', color: 'var(--fg-475569)', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
           >
  
@@ -3214,13 +3214,13 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
  
  
-        <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(242,243,245,0.12)', display: 'flex', gap: '8px' }}>
+        <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
           <button
  
             onClick={() => onSalva(riepilogo, noteLocali)}
  
-            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+            style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
  
           >
  
@@ -3232,7 +3232,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
             onClick={onClose}
  
-            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
+            style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}
  
           >
  
@@ -3296,9 +3296,9 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
     width: '100%', boxSizing: 'border-box', textAlign: 'center',
  
-    fontSize: '26px', fontWeight: 'bold', color: '#fff', background: '#23282E',
+    fontSize: '26px', fontWeight: 'bold', color: '#fff', background: 'var(--bg-26262a)',
  
-    border: '1px solid rgba(242,243,245,0.14)', borderRadius: '10px', padding: '11px 4px',
+    border: '1px solid var(--bd-3a3a40)', borderRadius: '10px', padding: '11px 4px',
  
   };
  
@@ -3306,7 +3306,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
   const etich: React.CSSProperties = {
  
-    display: 'block', fontSize: '10px', color: '#8A919C',
+    display: 'block', fontSize: '10px', color: 'var(--fg-71717a)',
  
     textAlign: 'center', marginTop: '3px', letterSpacing: '0.5px',
  
@@ -3318,7 +3318,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
     <div style={{ marginBottom: '16px' }}>
  
-      <span style={{ display: 'block', fontSize: '12px', color: '#9AA1AB', marginBottom: '7px' }}>{etichetta}</span>
+      <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-a1a1aa)', marginBottom: '7px' }}>{etichetta}</span>
  
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
  
@@ -3348,7 +3348,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
  
  
-        <span style={{ fontSize: '26px', fontWeight: 'bold', color: '#8A919C', paddingTop: '10px' }}>:</span>
+        <span style={{ fontSize: '26px', fontWeight: 'bold', color: 'var(--fg-71717a)', paddingTop: '10px' }}>:</span>
  
  
  
@@ -3414,7 +3414,7 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
     padding: '12px 15px', borderRadius: '10px', border: 'none',
  
-    background: '#343A42', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+    background: 'var(--bg-3a3a40)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   };
  
@@ -3424,7 +3424,7 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
     <div style={{ marginBottom: '16px' }}>
  
-      <span style={{ display: 'block', fontSize: '12px', color: '#9AA1AB', marginBottom: '7px' }}>{etichetta}</span>
+      <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-a1a1aa)', marginBottom: '7px' }}>{etichetta}</span>
  
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
@@ -3444,7 +3444,7 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
           onBlur={() => { const n = parseInt(testo, 10); applica(isNaN(n) ? min : n); }}
  
-          style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', borderRadius: '10px', padding: '11px 4px' }}
+          style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', textAlign: 'center', fontSize: '22px', fontWeight: 'bold', color: '#fff', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', borderRadius: '10px', padding: '11px 4px' }}
  
         />
  
@@ -4052,7 +4052,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     : (!libero && !attivo && preparazione === null && fase >= fasi.length - 1 && restano === 0 && fasi.length > 0);
  
-  const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? '#E5E7EB' : (faseCorrente?.colore || '#C8F135');
+  const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? 'var(--fg-334155)' : (faseCorrente?.colore || 'var(--fg-10b981)');
  
  
  
@@ -4076,9 +4076,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           padding: '12px 20px', borderRadius: '999px', border: 'none',
  
-          background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)',
+          background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)',
  
-          color: '#101214', fontWeight: 'bold', fontSize: '14px',
+          color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px',
  
           cursor: 'pointer', boxShadow: '0 6px 18px rgba(0,0,0,0.5)',
  
@@ -4102,9 +4102,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     const coloreBarra = preparazione !== null ? '#f59e0b'
  
-      : unoAUno ? (r1InLavoro ? '#C8F135' : '#38BDF8')
+      : unoAUno ? (r1InLavoro ? 'var(--fg-10b981)' : 'var(--fg-0284c7)')
  
-      : (faseCorrente?.colore || '#C8F135');
+      : (faseCorrente?.colore || 'var(--fg-10b981)');
  
  
  
@@ -4146,7 +4146,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 5000,
  
-          background: '#0B0C0E', borderBottom: `3px solid ${coloreBarra}`,
+          background: 'var(--bg-18181b)', borderBottom: `3px solid ${coloreBarra}`,
  
           padding: '9px 12px calc(9px) 12px',
  
@@ -4176,7 +4176,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             <span style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: coloreBarra, letterSpacing: '1px' }}>{testoFase}</span>
  
-            {round && <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB' }}>Round {round}</span>}
+            {round && <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-a1a1aa)' }}>Round {round}</span>}
  
           </span>
  
@@ -4186,7 +4186,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         {unoAUno && attivo && r1InLavoro && (
  
-          <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
  
             ✓ Round
  
@@ -4196,15 +4196,15 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         {attivo || preparazione !== null ? (
  
-          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="pausa" size={14} /></button>
+          <button onClick={ferma} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-3a3a40)', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="pausa" size={14} /></button>
  
         ) : (
  
-          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontSize: '13px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
+          <button onClick={avvia} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontSize: '13px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
  
         )}
  
-        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
+        <button onClick={onClose} style={{ padding: '8px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-3a3a40)', color: '#fff', fontSize: '13px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
  
       </div>
  
@@ -4230,7 +4230,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     padding: '14px 22px', borderRadius: '10px', border: 'none', background: bg,
  
-    color: luminosita(bg) > 0.6 ? '#101214' : '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
+color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   });
  
@@ -4264,17 +4264,17 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     const tinta = preparazione !== null ? '#f59e0b'
  
-      : finito ? '#8A919C'
+      : finito ? 'var(--fg-94a3b8)'
  
-      : unoAUno ? (r1InLavoro ? '#C8F135' : '#38BDF8')
+      : unoAUno ? (r1InLavoro ? 'var(--fg-10b981)' : 'var(--fg-0284c7)')
  
-      : (faseCorrente?.colore || '#C8F135');
+      : (faseCorrente?.colore || 'var(--fg-10b981)');
  
  
  
     return (
  
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 5000, background: '#0B0C0E', borderBottom: `2px solid ${tinta}`, boxShadow: '0 4px 14px rgba(0,0,0,0.5)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 5000, background: 'var(--bg-18181b)', borderBottom: `2px solid ${tinta}`, boxShadow: '0 4px 14px rgba(0,0,0,0.5)', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
  
         <button
  
@@ -4292,7 +4292,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             {!libero && !finito && (
  
-              <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB' }}>
+              <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-a1a1aa)' }}>
  
                 {unoAUno
  
@@ -4312,7 +4312,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         {unoAUno && attivo && r1InLavoro && (
  
-          <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
  
             ✓ Round
  
@@ -4322,15 +4322,15 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         {(attivo || preparazione !== null) ? (
  
-          <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
+          <button onClick={ferma} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-3a3a40)', color: '#fff', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>❚❚</button>
  
         ) : (
  
-          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
+          <button onClick={avvia} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="play" size={14} /></button>
  
         )}
  
-        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#9AA1AB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
+        <button onClick={onClose} style={{ padding: '9px 11px', borderRadius: '999px', border: 'none', background: 'var(--bg-3a3a40)', color: 'var(--fg-a1a1aa)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="chiudi" size={14} /></button>
  
       </div>
  
@@ -4346,7 +4346,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     const opzione = (titolo: string, descrizione: string, icona: string, onClick: () => void) => (
  
-      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid rgba(242,243,245,0.14)', background: '#23282E', cursor: 'pointer', marginBottom: '9px' }}>
+      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', cursor: 'pointer', marginBottom: '9px' }}>
  
         <span style={{ fontSize: '24px' }}>{icona}</span>
  
@@ -4354,7 +4354,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
  
-          <span style={{ display: 'block', fontSize: '12px', color: '#9AA1AB', marginTop: '2px' }}>{descrizione}</span>
+          <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-a1a1aa)', marginTop: '2px' }}>{descrizione}</span>
  
         </span>
  
@@ -4370,9 +4370,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         <div style={{ width: '100%', maxWidth: '380px', maxHeight: '85vh', overflowY: 'auto' }}>
  
-          <h3 style={{ color: '#C8F135', margin: '0 0 4px 0', fontSize: '19px' }}>Scegli il timer</h3>
+          <h3 style={{ color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '19px' }}>Scegli il timer</h3>
  
-          <p style={{ color: '#9AA1AB', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
+          <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
  
  
  
@@ -4402,7 +4402,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
               borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
-              background: 'rgba(255,255,255,0.07)', color: '#C9CED6',
+              background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
  
               fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer',
  
@@ -4414,7 +4414,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           </button>
  
-          <button onClick={onClose} style={{ ...btn('#343A42'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
+          <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
  
         </div>
  
@@ -4448,7 +4448,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         <div style={{ width: '100%', maxWidth: '340px', maxHeight: '85vh', overflowY: 'auto' }}>
  
-          <h3 style={{ color: '#C8F135', margin: '0 0 16px 0', fontSize: '19px' }}>
+          <h3 style={{ color: 'var(--fg-10b981)', margin: '0 0 16px 0', fontSize: '19px' }}>
  
             {scelta.tipo === 'emom' ? 'EMOM' : scelta.tipo === 'amrap' ? 'AMRAP' : scelta.tipo === 'unoauno' ? 'Rest 1:1' : scelta.tipo === 'recupero' ? 'Recupero' : 'Intervalli'}
  
@@ -4460,7 +4460,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             <>
  
-              <p style={{ fontSize: '12px', color: '#9AA1AB', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+              <p style={{ fontSize: '12px', color: 'var(--fg-a1a1aa)', lineHeight: 1.5, margin: '0 0 14px 0' }}>
  
                 Il tempo scritto nella scheda non è in un formato leggibile: impostalo qui.
  
@@ -4492,7 +4492,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           {scelta.tipo === 'unoauno' && (
  
-            <p style={{ fontSize: '12px', color: '#9AA1AB', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+            <p style={{ fontSize: '12px', color: 'var(--fg-a1a1aa)', lineHeight: 1.5, margin: '0 0 14px 0' }}>
  
               Il cronometro sale mentre lavori. Quando chiudi il round, il recupero parte con la stessa durata che ci hai messo.
  
@@ -4520,7 +4520,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
                 : { tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound })}
  
-              style={{ ...btn('#C8F135'), flex: 1 }}
+              style={{ ...btn('var(--fg-10b981)'), flex: 1 }}
  
             >
  
@@ -4528,7 +4528,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             </button>
  
-            <button onClick={() => setScelta(null)} style={btn('#343A42')}>Indietro</button>
+            <button onClick={() => setScelta(null)} style={btn('var(--btn-neutro)')}>Indietro</button>
  
           </div>
  
@@ -4546,7 +4546,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
               borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
-              background: 'rgba(255,255,255,0.07)', color: '#C9CED6',
+              background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
  
               fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer',
  
@@ -4594,7 +4594,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           <>
  
-            <span style={{ display: 'block', fontSize: '24px', color: unoAUno ? (r1InLavoro ? '#C8F135' : '#38BDF8') : coloreSfondo, letterSpacing: '4px', marginBottom: '10px', fontWeight: 'bold' }}>
+            <span style={{ display: 'block', fontSize: '24px', color: unoAUno ? (r1InLavoro ? 'var(--fg-10b981)' : 'var(--fg-0284c7)') : coloreSfondo, letterSpacing: '4px', marginBottom: '10px', fontWeight: 'bold' }}>
  
               {finito ? 'FINITO'
  
@@ -4610,7 +4610,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             {unoAUno && !finito && (
  
-              <span style={{ display: 'block', fontSize: '19px', color: '#E5E7EB', marginBottom: '14px', fontWeight: 'bold' }}>
+              <span style={{ display: 'block', fontSize: '19px', color: 'var(--fg-e4e4e7)', marginBottom: '14px', fontWeight: 'bold' }}>
  
                 Round {Math.min(r1Round, scelta.round)} di {scelta.round}
  
@@ -4624,7 +4624,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             {!unoAUno && totaleRound && faseCorrente?.round && !finito && (
  
-              <span style={{ display: 'block', fontSize: '19px', color: '#E5E7EB', marginBottom: '14px', fontWeight: 'bold' }}>
+              <span style={{ display: 'block', fontSize: '19px', color: 'var(--fg-e4e4e7)', marginBottom: '14px', fontWeight: 'bold' }}>
  
                 Round {faseCorrente.round} di {totaleRound}
  
@@ -4648,7 +4648,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
                 onClick={chiudiRound}
  
-                style={{ marginTop: '26px', padding: '19px 34px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '20px', cursor: 'pointer' }}
+                style={{ marginTop: '26px', padding: '19px 34px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '20px', cursor: 'pointer' }}
  
               >
  
@@ -4680,7 +4680,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
             <div style={{ marginTop: '22px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '12px', textAlign: 'left', maxHeight: finito ? '46vh' : '26vh', overflowY: 'auto' }}>
  
-              <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '1px', marginBottom: '8px' }}>
+              <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-a1a1aa)', letterSpacing: '1px', marginBottom: '8px' }}>
  
                 {finito ? 'RESOCONTO' : 'ROUND COMPLETATI'}
  
@@ -4692,9 +4692,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '5px 0', borderBottom: i < giri.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
  
-                  <span style={{ fontSize: '12px', color: '#C9CED6' }}>Round {g.round}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--fg-d4d4d8)' }}>Round {g.round}</span>
  
-                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: giri.length > 1 && g.secondi === migliore ? '#C8F135' : giri.length > 1 && g.secondi === peggiore ? '#f87171' : '#fff', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: giri.length > 1 && g.secondi === migliore ? 'var(--fg-10b981)' : giri.length > 1 && g.secondi === peggiore ? '#f87171' : '#fff', fontVariantNumeric: 'tabular-nums' }}>
  
                     {mmss(g.secondi)}
  
@@ -4712,7 +4712,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
                   onClick={() => { const tot = giri.reduce((a: number, g: any) => a + g.secondi, 0); onSalvaTempi(`${mmss(tot)} (${giri.map((g: any) => mmss(g.secondi)).join(' / ')})`); }}
  
-                  style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '10px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginTop: '10px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
  
                 >
  
@@ -4728,11 +4728,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
                 <div style={{ marginTop: '9px', paddingTop: '9px', borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
  
-                  <span style={{ fontSize: '11px', color: '#9AA1AB' }}>Totale <strong style={{ color: '#fff' }}>{mmss(totale)}</strong></span>
+                  <span style={{ fontSize: '11px', color: 'var(--fg-a1a1aa)' }}>Totale <strong style={{ color: '#fff' }}>{mmss(totale)}</strong></span>
  
-                  <span style={{ fontSize: '11px', color: '#9AA1AB' }}>Media <strong style={{ color: '#fff' }}>{mmss(medio)}</strong></span>
+                  <span style={{ fontSize: '11px', color: 'var(--fg-a1a1aa)' }}>Media <strong style={{ color: '#fff' }}>{mmss(medio)}</strong></span>
  
-                  <span style={{ fontSize: '11px', color: '#9AA1AB' }}>Migliore <strong style={{ color: '#C8F135' }}>{mmss(migliore)}</strong></span>
+                  <span style={{ fontSize: '11px', color: 'var(--fg-a1a1aa)' }}>Migliore <strong style={{ color: 'var(--fg-10b981)' }}>{mmss(migliore)}</strong></span>
  
                 </div>
  
@@ -4750,7 +4750,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           {!attivo && preparazione === null && (
  
-            <button onClick={avvia} style={btn('#C8F135')}>
+            <button onClick={avvia} style={btn('var(--fg-10b981)')}>
  
               {finito || trascorsi > 0 || (restano > 0 && restano < (fasi[0]?.secondi || 0)) ? 'Riparti' : 'Avvia'}
  
@@ -4762,19 +4762,19 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
           {!attivo && preparazione === null && (trascorsi > 0 || fase > 0 || finito) && (
  
-            <button onClick={azzera} style={btn('#343A42')}>Azzera</button>
+            <button onClick={azzera} style={btn('var(--btn-neutro)')}>Azzera</button>
  
           )}
  
           <button onClick={() => setRidotto(true)} style={btn('#0284c7')}><Icona nome="riduci" size={15} /> Riduci</button>
  
-          <button onClick={onClose} style={btn('#343A42')}>Chiudi</button>
+          <button onClick={onClose} style={btn('var(--btn-neutro)')}>Chiudi</button>
  
         </div>
  
  
  
-        <p style={{ fontSize: '11px', color: '#8A919C', marginTop: '14px', lineHeight: 1.45 }}>
+        <p style={{ fontSize: '11px', color: 'var(--fg-71717a)', marginTop: '14px', lineHeight: 1.45 }}>
  
           Con &quot;Riduci&quot; il timer diventa una barra in alto e continua a correre: sotto puoi leggere la scheda e inserire i risultati.
  
@@ -4790,19 +4790,661 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
  
  
-// Luminosità di un colore esadecimale da 0 (nero) a 1 (bianco): serve a scegliere
+const VARS_CLASSICO: { [k: string]: string } = {
  
-// se sopra un riempimento va il testo scuro o quello chiaro.
+  '--acc-rgb': '16,185,129',
  
-function luminosita(hex: string): number {
+  '--bd-10b981': '#10b981',
  
-  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || ''));
+  '--bd-18181b': '#18181b',
  
-  if (!m) return 0;
+  '--bd-26262a': '#26262a',
+ 
+  '--bd-2a2a2e': '#2a2a2e',
+ 
+  '--bd-2e2e33': '#2e2e33',
+ 
+  '--bd-3a3a40': '#3a3a40',
+ 
+  '--bd-3f3f46': '#3f3f46',
+ 
+  '--bd-6ee7b7': '#6ee7b7',
+ 
+  '--bd-7f1d1d': '#7f1d1d',
+ 
+  '--bd-86efac': '#86efac',
+ 
+  '--bd-93c5fd': '#93c5fd',
+ 
+  '--bd-a7f3d0': '#a7f3d0',
+ 
+  '--bd-bbf7d0': '#bbf7d0',
+ 
+  '--bd-bfdbfe': '#bfdbfe',
+ 
+  '--bd-cbd5e1': '#cbd5e1',
+ 
+  '--bd-d4d4d8': '#d4d4d8',
+ 
+  '--bd-d8dde3': '#d8dde3',
+ 
+  '--bd-dbe3ec': '#dbe3ec',
+ 
+  '--bd-ddd6fe': '#ddd6fe',
+ 
+  '--bd-e0a80c': '#e0a80c',
+ 
+  '--bd-e2e8f0': '#e2e8f0',
+ 
+  '--bd-e6ebf2': '#e6ebf2',
+ 
+  '--bd-f1f5f9': '#f1f5f9',
+ 
+  '--bd-facc15': '#facc15',
+ 
+  '--bd-fca5a5': '#fca5a5',
+ 
+  '--bd-fcd34d': '#fcd34d',
+ 
+  '--bd-fdba74': '#fdba74',
+ 
+  '--bd-fde68a': '#fde68a',
+ 
+  '--bd-fecaca': '#fecaca',
+ 
+  '--bg-059669': '#059669',
+ 
+  '--bg-064e3b': '#064e3b',
+ 
+  '--bg-0e8f65': '#0e8f65',
+ 
+  '--bg-0f2e22': '#0f2e22',
+ 
+  '--bg-10b981': '#10b981',
+ 
+  '--bg-18181b': '#18181b',
+ 
+  '--bg-1a1a1d': '#1a1a1d',
+ 
+  '--bg-1c1c20': '#1c1c20',
+ 
+  '--bg-1f2937': '#1f2937',
+ 
+  '--bg-26262a': '#26262a',
+ 
+  '--bg-2e2e33': '#2e2e33',
+ 
+  '--bg-334155': '#334155',
+ 
+  '--bg-3a3a40': '#3a3a40',
+ 
+  '--bg-3f3f46': '#3f3f46',
+ 
+  '--bg-cbd5e1': '#cbd5e1',
+ 
+  '--bg-d1fae5': '#d1fae5',
+ 
+  '--bg-d6e9fb': '#d6e9fb',
+ 
+  '--bg-dbeafe': '#dbeafe',
+ 
+  '--bg-dcfce7': '#dcfce7',
+ 
+  '--bg-e0f2fe': '#e0f2fe',
+ 
+  '--bg-e2e8f0': '#e2e8f0',
+ 
+  '--bg-e8edf3': '#e8edf3',
+ 
+  '--bg-ecfdf5': '#ecfdf5',
+ 
+  '--bg-eef2f7': '#eef2f7',
+ 
+  '--bg-eff6ff': '#eff6ff',
+ 
+  '--bg-f0fdf4': '#f0fdf4',
+ 
+  '--bg-f1f5f9': '#f1f5f9',
+ 
+  '--bg-f4f4f5': '#f4f4f5',
+ 
+  '--bg-f5f3ff': '#f5f3ff',
+ 
+  '--bg-f8fafc': '#f8fafc',
+ 
+  '--bg-fafafa': '#fafafa',
+ 
+  '--bg-fce7f3': '#fce7f3',
+ 
+  '--bg-fdf3d3': '#fdf3d3',
+ 
+  '--bg-fee2e2': '#fee2e2',
+ 
+  '--bg-fef2f2': '#fef2f2',
+ 
+  '--bg-fef3c7': '#fef3c7',
+ 
+  '--bg-fef9c3': '#fef9c3',
+ 
+  '--bg-fff7ed': '#fff7ed',
+ 
+  '--bg-fffbeb': '#fffbeb',
+ 
+  '--bg-ffffff': '#ffffff',
+ 
+  '--btn-neutro': '#3a3a40',
+ 
+  '--cs': 'normal',
+ 
+  '--fg-000000': '#000000',
+ 
+  '--fg-0284c7': '#0284c7',
+ 
+  '--fg-047857': '#047857',
+ 
+  '--fg-059669': '#059669',
+ 
+  '--fg-075985': '#075985',
+ 
+  '--fg-10b981': '#10b981',
+ 
+  '--fg-141416': '#141416',
+ 
+  '--fg-166534': '#166534',
+ 
+  '--fg-16a34a': '#16a34a',
+ 
+  '--fg-1d4ed8': '#1d4ed8',
+ 
+  '--fg-1e3a8a': '#1e3a8a',
+ 
+  '--fg-1e40af': '#1e40af',
+ 
+  '--fg-2563eb': '#2563eb',
+ 
+  '--fg-334155': '#334155',
+ 
+  '--fg-3a3a40': '#3a3a40',
+ 
+  '--fg-3f3f46': '#3f3f46',
+ 
+  '--fg-475569': '#475569',
+ 
+  '--fg-64748b': '#64748b',
+ 
+  '--fg-71717a': '#71717a',
+ 
+  '--fg-78350f': '#78350f',
+ 
+  '--fg-7f1d1d': '#7f1d1d',
+ 
+  '--fg-854d0e': '#854d0e',
+ 
+  '--fg-92400e': '#92400e',
+ 
+  '--fg-94a3b8': '#94a3b8',
+ 
+  '--fg-991b1b': '#991b1b',
+ 
+  '--fg-9a3412': '#9a3412',
+ 
+  '--fg-9d174d': '#9d174d',
+ 
+  '--fg-a16207': '#a16207',
+ 
+  '--fg-a1a1aa': '#a1a1aa',
+ 
+  '--fg-b45309': '#b45309',
+ 
+  '--fg-b91c1c': '#b91c1c',
+ 
+  '--fg-cbd5e1': '#cbd5e1',
+ 
+  '--fg-d4d4d8': '#d4d4d8',
+ 
+  '--fg-dc2626': '#dc2626',
+ 
+  '--fg-e2e8f0': '#e2e8f0',
+ 
+  '--fg-e4e4e7': '#e4e4e7',
+ 
+  '--fg-ea580c': '#ea580c',
+ 
+  '--fg-ecfdf5': '#ecfdf5',
+ 
+  '--fg-ef4444': '#ef4444',
+ 
+  '--fg-f8fafc': '#f8fafc',
+ 
+  '--fg-fef2f2': '#fef2f2',
+ 
+  '--onacc': '#ffffff',
+ 
+  '--onacc-rgb': '255,255,255',
+ 
+};
+ 
+const VARS_SCURO: { [k: string]: string } = {
+ 
+  '--acc-rgb': '200,241,53',
+ 
+  '--bd-10b981': '#C8F135',
+ 
+  '--bd-18181b': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-26262a': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-2a2a2e': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-2e2e33': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-3a3a40': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-3f3f46': 'rgba(242,243,245,0.14)',
+ 
+  '--bd-6ee7b7': '#2F7D4B',
+ 
+  '--bd-7f1d1d': '#7F2A2A',
+ 
+  '--bd-86efac': '#2F7D4B',
+ 
+  '--bd-93c5fd': '#1E4A75',
+ 
+  '--bd-a7f3d0': '#2F7D4B',
+ 
+  '--bd-bbf7d0': '#2F7D4B',
+ 
+  '--bd-bfdbfe': '#1E4A75',
+ 
+  '--bd-cbd5e1': 'rgba(242,243,245,0.16)',
+ 
+  '--bd-d4d4d8': 'rgba(242,243,245,0.2)',
+ 
+  '--bd-d8dde3': 'rgba(242,243,245,0.12)',
+ 
+  '--bd-dbe3ec': 'rgba(242,243,245,0.12)',
+ 
+  '--bd-ddd6fe': '#3F3270',
+ 
+  '--bd-e0a80c': '#8A6A12',
+ 
+  '--bd-e2e8f0': 'rgba(242,243,245,0.12)',
+ 
+  '--bd-e6ebf2': 'rgba(242,243,245,0.12)',
+ 
+  '--bd-f1f5f9': 'rgba(242,243,245,0.08)',
+ 
+  '--bd-facc15': '#8A6A12',
+ 
+  '--bd-fca5a5': '#7F2A2A',
+ 
+  '--bd-fcd34d': '#8A6A12',
+ 
+  '--bd-fdba74': '#7C4A1E',
+ 
+  '--bd-fde68a': '#8A6A12',
+ 
+  '--bd-fecaca': '#7F2A2A',
+ 
+  '--bg-059669': '#B4DA2B',
+ 
+  '--bg-064e3b': '#16281D',
+ 
+  '--bg-0e8f65': '#A8D020',
+ 
+  '--bg-0f2e22': '#16281D',
+ 
+  '--bg-10b981': '#C8F135',
+ 
+  '--bg-18181b': '#0B0C0E',
+ 
+  '--bg-1a1a1d': '#0B0C0E',
+ 
+  '--bg-1c1c20': '#1B1E22',
+ 
+  '--bg-1f2937': '#0B0C0E',
+ 
+  '--bg-26262a': '#23282E',
+ 
+  '--bg-2e2e33': '#343A42',
+ 
+  '--bg-334155': '#0B0C0E',
+ 
+  '--bg-3a3a40': '#343A42',
+ 
+  '--bg-3f3f46': '#343A42',
+ 
+  '--bg-cbd5e1': '#4A515A',
+ 
+  '--bg-d1fae5': '#16281D',
+ 
+  '--bg-d6e9fb': '#0F2236',
+ 
+  '--bg-dbeafe': '#0F2236',
+ 
+  '--bg-dcfce7': '#16281D',
+ 
+  '--bg-e0f2fe': '#0F2236',
+ 
+  '--bg-e2e8f0': '#343A42',
+ 
+  '--bg-e8edf3': '#2D3238',
+ 
+  '--bg-ecfdf5': '#16281D',
+ 
+  '--bg-eef2f7': '#2D3238',
+ 
+  '--bg-eff6ff': '#0F2236',
+ 
+  '--bg-f0fdf4': '#16281D',
+ 
+  '--bg-f1f5f9': '#2D3238',
+ 
+  '--bg-f4f4f5': '#1B1E22',
+ 
+  '--bg-f5f3ff': '#1F1A33',
+ 
+  '--bg-f8fafc': '#1B1E22',
+ 
+  '--bg-fafafa': '#1B1E22',
+ 
+  '--bg-fce7f3': '#2E1524',
+ 
+  '--bg-fdf3d3': '#2B2210',
+ 
+  '--bg-fee2e2': '#2A1517',
+ 
+  '--bg-fef2f2': '#2A1517',
+ 
+  '--bg-fef3c7': '#2B2210',
+ 
+  '--bg-fef9c3': '#2B2210',
+ 
+  '--bg-fff7ed': '#2A1B0F',
+ 
+  '--bg-fffbeb': '#2B2210',
+ 
+  '--bg-ffffff': '#23282E',
+ 
+  '--btn-neutro': '#343A42',
+ 
+  '--cs': 'dark',
+ 
+  '--fg-000000': '#F2F3F5',
+ 
+  '--fg-0284c7': '#38BDF8',
+ 
+  '--fg-047857': '#86EFAC',
+ 
+  '--fg-059669': '#C8F135',
+ 
+  '--fg-075985': '#7DD3FC',
+ 
+  '--fg-10b981': '#C8F135',
+ 
+  '--fg-141416': '#F2F3F5',
+ 
+  '--fg-166534': '#86EFAC',
+ 
+  '--fg-16a34a': '#4ADE80',
+ 
+  '--fg-1d4ed8': '#93C5FD',
+ 
+  '--fg-1e3a8a': '#93C5FD',
+ 
+  '--fg-1e40af': '#93C5FD',
+ 
+  '--fg-2563eb': '#60A5FA',
+ 
+  '--fg-334155': '#E5E7EB',
+ 
+  '--fg-3a3a40': '#C9CED6',
+ 
+  '--fg-3f3f46': '#C9CED6',
+ 
+  '--fg-475569': '#C9CED6',
+ 
+  '--fg-64748b': '#9AA1AB',
+ 
+  '--fg-71717a': '#8A919C',
+ 
+  '--fg-78350f': '#FCD34D',
+ 
+  '--fg-7f1d1d': '#FCA5A5',
+ 
+  '--fg-854d0e': '#FCD34D',
+ 
+  '--fg-92400e': '#FCD34D',
+ 
+  '--fg-94a3b8': '#8A919C',
+ 
+  '--fg-991b1b': '#FCA5A5',
+ 
+  '--fg-9a3412': '#FDBA74',
+ 
+  '--fg-9d174d': '#F9A8D4',
+ 
+  '--fg-a16207': '#FCD34D',
+ 
+  '--fg-a1a1aa': '#9AA1AB',
+ 
+  '--fg-b45309': '#FCD34D',
+ 
+  '--fg-b91c1c': '#F87171',
+ 
+  '--fg-cbd5e1': 'rgba(242,243,245,0.2)',
+ 
+  '--fg-d4d4d8': '#C9CED6',
+ 
+  '--fg-dc2626': '#F87171',
+ 
+  '--fg-e2e8f0': 'rgba(242,243,245,0.14)',
+ 
+  '--fg-e4e4e7': '#E5E7EB',
+ 
+  '--fg-ea580c': '#FB923C',
+ 
+  '--fg-ecfdf5': '#E5E7EB',
+ 
+  '--fg-ef4444': '#F87171',
+ 
+  '--fg-f8fafc': '#1B1E22',
+ 
+  '--fg-fef2f2': '#FEE2E2',
+ 
+  '--onacc': '#101214',
+ 
+  '--onacc-rgb': '16,18,20',
+ 
+};
+ 
+const VARS_ARANCIONE: { [k: string]: string } = {
+ 
+  ...VARS_SCURO,
+ 
+  '--acc-rgb': '255,90,31',
+ 
+  '--bd-10b981': '#FF5A1F',
+ 
+  '--bg-059669': '#E8490F',
+ 
+  '--bg-0e8f65': '#CC3F0A',
+ 
+  '--bg-10b981': '#FF5A1F',
+ 
+  '--fg-059669': '#FF5A1F',
+ 
+  '--fg-10b981': '#FF5A1F',
+ 
+};
+ 
+const VARS_FUCSIA: { [k: string]: string } = {
+ 
+  ...VARS_SCURO,
+ 
+  '--acc-rgb': '240,79,163',
+ 
+  '--bd-10b981': '#F04FA3',
+ 
+  '--bg-059669': '#D93F92',
+ 
+  '--bg-0e8f65': '#BF347F',
+ 
+  '--bg-10b981': '#F04FA3',
+ 
+  '--fg-059669': '#F04FA3',
+ 
+  '--fg-10b981': '#F04FA3',
+ 
+};
+ 
+// Temi dell'app: ogni tema dà un valore a ogni colore usato nelle schermate.
+ 
+// Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
+ 
+const TEMI: { [k: string]: { nome: string; descrizione: string; anteprima: string[]; vars: { [k: string]: string } } } = {
+ 
+  classico: { nome: 'Classico', descrizione: 'Schede chiare su sfondo scuro, come prima', anteprima: ['#18181b', '#ffffff', '#10b981'], vars: VARS_CLASSICO },
+ 
+  scuro: { nome: 'Scuro', descrizione: 'Nero e verde acido', anteprima: ['#0B0C0E', '#23282E', '#C8F135'], vars: VARS_SCURO },
+ 
+  arancione: { nome: 'Arancione', descrizione: 'Scuro con accento arancione', anteprima: ['#0B0C0E', '#23282E', '#FF5A1F'], vars: VARS_ARANCIONE },
+ 
+  fucsia: { nome: 'Fucsia', descrizione: 'Scuro con accento fucsia', anteprima: ['#0B0C0E', '#23282E', '#F04FA3'], vars: VARS_FUCSIA },
+ 
+};
+ 
+let TEMA_ATTIVO = 'scuro';
+ 
+// Valore reale di un colore scritto come var(--nome), secondo il tema attivo.
+ 
+function valoreColore(c: string): string {
+ 
+  const m = /^var\((--[\w-]+)\)$/.exec(String(c || '').trim());
+ 
+  if (!m) return String(c || '');
+ 
+  const t = TEMI[TEMA_ATTIVO] || TEMI.scuro;
+ 
+  return t.vars[m[1]] || '';
+ 
+}
+ 
+function luminanzaRel(hex: string): number {
+ 
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+ 
+  if (!m) return -1;
  
   const n = parseInt(m[1], 16);
  
-  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  const f = (v: number) => {
+ 
+    const c = v / 255;
+ 
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+ 
+  };
+ 
+  return 0.2126 * f((n >> 16) & 255) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255);
+ 
+}
+ 
+// Testo da mettere sopra un riempimento: quello dell'accento se il fondo è l'accento,
+ 
+// altrimenti scuro o bianco, quello che si legge meglio.
+ 
+function testoSu(colore: string): string {
+ 
+  const c = String(colore || '');
+ 
+  if (/--(bg|fg|bd)-(10b981|059669|0e8f65)\)/.test(c)) return 'var(--onacc)';
+ 
+  const l = luminanzaRel(valoreColore(c));
+ 
+  if (l < 0) return '#ffffff';
+ 
+  return (l + 0.05) / 0.056 > 1.05 / (l + 0.05) ? '#101214' : '#ffffff';
+ 
+}
+ 
+// Scrive i colori del tema scelto come variabili CSS su tutta la pagina.
+ 
+function StileTema({ tema }: { tema: string }) {
+ 
+  const vars = (TEMI[tema] || TEMI.scuro).vars;
+ 
+  const css = ':root{' + Object.keys(vars).map((k) => k + ':' + vars[k]).join(';') + '}';
+ 
+  return <style>{css}</style>;
+ 
+}
+ 
+// Finestra per scegliere il tema (coach e atleti).
+ 
+function FinestraTemi({ tema, onScegli, onClose }: any) {
+ 
+  return (
+ 
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1700 }}>
+ 
+      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '16px', padding: '18px', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}>
+ 
+        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>Tema dell'app</div>
+ 
+        <div style={{ fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '14px' }}>Si applica subito e resta salvato sul tuo account.</div>
+ 
+        {Object.keys(TEMI).map((k) => {
+ 
+          const t = TEMI[k];
+ 
+          const attivo = k === tema;
+ 
+          return (
+ 
+            <button
+ 
+              key={k}
+ 
+              onClick={() => onScegli(k)}
+ 
+              style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 12px', marginBottom: '8px', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', background: attivo ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', border: attivo ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)' }}
+ 
+            >
+ 
+              <span style={{ display: 'inline-flex', flexShrink: 0, borderRadius: '999px', overflow: 'hidden', border: '1px solid rgba(128,128,128,0.4)' }}>
+ 
+                {t.anteprima.map((c: string, i: number) => (
+ 
+                  <span key={i} style={{ display: 'block', width: '18px', height: '30px', background: c }} />
+ 
+                ))}
+ 
+              </span>
+ 
+              <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold' }}>{t.nome}</span>
+ 
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)' }}>{t.descrizione}</span>
+ 
+              </span>
+ 
+              {attivo && <Icona nome="spunta" size={18} />}
+ 
+            </button>
+ 
+          );
+ 
+        })}
+ 
+        <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', marginTop: '4px', padding: '11px', borderRadius: '999px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold', background: 'var(--bg-f1f5f9)', color: 'var(--fg-334155)', border: '1px solid var(--bd-cbd5e1)' }}>Chiudi</button>
+ 
+      </div>
+ 
+    </div>
+ 
+  );
  
 }
  
@@ -4810,7 +5452,7 @@ function luminosita(hex: string): number {
  
 // in colore pieno con una piccola ombra, gli altri in grigio chiaro.
  
-function pillola(attivo: boolean, colore = '#C8F135', dim: 'grande' | 'medio' | 'piccolo' = 'medio'): React.CSSProperties {
+function pillola(attivo: boolean, colore = 'var(--fg-10b981)', dim: 'grande' | 'medio' | 'piccolo' = 'medio'): React.CSSProperties {
  
   const misure = {
  
@@ -4848,9 +5490,9 @@ function pillola(attivo: boolean, colore = '#C8F135', dim: 'grande' | 'medio' | 
  
     flexShrink: 0,
  
-    background: attivo ? colore : '#2D3238',
+    background: attivo ? colore : 'var(--bg-e8edf3)',
  
-    color: attivo ? (luminosita(colore) > 0.6 ? '#101214' : '#ffffff') : '#C9CED6',
+    color: attivo ? testoSu(colore) : 'var(--fg-475569)',
  
     boxShadow: attivo ? '0 3px 9px rgba(0,0,0,0.22)' : 'none',
  
@@ -4923,6 +5565,10 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
  
   switch (nome) {
+ 
+    case 'tavolozza':
+ 
+      return <svg {...comuni}><path d="M12 21a9 9 0 1 1 0-18c4.97 0 9 3.58 9 8 0 1.06-.47 2.08-1.32 2.83-.84.75-1.99 1.17-3.18 1.17h-2.5a2 2 0 0 0-1 3.75 1.3 1.3 0 0 1-1 2.25" /><circle cx="8.5" cy="10.5" r="1" /><circle cx="12" cy="7.5" r="1" /><circle cx="15.5" cy="10.5" r="1" /></svg>;
  
     case 'video':
  
@@ -5028,13 +5674,13 @@ function AmtLogo({ style }: { style?: React.CSSProperties }) {
  
 function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
-  const hStyle: React.CSSProperties = { color: '#C8F135', fontSize: '14px', margin: '18px 0 6px 0' };
+  const hStyle: React.CSSProperties = { color: 'var(--fg-10b981)', fontSize: '14px', margin: '18px 0 6px 0' };
  
-  const sStyle: React.CSSProperties = { color: '#E5E7EB', fontSize: '13px', fontWeight: 'bold', margin: '12px 0 4px 0' };
+  const sStyle: React.CSSProperties = { color: 'var(--fg-334155)', fontSize: '13px', fontWeight: 'bold', margin: '12px 0 4px 0' };
  
-  const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.55, color: '#E5E7EB' };
+  const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.55, color: 'var(--fg-334155)' };
  
-  const bStyle: React.CSSProperties = { margin: '10px 0', fontSize: '13px', lineHeight: 1.55, color: '#FCA5A5', background: '#2A1517', border: '1px solid #7F2A2A', borderRadius: '8px', padding: '10px 12px' };
+  const bStyle: React.CSSProperties = { margin: '10px 0', fontSize: '13px', lineHeight: 1.55, color: 'var(--fg-7f1d1d)', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', borderRadius: '8px', padding: '10px 12px' };
  
  
  
@@ -5044,7 +5690,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <div>
  
-        <p style={{ ...pStyle, fontSize: '12px', color: '#9AA1AB' }}>Versione {PRIVACY_VERSION} &mdash; Informativa per utenti minorenni, rivolta a chi esercita la responsabilit&agrave; genitoriale (art. 13 Reg. UE 2016/679)</p>
+        <p style={{ ...pStyle, fontSize: '12px', color: 'var(--fg-64748b)' }}>Versione {PRIVACY_VERSION} &mdash; Informativa per utenti minorenni, rivolta a chi esercita la responsabilit&agrave; genitoriale (art. 13 Reg. UE 2016/679)</p>
  
         <p style={pStyle}>Il Sig. Marco Angeloni, P.IVA 02115500437, con sede in Via 4 Novembre n. 1, 62010 Montefano (MC), e-mail marcoangelon@gmail.com, in qualità di Titolare del trattamento (in seguito, “Titolare”), nonché soggetto che riveste il ruolo di coach, La informa, ai sensi dell’art. 13 del D.lgs. 30 giugno 2003 n. 196 (“Codice Privacy”) e dell’art. 13 del Regolamento UE n. 2016/679 (“GDPR”), che i dati personali del minore nei cui confronti esercita la responsabilità genitoriale saranno trattati con le modalità e per le finalità seguenti.</p>
  
@@ -5228,7 +5874,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
     <div>
  
-      <p style={{ ...pStyle, fontSize: '12px', color: '#9AA1AB' }}>Versione {PRIVACY_VERSION} &mdash; Informativa ai sensi dell&apos;art. 13 del Reg. UE 2016/679 (GDPR) e del D.lgs. 196/2003</p>
+      <p style={{ ...pStyle, fontSize: '12px', color: 'var(--fg-64748b)' }}>Versione {PRIVACY_VERSION} &mdash; Informativa ai sensi dell&apos;art. 13 del Reg. UE 2016/679 (GDPR) e del D.lgs. 196/2003</p>
  
       <p style={pStyle}>Il Sig. Marco Angeloni, P.IVA 02115500437, con sede in Via 4 Novembre n. 1, 62010 Montefano (MC), e-mail marcoangelon@gmail.com, in qualità di Titolare del trattamento (in seguito, “Titolare”), nonché soggetto che riveste il ruolo di coach, La informa, ai sensi dell’art. 13 del D.lgs. 30 giugno 2003 n. 196 (“Codice Privacy”) e dell’art. 13 del Regolamento UE n. 2016/679 (“GDPR”), che i Suoi dati personali saranno trattati con le modalità e per le finalità seguenti.</p>
  
@@ -5400,7 +6046,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
  
  
-export default function TrainingApp() {
+function TrainingApp({ tema, impostaTema }: any) {
  
  
  
@@ -5816,6 +6462,8 @@ export default function TrainingApp() {
  
   const [anamnesiMancante, setAnamnesiMancante] = useState(false);
  
+  const [mostraTemi, setMostraTemi] = useState(false);
+ 
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
@@ -6081,6 +6729,36 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
+ 
+  // Tema: lo salvo sul dispositivo (impostaTema) e sull'account, così lo ritrovi su ogni telefono.
+ 
+  const scegliTema = async (t: string) => {
+ 
+    impostaTema(t);
+ 
+    setMostraTemi(false);
+ 
+    try {
+ 
+      await supabase.auth.updateUser({ data: { tema: t } });
+ 
+    } catch (err) {
+ 
+      console.error('Errore salvataggio tema:', err);
+ 
+    }
+ 
+  };
+ 
+  useEffect(() => {
+ 
+    const t = (session?.user?.user_metadata as any)?.tema;
+ 
+    if (t && TEMI[t] && t !== tema) impostaTema(t);
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [session?.user?.id]);
  
   // Promemoria anamnesi ogni 4 mesi dall'ultimo aggiornamento: una notifica che resta
  
@@ -9318,7 +9996,6 @@ const [notificationError, setNotificationError] = useState('');
     const risultatiAtleta: { [k: string]: any } = {};
  
     Object.keys(coachAllResults || {}).forEach((pid) => {
- 
       const r = coachAllResults[pid]?.[athleteId];
  
       if (r) risultatiAtleta[pid] = r;
@@ -9689,11 +10366,11 @@ const [notificationError, setNotificationError] = useState('');
  
         display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0,
  
-        background: nascosto ? '#2A1517' : '#16281D',
+        background: nascosto ? 'var(--bg-fee2e2)' : 'var(--bg-ecfdf5)',
  
-        border: `1px solid ${nascosto ? '#7F2A2A' : '#2F7D4B'}`,
+        border: `1px solid ${nascosto ? 'var(--bd-fca5a5)' : 'var(--bd-6ee7b7)'}`,
  
-        color: nascosto ? '#F87171' : '#86EFAC',
+        color: nascosto ? 'var(--fg-b91c1c)' : 'var(--fg-047857)',
  
         padding: '6px 11px', borderRadius: '999px', cursor: 'pointer',
  
@@ -10175,15 +10852,15 @@ const [notificationError, setNotificationError] = useState('');
  
           onClick={(e: any) => e.stopPropagation()}
  
-          style={{ background: '#23282E', borderRadius: '14px', width: '100%', maxWidth: '440px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '440px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
  
         >
  
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-            <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px' }}>RISULTATI</span>
+            <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>RISULTATI</span>
  
-            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#F2F3F5', marginTop: '2px', overflowWrap: 'anywhere' }}>{prog.title}</span>
+            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>{prog.title}</span>
  
           </div>
  
@@ -10201,7 +10878,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   onClick={() => setRisultatiAperti({ ...risultatiAperti, sett: w.weekName, giorno: w.days?.[0]?.dayName })}
  
-                  style={{ ...pillola(sett === w.weekName, '#E5E7EB', 'piccolo') }}
+                  style={{ ...pillola(sett === w.weekName, 'var(--fg-334155)', 'piccolo') }}
  
                 >
  
@@ -10225,7 +10902,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   onClick={() => setRisultatiAperti({ ...risultatiAperti, giorno: d.dayName })}
  
-                  style={{ ...pillola(giorno === d.dayName, '#C8F135', 'piccolo') }}
+                  style={{ ...pillola(giorno === d.dayName, 'var(--fg-10b981)', 'piccolo') }}
  
                 >
  
@@ -10241,7 +10918,7 @@ const [notificationError, setNotificationError] = useState('');
  
             {assegnati.length === 0 ? (
  
-              <p style={{ fontSize: '12.5px', color: '#8A919C', margin: 0 }}>Nessun atleta assegnato a questo programma.</p>
+              <p style={{ fontSize: '12.5px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun atleta assegnato a questo programma.</p>
  
             ) : (
  
@@ -10267,7 +10944,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
  
-                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#38BDF8', overflowWrap: 'anywhere' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-0284c7)', overflowWrap: 'anywhere' }}>
  
                         {ath.full_name || ath.email}
  
@@ -10275,7 +10952,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       {blocchi.length > 0 && (
  
-                        <span style={{ fontSize: '9.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '999px', background: pieno ? '#C8F135' : fatti > 0 ? '#fcd34d' : '#343A42', color: pieno || fatti > 0 ? '#101214' : '#E5E7EB', flexShrink: 0 }}>
+                        <span style={{ fontSize: '9.5px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '999px', background: pieno ? 'var(--bg-10b981)' : fatti > 0 ? '#fcd34d' : 'var(--bg-e2e8f0)', color: pieno ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-334155)', flexShrink: 0 }}>
  
                           {fatti}/{blocchi.length}
  
@@ -10295,7 +10972,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => { setRisultatiAperti(null); setProgressiAperti({ dati: p, titolo: `${ath.full_name || ath.email} \u2014 ${prog.title}`, perAtleta: false }); }}
  
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', background: '#16281D', border: '1px solid #2F7D4B', borderRadius: '999px', padding: '3px 9px', color: '#86EFAC', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: 'auto', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '999px', padding: '3px 9px', color: 'var(--fg-047857)', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', flexShrink: 0 }}
  
                           >
  
@@ -10320,26 +10997,26 @@ const [notificationError, setNotificationError] = useState('');
                       const aperto = dettaglioEsercizioAperto === chiaveDettaglio;
  
                       return (
-                        <div key={bi} style={{ background: compilato ? '#1B1E22' : '#2A1517', borderRadius: '6px', marginBottom: '4px', overflow: 'hidden' }}>
+                        <div key={bi} style={{ background: compilato ? 'var(--bg-f8fafc)' : 'var(--bg-fef2f2)', borderRadius: '6px', marginBottom: '4px', overflow: 'hidden' }}>
                           <div
                             onClick={() => setDettaglioEsercizioAperto(aperto ? null : chiaveDettaglio)}
                             style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '9px', padding: '7px 10px', flexWrap: 'wrap', cursor: 'pointer' }}
                           >
-                            <span style={{ fontSize: '11.5px', color: compilato ? '#E5E7EB' : '#FCA5A5', overflowWrap: 'anywhere' }}>
+                            <span style={{ fontSize: '11.5px', color: compilato ? 'var(--fg-334155)' : 'var(--fg-991b1b)', overflowWrap: 'anywhere' }}>
                               {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bReale + 1}`)}
                             </span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '100%' }}>
-                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#86EFAC' : '#F87171', overflowWrap: 'anywhere', textAlign: 'right' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? 'var(--fg-047857)' : 'var(--fg-b91c1c)', overflowWrap: 'anywhere', textAlign: 'right' }}>
                                 {compilato ? (dato.score || 'solo note') : 'non inserito'}
                               </span>
-                              <Icona nome={aperto ? 'su' : 'giu'} size={12} style={{ color: '#8A919C' }} />
+                              <Icona nome={aperto ? 'su' : 'giu'} size={12} style={{ color: 'var(--fg-94a3b8)' }} />
                             </span>
                           </div>
  
                           {aperto && (
                             <div style={{ padding: '0 10px 10px 10px' }}>
                               {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
-                                <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginBottom: '6px' }}>
+                                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>
                                   {[
                                     blk.sets && `${blk.sets} serie`,
                                     blk.reps && `${blk.reps} rip`,
@@ -10350,32 +11027,32 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                               {blk.type === 'wod' && blk.wodNotes && (
-                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: '#E5E7EB', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#2D3238', borderRadius: '6px', padding: '7px 9px' }}>
+                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--bg-f1f5f9)', borderRadius: '6px', padding: '7px 9px' }}>
                                   {blk.wodNotes}
                                 </p>
                               )}
  
                               {haElenco(blk.type) && (blk.items || []).length > 0 && (
-                                <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginBottom: '6px', lineHeight: 1.5 }}>
+                                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px', lineHeight: 1.5 }}>
                                   {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 ? `${parseInt(String(blk.rounds), 10)} round · ` : ''}
                                   {(blk.items || []).map((it: any) => `${it.name}${it.value ? ' ' + it.value : ''}`).join(' · ')}
                                 </span>
                               )}
  
                               {blk.notes && (
-                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: '#FCD34D', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#2B2210', borderRadius: '6px', padding: '7px 9px' }}>
+                                <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
                                   {blk.notes}
                                 </p>
                               )}
  
                               {dato?.notes && (
-                                <p style={{ margin: 0, fontSize: '11.5px', color: '#C9CED6', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
+                                <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--fg-475569)', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
                                   &ldquo;{dato.notes}&rdquo;
                                 </p>
                               )}
  
                               {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(haElenco(blk.type) && (blk.items || []).length > 0) && !((blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest)) && (
-                                <p style={{ margin: 0, fontSize: '11px', color: '#8A919C' }}>Nessun dettaglio aggiuntivo per questo esercizio.</p>
+                                <p style={{ margin: 0, fontSize: '11px', color: 'var(--fg-94a3b8)' }}>Nessun dettaglio aggiuntivo per questo esercizio.</p>
                               )}
                             </div>
                           )}
@@ -10395,9 +11072,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-          <div style={{ padding: '11px 16px', borderTop: '1px solid rgba(242,243,245,0.12)' }}>
+          <div style={{ padding: '11px 16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-            <button onClick={() => setRisultatiAperti(null)} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+            <button onClick={() => setRisultatiAperti(null)} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
               Chiudi
  
@@ -10449,13 +11126,13 @@ const [notificationError, setNotificationError] = useState('');
  
         <div>
  
-          <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px', marginBottom: '7px' }}>
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '7px' }}>
  
             {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
  
           </span>
  
-          <p style={{ margin: 0, fontSize: '12.5px', color: '#8A919C' }}>Nessun programma.</p>
+          <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-94a3b8)' }}>Nessun programma.</p>
  
         </div>
  
@@ -10469,7 +11146,7 @@ const [notificationError, setNotificationError] = useState('');
  
       <div>
  
-        <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px', marginBottom: '9px' }}>
+        <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '9px' }}>
  
           {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
  
@@ -10535,25 +11212,25 @@ const [notificationError, setNotificationError] = useState('');
  
           return (
  
-            <div key={prog.id} style={{ background: '#23282E', border: scaduto ? '1px solid #7F2A2A' : '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', marginBottom: '9px', overflow: 'hidden' }}>
+            <div key={prog.id} style={{ background: 'var(--bg-ffffff)', border: scaduto ? '1px solid var(--bd-fca5a5)' : '1px solid var(--bd-e2e8f0)', borderRadius: '10px', marginBottom: '9px', overflow: 'hidden' }}>
  
               <button
  
                 onClick={() => { if (!perAtleta) setProgrApertoId(aperto ? null : prog.id); }}
  
-                style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', padding: '12px', background: scaduto ? '#2A1517' : '#1B1E22', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', padding: '12px', background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-f8fafc)', border: 'none', cursor: 'pointer', textAlign: 'left' }}
  
               >
  
                 <span style={{ minWidth: 0 }}>
  
-                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: '#F2F3F5', overflowWrap: 'anywhere' }}>
+                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>
  
                     {prog.title}
  
                   </span>
  
-                  <span style={{ display: 'block', fontSize: '10.5px', color: scaduto ? '#F87171' : '#9AA1AB', marginTop: '2px' }}>
+                  <span style={{ display: 'block', fontSize: '10.5px', color: scaduto ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)', marginTop: '2px' }}>
  
                     {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{scaduto ? ' · scaduto' : ''}
  
@@ -10565,7 +11242,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {attesi > 0 && (
  
-                    <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '999px', background: fatti === attesi ? '#C8F135' : fatti > 0 ? '#fcd34d' : '#343A42', color: fatti === attesi || fatti > 0 ? '#101214' : '#E5E7EB' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '999px', background: fatti === attesi ? 'var(--bg-10b981)' : fatti > 0 ? '#fcd34d' : 'var(--bg-e2e8f0)', color: fatti === attesi ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-334155)' }}>
  
                       {fatti}/{attesi}
  
@@ -10573,7 +11250,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   )}
  
-                  {!perAtleta && <Icona nome={aperto ? 'su' : 'giu'} size={15} style={{ color: '#9AA1AB' }} />}
+                  {!perAtleta && <Icona nome={aperto ? 'su' : 'giu'} size={15} style={{ color: 'var(--fg-64748b)' }} />}
  
                 </span>
  
@@ -10583,7 +11260,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {aperto && !perAtleta && (
  
-                <div style={{ padding: '12px', borderTop: '1px solid rgba(242,243,245,0.12)' }}>
+                <div style={{ padding: '12px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                   {(() => {
  
@@ -10597,19 +11274,19 @@ const [notificationError, setNotificationError] = useState('');
  
                         onClick={() => setProgressiAperti({ dati: p, titolo: prog.title, perAtleta: false })}
  
-                        style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '11px', padding: '11px 13px', borderRadius: '10px', border: '1px solid #2F7D4B', background: '#16281D', cursor: 'pointer' }}
+                        style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '11px', padding: '11px 13px', borderRadius: '10px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', cursor: 'pointer' }}
  
                       >
  
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
-                          <Icona nome="grafico" size={16} style={{ color: '#86EFAC' }} />
+                          <Icona nome="grafico" size={16} style={{ color: 'var(--fg-047857)' }} />
  
-                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#86EFAC' }}>Miglioramenti di questo programma</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-047857)' }}>Miglioramenti di questo programma</span>
  
                         </span>
  
-                        <span style={{ fontSize: '12px', color: '#C8F135', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--fg-059669)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
  
                           {p.migliorati}/{p.totale}
  
@@ -10639,7 +11316,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         }}
  
-                        style={{ ...pillola(sett === w.weekName, '#E5E7EB', 'piccolo') }}
+                        style={{ ...pillola(sett === w.weekName, 'var(--fg-334155)', 'piccolo') }}
  
                       >
  
@@ -10685,7 +11362,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           onClick={() => setProgrGiorno((p) => ({ ...p, [prog.id]: d.dayName }))}
  
-                          style={{ ...pillola(sel, '#C8F135', 'piccolo') }}
+                          style={{ ...pillola(sel, 'var(--fg-10b981)', 'piccolo') }}
  
                         >
  
@@ -10705,13 +11382,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                 fontSize: '9px', fontWeight: 'bold',
  
-                                background: pieno ? (sel ? 'rgba(16,18,20,0.18)' : '#C8F135')
+                                background: pieno ? (sel ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)')
  
-                                  : f > 0 ? (sel ? 'rgba(16,18,20,0.18)' : '#fcd34d')
+: f > 0 ? (sel ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d')
  
-                                  : (sel ? 'rgba(255,255,255,0.18)' : '#4A515A'),
+: (sel ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'),
  
-                                color: sel || pieno || f > 0 ? '#101214' : '#E5E7EB',
+color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                               }}
  
@@ -10735,7 +11412,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {blocchi.length === 0 ? (
  
-                    <p style={{ fontSize: '12px', color: '#8A919C', margin: 0 }}>Nessun esercizio in questo giorno.</p>
+                    <p style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun esercizio in questo giorno.</p>
  
                   ) : (
  
@@ -10751,11 +11428,11 @@ const [notificationError, setNotificationError] = useState('');
  
                       return (
  
-                        <div key={bIdx} style={{ background: compilato ? '#23282E' : '#2A1517', border: compilato ? '1px solid #2F7D4B' : '1px dashed #7F2A2A', borderRadius: '8px', padding: '10px 12px', marginBottom: '7px' }}>
+                        <div key={bIdx} style={{ background: compilato ? 'var(--bg-ffffff)' : 'var(--bg-fef2f2)', border: compilato ? '1px solid var(--bd-bbf7d0)' : '1px dashed var(--bd-fca5a5)', borderRadius: '8px', padding: '10px 12px', marginBottom: '7px' }}>
  
                           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
  
-                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? '#E5E7EB' : '#FCA5A5', overflowWrap: 'anywhere' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? 'var(--fg-334155)' : 'var(--fg-991b1b)', overflowWrap: 'anywhere' }}>
  
                               {nome}
  
@@ -10765,17 +11442,17 @@ const [notificationError, setNotificationError] = useState('');
  
                               dato.score ? (
  
-                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#86EFAC', overflowWrap: 'anywhere', textAlign: 'right' }}>{dato.score}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-047857)', overflowWrap: 'anywhere', textAlign: 'right' }}>{dato.score}</span>
  
                               ) : (
  
-                                <span style={{ fontSize: '11px', color: '#9AA1AB', whiteSpace: 'nowrap' }}>solo note</span>
+                                <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', whiteSpace: 'nowrap' }}>solo note</span>
  
                               )
  
                             ) : (
  
-                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#F87171', whiteSpace: 'nowrap' }}>non inserito</span>
+                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-b91c1c)', whiteSpace: 'nowrap' }}>non inserito</span>
  
                             )}
  
@@ -10787,7 +11464,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
  
-                            <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginTop: '4px' }}>
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '4px' }}>
  
                               {[
  
@@ -10811,7 +11488,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {blk.type === 'wod' && blk.wodNotes && (
  
-                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: '#E5E7EB', lineHeight: 1.5, whiteSpace: 'pre-line', background: '#2D3238', borderRadius: '6px', padding: '7px 9px' }}>
+                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--bg-f1f5f9)', borderRadius: '6px', padding: '7px 9px' }}>
  
                               {blk.wodNotes}
  
@@ -10825,7 +11502,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {haElenco(blk.type) && (blk.items || []).length > 0 && (
  
-                            <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginTop: '4px', lineHeight: 1.5 }}>
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '4px', lineHeight: 1.5 }}>
  
                               {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 ? `${parseInt(String(blk.rounds), 10)} round \u00b7 ` : ''}
  
@@ -10841,7 +11518,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {blk.notes && (
  
-                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: '#FCD34D', lineHeight: 1.45, whiteSpace: 'pre-line', background: '#2B2210', borderRadius: '6px', padding: '7px 9px' }}>
+                            <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
  
                               {blk.notes}
  
@@ -10855,7 +11532,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           {dato?.notes && (
  
-                            <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#C9CED6', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
+                            <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: 'var(--fg-475569)', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
  
                               &ldquo;{dato.notes}&rdquo;
  
@@ -10980,7 +11657,6 @@ const [notificationError, setNotificationError] = useState('');
       .sort((a: any, b: any) => String(b.prog.endDate || '').localeCompare(String(a.prog.endDate || '')));
  
   };
- 
  
  
   // Lo storico per data parte da quando è stata creata la tabella: per non
@@ -11165,11 +11841,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const numero = (valore: any, etichetta: string) => (
  
-      <div style={{ flex: '1 1 90px', minWidth: 0, background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', padding: '12px 10px', textAlign: 'center' }}>
+      <div style={{ flex: '1 1 90px', minWidth: 0, background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px 10px', textAlign: 'center' }}>
  
-        <span style={{ display: 'block', fontSize: '24px', fontWeight: 'bold', color: '#C8F135', lineHeight: 1.1 }}>{valore}</span>
+        <span style={{ display: 'block', fontSize: '24px', fontWeight: 'bold', color: 'var(--fg-10b981)', lineHeight: 1.1 }}>{valore}</span>
  
-        <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', marginTop: '3px' }}>{etichetta}</span>
+        <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', marginTop: '3px' }}>{etichetta}</span>
  
       </div>
  
@@ -11295,9 +11971,9 @@ const [notificationError, setNotificationError] = useState('');
  
           fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap',
  
-          background: periodoProgressi === k ? '#C8F135' : '#343A42',
+          background: periodoProgressi === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)',
  
-          color: periodoProgressi === k ? '#101214' : '#E5E7EB',
+          color: periodoProgressi === k ? 'var(--onacc)' : 'var(--fg-334155)',
  
         }}
  
@@ -11315,13 +11991,13 @@ const [notificationError, setNotificationError] = useState('');
  
       <div>
  
-        <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#C8F135' }}>
+        <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>
  
           {perAtleta ? '🚀 Il tuo percorso' : '🚀 Il suo percorso'}
  
         </h4>
  
-        <p style={{ margin: '0 0 14px 0', fontSize: '11.5px', color: '#9AA1AB', lineHeight: 1.45 }}>
+        <p style={{ margin: '0 0 14px 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
  
           {perAtleta
  
@@ -11339,7 +12015,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-        <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', letterSpacing: '0.5px', marginBottom: '9px' }}>
+        <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '9px' }}>
  
           CRESCITA DEI CARICHI
  
@@ -11369,7 +12045,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <div style={{ marginBottom: '9px' }}>
  
-              <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Dal</label>
+              <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Dal</label>
  
               <input
  
@@ -11379,7 +12055,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 onChange={(e: any) => setDaData(e.target.value)}
  
-                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: '#23282E' }}
+                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: 'var(--bg-ffffff)' }}
  
               />
  
@@ -11387,7 +12063,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <div>
  
-              <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Al</label>
+              <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Al</label>
  
               <input
  
@@ -11397,7 +12073,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 onChange={(e: any) => setAData(e.target.value)}
  
-                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: '#23282E' }}
+                style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', appearance: 'none', WebkitAppearance: 'none', background: 'var(--bg-ffffff)' }}
  
               />
  
@@ -11411,7 +12087,7 @@ const [notificationError, setNotificationError] = useState('');
  
         {!dati ? (
  
-          <p style={{ fontSize: '12.5px', color: '#8A919C', lineHeight: 1.5, margin: 0 }}>
+          <p style={{ fontSize: '12.5px', color: 'var(--fg-94a3b8)', lineHeight: 1.5, margin: 0 }}>
  
             Nessun dato da confrontare in questo periodo. Per calcolare un progresso serve lo stesso esercizio, con lo stesso numero di ripetizioni, almeno due volte.
  
@@ -11421,9 +12097,9 @@ const [notificationError, setNotificationError] = useState('');
  
           <>
  
-            <div style={{ background: '#16281D', border: '1px solid #2F7D4B', borderRadius: '9px', padding: '11px 13px', marginBottom: '12px' }}>
+            <div style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '9px', padding: '11px 13px', marginBottom: '12px' }}>
  
-              <span style={{ fontSize: '13.5px', fontWeight: 'bold', color: '#86EFAC' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>
  
                 {perAtleta
  
@@ -11441,7 +12117,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <div key={i} style={{ marginBottom: '13px' }}>
  
-                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: '#F2F3F5', marginBottom: '5px', overflowWrap: 'anywhere' }}>
+                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', marginBottom: '5px', overflowWrap: 'anywhere' }}>
  
                   {ex.nome}
  
@@ -11449,19 +12125,19 @@ const [notificationError, setNotificationError] = useState('');
  
                 {ex.righe.map((r: any, k: number) => {
  
-                  const colore = r.diff > 0 ? '#86EFAC' : r.diff < 0 ? '#F87171' : '#9AA1AB';
+                  const colore = r.diff > 0 ? 'var(--fg-047857)' : r.diff < 0 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)';
  
-                  const sfondo = r.diff > 0 ? '#E5E7EB' : r.diff < 0 ? '#FEE2E2' : '#1B1E22';
+                  const sfondo = r.diff > 0 ? 'var(--fg-ecfdf5)' : r.diff < 0 ? 'var(--fg-fef2f2)' : 'var(--fg-f8fafc)';
  
                   return (
  
                     <div key={k} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', background: sfondo, borderRadius: '7px', padding: '8px 10px', marginBottom: '5px', flexWrap: 'wrap' }}>
  
-                      <span style={{ fontSize: '12.5px', color: '#E5E7EB' }}>
+                      <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)' }}>
  
                         <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
  
-                        <span style={{ color: '#8A919C' }}> · {r.volte} volte</span>
+                        <span style={{ color: 'var(--fg-94a3b8)' }}> · {r.volte} volte</span>
  
                       </span>
  
@@ -11489,7 +12165,7 @@ const [notificationError, setNotificationError] = useState('');
  
         {athleteId && (
  
-          <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid rgba(242,243,245,0.12)' }}>
+          <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
             {pannelloProgrammiRisultati(athleteId, perAtleta)}
  
@@ -11855,9 +12531,9 @@ const [notificationError, setNotificationError] = useState('');
  
         <div>
  
-          <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: '#C8F135' }}>🎯 Competition Day</h4>
+          <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>🎯 Competition Day</h4>
  
-          <p style={{ margin: 0, fontSize: '11.5px', color: '#9AA1AB', lineHeight: 1.45 }}>
+          <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
  
             Le gare della stagione. {isCoach ? 'Puoi aggiungerle tu o l\u2019atleta: vedete lo stesso calendario.' : 'Puoi aggiungerle tu o il coach: vedete lo stesso calendario.'} Il conto alla rovescia compare in cima agli allenamenti.
  
@@ -11869,7 +12545,7 @@ const [notificationError, setNotificationError] = useState('');
  
         {ordinate.length === 0 && !showCompForm && (
  
-          <p style={{ margin: 0, fontSize: '12px', color: '#8A919C' }}>Nessuna gara in calendario.</p>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-94a3b8)' }}>Nessuna gara in calendario.</p>
  
         )}
  
@@ -11883,13 +12559,13 @@ const [notificationError, setNotificationError] = useState('');
  
           return (
  
-            <div key={g.id} style={{ background: passata ? '#1B1E22' : '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px 12px', opacity: passata ? 0.65 : 1, boxSizing: 'border-box', width: '100%', maxWidth: '100%', minWidth: 0 }}>
+            <div key={g.id} style={{ background: passata ? 'var(--bg-f8fafc)' : 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px 12px', opacity: passata ? 0.65 : 1, boxSizing: 'border-box', width: '100%', maxWidth: '100%', minWidth: 0 }}>
  
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
  
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#F2F3F5', overflowWrap: 'anywhere' }}>{g.name}</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{g.name}</span>
  
-                <span style={{ fontSize: '11px', color: passata ? '#8A919C' : '#38BDF8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: '11px', color: passata ? 'var(--fg-94a3b8)' : 'var(--fg-0284c7)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
  
                   {formatDateToIT(g.event_date)}{m !== null && m >= 0 ? ` · ${m === 0 ? 'oggi' : m === 1 ? 'domani' : `fra ${m} gg`}` : ' · passata'}
  
@@ -11897,17 +12573,17 @@ const [notificationError, setNotificationError] = useState('');
  
               </div>
  
-              {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: '#9AA1AB', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
+              {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
  
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
  
-                <button onClick={() => { setEditCompId(g.id); setNewComp({ name: g.name, event_date: g.event_date, notes: g.notes || '' }); setShowCompForm(true); }} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                <button onClick={() => { setEditCompId(g.id); setNewComp({ name: g.name, event_date: g.event_date, notes: g.notes || '' }); setShowCompForm(true); }} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
  
                   Modifica
  
                 </button>
  
-                <button onClick={() => eliminaCompetizione(g.id, athleteId, isCoach)} style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                <button onClick={() => eliminaCompetizione(g.id, athleteId, isCoach)} style={{ background: 'none', border: 'none', color: 'var(--fg-ef4444)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
  
                   Elimina
  
@@ -11925,9 +12601,9 @@ const [notificationError, setNotificationError] = useState('');
  
         {showCompForm ? (
  
-          <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
  
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
  
               Nome della gara
  
@@ -11943,13 +12619,13 @@ const [notificationError, setNotificationError] = useState('');
  
               onChange={(e) => setNewComp({ ...newComp, name: e.target.value })}
  
-              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '10px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }}
  
             />
  
  
  
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
  
               Data della gara
  
@@ -11963,15 +12639,15 @@ const [notificationError, setNotificationError] = useState('');
  
               onChange={(e) => setNewComp({ ...newComp, event_date: e.target.value })}
  
-              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '10px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }}
  
             />
  
  
  
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
  
-              Note <span style={{ fontWeight: 'normal', color: '#8A919C' }}>(facoltative)</span>
+              Note <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltative)</span>
  
             </label>
  
@@ -11985,19 +12661,19 @@ const [notificationError, setNotificationError] = useState('');
  
               onChange={(e) => setNewComp({ ...newComp, notes: e.target.value })}
  
-              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }}
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '12px' }}
  
             />
  
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
  
-              <button onClick={() => salvaCompetizione(athleteId, isCoach)} style={{ flex: 1, minWidth: 0, padding: '11px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+              <button onClick={() => salvaCompetizione(athleteId, isCoach)} style={{ flex: 1, minWidth: 0, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
                 {editCompId ? 'Salva modifiche' : 'Aggiungi gara'}
  
               </button>
  
-              <button onClick={() => { setShowCompForm(false); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+              <button onClick={() => { setShowCompForm(false); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
                 Annulla
  
@@ -12009,7 +12685,7 @@ const [notificationError, setNotificationError] = useState('');
  
         ) : (
  
-          <button onClick={() => { setShowCompForm(true); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+          <button onClick={() => { setShowCompForm(true); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
             ➕ Aggiungi una gara
  
@@ -13196,7 +13872,8 @@ const [notificationError, setNotificationError] = useState('');
   if (recoveryMode) {
  
     return (
-      <div style={{ background: '#0B0C0E', color: '#fff', colorScheme: 'dark', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
+ 
+      <div style={{ background: 'var(--bg-18181b)', color: '#fff', colorScheme: 'var(--cs)', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
  
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`}</style>
  
@@ -13204,9 +13881,9 @@ const [notificationError, setNotificationError] = useState('');
  
         <AmtLogo style={{ width: '110px', height: 'auto', color: '#ffffff', display: 'block', marginBottom: '18px' }} />
  
-        <h1 style={{ color: '#C8F135', margin: '0 0 6px 0', fontSize: '28px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>Nuova password</h1>
+        <h1 style={{ color: 'var(--fg-10b981)', margin: '0 0 6px 0', fontSize: '28px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>Nuova password</h1>
  
-        <p style={{ color: '#9AA1AB', fontSize: '13px', textAlign: 'center', margin: '0 0 22px 0', maxWidth: '300px', lineHeight: 1.5 }}>
+        <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '13px', textAlign: 'center', margin: '0 0 22px 0', maxWidth: '300px', lineHeight: 1.5 }}>
  
           Scegli la password che userai d&apos;ora in avanti per accedere.
  
@@ -13226,7 +13903,7 @@ const [notificationError, setNotificationError] = useState('');
  
             onChange={(e) => setNewPassword(e.target.value)}
  
-            style={{ padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', boxSizing: 'border-box' }}
+            style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }}
  
           />
  
@@ -13242,11 +13919,11 @@ const [notificationError, setNotificationError] = useState('');
  
             onKeyDown={(e) => { if (e.key === 'Enter') cambiaPassword(); }}
  
-            style={{ padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', boxSizing: 'border-box' }}
+            style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }}
  
           />
  
-          <span style={{ fontSize: '11px', color: '#8A919C' }}>Almeno 6 caratteri.</span>
+          <span style={{ fontSize: '11px', color: 'var(--fg-71717a)' }}>Almeno 6 caratteri.</span>
  
  
  
@@ -13256,7 +13933,7 @@ const [notificationError, setNotificationError] = useState('');
  
             disabled={passwordSaving}
  
-            style={{ padding: '14px', borderRadius: '999px', background: '#C8F135', color: '#101214', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: passwordSaving ? 0.6 : 1 }}
+            style={{ padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', opacity: passwordSaving ? 0.6 : 1 }}
  
           >
  
@@ -13278,7 +13955,7 @@ const [notificationError, setNotificationError] = useState('');
  
     return (
  
-      <div style={{ background: '#0B0C0E', color: '#fff', colorScheme: 'dark', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
+      <div style={{ background: 'var(--bg-18181b)', color: '#fff', colorScheme: 'var(--cs)', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '18px', fontFamily: 'sans-serif' }}>
  
         <style>{`
  
@@ -13314,9 +13991,9 @@ const [notificationError, setNotificationError] = useState('');
  
         <div style={{ textAlign: 'center', animation: 'splashFade 1s ease-out 0.4s both' }}>
  
-          <div style={{ color: '#C8F135', fontSize: '34px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '3px', lineHeight: 1 }}>AMTraining</div>
+          <div style={{ color: 'var(--fg-10b981)', fontSize: '34px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '3px', lineHeight: 1 }}>AMTraining</div>
  
-          <div style={{ color: '#8A919C', fontSize: '13px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
+          <div style={{ color: 'var(--fg-94a3b8)', fontSize: '13px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px' }}>Improve Your Fitness</div>
  
         </div>
  
@@ -13332,7 +14009,7 @@ const [notificationError, setNotificationError] = useState('');
  
     return (
  
-      <div style={{ background: '#0B0C0E', color: '#fff', colorScheme: 'dark', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
+      <div style={{ background: 'var(--bg-18181b)', color: '#fff', colorScheme: 'var(--cs)', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'sans-serif' }}>
  
         <style>{`
  
@@ -13370,9 +14047,9 @@ const [notificationError, setNotificationError] = useState('');
  
           <AmtLogo style={{ width: '140px', height: 'auto', color: '#ffffff', display: 'block', transformOrigin: 'center center', marginBottom: '12px', animation: 'logoHeartbeat 1.3s ease-in-out infinite' }} />
  
-          <h1 style={{ color: '#C8F135', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
+          <h1 style={{ color: 'var(--fg-10b981)', margin: 0, fontSize: '38px', fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '3px', animation: 'fadeInUp 0.6s ease-out 0.35s both' }}>AMTraining</h1>
  
-          <div style={{ color: '#8A919C', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
+          <div style={{ color: 'var(--fg-94a3b8)', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
  
         </div>
  
@@ -13380,13 +14057,13 @@ const [notificationError, setNotificationError] = useState('');
  
         {signupDoneEmail ? (
  
-          <div style={{ background: '#16281D', border: '1px solid #C8F135', borderRadius: '14px', padding: '22px 20px', width: '100%', maxWidth: '340px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-0f2e22)', border: '1px solid var(--bd-10b981)', borderRadius: '14px', padding: '22px 20px', width: '100%', maxWidth: '340px', textAlign: 'center' }}>
  
             <div style={{ fontSize: '34px', marginBottom: '10px' }}>📬</div>
  
-            <h3 style={{ margin: '0 0 10px 0', color: '#C8F135', fontSize: '18px' }}>Ci siamo quasi!</h3>
+            <h3 style={{ margin: '0 0 10px 0', color: 'var(--fg-10b981)', fontSize: '18px' }}>Ci siamo quasi!</h3>
  
-            <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#C9CED6', lineHeight: 1.55 }}>
+            <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: 'var(--fg-d4d4d8)', lineHeight: 1.55 }}>
  
               Ti abbiamo inviato un&apos;email a <strong style={{ color: '#fff', overflowWrap: 'anywhere' }}>{signupDoneEmail}</strong>.
  
@@ -13394,7 +14071,7 @@ const [notificationError, setNotificationError] = useState('');
  
             </p>
  
-            <p style={{ margin: '0 0 18px 0', fontSize: '13px', color: '#9AA1AB', lineHeight: 1.5, background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px' }}>
+            <p style={{ margin: '0 0 18px 0', fontSize: '13px', color: 'var(--fg-a1a1aa)', lineHeight: 1.5, background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px' }}>
  
               Non la trovi? Controlla nella posta indesiderata o nello spam: capita spesso che finisca lì.
  
@@ -13404,7 +14081,7 @@ const [notificationError, setNotificationError] = useState('');
  
               onClick={() => { setSignupDoneEmail(''); setPassword(''); }}
  
-              style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: '#C8F135', color: '#101214', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+              style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
  
             >
  
@@ -13412,11 +14089,11 @@ const [notificationError, setNotificationError] = useState('');
  
             </button>
  
-            <p style={{ margin: '14px 0 0 0', fontSize: '11px', color: '#8A919C', lineHeight: 1.5 }}>
+            <p style={{ margin: '14px 0 0 0', fontSize: '11px', color: 'var(--fg-71717a)', lineHeight: 1.5 }}>
  
               Problemi con la registrazione? Scrivi a{' '}
  
-              <a href="mailto:marcoangelon@gmail.com" style={{ color: '#8A919C', textDecoration: 'underline' }}>marcoangelon@gmail.com</a>
+              <a href="mailto:marcoangelon@gmail.com" style={{ color: 'var(--fg-71717a)', textDecoration: 'underline' }}>marcoangelon@gmail.com</a>
  
             </p>
  
@@ -13430,11 +14107,11 @@ const [notificationError, setNotificationError] = useState('');
  
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
  
-          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff' }} />
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }} />
  
           {!isResettingPassword && (
  
-            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff' }} />
+            <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }} />
  
           )}
  
@@ -13444,17 +14121,17 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ display: 'flex', gap: '12px' }}>
  
-                <input type="text" placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
-                <input type="text" placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', boxSizing: 'border-box' }} />
+                <input type="text" placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
               </div>
  
               <div>
  
-                <label style={{ fontSize: '12px', color: '#8A919C', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                <label style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                <input type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', boxSizing: 'border-box' }} />
+                <input type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
               </div>
  
@@ -13462,7 +14139,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {isMinorenne(signupBirthDate) && (
  
-                <div style={{ background: '#23282E', border: '1px solid #f59e0b', borderRadius: '8px', padding: '12px' }}>
+                <div style={{ background: 'var(--bg-26262a)', border: '1px solid #f59e0b', borderRadius: '8px', padding: '12px' }}>
  
                   <label style={{ fontSize: '12px', color: '#fbbf24', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>
  
@@ -13470,7 +14147,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   </label>
  
-                  <p style={{ fontSize: '11px', color: '#9AA1AB', margin: '0 0 8px 0', lineHeight: 1.45 }}>
+                  <p style={{ fontSize: '11px', color: 'var(--fg-a1a1aa)', margin: '0 0 8px 0', lineHeight: 1.45 }}>
  
                     Hai {calcolaEta(signupBirthDate)} anni: per registrarti serve il consenso di chi esercita la responsabilità genitoriale. Indica il suo nome e cognome — l&apos;informativa che leggerai è quella rivolta a lui.
  
@@ -13488,7 +14165,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     required
  
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.14)', color: '#fff' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '8px', background: 'var(--bg-1c1c20)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }}
  
                   />
  
@@ -13498,7 +14175,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <div>
  
-                <label style={{ fontSize: '12px', color: '#8A919C', display: 'block', marginBottom: '6px' }}>Sesso</label>
+                <label style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', display: 'block', marginBottom: '6px' }}>Sesso</label>
  
                 <div style={{ display: 'flex', gap: '10px' }}>
  
@@ -13512,7 +14189,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       onClick={() => setSignupGender(k)}
  
-                      style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: signupGender === k ? '2px solid #C8F135' : '1px solid rgba(242,243,245,0.14)', background: signupGender === k ? '#C8F135' : '#23282E', color: signupGender === k ? '#101214' : '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                      style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: signupGender === k ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-3a3a40)', background: signupGender === k ? 'var(--bg-10b981)' : 'var(--bg-26262a)', color: signupGender === k ? 'var(--onacc)' : '#fff', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
  
                     >
  
@@ -13524,7 +14201,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 </div>
  
-                <span style={{ fontSize: '11px', color: '#8A919C', display: 'block', marginTop: '5px' }}>Serve per assegnarti la scheda di prova corretta.</span>
+                <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '5px' }}>Serve per assegnarti la scheda di prova corretta.</span>
  
               </div>
  
@@ -13532,9 +14209,9 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ display: 'flex', gap: '12px' }}>
  
-                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
-                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#23282E', border: '1px solid rgba(242,243,245,0.14)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
               </div>
  
@@ -13556,7 +14233,7 @@ const [notificationError, setNotificationError] = useState('');
  
               )}
  
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#8A919C', lineHeight: 1.4 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: 'var(--fg-94a3b8)', lineHeight: 1.4 }}>
  
                 <input
  
@@ -13590,7 +14267,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
  
-                  <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: '#C8F135', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
+                  <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: 'var(--fg-10b981)', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
  
                   {' '}{isMinorenne(signupBirthDate) ? 'e presto il consenso al trattamento dei dati del minore, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.' : 'e acconsento al trattamento dei miei dati, inclusi quelli relativi allo stato di salute, per la programmazione degli allenamenti.'}
  
@@ -13602,9 +14279,9 @@ const [notificationError, setNotificationError] = useState('');
  
           )}
  
-          {authError && <p style={{ color: '#F87171', fontSize: '14px' }}>{authError}</p>}
+          {authError && <p style={{ color: 'var(--fg-ef4444)', fontSize: '14px' }}>{authError}</p>}
  
-          {resetMessage && <p style={{ color: '#C8F135', fontSize: '14px' }}>{resetMessage}</p>}
+          {resetMessage && <p style={{ color: 'var(--fg-10b981)', fontSize: '14px' }}>{resetMessage}</p>}
  
           <button
  
@@ -13612,13 +14289,13 @@ const [notificationError, setNotificationError] = useState('');
  
             disabled={authLoading}
  
-            style={{ padding: '12px', borderRadius: '999px', background: authLoading ? '#A8D020' : '#C8F135', color: authLoading ? '#101214' : '#101214', fontWeight: 'bold', border: 'none', cursor: authLoading ? 'wait' : 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            style={{ padding: '12px', borderRadius: '999px', background: authLoading ? 'var(--bg-0e8f65)' : 'var(--bg-10b981)', color: authLoading ? 'var(--onacc)' : 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: authLoading ? 'wait' : 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
  
           >
  
             {authLoading && (
  
-              <span style={{ width: '15px', height: '15px', border: '2px solid rgba(16,18,20,0.3)', borderTopColor: '#101214', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+              <span style={{ width: '15px', height: '15px', border: '2px solid rgba(var(--onacc-rgb), 0.3)', borderTopColor: 'var(--onacc)', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
  
             )}
  
@@ -13638,7 +14315,7 @@ const [notificationError, setNotificationError] = useState('');
  
           {!isResettingPassword && (
  
-            <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#8A919C', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
+            <button onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: 'var(--fg-94a3b8)', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
  
               {isRegistering ? 'Hai già un account? Accedi' : 'Non hai un account? Registrati'}
  
@@ -13646,7 +14323,7 @@ const [notificationError, setNotificationError] = useState('');
  
           )}
  
-          <button onClick={() => { setIsResettingPassword(!isResettingPassword); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: '#C8F135', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
+          <button onClick={() => { setIsResettingPassword(!isResettingPassword); setAuthError(''); setResetMessage(''); }} style={{ background: 'none', border: 'none', color: 'var(--fg-10b981)', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
  
             {isResettingPassword ? 'Torna al Login' : 'Password dimenticata?'}
  
@@ -13664,11 +14341,11 @@ const [notificationError, setNotificationError] = useState('');
  
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 1000 }}>
  
-            <div style={{ background: '#23282E', color: '#F2F3F5', borderRadius: '12px', maxWidth: '560px', width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '12px', maxWidth: '560px', width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
  
-              <div style={{ padding: '18px 20px 10px 20px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+              <div style={{ padding: '18px 20px 10px 20px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-                <h3 style={{ margin: 0, color: '#C8F135', fontSize: '17px' }}>
+                <h3 style={{ margin: 0, color: 'var(--fg-10b981)', fontSize: '17px' }}>
  
                   {isMinorenne(signupBirthDate) ? 'Informativa per utenti minorenni' : 'Informativa sul trattamento dei dati personali'}
  
@@ -13676,7 +14353,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 {isMinorenne(signupBirthDate) && (
  
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#FCD34D', fontWeight: 'bold' }}>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--fg-92400e)', fontWeight: 'bold' }}>
  
                     Rivolta a chi esercita la responsabilità genitoriale
  
@@ -13684,7 +14361,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 )}
  
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#9AA1AB' }}>Scorri fino in fondo per poter proseguire.</p>
+                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--fg-64748b)' }}>Scorri fino in fondo per poter proseguire.</p>
  
               </div>
  
@@ -13706,9 +14383,9 @@ const [notificationError, setNotificationError] = useState('');
  
                 <PrivacyPolicyContent minor={isMinorenne(signupBirthDate)} />
  
-                <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid #C8F135' }}>
+                <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '2px solid var(--bd-10b981)' }}>
  
-                  <p style={{ fontSize: '13px', color: '#E5E7EB', margin: 0, fontWeight: 'bold' }}>Hai raggiunto la fine dell&apos;informativa. Puoi chiudere e proseguire con la registrazione.</p>
+                  <p style={{ fontSize: '13px', color: 'var(--fg-334155)', margin: 0, fontWeight: 'bold' }}>Hai raggiunto la fine dell&apos;informativa. Puoi chiudere e proseguire con la registrazione.</p>
  
                 </div>
  
@@ -13716,7 +14393,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-              <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(242,243,245,0.12)', background: '#1B1E22' }}>
+              <div style={{ padding: '14px 20px', borderTop: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)' }}>
  
                 <button
  
@@ -13724,7 +14401,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   onClick={() => { setPrivacyConsent(true); setShowPrivacyPolicy(false); }}
  
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: policyScrolledToEnd ? '#C8F135' : '#4A515A', color: policyScrolledToEnd ? '#101214' : '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '13px', borderRadius: '999px', background: policyScrolledToEnd ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)', color: policyScrolledToEnd ? 'var(--onacc)' : '#fff', border: 'none', fontWeight: 'bold', fontSize: '15px', cursor: policyScrolledToEnd ? 'pointer' : 'not-allowed' }}
  
                 >
  
@@ -13940,7 +14617,7 @@ const [notificationError, setNotificationError] = useState('');
  
   return (
  
-    <div style={{ background: '#0B0C0E', colorScheme: 'dark', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', paddingTop: timerRidotto ? '86px' : '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
+    <div style={{ background: 'var(--bg-18181b)', colorScheme: 'var(--cs)', backgroundImage: 'radial-gradient(circle at 20% 0%, rgba(255,255,255,0.035) 0%, transparent 55%), radial-gradient(circle at 80% 100%, rgba(255,255,255,0.025) 0%, transparent 55%)', color: '#fff', minHeight: '100vh', padding: '24px 24px 88px 24px', paddingTop: timerRidotto ? '86px' : '24px', fontFamily: 'sans-serif', width: '100%', boxSizing: 'border-box' }}>
  
       <style>{`
  
@@ -13952,11 +14629,11 @@ const [notificationError, setNotificationError] = useState('');
  
         input, select, textarea { transition: border-color .16s ease, box-shadow .16s ease; }
  
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #C8F135 !important; box-shadow: 0 0 0 3px rgba(200,241,53,0.18); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--bd-10b981) !important; box-shadow: 0 0 0 3px rgba(var(--acc-rgb), 0.18); }
  
         ::-webkit-scrollbar { width: 8px; height: 8px; }
  
-        ::-webkit-scrollbar-thumb { background: #343A42; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-3f3f46); border-radius: 8px; }
  
         ::-webkit-scrollbar-track { background: transparent; }
  
@@ -13974,15 +14651,15 @@ const [notificationError, setNotificationError] = useState('');
  
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 3000 }}>
  
-            <div style={{ background: '#23282E', color: '#F2F3F5', borderRadius: '12px', maxWidth: '480px', width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '12px', maxWidth: '480px', width: '100%', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
  
-              <div style={{ padding: '18px 20px 12px 20px', borderBottom: '1px solid rgba(242,243,245,0.12)' }}>
+              <div style={{ padding: '18px 20px 12px 20px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
-                <h3 style={{ margin: 0, color: '#C8F135', fontSize: '17px' }}>Duplica esercizio</h3>
+                <h3 style={{ margin: 0, color: 'var(--fg-10b981)', fontSize: '17px' }}>Duplica esercizio</h3>
  
-                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#9AA1AB', lineHeight: 1.45 }}>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
  
-                  <strong style={{ color: '#E5E7EB' }}>{dupBlock.nome || 'Esercizio senza nome'}</strong><br />
+                  <strong style={{ color: 'var(--fg-334155)' }}>{dupBlock.nome || 'Esercizio senza nome'}</strong><br />
  
                   Senza selezionare nulla viene duplicato qui sotto, nella seduta corrente. Oppure scegli in quali altre sedute copiarlo.
  
@@ -14010,11 +14687,11 @@ const [notificationError, setNotificationError] = useState('');
  
                       onClick={() => setDupTargets(scelta ? dupTargets.filter((k) => k !== s.chiave) : [...dupTargets, s.chiave])}
  
-                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', marginBottom: '7px', borderRadius: '999px', cursor: 'pointer', background: scelta ? '#16281D' : '#1B1E22', border: scelta ? '2px solid #C8F135' : '1px solid rgba(242,243,245,0.12)' }}
+                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', marginBottom: '7px', borderRadius: '999px', cursor: 'pointer', background: scelta ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', border: scelta ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)' }}
  
                     >
  
-                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: scelta ? '#101214' : '#fff', background: scelta ? '#C8F135' : '#343A42' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: scelta ? 'var(--onacc)' : '#fff', background: scelta ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)' }}>
  
                         {scelta ? '\u2713' : ''}
  
@@ -14022,13 +14699,13 @@ const [notificationError, setNotificationError] = useState('');
  
                       <span style={{ flex: 1, minWidth: 0 }}>
  
-                        <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#E5E7EB', overflowWrap: 'anywhere' }}>
+                        <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere' }}>
  
                           {s.etichetta}{isCorrente ? ' (seduta corrente)' : ''}
  
                         </span>
  
-                        <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB' }}>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)' }}>
  
                           {s.quanti === 0 ? 'nessun esercizio' : s.quanti === 1 ? '1 esercizio' : `${s.quanti} esercizi`}
  
@@ -14046,15 +14723,15 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-              <div style={{ padding: '12px 20px 18px 20px', borderTop: '1px solid rgba(242,243,245,0.12)', display: 'flex', gap: '8px' }}>
+              <div style={{ padding: '12px 20px 18px 20px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
-                <button type="button" onClick={confermaDuplica} style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                <button type="button" onClick={confermaDuplica} style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                   {dupTargets.length === 0 ? 'Duplica qui' : `Duplica in ${dupTargets.length} sedute`}
  
                 </button>
  
-                <button type="button" onClick={() => { setDupBlock(null); setDupTargets([]); }} style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                <button type="button" onClick={() => { setDupBlock(null); setDupTargets([]); }} style={{ padding: '13px 18px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                   Annulla
  
@@ -14084,9 +14761,9 @@ const [notificationError, setNotificationError] = useState('');
  
             display: 'flex', alignItems: 'center', gap: '9px',
  
-            background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)',
+            background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)',
  
-            color: '#101214', padding: '12px 20px', borderRadius: '999px',
+            color: 'var(--onacc)', padding: '12px 20px', borderRadius: '999px',
  
             fontSize: '13.5px', fontWeight: 'bold',
  
@@ -14226,7 +14903,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <p style={{ fontSize: '14px', margin: '0 0 20px 0', opacity: 0.95 }}>{prBadge.subtitle}</p>
  
-            <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: '#23282E', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+            <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
  
               Grande! 💪
  
@@ -14244,7 +14921,7 @@ const [notificationError, setNotificationError] = useState('');
  
         <div onClick={() => setDailyQuote('')} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1500 }}>
  
-          <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
  
             <div style={{ fontSize: '30px', marginBottom: '10px' }}>💪</div>
  
@@ -14252,7 +14929,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <p style={{ fontSize: '18px', lineHeight: 1.5, margin: '0 0 22px 0', fontWeight: 'bold', whiteSpace: 'pre-line' }}>{dailyQuote}</p>
  
-            <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '999px', background: '#23282E', color: '#C8F135', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+            <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
  
               Ready to start
  
@@ -14270,25 +14947,25 @@ const [notificationError, setNotificationError] = useState('');
  
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1600 }}>
  
-          <div style={{ background: '#23282E', color: '#F2F3F5', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+          <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
  
             <div style={{ fontSize: '30px', marginBottom: '10px' }}>📋</div>
  
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#C8F135' }}>{anamnesiPopup.mancante ? 'Compila la tua anamnesi' : 'Rinnova la tua anamnesi'}</h3>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: 'var(--fg-059669)' }}>{anamnesiPopup.mancante ? 'Compila la tua anamnesi' : 'Rinnova la tua anamnesi'}</h3>
  
-            <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0', color: '#E5E7EB', overflowWrap: 'anywhere' }}>
+            <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0', color: 'var(--fg-334155)', overflowWrap: 'anywhere' }}>
  
               {anamnesiPopup.mancante ? 'Non hai ancora compilato la tua anamnesi. Ci vuole un minuto e permette al coach di costruire programmi adatti a te.' : `Sono passati ${anamnesiPopup.mesi} mesi dall'ultimo aggiornamento della tua anamnesi. Se è cambiato qualcosa, aggiornala: il coach potrà adattare meglio i tuoi programmi.`}
  
             </p>
  
-            <button onClick={() => chiudiPopupAnamnesi(true)} style={{ width: '100%', padding: '12px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginBottom: '8px' }}>
+            <button onClick={() => chiudiPopupAnamnesi(true)} style={{ width: '100%', padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginBottom: '8px' }}>
  
               {anamnesiPopup.mancante ? 'Compila anamnesi' : 'Aggiorna anamnesi'}
  
             </button>
  
-            <button onClick={() => chiudiPopupAnamnesi(false)} style={{ width: '100%', padding: '11px', borderRadius: '999px', background: '#23282E', color: '#C9CED6', fontWeight: 'bold', border: '1px solid rgba(242,243,245,0.16)', cursor: 'pointer', fontSize: '14px' }}>
+            <button onClick={() => chiudiPopupAnamnesi(false)} style={{ width: '100%', padding: '11px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: 'var(--fg-475569)', fontWeight: 'bold', border: '1px solid var(--bd-cbd5e1)', cursor: 'pointer', fontSize: '14px' }}>
  
               {anamnesiPopup.mancante ? 'Più tardi' : 'Non è cambiato nulla'}
  
@@ -14304,15 +14981,15 @@ const [notificationError, setNotificationError] = useState('');
  
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px', zIndex: 2000 }}>
  
-          <div style={{ background: '#23282E', color: '#F2F3F5', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
+          <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '12px', padding: '20px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
  
-            <h3 style={{ marginTop: 0, color: '#C8F135' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--fg-10b981)' }}>
  
               {privacyConsentAt ? 'Informativa privacy aggiornata' : 'Trattamento dei dati personali'}
  
             </h3>
  
-            <p style={{ fontSize: '13px', color: '#E5E7EB', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>
  
               {privacyConsentAt
  
@@ -14322,13 +14999,13 @@ const [notificationError, setNotificationError] = useState('');
  
             </p>
  
-            <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '12px', maxHeight: '35vh', overflowY: 'auto', marginBottom: '14px' }}>
+            <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '12px', maxHeight: '35vh', overflowY: 'auto', marginBottom: '14px' }}>
  
               <PrivacyPolicyContent minor={isMinorenne(personalData.birth_date)} />
  
             </div>
  
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#E5E7EB', lineHeight: 1.4, marginBottom: '14px' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.4, marginBottom: '14px' }}>
  
               <input type="checkbox" checked={consentGateChecked} onChange={(e) => setConsentGateChecked(e.target.checked)} style={{ marginTop: '3px', flexShrink: 0 }} />
  
@@ -14344,7 +15021,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 disabled={!consentGateChecked || consentSaving}
  
-                style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: consentGateChecked ? '#C8F135' : '#4A515A', color: consentGateChecked ? '#101214' : '#fff', fontWeight: 'bold', border: 'none', cursor: consentGateChecked ? 'pointer' : 'not-allowed', fontSize: '14px' }}
+                style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: consentGateChecked ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)', color: consentGateChecked ? 'var(--onacc)' : '#fff', fontWeight: 'bold', border: 'none', cursor: consentGateChecked ? 'pointer' : 'not-allowed', fontSize: '14px' }}
  
               >
  
@@ -14352,7 +15029,7 @@ const [notificationError, setNotificationError] = useState('');
  
               </button>
  
-              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: '#2A1517', color: '#F87171', fontWeight: 'bold', border: '1px solid #7F2A2A', cursor: 'pointer', fontSize: '14px' }}>
+              <button onClick={handleLogout} style={{ flex: 1, minWidth: '140px', padding: '12px', borderRadius: '999px', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', border: '1px solid var(--bd-fca5a5)', cursor: 'pointer', fontSize: '14px' }}>
  
                 Esci
  
@@ -14368,7 +15045,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid rgba(242,243,245,0.14)', paddingBottom: '12px' }}>
+      {mostraTemi && <FinestraTemi tema={tema} onScegli={scegliTema} onClose={() => setMostraTemi(false)} />}
+ 
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid var(--bd-2e2e33)', paddingBottom: '12px' }}>
  
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
  
@@ -14392,9 +15071,9 @@ const [notificationError, setNotificationError] = useState('');
  
           <div style={{ minWidth: 0 }}>
  
-            <h2 style={{ fontSize: '22px', color: '#C8F135', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px', lineHeight: 1.1 }}>AMTraining</h2>
+            <h2 style={{ fontSize: '22px', color: 'var(--fg-10b981)', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px', lineHeight: 1.1 }}>AMTraining</h2>
  
-            <span style={{ fontSize: '11px', color: '#8A919C', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
  
               {(personalData.full_name || session.user.email || '').trim()}{role === 'coach' ? ' · coach' : ''}
  
@@ -14406,7 +15085,45 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+ 
+          <button
+ 
+            onClick={() => setMostraTemi(true)}
+ 
+            title="Tema dell'app"
+ 
+            style={{
+ 
+              background: 'var(--bg-2e2e33)',
+ 
+              border: '1px solid var(--bd-3f3f46)',
+ 
+              color: '#fff',
+ 
+              width: '38px',
+ 
+              height: '38px',
+ 
+              borderRadius: '999px',
+ 
+              cursor: 'pointer',
+ 
+              display: 'flex',
+ 
+              alignItems: 'center',
+ 
+              justifyContent: 'center',
+ 
+              flexShrink: 0,
+ 
+            }}
+ 
+          >
+ 
+            <Icona nome="tavolozza" size={18} />
+ 
+          </button>
  
           <button
  
@@ -14416,15 +15133,15 @@ const [notificationError, setNotificationError] = useState('');
  
             style={{
  
-              background: timerConfig ? '#16281D' : '#343A42',
+              background: timerConfig ? 'var(--bg-064e3b)' : 'var(--bg-2e2e33)',
  
-              border: `1px solid ${timerConfig ? '#C8F135' : 'rgba(242,243,245,0.14)'}`,
+              border: `1px solid ${timerConfig ? 'var(--bd-10b981)' : 'var(--bd-3f3f46)'}`,
  
               color: timerConfig ? '#6ee7b7' : '#fff',
  
-              width: '40px',
+              width: '38px',
  
-              height: '40px',
+              height: '38px',
  
               borderRadius: '999px',
  
@@ -14458,15 +15175,15 @@ const [notificationError, setNotificationError] = useState('');
  
                 position: 'relative',
  
-                background: '#343A42',
+                background: 'var(--bg-2e2e33)',
  
-                border: '1px solid rgba(242,243,245,0.14)',
+                border: '1px solid var(--bd-3f3f46)',
  
                 color: '#fff',
  
-                width: '40px',
+                width: '38px',
  
-                height: '40px',
+                height: '38px',
  
                 borderRadius: '999px',
  
@@ -14518,7 +15235,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   justifyContent: 'center',
  
-                  border: '2px solid rgba(242,243,245,0.14)'
+                  border: '2px solid var(--bd-18181b)'
  
                 }}>
  
@@ -14562,13 +15279,13 @@ const [notificationError, setNotificationError] = useState('');
  
                 overflowY: 'auto',
  
-                background: '#23282E',
+                background: 'var(--bg-ffffff)',
  
-                color: '#F2F3F5',
+                color: 'var(--fg-000000)',
  
                 borderRadius: '14px',
  
-                border: '1px solid rgba(242,243,245,0.16)',
+                border: '1px solid var(--bd-cbd5e1)',
  
                 boxShadow: '0 16px 40px rgba(0,0,0,0.30)',
  
@@ -14582,7 +15299,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   padding: '12px 14px',
  
-                  borderBottom: '1px solid rgba(242,243,245,0.12)',
+                  borderBottom: '1px solid var(--bd-e2e8f0)',
  
                   display: 'flex',
  
@@ -14606,7 +15323,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         border: 'none',
  
-                        color: '#60A5FA',
+                        color: 'var(--fg-2563eb)',
  
                         fontSize: '11px',
  
@@ -14636,7 +15353,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           border: 'none',
  
-                          color: '#C8F135',
+                          color: 'var(--fg-10b981)',
  
                           fontSize: '11px',
  
@@ -14662,7 +15379,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 {notificationError && (
  
-                  <div style={{ padding: '10px 14px', background: '#2A1517', color: '#F87171', fontSize: '11px', borderBottom: '1px solid #7F2A2A', lineHeight: 1.4 }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontSize: '11px', borderBottom: '1px solid var(--bd-fecaca)', lineHeight: 1.4 }}>
  
                     Errore notifiche: {notificationError}
  
@@ -14674,7 +15391,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 {notifications.length === 0 ? (
  
-                  <div style={{ padding: '24px 14px', color: '#9AA1AB', textAlign: 'center', fontSize: '13px' }}>
+                  <div style={{ padding: '24px 14px', color: 'var(--fg-64748b)', textAlign: 'center', fontSize: '13px' }}>
  
                     Nessuna notifica.
  
@@ -14694,9 +15411,9 @@ const [notificationError, setNotificationError] = useState('');
  
     padding: '12px 14px',
  
-    borderBottom: '1px solid rgba(242,243,245,0.08)',
+    borderBottom: '1px solid var(--bd-f1f5f9)',
  
-    background: notification.is_read ? '#23282E' : '#16281D',
+    background: notification.is_read ? 'var(--bg-ffffff)' : 'var(--bg-ecfdf5)',
  
     cursor: notification.is_read ? 'default' : 'pointer',
  
@@ -14714,7 +15431,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         fontSize: '13px',
  
-                        color: notification.is_read ? '#E5E7EB' : '#86EFAC',
+                        color: notification.is_read ? 'var(--fg-334155)' : 'var(--fg-047857)',
  
                         marginBottom: '4px'
  
@@ -14754,7 +15471,7 @@ const [notificationError, setNotificationError] = useState('');
  
     padding: '2px',
  
-    color: '#8A919C'
+    color: 'var(--fg-94a3b8)'
  
   }}
  
@@ -14764,7 +15481,7 @@ const [notificationError, setNotificationError] = useState('');
  
 </button>
  
-                      <div style={{ fontSize: '12px', color: '#C9CED6', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: '12px', color: 'var(--fg-475569)', lineHeight: 1.4 }}>
  
                         {notification.message}
  
@@ -14772,7 +15489,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       {notification.created_at && (
  
-                        <div style={{ fontSize: '10px', color: '#8A919C', marginTop: '5px' }}>
+                        <div style={{ fontSize: '10px', color: 'var(--fg-94a3b8)', marginTop: '5px' }}>
  
                           {new Date(notification.created_at).toLocaleString('it-IT')}
  
@@ -14794,7 +15511,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid #7F2A2A', color: '#fca5a5', padding: '8px 16px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
  
         </div>
  
@@ -14810,17 +15527,17 @@ const [notificationError, setNotificationError] = useState('');
  
           {coachSubView === 'banner' ? (
  
-            <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-              <h3 style={{ fontSize: '18px', color: '#C8F135', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
+              <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
  
               <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
                 <div>
  
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#E5E7EB', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner:</label>
  
-                  <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setBannerImageFile(e.target.files[0]); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px', fontSize: '13px', color: '#F2F3F5' }} />
+                  <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setBannerImageFile(e.target.files[0]); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)' }} />
  
                 </div>
  
@@ -14828,9 +15545,9 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <span style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Immagine attuale:</span>
+                    <span style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Immagine attuale:</span>
  
-                    <img src={bannerData.image_url} alt="Current Banner" style={{ maxHeight: '120px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', objectFit: 'cover' }} />
+                    <img src={bannerData.image_url} alt="Current Banner" style={{ maxHeight: '120px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', objectFit: 'cover' }} />
  
                   </div>
  
@@ -14838,13 +15555,13 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div>
  
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#E5E7EB', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
  
-                  <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px', fontSize: '13px', color: '#F2F3F5', boxSizing: 'border-box' }} />
+                  <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
  
-                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: '#C8F135', color: '#101214', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
+                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
  
                   {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
  
@@ -14854,11 +15571,11 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid rgba(242,243,245,0.12)' }}>
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
-                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: '#C8F135' }}>🔗 Invito ad abbonarsi</h4>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🔗 Invito ad abbonarsi</h4>
  
-                <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
                   Compare solo agli atleti con abbonamento scaduto, al posto delle schede. Chi è attivo non lo vede mai.
  
@@ -14866,7 +15583,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div style={{ marginBottom: '10px' }}>
  
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#E5E7EB', display: 'block', marginBottom: '4px' }}>Messaggio</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Messaggio</label>
  
                   <textarea
  
@@ -14878,7 +15595,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     onChange={(e) => setTrialCta({ ...trialCta, text: e.target.value })}
  
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }}
  
                   />
  
@@ -14886,7 +15603,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div style={{ marginBottom: '12px' }}>
  
-                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#E5E7EB', display: 'block', marginBottom: '4px' }}>Link al tuo sito</label>
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link al tuo sito</label>
  
                   <input
  
@@ -14898,13 +15615,13 @@ const [notificationError, setNotificationError] = useState('');
  
                     onChange={(e) => setTrialCta({ ...trialCta, link_url: e.target.value })}
  
-                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }}
  
                   />
  
                 </div>
  
-                <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: '#C8F135', color: '#101214', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito
  
@@ -14920,13 +15637,13 @@ const [notificationError, setNotificationError] = useState('');
  
               {selectedCoachAthlete ? (
  
-                <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
-                    <h3 style={{ fontSize: '18px', color: '#C8F135', margin: 0, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
+                    <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', margin: 0, flex: '1 1 auto', minWidth: 0, overflowWrap: 'anywhere' }}>{selectedCoachAthlete.full_name || selectedCoachAthlete.email}</h3>
  
-                    <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
+                    <button onClick={() => setSelectedCoachAthlete(null)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Indietro</button>
  
                   </div>
  
@@ -14938,11 +15655,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Dati anagrafici</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Dati anagrafici</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ ...pillola(coachAthleteDetailTab === 'anamnesi', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Anamnesi</button>
+                    <button onClick={() => setCoachAthleteDetailTab('anamnesi')} style={{ ...pillola(coachAthleteDetailTab === 'anamnesi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Anamnesi</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Abbonamento</button>
+                    <button onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ ...pillola(coachAthleteDetailTab === 'abbonamento', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Abbonamento</button>
  
                   </div>
  
@@ -14950,11 +15667,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🏋🏻 Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🏋🏻 Massimali</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🎯 Gare</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🎯 Gare</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', '#C8F135', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🚀 Percorso</button>
+                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🚀 Percorso</button>
  
                   </div>
  
@@ -14996,35 +15713,35 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
  
-                          <input type="text" value={athData.full_name} onChange={(e) => updateField('full_name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
- 
-                        </div>
- 
-                        <div>
- 
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Email</label>
- 
-                          <input type="text" value={selectedCoachAthlete.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)', background: '#2D3238', color: '#9AA1AB', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <input type="text" value={athData.full_name} onChange={(e) => updateField('full_name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Email</label>
  
-                          <input type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <input type="text" value={selectedCoachAthlete.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
+ 
+                        </div>
+ 
+                        <div>
+ 
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+ 
+                          <input type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
                         {isMinorenne(athData.birth_date) && (
  
-                          <div style={{ background: '#2B2210', border: '1px solid #8A6A12', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '8px', padding: '12px' }}>
  
-                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#FCD34D', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                            <input type="text" placeholder="Nome e cognome" value={athData.guardian_name || ''} onChange={(e) => updateField('guardian_name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                            <input type="text" placeholder="Nome e cognome" value={athData.guardian_name || ''} onChange={(e) => updateField('guardian_name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                           </div>
  
@@ -15032,13 +15749,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Sesso</label>
  
                           <div style={{ display: 'flex', gap: '8px' }}>
  
                             {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
  
-                              <button key={k} type="button" onClick={() => updateField('gender', k)} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: athData.gender === k ? '#C8F135' : '#343A42', color: athData.gender === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                              <button key={k} type="button" onClick={() => updateField('gender', k)} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: athData.gender === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: athData.gender === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
  
                             ))}
  
@@ -15050,17 +15767,17 @@ const [notificationError, setNotificationError] = useState('');
  
                           <div style={{ flex: 1 }}>
  
-                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
  
-                            <input type="number" step="0.1" min="0" value={athData.weight} onChange={(e) => updateField('weight', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                            <input type="number" step="0.1" min="0" value={athData.weight} onChange={(e) => updateField('weight', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                           </div>
  
                           <div style={{ flex: 1 }}>
  
-                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
  
-                            <input type="number" step="0.1" min="0" value={athData.height} onChange={(e) => updateField('height', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                            <input type="number" step="0.1" min="0" value={athData.height} onChange={(e) => updateField('height', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                           </div>
  
@@ -15072,7 +15789,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           onClick={() => savePersonalData(selectedCoachAthlete.id, athData, true)}
  
-                          style={{ padding: '12px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                          style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
  
                         >
  
@@ -15116,9 +15833,9 @@ const [notificationError, setNotificationError] = useState('');
  
                     {athletePersonalPrograms.length === 0 ? (
  
-                      <div style={{ background: '#23282E', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)', textAlign: 'center' }}>
+                      <div style={{ background: 'var(--bg-ffffff)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)', textAlign: 'center' }}>
  
-                        <p style={{ color: '#9AA1AB' }}>Nessuna scheda assegnata a questo atleta.</p>
+                        <p style={{ color: 'var(--fg-64748b)' }}>Nessuna scheda assegnata a questo atleta.</p>
  
                       </div>
  
@@ -15144,7 +15861,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         return (
  
-                          <div key={prog.id} style={{ background: '#1B1E22', padding: '16px', borderRadius: '14px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '16px' }}>
+                          <div key={prog.id} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', marginBottom: '16px' }}>
  
                             <div
  
@@ -15154,9 +15871,9 @@ const [notificationError, setNotificationError] = useState('');
  
                             >
  
-                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: '#C8F135', fontSize: '16px' }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: 'var(--fg-10b981)', fontSize: '16px' }}>{prog.title}</h4>
  
-                              <span style={{ fontSize: '18px', color: '#C8F135', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
+                              <span style={{ fontSize: '18px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
  
                             </div>
  
@@ -15182,7 +15899,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   }}
  
-                                  style={{ padding: '6px 12px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : '#343A42', color: activeWeekName === w.weekName ? '#fff' : '#F2F3F5', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                  style={{ padding: '6px 12px', borderRadius: '999px', border: 'none', background: activeWeekName === w.weekName ? '#0284c7' : 'var(--bg-e2e8f0)', color: activeWeekName === w.weekName ? '#fff' : 'var(--fg-000000)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
  
                                 >
  
@@ -15206,7 +15923,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   onClick={() => setCoachSelectedDay(prev => ({ ...prev, [prog.id]: day.dayName }))}
  
-                                  style={{ ...pillola(activeDayName === day.dayName, '#C8F135', 'piccolo') }}
+                                  style={{ ...pillola(activeDayName === day.dayName, 'var(--fg-10b981)', 'piccolo') }}
  
                                 >
  
@@ -15222,7 +15939,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             {(!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) ? (
  
-                              <p style={{ color: '#9AA1AB', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
+                              <p style={{ color: 'var(--fg-64748b)', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
  
                             ) : (
  
@@ -15238,11 +15955,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                 return (
  
-                                  <div key={bIdx} style={{ background: '#23282E', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
-                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#C8F135', overflowWrap: 'anywhere' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</span>
+                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</span>
  
                                       {(blk.type === 'wod' || blk.type === 'test') && (
  
@@ -15252,7 +15969,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
  
-                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(200,241,53,0.35)' }}
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                         >
  
@@ -15268,7 +15985,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {haElenco(blk.type) ? (
  
-                                      <div style={{ background: blk.type === 'superserie' ? '#23282E' : '#2B2210', border: blk.type === 'superserie' ? '1px solid rgba(242,243,245,0.12)' : '1px solid #8A6A12', borderRadius: '10px', padding: '12px' }}>
+                                      <div style={{ background: blk.type === 'superserie' ? 'var(--bg-ffffff)' : 'var(--bg-fffbeb)', border: blk.type === 'superserie' ? '1px solid var(--bd-e2e8f0)' : '1px solid var(--bd-fde68a)', borderRadius: '10px', padding: '12px' }}>
  
                                         {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
@@ -15282,7 +15999,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(blk.items || []).length === 0 && (
  
-                                          <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? '#9AA1AB' : '#FCD34D' }}>Nessun esercizio inserito.</span>
+                                          <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)' }}>Nessun esercizio inserito.</span>
  
                                         )}
  
@@ -15292,7 +16009,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#E5E7EB' : '#FCD34D', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                               {it.name}
  
@@ -15302,11 +16019,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 return (
  
-                                                  <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#9AA1AB', marginTop: '2px' }}>
+                                                  <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
                                                     {it.load}
  
-                                                    {suggerito ? <span style={{ color: '#93C5FD', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
+                                                    {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
                                                   </span>
  
@@ -15318,7 +16035,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#C9CED6' : '#FCD34D', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                               {it.value}
  
@@ -15372,7 +16089,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     title="Avvia il timer"
  
-                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', cursor: 'pointer', boxShadow: '0 2px 5px rgba(200,241,53,0.35)' }}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', boxShadow: '0 2px 5px rgba(var(--acc-rgb), 0.35)' }}
  
                                                   >
  
@@ -15390,7 +16107,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {i < (blk.items.length - 1) && (() => {
  
-                                              const linea = blk.type === 'superserie' ? 'rgba(242,243,245,0.14)' : '#fde68a';
+                                              const linea = blk.type === 'superserie' ? 'var(--fg-e2e8f0)' : '#fde68a';
  
                                               const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
@@ -15408,7 +16125,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       title="Avvia questo recupero"
  
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: '#23282E', color: '#C9CED6', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: 'var(--bg-ffffff)', color: 'var(--fg-475569)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                     >
  
@@ -15418,7 +16135,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                   ) : (
  
-                                                    <span style={{ flexShrink: 0, fontSize: '10.5px', color: '#8A919C', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+                                                    <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
  
                                                   )) : null}
  
@@ -15440,17 +16157,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid #C8F135' : '1px solid #8A6A12', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#16281D' : '#23282E' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-fcd34d)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                         >
  
-                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#C8F135' : '#fde68a' }}>
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : '#fde68a' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
  
                                           </span>
  
-                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#86EFAC' : '#FCD34D' }}>
+                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-92400e)' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
  
@@ -15478,7 +16195,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             return (
  
-                                              <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? '#9AA1AB' : '#FCD34D', marginTop: '7px', textAlign: 'center' }}>
+                                              <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)', marginTop: '7px', textAlign: 'center' }}>
  
                                                 Nessun recupero tra i round
  
@@ -15490,9 +16207,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                           return (
  
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#2B2210', border: '1px solid #8A6A12' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-fef3c7)', border: '1px solid var(--bd-fcd34d)' }}>
  
-                                              <span style={{ fontSize: '12px', color: '#FCD34D' }}>
+                                              <span style={{ fontSize: '12px', color: 'var(--fg-92400e)' }}>
  
                                                 Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
  
@@ -15506,7 +16223,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 aria-label="Avvia il recupero"
  
-                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(200,241,53,0.35)' }}
+                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                               >
  
@@ -15524,7 +16241,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {blk.notes && (
  
-                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#E5E7EB' : '#FCD34D', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#1B1E22' : '#2B2210', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? 'var(--bg-f8fafc)' : 'var(--bg-fef3c7)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                             {blk.notes}
  
@@ -15540,9 +16257,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {blk.wodNotes && (
  
-                                          <div style={{ background: '#1F1A33', border: '1px solid #3F3270', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                          <div style={{ background: 'var(--bg-f5f3ff)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                            <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: '#E5E7EB', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                            <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                           </div>
  
@@ -15552,17 +16269,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid #C8F135' : '1px solid rgba(242,243,245,0.16)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#16281D' : '#23282E' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                         >
  
-                                          <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#C8F135' : '#343A42' }}>
+                                          <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: 'var(--onacc)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '\u2713' : ''}
  
                                           </span>
  
-                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '#86EFAC' : '#E5E7EB' }}>
+                                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
  
@@ -15574,17 +16291,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                     ) : blk.type === 'test' ? (
  
-                                      <div style={{ background: '#0F2236', padding: '10px', borderRadius: '6px', border: '1px solid #1E4A75', marginBottom: '8px', textAlign: 'center' }}>
+                                      <div style={{ background: 'var(--bg-eff6ff)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-bfdbfe)', marginBottom: '8px', textAlign: 'center' }}>
  
-                                        <span style={{ fontSize: '16px', color: '#93C5FD', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                        <span style={{ fontSize: '16px', color: 'var(--fg-1e3a8a)', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
  
-                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#93C5FD', letterSpacing: '0.5px' }}>
+                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: 'var(--fg-1e40af)', letterSpacing: '0.5px' }}>
  
                                             {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
  
                                         </span>
  
-                                        {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: '#93C5FD', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                        {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: 'var(--fg-1e40af)', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
  
                                         {(() => {
  
@@ -15596,21 +16313,21 @@ const [notificationError, setNotificationError] = useState('');
  
                                           return (
  
-                                            <div style={{ background: '#23282E', border: '1px solid #1E4A75', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
+                                            <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
  
                                               <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
  
                                                 {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, selectedCoachAthlete.id); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, selectedCoachAthlete.id); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
  
                                                 ))}
  
                                               </div>
  
-                                              <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                              <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                              <div style={{ fontSize: '10px', color: '#FCD34D', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
  
                                             </div>
  
@@ -15626,27 +16343,27 @@ const [notificationError, setNotificationError] = useState('');
  
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
  
-                                        <div style={{ background: '#1B1E22', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                          <span style={{ fontSize: '9px', color: '#9AA1AB', display: 'block' }}>SET</span>
+                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#F2F3F5' }}>{blk.sets}</span>
- 
-                                        </div>
- 
-                                        <div style={{ background: '#1B1E22', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
- 
-                                          <span style={{ fontSize: '9px', color: '#9AA1AB', display: 'block' }}>REP</span>
- 
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#F2F3F5' }}>{blk.reps}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
  
                                         </div>
  
-                                        <div style={{ background: '#1B1E22', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                          <span style={{ fontSize: '9px', color: '#9AA1AB', display: 'block' }}>CARICO</span>
+                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#F2F3F5' }}>{blk.load}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
+ 
+                                        </div>
+ 
+                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO</span>
+ 
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.load}</span>
  
                                         </div>
  
@@ -15660,15 +16377,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                             onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
  
-                                            style={{ background: '#16281D', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid #2F7D4B', cursor: 'pointer' }}
+                                            style={{ background: 'var(--bg-ecfdf5)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
  
                                           >
  
-                                          <span style={{ fontSize: '9px', color: '#9AA1AB', display: 'block' }}>REC.</span>
+                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>REC.</span>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: '#F2F3F5' }}>{blk.rest}</span>
+                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
  
-                                          <span style={{ display: 'block', fontSize: '8px', color: '#86EFAC', fontWeight: 'bold' }}>⏱️</span>
+                                          <span style={{ display: 'block', fontSize: '8px', color: 'var(--fg-047857)', fontWeight: 'bold' }}>⏱️</span>
  
                                           </div>
  
@@ -15686,11 +16403,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                           return (
  
-                                            <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                            <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
  
-                                              <span style={{ display: 'block', fontSize: '9px', color: '#93C5FD' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
+                                              <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-1e40af)' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
  
-                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: '#93C5FD' }}>{hint}</span>
+                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{hint}</span>
  
                                             </div>
  
@@ -15706,9 +16423,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                         return (
  
-                                          <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
  
-                                            <span style={{ display: 'block', fontSize: '9px', color: '#9AA1AB', marginBottom: '2px' }}>
+                                            <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-64748b)', marginBottom: '2px' }}>
  
                                               {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVA USATO' : 'CARICHI GIÀ USATI'}
  
@@ -15716,7 +16433,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
  
-                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#86EFAC' : '#E5E7EB', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? 'var(--fg-047857)' : 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                 {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
  
@@ -15724,7 +16441,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               {usati.length > 1 && (
  
-                                                <span style={{ fontSize: '10px', color: '#8A919C', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                <span style={{ fontSize: '10px', color: 'var(--fg-94a3b8)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                   {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
  
@@ -15744,11 +16461,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                     ) : (
  
-                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '10px' }}>
+                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '10px' }}>
  
-                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>WOD / CIRCUITO</span>
+                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</span>
  
-                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
  
                                       </div>
  
@@ -15792,11 +16509,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {blk.type === 'forza' && blk.notes && (
  
-                                      <div style={{ background: '#2B2210', padding: '8px', borderRadius: '6px', border: '1px solid #8A6A12', marginBottom: '10px' }}>
+                                      <div style={{ background: 'var(--bg-fffbeb)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-fde68a)', marginBottom: '10px' }}>
  
-                                        <span style={{ fontSize: '10px', color: '#FCD34D', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
+                                        <span style={{ fontSize: '10px', color: 'var(--fg-92400e)', fontWeight: 'bold', display: 'block' }}>NOTE ESERCIZIO (dal programma)</span>
  
-                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#E5E7EB' }}>{blk.notes}</p>
+                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)' }}>{blk.notes}</p>
  
                                       </div>
  
@@ -15804,9 +16521,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                    <div style={{ marginTop: '10px', background: '#2D3238', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)' }}>
+                                    <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
  
-                                      <span style={{ fontSize: '11px', color: '#C8F135', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
+                                      <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
  
                                       {(blk.type !== 'warmup' && !isMobility(blk.name)) ? (
  
@@ -15828,7 +16545,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk, athleteId: selectedCoachAthlete.id, lvl })}
  
-                                                style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(200,241,53,0.32)' }}
+                                                style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(var(--acc-rgb), 0.32)' }}
  
                                               >
  
@@ -15864,7 +16581,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <div>
  
-                                          <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>Score / Carico</label>
+                                          <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Score / Carico</label>
  
                                           {(() => {
  
@@ -15904,9 +16621,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <div>
  
-                                          <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>Note del coach</label>
+                                          <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Note del coach</label>
  
-                                          <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, selectedCoachAthlete.id)} style={{ width: '100%', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                          <input type="text" placeholder="Sensazioni, tecnica..." value={currentNotes} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value, selectedCoachAthlete.id)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                         </div>
  
@@ -15952,13 +16669,13 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
  
-                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : '#2D3238', color: coachMaxSubTab === 'strength' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
  
-                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : '#2D3238', color: coachMaxSubTab === 'metcon' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
  
-                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : '#2D3238', color: coachMaxSubTab === 'gym' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
  
-                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : '#2D3238', color: coachMaxSubTab === 'bench' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
  
                   </div>
  
@@ -15968,11 +16685,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <div style={{ background: '#1B1E22', padding: '14px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '16px' }}>
+                    <div style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '16px' }}>
  
-                      <span style={{ fontSize: '13px', color: '#C8F135', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
+                      <span style={{ fontSize: '13px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
  
-                      <p style={{ fontSize: '11px', color: '#9AA1AB', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                      <p style={{ fontSize: '11px', color: 'var(--fg-64748b)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
  
                         Sono gli stessi esercizi della Libreria Esercizi: stesso nome ovunque, così i record dalle schede si agganciano da soli. Vale per tutti gli atleti.
  
@@ -15994,7 +16711,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           list="max_ex_suggestions"
  
-                          style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }}
+                          style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }}
  
                         />
  
@@ -16008,13 +16725,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         </datalist>
  
-                        <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                        <button onClick={addMaxTrackedExercise} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
  
                       </div>
  
  
  
-                      <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                      <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
  
                         {showExerciseManager ? '\u25b2 Nascondi gestione esercizi' : '\u25bc Gestisci esercizi'}
  
@@ -16024,11 +16741,11 @@ const [notificationError, setNotificationError] = useState('');
  
                       {showExerciseManager && (
  
-                        <div style={{ marginTop: '10px', background: '#23282E', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ marginTop: '10px', background: 'var(--bg-ffffff)', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
                           {exerciseLibrary.filter((e: any) => !e.dismissed).length === 0 ? (
  
-                            <p style={{ fontSize: '12px', color: '#9AA1AB', margin: 0 }}>Nessun esercizio in libreria.</p>
+                            <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: 0 }}>Nessun esercizio in libreria.</p>
  
                           ) : exerciseLibrary.filter((e: any) => !e.dismissed).map((ex: any) => (
  
@@ -16048,15 +16765,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                     onKeyDown={(e) => { if (e.key === 'Enter') renameExerciseEverywhere(ex.id, ex.name, editingExerciseName); }}
  
-                                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '12px' }}
+                                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '12px' }}
  
                                     autoFocus
  
                                   />
  
-                                  <button onClick={() => renameExerciseEverywhere(ex.id, ex.name, editingExerciseName)} style={{ background: '#C8F135', border: 'none', color: '#101214', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
+                                  <button onClick={() => renameExerciseEverywhere(ex.id, ex.name, editingExerciseName)} style={{ background: 'var(--bg-10b981)', border: 'none', color: 'var(--onacc)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Salva</button>
  
-                                  <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: '#343A42', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
+                                  <button onClick={() => { setEditingExerciseId(null); setEditingExerciseName(''); }} style={{ background: 'var(--bg-e2e8f0)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>Annulla</button>
  
                                 </>
  
@@ -16068,7 +16785,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
  
-                                    <span style={{ fontSize: '13px', color: '#F2F3F5' }}>{ex.name}</span>
+                                    <span style={{ fontSize: '13px', color: 'var(--fg-000000)' }}>{ex.name}</span>
  
                                   </label>
  
@@ -16082,7 +16799,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           ))}
  
-                          <p style={{ fontSize: '11px', color: '#9AA1AB', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+                          <p style={{ fontSize: '11px', color: 'var(--fg-64748b)', margin: '4px 0 0 0', lineHeight: 1.4 }}>
  
                             La spunta indica se l&apos;esercizio compare tra i massimali. Rinominandolo, il nome cambia anche nella Libreria Esercizi, nei massimali di tutti gli atleti e nello storico.
  
@@ -16104,17 +16821,17 @@ const [notificationError, setNotificationError] = useState('');
  
                       return (
  
-                        <div key={exName} style={{ background: '#1B1E22', padding: '14px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                        <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                          <div style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
  
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
  
                             {REP_SCHEMES.map((reps) => (
  
-                              <div key={reps} style={{ background: '#23282E', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                              <div key={reps} style={{ background: 'var(--bg-ffffff)', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
+                                <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
  
                                 <input
  
@@ -16130,7 +16847,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
  
-                                  style={{ width: '100%', padding: '5px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', boxSizing: 'border-box' }}
+                                  style={{ width: '100%', padding: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', boxSizing: 'border-box' }}
  
                                 />
  
@@ -16146,7 +16863,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)}
  
-                            style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
+                            style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
  
                           >
  
@@ -16184,15 +16901,15 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#C8F135' }}>⏱️ Metcon PR</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>⏱️ Metcon PR</h4>
  
-                  <div style={{ background: '#1B1E22', padding: '12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '14px' }}>
+                  <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
-                    <span style={{ fontSize: '12px', color: '#C9CED6', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Metcon PR</span>
+                    <span style={{ fontSize: '12px', color: 'var(--fg-475569)', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Metcon PR</span>
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} list="pr_suggestions" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} list="pr_suggestions" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                       <datalist id="pr_suggestions">
  
@@ -16204,7 +16921,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       </datalist>
  
-                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      <button onClick={() => addPrExercise('metcon')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
  
                     </div>
  
@@ -16218,11 +16935,11 @@ const [notificationError, setNotificationError] = useState('');
  
                     {metconPRNames.map((exName) => (
  
-                      <div key={exName} style={{ background: '#1B1E22', padding: '12px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                      <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-                          <span style={{ flex: 1, fontWeight: 'bold', color: '#F2F3F5', fontSize: '13px' }}>{exName}</span>
+                          <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
                           <ScoreInput
  
@@ -16236,11 +16953,11 @@ const [notificationError, setNotificationError] = useState('');
  
                           />
  
-                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#F87171', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
+                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: 'var(--fg-ef4444)', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
  
                         </div>
  
-                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -16272,15 +16989,15 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#C8F135' }}>🤸 Gymnastics PR</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>🤸 Gymnastics PR</h4>
  
-                  <div style={{ background: '#1B1E22', padding: '12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '14px' }}>
+                  <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
-                    <span style={{ fontSize: '12px', color: '#C9CED6', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
+                    <span style={{ fontSize: '12px', color: 'var(--fg-475569)', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                       <datalist id="pr_suggestions_gym">
  
@@ -16292,7 +17009,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       </datalist>
  
-                      <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
+                      <button onClick={() => addPrExercise('gym')} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', whiteSpace: 'nowrap' }}>+ Aggiungi</button>
  
                     </div>
  
@@ -16306,11 +17023,11 @@ const [notificationError, setNotificationError] = useState('');
  
                     {gymPRNames.map((exName) => (
  
-                      <div key={exName} style={{ background: '#1B1E22', padding: '12px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                      <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-                          <span style={{ flex: 1, fontWeight: 'bold', color: '#F2F3F5', fontSize: '13px' }}>{exName}</span>
+                          <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
                           <ScoreInput
  
@@ -16324,11 +17041,11 @@ const [notificationError, setNotificationError] = useState('');
  
                           />
  
-                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: '#F87171', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
+                          <button onClick={() => removePrExercise(exName)} title="Togli dall'elenco PR" style={{ background: 'none', border: 'none', color: 'var(--fg-ef4444)', cursor: 'pointer', fontSize: '15px', padding: '0 2px' }}>×</button>
  
                         </div>
  
-                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                        <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -16358,7 +17075,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: '#C8F135' }}>🏅 Benchmark WOD</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>🏅 Benchmark WOD</h4>
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
  
@@ -16370,17 +17087,17 @@ const [notificationError, setNotificationError] = useState('');
  
                       return (
  
-                        <div key={b.name} style={{ background: '#1B1E22', padding: '12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                        <div key={b.name} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
-                            <span style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px' }}>{b.name}</span>
+                            <span style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '15px' }}>{b.name}</span>
  
                             <div style={{ display: 'flex', gap: '4px' }}>
  
                               {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
  
-                                <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                                <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
  
                               ))}
  
@@ -16388,13 +17105,13 @@ const [notificationError, setNotificationError] = useState('');
  
                           </div>
  
-                          <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
+                          <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
  
-                          <div style={{ fontSize: '10px', color: '#FCD34D', marginBottom: '8px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginBottom: '8px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(b, lvl)}</div>
  
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
-                            <span style={{ fontSize: '11px', color: '#9AA1AB', flex: 1 }}>Risultato</span>
+                            <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', flex: 1 }}>Risultato</span>
  
                             <ScoreInput
  
@@ -16410,7 +17127,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           </div>
  
-                          <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, b.name)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                          <button onClick={() => toggleMaxHistory(selectedCoachAthlete.id, b.name)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                             {openHistoryKey === `${selectedCoachAthlete.id}|${b.name}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -16448,11 +17165,11 @@ const [notificationError, setNotificationError] = useState('');
  
                     const opzioni = [
  
-                      { k: 'attivo',  t: 'Attivo',  d: 'Vede le sue schede e il banner promozionale', bg: '#16281D', bd: '#4ade80', fg: '#166534' },
+                      { k: 'attivo',  t: 'Attivo',  d: 'Vede le sue schede e il banner promozionale', bg: 'var(--bg-dcfce7)', bd: '#4ade80', fg: '#166534' },
  
-                      { k: 'prova',   t: 'In prova', d: 'Vede solo la settimana di prova che ha scelto', bg: '#2B2210', bd: '#facc15', fg: '#854d0e' },
+                      { k: 'prova',   t: 'In prova', d: 'Vede solo la settimana di prova che ha scelto', bg: 'var(--bg-fef9c3)', bd: '#facc15', fg: '#854d0e' },
  
-                      { k: 'scaduto', t: 'Scaduto',  d: 'Nessuna scheda: vede l\u2019invito ad abbonarsi', bg: '#2A1517', bd: '#f87171', fg: '#991b1b' },
+                      { k: 'scaduto', t: 'Scaduto',  d: 'Nessuna scheda: vede l\u2019invito ad abbonarsi', bg: 'var(--bg-fee2e2)', bd: '#f87171', fg: '#991b1b' },
  
                     ];
  
@@ -16460,9 +17177,9 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
  
-                        <h4 style={{ fontSize: '15px', margin: 0, color: '#C8F135' }}>Stato abbonamento</h4>
+                        <h4 style={{ fontSize: '15px', margin: 0, color: 'var(--fg-10b981)' }}>Stato abbonamento</h4>
  
-                        <p style={{ fontSize: '12px', color: '#9AA1AB', margin: 0, lineHeight: 1.45 }}>
+                        <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: 0, lineHeight: 1.45 }}>
  
                           Chi si registra parte automaticamente &quot;In prova&quot;. Cambia lo stato quando acquista o quando l&apos;abbonamento finisce.
  
@@ -16484,9 +17201,9 @@ const [notificationError, setNotificationError] = useState('');
  
                               padding: '14px', borderRadius: '10px', cursor: 'pointer',
  
-                              background: stato === o.k ? o.bg : '#23282E',
+                              background: stato === o.k ? o.bg : 'var(--bg-ffffff)',
  
-                              border: stato === o.k ? `2px solid ${o.bd}` : '1px solid rgba(242,243,245,0.12)',
+                              border: stato === o.k ? `2px solid ${o.bd}` : '1px solid var(--bd-e2e8f0)',
  
                             }}
  
@@ -16496,7 +17213,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
  
-                              border: `2px solid ${stato === o.k ? o.bd : 'rgba(242,243,245,0.16)'}`,
+                              border: `2px solid ${stato === o.k ? o.bd : 'var(--bd-cbd5e1)'}`,
  
                               background: stato === o.k ? o.bd : 'transparent',
  
@@ -16508,9 +17225,9 @@ const [notificationError, setNotificationError] = useState('');
  
                             <span style={{ flex: 1 }}>
  
-                              <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: stato === o.k ? o.fg : '#E5E7EB' }}>{o.t}</span>
+                              <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: stato === o.k ? o.fg : 'var(--fg-334155)' }}>{o.t}</span>
  
-                              <span style={{ display: 'block', fontSize: '11px', color: '#9AA1AB', marginTop: '2px' }}>{o.d}</span>
+                              <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{o.d}</span>
  
                             </span>
  
@@ -16520,9 +17237,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                        <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
+                        <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
  
-                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
  
                           <select
  
@@ -16530,7 +17247,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onChange={(e) => setAthleteTrialStyle(selectedCoachAthlete.id, e.target.value)}
  
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E', marginBottom: '6px' }}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '6px' }}
  
                           >
  
@@ -16544,7 +17261,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           </select>
  
-                          <span style={{ fontSize: '11px', color: '#9AA1AB', lineHeight: 1.4, display: 'block' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, display: 'block' }}>
  
                             Solo tu puoi cambiare lo stile: l'atleta lo sceglie una volta sola. La scadenza resta di sette giorni dall'iscrizione e non riparte.
  
@@ -16582,17 +17299,17 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
  
-                          <textarea value={athAnamnesi.goal} onChange={(e) => updateField('goal', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea value={athAnamnesi.goal} onChange={(e) => updateField('goal', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
  
-                          <select value={athAnamnesi.weekly_sessions} onChange={(e) => updateField('weekly_sessions', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }}>
+                          <select value={athAnamnesi.weekly_sessions} onChange={(e) => updateField('weekly_sessions', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }}>
  
                             <option value="">Seleziona...</option>
  
@@ -16604,9 +17321,9 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
  
-                          <select value={athAnamnesi.session_duration} onChange={(e) => updateField('session_duration', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }}>
+                          <select value={athAnamnesi.session_duration} onChange={(e) => updateField('session_duration', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }}>
  
                             <option value="">Seleziona...</option>
  
@@ -16626,17 +17343,17 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
  
-                          <textarea value={athAnamnesi.equipment} onChange={(e) => updateField('equipment', e.target.value)} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea value={athAnamnesi.equipment} onChange={(e) => updateField('equipment', e.target.value)} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
                         <div>
  
-                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
+                          <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
  
-                          <textarea value={athAnamnesi.physical_issues} onChange={(e) => updateField('physical_issues', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea value={athAnamnesi.physical_issues} onChange={(e) => updateField('physical_issues', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -16646,7 +17363,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           onClick={() => saveAnamnesis(selectedCoachAthlete.id, athAnamnesi, true)}
  
-                          style={{ padding: '12px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                          style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
  
                         >
  
@@ -16664,9 +17381,9 @@ const [notificationError, setNotificationError] = useState('');
  
               ) : (
  
-                <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: '#C8F135' }}>Seleziona un Atleta</h3>
+                  <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'var(--fg-10b981)' }}>Seleziona un Atleta</h3>
  
  
  
@@ -16682,13 +17399,13 @@ const [notificationError, setNotificationError] = useState('');
  
      onChange={(e: any) => setCercaProfili(e.target.value)}
  
-     style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E' }}
+     style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}
  
    />
  
    {cercaProfili && (
  
-     <button onClick={() => setCercaProfili('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#8A919C', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+     <button onClick={() => setCercaProfili('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--fg-94a3b8)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
  
        <Icona nome="chiudi" size={15} />
  
@@ -16706,7 +17423,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       onClick={() => setShowAddAthlete(true)}
  
-                      style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                      style={{ width: '100%', boxSizing: 'border-box', marginBottom: '14px', padding: '12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
  
                     >
  
@@ -16716,11 +17433,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   ) : (
  
-                    <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
+                    <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
  
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#C8F135' }}>Nuovo atleta</h4>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--fg-10b981)' }}>Nuovo atleta</h4>
  
-                      <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#9AA1AB', lineHeight: 1.45 }}>
+                      <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
  
                         L&apos;account viene creato già attivo, senza email di conferma. Comunica tu email e password all&apos;atleta: al primo accesso gli verrà chiesto di accettare l&apos;informativa privacy e potrà cambiare la password dal suo profilo.
  
@@ -16732,23 +17449,23 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div style={{ display: 'flex', gap: '9px' }}>
  
-                          <input type="text" placeholder="Nome" value={newAthlete.first_name} onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                          <input type="text" placeholder="Nome" value={newAthlete.first_name} onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                          <input type="text" placeholder="Cognome" value={newAthlete.last_name} onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                          <input type="text" placeholder="Cognome" value={newAthlete.last_name} onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
-                        <input type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                        <input type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                        <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
  
  
                         <div>
  
-                          <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                          <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                          <input type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                          <input type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
@@ -16756,11 +17473,11 @@ const [notificationError, setNotificationError] = useState('');
  
                         {isMinorenne(personalData.birth_date) && (
  
-                          <div style={{ background: '#2B2210', border: '1px solid #8A6A12', borderRadius: '8px', padding: '12px' }}>
+                          <div style={{ background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '8px', padding: '12px' }}>
  
-                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#FCD34D', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
+                            <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                            <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                            <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                           </div>
  
@@ -16768,13 +17485,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                          <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Sesso</label>
  
                           <div style={{ display: 'flex', gap: '8px' }}>
  
                             {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
  
-                              <button key={k} type="button" onClick={() => setNewAthlete({ ...newAthlete, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: newAthlete.gender === k ? '#C8F135' : '#343A42', color: newAthlete.gender === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                              <button key={k} type="button" onClick={() => setNewAthlete({ ...newAthlete, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: newAthlete.gender === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: newAthlete.gender === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
  
                             ))}
  
@@ -16786,9 +17503,9 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div style={{ display: 'flex', gap: '9px' }}>
  
-                          <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                          <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                          <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                          <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
@@ -16796,9 +17513,9 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div>
  
-                          <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
+                          <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
  
-                          <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E' }}>
+                          <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}>
  
                             <option value="attivo">✅ Attivo</option>
  
@@ -16814,13 +17531,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
  
-                          <button onClick={creaAtletaManuale} disabled={addingAthlete} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: addingAthlete ? 0.6 : 1 }}>
+                          <button onClick={creaAtletaManuale} disabled={addingAthlete} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: addingAthlete ? 0.6 : 1 }}>
  
                             {addingAthlete ? 'Creazione...' : 'Crea atleta'}
  
                           </button>
  
-                          <button onClick={() => { setShowAddAthlete(false); setNewAthlete(emptyNewAthlete); }} style={{ padding: '12px 16px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                          <button onClick={() => { setShowAddAthlete(false); setNewAthlete(emptyNewAthlete); }} style={{ padding: '12px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
                             Annulla
  
@@ -16836,11 +17553,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   {athletes.length === 0 ? (
  
-                    <p style={{ color: '#9AA1AB' }}>Nessun atleta registrato.</p>
+                    <p style={{ color: 'var(--fg-64748b)' }}>Nessun atleta registrato.</p>
  
                   ) : athletes.filter((a: any) => contiene(a.full_name || a.email, cercaProfili)).length === 0 ? (
  
-                    <p style={{ color: '#8A919C', fontSize: '13px' }}>Nessun atleta con &quot;{cercaProfili}&quot;.</p>
+                    <p style={{ color: 'var(--fg-94a3b8)', fontSize: '13px' }}>Nessun atleta con &quot;{cercaProfili}&quot;.</p>
  
                   ) : (
  
@@ -16848,7 +17565,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       {athletes.filter((a: any) => contiene(a.full_name || a.email, cercaProfili)).map((a) => (
  
-                        <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ background: '#1B1E22', padding: '14px', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(242,243,245,0.12)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', cursor: 'pointer', border: '1px solid var(--bd-e2e8f0)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
  
                           <span style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
  
@@ -16856,7 +17573,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               const st = coachSubs[a.id] || 'prova';
  
-                              const col = st === 'attivo' ? '#22c55e' : st === 'scaduto' ? '#F87171' : '#eab308';
+                              const col = st === 'attivo' ? '#22c55e' : st === 'scaduto' ? 'var(--fg-ef4444)' : '#eab308';
  
                               const lab = st === 'attivo' ? 'Attivo' : st === 'scaduto' ? 'Scaduto' : 'In prova';
  
@@ -16864,11 +17581,11 @@ const [notificationError, setNotificationError] = useState('');
  
                             })()}
  
-                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#F2F3F5', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.full_name || a.email}</span>
+                            <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-000000)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.full_name || a.email}</span>
  
                           </span>
  
-                          <span style={{ fontSize: '12px', color: '#C8F135' }}>Visualizza Profilo →</span>
+                          <span style={{ fontSize: '12px', color: 'var(--fg-10b981)' }}>Visualizza Profilo →</span>
  
                         </div>
  
@@ -16886,31 +17603,31 @@ const [notificationError, setNotificationError] = useState('');
  
           ) : editingProgram ? (
  
-            <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
-                <h3 style={{ fontSize: '18px', color: '#C8F135', margin: 0 }}>Modifica Programma</h3>
+                <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', margin: 0 }}>Modifica Programma</h3>
  
-                <button onClick={() => setEditingProgram(null)} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
+                <button onClick={() => setEditingProgram(null)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px' }}>Annulla</button>
  
               </div>
  
  
  
-              <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
+              <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
  
-              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', marginBottom: '12px', boxSizing: 'border-box' }} />
+              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
  
  
  
               {editingProgram.trialStyle ? (
  
-                <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
  
-                  <span style={{ fontSize: '12px', color: '#93C5FD', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                  <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
  
-                  <span style={{ fontSize: '12px', color: '#93C5FD', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
+                  <span style={{ fontSize: '12px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
  
                 </div>
  
@@ -16920,17 +17637,17 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div>
  
-                  <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
+                  <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
  
-                  <input type="date" value={editingProgram.startDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, startDate: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', boxSizing: 'border-box' }} />
+                  <input type="date" value={editingProgram.startDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, startDate: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
  
                 <div>
  
-                  <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
+                  <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
  
-                  <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', boxSizing: 'border-box' }} />
+                  <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
  
@@ -16942,9 +17659,9 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ marginBottom: '20px' }}>
  
-                <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
+                <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
  
-                <select value={editingProgram.trialStyle || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trialStyle: e.target.value || null })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '12px', background: '#23282E' }}>
+                <select value={editingProgram.trialStyle || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trialStyle: e.target.value || null })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
                   <option value="">Non è un programma di prova</option>
  
@@ -16960,19 +17677,19 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ marginBottom: '12px' }}>
  
-                    <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
+                    <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
                       {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
  
-                        <button key={k} type="button" onClick={() => setEditingProgram({ ...editingProgram, trialGender: k })} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: (editingProgram.trialGender || '') === k ? '#C8F135' : '#343A42', color: (editingProgram.trialGender || '') === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                        <button key={k} type="button" onClick={() => setEditingProgram({ ...editingProgram, trialGender: k })} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: (editingProgram.trialGender || '') === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: (editingProgram.trialGender || '') === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
  
                       ))}
  
                     </div>
  
-                    <span style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
+                    <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
  
                   </div>
  
@@ -16984,7 +17701,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 {!editingProgram.trialStyle && (<>
  
-                <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
+                <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
  
                 <select value={editingProgram.visibility || 'selected'} onChange={(e) => {
  
@@ -17004,7 +17721,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
  
-                }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '12px', background: '#23282E' }}>
+                }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
                   <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
  
@@ -17018,9 +17735,9 @@ const [notificationError, setNotificationError] = useState('');
  
                 {!editingProgram.trialStyle && (editingProgram.visibility || 'selected') !== 'none' && (<>
  
-                <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
+                <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
  
-                <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ maxHeight: '120px', overflowY: 'auto', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '10px' }}>
  
                   {athletes.map((a) => {
  
@@ -17028,7 +17745,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     return (
  
-                      <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#F2F3F5', marginBottom: '6px', cursor: 'pointer' }}>
+                      <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--fg-000000)', marginBottom: '6px', cursor: 'pointer' }}>
  
                         <input
  
@@ -17066,9 +17783,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-              <div style={{ marginBottom: '16px', background: '#2D3238', padding: '12px', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
  
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
@@ -17084,7 +17801,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }}
  
-                        style={{ ...pillola(isSelected, '#E5E7EB', 'piccolo') }}
+                        style={{ ...pillola(isSelected, 'var(--fg-334155)', 'piccolo') }}
  
                       >
  
@@ -17110,7 +17827,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   const sett = tutte[pos];
  
-                  const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', cursor: 'pointer' };
+                  const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
  
                   return (
  
@@ -17154,7 +17871,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: '#343A42', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: 'var(--bg-e2e8f0)', padding: '10px', borderRadius: '8px' }}>
  
                       <input
  
@@ -17174,7 +17891,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         }}
  
-                        style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
+                        style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
  
                       />
  
@@ -17218,7 +17935,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           }
  
-                        }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
+                        }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
  
                       )}
  
@@ -17240,7 +17957,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => setSelectedDayView(day.dayName)}
  
-                            style={{ ...pillola(isSelected, '#C8F135', 'piccolo') }}
+                            style={{ ...pillola(isSelected, 'var(--fg-10b981)', 'piccolo') }}
  
                           >
  
@@ -17252,7 +17969,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       })}
  
-                      <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, '#C8F135', 'piccolo'), background: '#16281D', color: '#86EFAC', border: '1px dashed #C8F135' }}>+ Giorno</button>
+                      <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
                     </div>
  
@@ -17266,7 +17983,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       if (pos < 0) return null;
  
-                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', cursor: 'pointer' };
+                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
  
                       return (
  
@@ -17304,7 +18021,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       return (
  
-                        <div key={actualDIdx} style={{ background: '#1B1E22', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                        <div key={actualDIdx} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -17328,7 +18045,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 }}
  
-                                style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
+                                style={{ fontWeight: 'bold', color: 'var(--fg-10b981)', fontSize: '14px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
  
                               />
  
@@ -17342,7 +18059,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     title={quanti === 1 ? 'Un blocco in questo giorno' : `${quanti} blocchi in questo giorno`}
  
-                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: '#343A42', color: '#E5E7EB', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
  
                                   >
  
@@ -17384,7 +18101,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 if (vicino) setSelectedDayView(vicino.dayName);
  
-                              }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
+                              }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
  
                             )}
  
@@ -17402,7 +18119,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             return (
  
-                              <div key={block.id || bIdx} style={{ background: '#23282E', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid rgba(242,243,245,0.16)' }}>
+                              <div key={block.id || bIdx} style={{ background: 'var(--bg-ffffff)', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--bd-cbd5e1)' }}>
  
                                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
@@ -17410,7 +18127,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
  
-                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: '#0B0C0E', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
+                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
  
                                   >
  
@@ -17444,9 +18161,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                           : block.type === 'test' ? '#7c3aed'
  
-                                          : '#C8F135',
+                                          : 'var(--bg-10b981)',
  
-                                        color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : '#101214',
+                                        color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
  
                                       }}
  
@@ -17474,13 +18191,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
  
-                                    <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                    <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
  
-                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                    <button type="button" onClick={() => apriDuplicaBlocco('edit', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
  
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
  
-                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
+                                    <button type="button" onClick={() => moveEditingBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
  
                                     <button type="button" onClick={() => {
  
@@ -17526,7 +18243,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   {block.type === 'test' ? (
  
-                                    <select value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '8px' }}>
+                                    <select value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '8px' }}>
  
                                       <option value="">Scegli un test...</option>
  
@@ -17584,7 +18301,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   ) : haElenco(block.type) ? (
  
-                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#FCD34D' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-92400e)' }}>
  
                                       {block.name || 'Warm up'}
  
@@ -17592,7 +18309,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                   ) : (
  
-                                    <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                    <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                   )}
  
@@ -17608,7 +18325,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     <div style={{ marginBottom: '10px' }}>
  
-                                      <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '12px' }} />
+                                      <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
  
                                       {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
  
@@ -17618,7 +18335,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
  
                                         >
  
@@ -17634,7 +18351,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {block.type === 'test' ? (
  
-                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '8px' }}>
+                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
  
                                         {(() => {
  
@@ -17646,17 +18363,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                           return (
  
-                                            <div style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '6px', padding: '8px', marginBottom: '8px' }}>
+                                            <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '6px', padding: '8px', marginBottom: '8px' }}>
  
                                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
  
-                                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#C8F135' }}>{bench.name}</span>
+                                                <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{bench.name}</span>
  
                                                 <div style={{ display: 'flex', gap: '3px' }}>
  
                                                   {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                    <button key={k} type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                    <button key={k} type="button" onClick={() => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
  
                                                   ))}
  
@@ -17664,9 +18381,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                               </div>
  
-                                              <p style={{ margin: 0, fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                              <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                              <div style={{ fontSize: '10px', color: '#FCD34D', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
  
                                             </div>
  
@@ -17674,11 +18391,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                         })()}
  
-                                        <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>NOTE DEL COACH</label>
+                                        <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE DEL COACH</label>
  
-                                        <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
-                                        <p style={{ fontSize: '10px', color: '#9AA1AB', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                        <p style={{ fontSize: '10px', color: 'var(--fg-64748b)', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
  
                                       </div>
  
@@ -17690,23 +18407,23 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <div style={{ flex: '2 1 150px', minWidth: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                            <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                                            <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                                           </div>
  
                                           <div style={{ flex: '1 1 80px', minWidth: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>N. round</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>N. round</label>
  
-                                            <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }} />
+                                            <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
  
                                           </div>
  
                                           <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
  
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
@@ -17722,11 +18439,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
  
-                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                               />
  
-                                              <span style={{ color: '#8A919C', fontWeight: 'bold' }}>:</span>
+                                              <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
                                               <input
  
@@ -17740,13 +18457,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'warmRestSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
  
-                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                                style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                               />
  
                                             </div>
  
-                                            <span style={{ display: 'block', fontSize: '9.5px', color: '#8A919C', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
+                                            <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
  
                                           </div>
  
@@ -17758,7 +18475,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(block.items || []).map((it: any, i: number) => (
  
-                                          <div key={i} style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                          <div key={i} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
  
                                             <CampoEsercizio
  
@@ -17788,7 +18505,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
  
-                                                style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px' }}
+                                                style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
                                               />
  
@@ -17804,7 +18521,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px', textAlign: 'center' }}
+                                                style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', textAlign: 'center' }}
  
                                               />
  
@@ -17826,26 +18543,26 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'load', e.target.value)}
  
-                                                style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px' }}
+                                                style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
                                               />
  
                                               <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
  
  
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="su" size={14} />
  
                                               </button>
  
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="giu" size={14} />
  
                                               </button>
  
-                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#2A1517', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#F87171', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-b91c1c)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="cestino" size={14} />
  
@@ -17857,7 +18574,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', color: '#F2F3F5', fontSize: '12.5px' }} />
+                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                           </div>
  
@@ -17867,7 +18584,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                           Aggiungi esercizio
  
@@ -17875,9 +18592,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
+      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
-      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                                       </div>
  
@@ -17885,7 +18602,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                       <div>
  
-                                        <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                        <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
  
                                         <textarea
  
@@ -17897,11 +18614,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                           onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
  
                                         />
  
-                                        <span style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', lineHeight: 1.45 }}>
+                                        <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', lineHeight: 1.45 }}>
  
                                           L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
  
@@ -17915,19 +18632,19 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>SET</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</label>
  
-                                            <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                           </div>
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>REP</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</label>
  
-                                            <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                           </div>
  
@@ -17935,19 +18652,19 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>CARICO / RPE</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</label>
  
-                                            <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                           </div>
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>RECUPERO</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</label>
  
-                                            <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                            <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                           </div>
  
@@ -17955,11 +18672,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
-                                        <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                          <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>NOTE</label>
+                                          <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</label>
  
-                                          <input type="text" value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px' }} />
+                                          <input type="text" value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                         </div>
  
@@ -17967,11 +18684,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                     ) : (
  
-                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                        <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>WOD / CIRCUITO</label>
+                                        <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
-                                        <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px' }} />
+                                        <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
  
  
@@ -17983,9 +18700,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                             return (
  
-                                              <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
+                                              <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
  
-                                                <span style={{ display: 'block', fontSize: '11.5px', color: '#93C5FD', marginBottom: '7px', lineHeight: 1.45 }}>
+                                                <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-1e40af)', marginBottom: '7px', lineHeight: 1.45 }}>
  
                                                   <strong>{trovati.length === 1 ? 'Trovato 1 esercizio' : `Trovati ${trovati.length} esercizi`} in libreria:</strong>{' '}
  
@@ -18021,9 +18738,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <div style={{ flex: 1, minWidth: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>
  
-                                              Esercizi con video <span style={{ color: '#8A919C', fontWeight: 'normal' }}>(facoltativo)</span>
+                                              Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
  
                                             </label>
  
@@ -18031,7 +18748,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <div style={{ width: '92px', flexShrink: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Round</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Round</label>
  
                                             <input
  
@@ -18047,7 +18764,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               title="Quante caselle dare all'atleta per il risultato. Vuoto = una sola."
  
-                                              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                              style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                             />
  
@@ -18057,7 +18774,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {(block.items || []).map((it: any, i: number) => (
  
-                                          <div key={i} style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                          <div key={i} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
  
                                             <CampoEsercizio
  
@@ -18087,23 +18804,23 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
  
-                                                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', color: '#F2F3F5', fontSize: '12.5px' }}
+                                                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }}
  
                                               />
  
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="su" size={14} />
  
                                               </button>
  
-                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="giu" size={14} />
  
                                               </button>
  
-                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#2A1517', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#F87171', cursor: 'pointer', flexShrink: 0 }}>
+                                              <button type="button" onClick={() => togliWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-b91c1c)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                 <Icona nome="cestino" size={14} />
  
@@ -18115,7 +18832,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         ))}
  
-                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#0F2236', color: '#93C5FD', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                        <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
  
                                           Aggiungi esercizio con video
  
@@ -18135,7 +18852,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           })}
  
-                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#2D3238', border: 'none', color: '#F2F3F5', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
                         </div>
  
@@ -18151,23 +18868,23 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-              <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
+              <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
  
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#C8F135', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
  
-                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
-                <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={editingProgram.trainingTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trainingTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={editingProgram.trainingTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trainingTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
  
-                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
  
-                <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
               </div>
  
  
  
-              <button onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
+              <button onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
  
             </div>
  
@@ -18193,7 +18910,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 zIndex: 40,
  
-                background: menuAgganciato ? '#0B0C0E' : 'transparent',
+                background: menuAgganciato ? 'var(--bg-18181b)' : 'transparent',
  
                 paddingTop: menuAgganciato ? '8px' : 0,
  
@@ -18283,13 +19000,13 @@ const [notificationError, setNotificationError] = useState('');
  
               {activeTab === 'exercises' ? (
  
-                <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
-                    <h3 style={{ fontSize: '18px', margin: 0, color: '#C8F135' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
+                    <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
  
-                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '999px', border: 'none', background: showDeletedExercises ? '#C8F135' : '#64748b', color: showDeletedExercises ? '#101214' : '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '999px', border: 'none', background: showDeletedExercises ? 'var(--bg-10b981)' : '#64748b', color: showDeletedExercises ? 'var(--onacc)' : '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
  
                       {showDeletedExercises ? 'Torna agli esercizi' : '🗑️ Cestino'}
  
@@ -18301,13 +19018,13 @@ const [notificationError, setNotificationError] = useState('');
  
                   {!showDeletedExercises && (
  
-                    <form onSubmit={addGlobalExercise} style={{ background: '#1B1E22', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                    <form onSubmit={addGlobalExercise} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                      <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
  
-                      <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '13px' }} />
+                      <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
  
-                      <select value={newExType} onChange={(e) => setNewExType(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E', marginBottom: '10px' }}>
+                      <select value={newExType} onChange={(e) => setNewExType(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '10px' }}>
  
                         <option value="">Esercizio generico (nessun massimale)</option>
  
@@ -18319,7 +19036,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       </select>
  
-                      <button type="submit" style={{ padding: '10px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
+                      <button type="submit" style={{ padding: '10px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>+ Aggiungi Esercizio</button>
  
                     </form>
  
@@ -18339,13 +19056,13 @@ const [notificationError, setNotificationError] = useState('');
  
                       onChange={(e: any) => setCercaEsercizi(e.target.value)}
  
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}
  
                     />
  
                     {cercaEsercizi && (
  
-                      <button onClick={() => setCercaEsercizi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#8A919C', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                      <button onClick={() => setCercaEsercizi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--fg-94a3b8)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
  
                         <Icona nome="chiudi" size={15} />
  
@@ -18361,7 +19078,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     {exerciseLibrary.filter((ex) => (showDeletedExercises ? ex.dismissed : !ex.dismissed) && contiene(ex.name, cercaEsercizi)).length === 0 ? (
  
-                      <p style={{ color: '#9AA1AB', textAlign: 'center', padding: '20px' }}>
+                      <p style={{ color: 'var(--fg-64748b)', textAlign: 'center', padding: '20px' }}>
  
                         {cercaEsercizi
  
@@ -18381,9 +19098,9 @@ const [notificationError, setNotificationError] = useState('');
  
                         libEditId === ex.id ? (
  
-                          <div key={ex.id} style={{ background: '#23282E', padding: '12px', borderRadius: '8px', border: '2px solid #C8F135' }}>
+                          <div key={ex.id} style={{ background: 'var(--bg-ffffff)', padding: '12px', borderRadius: '8px', border: '2px solid var(--bd-10b981)' }}>
  
-                            <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Nome esercizio</label>
+                            <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Nome esercizio</label>
  
                             <input
  
@@ -18393,13 +19110,13 @@ const [notificationError, setNotificationError] = useState('');
  
                               onChange={(e) => setLibEditName(e.target.value)}
  
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '9px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '9px' }}
  
                               autoFocus
  
                             />
  
-                            <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Link video</label>
+                            <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Link video</label>
  
                             <input
  
@@ -18413,13 +19130,13 @@ const [notificationError, setNotificationError] = useState('');
  
                               onKeyDown={(e) => { if (e.key === 'Enter') salvaEsercizioLibreria(ex); }}
  
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '10px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }}
  
                             />
  
-                            <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>
  
-                              Abbreviazioni <span style={{ color: '#8A919C' }}>(facoltative, separate da virgola)</span>
+                              Abbreviazioni <span style={{ color: 'var(--fg-94a3b8)' }}>(facoltative, separate da virgola)</span>
  
                             </label>
  
@@ -18433,11 +19150,11 @@ const [notificationError, setNotificationError] = useState('');
  
                               onChange={(e) => setLibEditAlias(e.target.value)}
  
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '6px' }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '6px' }}
  
                             />
  
-                            <p style={{ fontSize: '10.5px', color: '#8A919C', margin: '0 0 10px 0', lineHeight: 1.45 }}>
+                            <p style={{ fontSize: '10.5px', color: 'var(--fg-94a3b8)', margin: '0 0 10px 0', lineHeight: 1.45 }}>
  
                               Servono a riconoscere l&apos;esercizio nel testo dei WOD: scrivendo &quot;DU&quot; qui, un WOD con &quot;50 DU&quot; propone questo esercizio.
  
@@ -18447,13 +19164,13 @@ const [notificationError, setNotificationError] = useState('');
  
                             <div style={{ display: 'flex', gap: '7px' }}>
  
-                              <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: '#C8F135', color: '#101214', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                              <button onClick={() => salvaEsercizioLibreria(ex)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                 Salva
  
                               </button>
  
-                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); setLibEditAlias(''); }} style={{ padding: '10px 15px', borderRadius: '999px', border: 'none', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                              <button onClick={() => { setLibEditId(null); setLibEditName(''); setLibEditVideo(''); setLibEditAlias(''); }} style={{ padding: '10px 15px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                 Annulla
  
@@ -18463,7 +19180,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             {libEditName.trim() && libEditName.trim() !== ex.name && (
  
-                              <p style={{ fontSize: '10.5px', color: '#FCD34D', margin: '9px 0 0 0', lineHeight: 1.45, background: '#2B2210', border: '1px solid #8A6A12', borderRadius: '6px', padding: '8px 10px' }}>
+                              <p style={{ fontSize: '10.5px', color: 'var(--fg-92400e)', margin: '9px 0 0 0', lineHeight: 1.45, background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '6px', padding: '8px 10px' }}>
  
                                 Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
  
@@ -18475,13 +19192,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         ) : (
  
-                        <div key={ex.id} style={{ background: '#1B1E22', padding: '12px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                        <div key={ex.id} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ flex: '1 1 160px', minWidth: 0 }}>
  
-                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#F2F3F5' }}>{ex.name}</div>
+                            <div style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-000000)' }}>{ex.name}</div>
  
-                            <div style={{ fontSize: '11px', color: ex.video_url ? '#38BDF8' : '#8A919C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: '11px', color: ex.video_url ? 'var(--fg-0284c7)' : 'var(--fg-94a3b8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
  
                               {ex.video_url ? 'Video disponibile' : 'Nessun video'}
  
@@ -18489,7 +19206,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             {ex.pr_kind ? (
  
-                              <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? '#0F2236' : '#2E1524', color: ex.pr_kind === 'metcon' ? '#93C5FD' : '#F9A8D4', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
+                              <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? 'var(--bg-dbeafe)' : 'var(--bg-fce7f3)', color: ex.pr_kind === 'metcon' ? 'var(--fg-1e40af)' : 'var(--fg-9d174d)', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
  
                                 {ex.pr_kind === 'metcon' ? '⏱️ Metcon PR' : '🤸 Gymnastics PR'}
  
@@ -18497,7 +19214,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             ) : ex.track_max ? (
  
-                              <span style={{ display: 'inline-block', marginTop: '5px', background: '#16281D', color: '#86EFAC', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
+                              <span style={{ display: 'inline-block', marginTop: '5px', background: 'var(--bg-dcfce7)', color: 'var(--fg-166534)', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
  
                                 🏋️ Forza — massimali
  
@@ -18511,7 +19228,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
  
-                                <span style={{ fontSize: '11px', color: '#38BDF8', fontWeight: 'bold' }}>Traccia massimali</span>
+                                <span style={{ fontSize: '11px', color: 'var(--fg-0284c7)', fontWeight: 'bold' }}>Traccia massimali</span>
  
                               </label>
  
@@ -18523,7 +19240,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
  
-                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: '#C8F135', border: 'none', color: '#101214', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: 'var(--bg-10b981)', border: 'none', color: 'var(--onacc)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
  
                               <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
  
@@ -18555,7 +19272,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               <button onClick={() => { setLibEditId(ex.id); setLibEditName(ex.name); setLibEditVideo(ex.video_url || ''); setLibEditAlias(ex.aliases || ''); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '999px', padding: '7px 11px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="modifica" size={12} /> Modifica</button>
  
-                              <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Elimina</button>
+                              <button onClick={() => deleteGlobalExercise(ex.id)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina</button>
  
                             </div>
  
@@ -18575,23 +19292,23 @@ const [notificationError, setNotificationError] = useState('');
  
               ) : activeTab === 'create' ? (
  
-                <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
  
  
  
-                  <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', marginBottom: '12px', boxSizing: 'border-box' }} />
+                  <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
  
  
  
                   {programTrialStyle ? (
  
-                    <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
+                    <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
  
-                      <span style={{ fontSize: '12px', color: '#93C5FD', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                      <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
  
-                      <span style={{ fontSize: '12px', color: '#93C5FD', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
+                      <span style={{ fontSize: '12px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
  
                     </div>
  
@@ -18601,17 +19318,17 @@ const [notificationError, setNotificationError] = useState('');
  
                     <div>
  
-                      <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
+                      <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
  
-                      <input type="date" value={programStartDate} onChange={(e) => setProgramStartDate(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', boxSizing: 'border-box' }} />
+                      <input type="date" value={programStartDate} onChange={(e) => setProgramStartDate(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                     </div>
  
                     <div>
  
-                      <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
+                      <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
  
-                      <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', boxSizing: 'border-box' }} />
+                      <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                     </div>
  
@@ -18623,9 +19340,9 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div style={{ marginBottom: '16px' }}>
  
-                    <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
+                    <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
  
-                    <select value={programTrialStyle} onChange={(e) => setProgramTrialStyle(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '12px', background: '#23282E' }}>
+                    <select value={programTrialStyle} onChange={(e) => setProgramTrialStyle(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
                       <option value="">Non è un programma di prova</option>
  
@@ -18641,19 +19358,19 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ marginBottom: '12px' }}>
  
-                        <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
+                        <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Per quale sesso è questa scheda:</label>
  
                         <div style={{ display: 'flex', gap: '8px' }}>
  
                           {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
  
-                            <button key={k} type="button" onClick={() => setProgramTrialGender(k)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: programTrialGender === k ? '#C8F135' : '#343A42', color: programTrialGender === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                            <button key={k} type="button" onClick={() => setProgramTrialGender(k)} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', border: 'none', background: programTrialGender === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: programTrialGender === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
  
                           ))}
  
                         </div>
  
-                        <span style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
+                        <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginTop: '5px' }}>Serve solo per la Sala Pesi: ogni atleta riceve la scheda del proprio sesso.</span>
  
                       </div>
  
@@ -18665,7 +19382,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     {!programTrialStyle && (<>
  
-                    <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
+                    <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Chi vede questo programma:</label>
  
                     <select value={programVisibility} onChange={(e) => {
  
@@ -18683,7 +19400,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       if (v === 'selected' && prev === 'all') setSelectedAthleteIds([]);
  
-                    }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '12px', background: '#23282E' }}>
+                    }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
                       <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
  
@@ -18697,19 +19414,19 @@ const [notificationError, setNotificationError] = useState('');
  
                     {!programTrialStyle && programVisibility !== 'none' && (<>
  
-                    <label style={{ fontSize: '12px', color: '#9AA1AB', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
+                    <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Assegna ad Atleti:</label>
  
-                    <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '8px', padding: '10px' }}>
+                    <div style={{ maxHeight: '120px', overflowY: 'auto', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '10px' }}>
  
                       {athletes.length === 0 ? (
  
-                        <span style={{ fontSize: '12px', color: '#9AA1AB' }}>Nessun atleta disponibile.</span>
+                        <span style={{ fontSize: '12px', color: 'var(--fg-64748b)' }}>Nessun atleta disponibile.</span>
  
                       ) : (
  
                         athletes.map((a) => (
  
-                          <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#F2F3F5', marginBottom: '6px', cursor: 'pointer' }}>
+                          <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--fg-000000)', marginBottom: '6px', cursor: 'pointer' }}>
  
                             <input
  
@@ -18737,9 +19454,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  <div style={{ marginBottom: '16px', background: '#2D3238', padding: '12px', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
  
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
@@ -18755,7 +19472,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => { setSelectedWeekView(week.weekName); if (week.days && week.days.length > 0) setSelectedDayView(week.days[0].dayName); }}
  
-                            style={{ ...pillola(isSelected, '#E5E7EB', 'piccolo') }}
+                            style={{ ...pillola(isSelected, 'var(--fg-334155)', 'piccolo') }}
  
                           >
  
@@ -18767,7 +19484,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       })}
  
-                      <button onClick={addWeek} style={{ ...pillola(false, '#C8F135', 'piccolo'), background: '#16281D', color: '#86EFAC', border: '1px dashed #C8F135' }}>+ Settimana</button>
+                      <button onClick={addWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
                     </div>
  
@@ -18783,7 +19500,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       const sett = tutte[pos];
  
-                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', cursor: 'pointer' };
+                      const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
  
                       return (
  
@@ -18827,7 +19544,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: '#343A42', padding: '10px', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: 'var(--bg-e2e8f0)', padding: '10px', borderRadius: '8px' }}>
  
                           <input
  
@@ -18847,7 +19564,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             }}
  
-                            style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '15px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
+                            style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
  
                           />
  
@@ -18889,7 +19606,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               }
  
-                            }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
+                            }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
  
                           )}
  
@@ -18911,7 +19628,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 onClick={() => setSelectedDayView(day.dayName)}
  
-                                style={{ ...pillola(isSelected, '#C8F135', 'piccolo') }}
+                                style={{ ...pillola(isSelected, 'var(--fg-10b981)', 'piccolo') }}
  
                               >
  
@@ -18923,7 +19640,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           })}
  
-                          <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, '#C8F135', 'piccolo'), background: '#16281D', color: '#86EFAC', border: '1px dashed #C8F135' }}>+ Giorno</button>
+                          <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
                         </div>
  
@@ -18937,7 +19654,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           if (pos < 0) return null;
  
-                          const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: '#C9CED6', cursor: 'pointer' };
+                          const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
  
                           return (
  
@@ -18975,7 +19692,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           return (
  
-                            <div key={actualDIdx} style={{ background: '#1B1E22', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                            <div key={actualDIdx} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -18999,7 +19716,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     }}
  
-                                    style={{ fontWeight: 'bold', color: '#C8F135', fontSize: '14px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
+                                    style={{ fontWeight: 'bold', color: 'var(--fg-10b981)', fontSize: '14px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', flex: 1, minWidth: 0 }}
  
                                   />
  
@@ -19013,7 +19730,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         title={quanti === 1 ? 'Un blocco in questo giorno' : `${quanti} blocchi in questo giorno`}
  
-                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: '#343A42', color: '#E5E7EB', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '5px 11px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontSize: '11px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0 }}
  
                                       >
  
@@ -19053,7 +19770,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     if (vicino) setSelectedDayView(vicino.dayName);
  
-                                  }} style={{ background: '#2A1517', border: '1px solid #ef4444', color: '#F87171', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
+                                  }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
  
                                 )}
  
@@ -19071,7 +19788,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 return (
  
-                                  <div key={block.id} style={{ background: '#23282E', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid rgba(242,243,245,0.16)' }}>
+                                  <div key={block.id} style={{ background: 'var(--bg-ffffff)', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--bd-cbd5e1)' }}>
  
                                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
@@ -19079,7 +19796,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
  
-                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: '#0B0C0E', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
  
                                       >
  
@@ -19113,9 +19830,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                               : block.type === 'test' ? '#7c3aed'
  
-                                              : '#C8F135',
+                                              : 'var(--bg-10b981)',
  
-                                            color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : '#101214',
+                                            color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
  
                                           }}
  
@@ -19143,13 +19860,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
  
-                                        <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                        <button type="button" onClick={() => toggleBlockCollapse(blockKey)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
  
-                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
+                                        <button type="button" onClick={() => apriDuplicaBlocco('free', actualWIdx, actualDIdx, bIdx, block)} title="Duplica esercizio" style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '4px 7px', cursor: 'pointer', fontSize: '13px' }}><Icona nome="duplica" size={14} /></button>
  
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'up')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="su" size={14} /></button>
  
-                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: '#2D3238', border: 'none', color: '#F2F3F5', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
+                                        <button type="button" onClick={() => moveFreeBlock(actualWIdx, actualDIdx, bIdx, 'down')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="giu" size={14} /></button>
  
                                         <button type="button" onClick={() => removeBlockFromFreeDay(actualWIdx, actualDIdx, bIdx)} style={{ background: '#ef4444', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={14} /></button>
  
@@ -19163,7 +19880,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                       {block.type === 'test' ? (
  
-                                        <select value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', marginBottom: '8px' }}>
+                                        <select value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '4px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '8px' }}>
  
                                           <option value="">Scegli un test...</option>
  
@@ -19221,11 +19938,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                       ) : haElenco(block.type) ? (
  
-                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#FCD34D' }}>{block.name || 'Warm up'}</span>
+                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-92400e)' }}>{block.name || 'Warm up'}</span>
  
                                       ) : (
  
-                                        <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                       )}
  
@@ -19241,7 +19958,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <div style={{ marginBottom: '10px' }}>
  
-                                          <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '6px', fontSize: '12px' }} />
+                                          <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
  
                                           {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
  
@@ -19251,7 +19968,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
  
-                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
  
                                             >
  
@@ -19267,7 +19984,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         {block.type === 'test' ? (
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '8px' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
  
                                             {(() => {
  
@@ -19279,17 +19996,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                               return (
  
-                                                <div style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', borderRadius: '6px', padding: '8px', marginBottom: '8px' }}>
+                                                <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '6px', padding: '8px', marginBottom: '8px' }}>
  
                                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px', flexWrap: 'wrap' }}>
  
-                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#C8F135' }}>{bench.name}</span>
+                                                    <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{bench.name}</span>
  
                                                     <div style={{ display: 'flex', gap: '3px' }}>
  
                                                       {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                        <button key={k} type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                        <button key={k} type="button" onClick={() => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'benchLevel', k)} style={{ padding: '3px 8px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
  
                                                       ))}
  
@@ -19297,9 +20014,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                   </div>
  
-                                                  <p style={{ margin: 0, fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                                  <div style={{ fontSize: '10px', color: '#FCD34D', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                                  <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
  
                                                 </div>
  
@@ -19307,11 +20024,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                             })()}
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>NOTE DEL COACH</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE DEL COACH</label>
  
-                                            <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                            <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
-                                            <p style={{ fontSize: '10px', color: '#9AA1AB', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
+                                            <p style={{ fontSize: '10px', color: 'var(--fg-64748b)', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
  
                                           </div>
  
@@ -19323,23 +20040,23 @@ const [notificationError, setNotificationError] = useState('');
  
                                               <div style={{ flex: '2 1 150px', minWidth: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                                <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                                                <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                                               </div>
  
                                               <div style={{ flex: '1 1 80px', minWidth: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>N. round</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>N. round</label>
  
-                                                <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }} />
+                                                <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
  
                                               </div>
  
                                               <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
  
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
@@ -19355,11 +20072,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestMin', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
  
-                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                                   />
  
-                                                  <span style={{ color: '#8A919C', fontWeight: 'bold' }}>:</span>
+                                                  <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
                                                   <input
  
@@ -19373,13 +20090,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'warmRestSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
  
-                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                                    style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                                   />
  
                                                 </div>
  
-                                                <span style={{ display: 'block', fontSize: '9.5px', color: '#8A919C', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
+                                                <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>min : sec — vuoto = nessun recupero</span>
  
                                               </div>
  
@@ -19391,7 +20108,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {(block.items || []).map((it: any, i: number) => (
  
-                                              <div key={i} style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                              <div key={i} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
  
                                                 <CampoEsercizio
  
@@ -19421,7 +20138,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'value', e.target.value)}
  
-                                                    style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px' }}
+                                                    style={{ flex: '2 1 150px', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
                                                   />
  
@@ -19437,7 +20154,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'rest', e.target.value)}
  
-                                                    style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px', textAlign: 'center' }}
+                                                    style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', textAlign: 'center' }}
  
                                                   />
  
@@ -19459,26 +20176,26 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'load', e.target.value)}
  
-                                                    style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '14px' }}
+                                                    style={{ flex: '1 1 130px', minWidth: 0, maxWidth: '200px', boxSizing: 'border-box', padding: '10px 8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
                                                   />
  
                                                   <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
  
  
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="su" size={14} />
  
                                                   </button>
  
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="giu" size={14} />
  
                                                   </button>
  
-                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#2A1517', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#F87171', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-b91c1c)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="cestino" size={14} />
  
@@ -19490,7 +20207,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', color: '#F2F3F5', fontSize: '12.5px' }} />
+                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                               </div>
  
@@ -19500,7 +20217,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed #C8F135', background: '#16281D', color: '#86EFAC', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                               Aggiungi esercizio
  
@@ -19508,9 +20225,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
+      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
-      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+      <textarea rows={2} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                                           </div>
  
@@ -19518,7 +20235,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                           <div>
  
-                                            <label style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
+                                            <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
  
                                             <textarea
  
@@ -19530,11 +20247,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                               onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)}
  
-                                              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
+                                              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '8px' }}
  
                                             />
  
-                                            <span style={{ fontSize: '11px', color: '#9AA1AB', display: 'block', lineHeight: 1.45 }}>
+                                            <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', lineHeight: 1.45 }}>
  
                                               L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
  
@@ -19548,19 +20265,19 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                              <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>SET</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</label>
  
-                                                <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                                <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                               </div>
  
-                                              <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>REP</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</label>
  
-                                                <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                                <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                               </div>
  
@@ -19568,19 +20285,19 @@ const [notificationError, setNotificationError] = useState('');
  
                                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                              <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>CARICO / RPE</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</label>
  
-                                                <input type="text" value={block.load} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                                <input type="text" value={block.load} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                               </div>
  
-                                              <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>RECUPERO</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</label>
  
-                                                <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
+                                                <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
  
                                               </div>
  
@@ -19588,11 +20305,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
-                                            <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                            <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                              <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>NOTE</label>
+                                              <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</label>
  
-                                              <input type="text" value={block.notes} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px' }} />
+                                              <input type="text" value={block.notes} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                             </div>
  
@@ -19600,11 +20317,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                         ) : (
  
-                                          <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                            <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>WOD / CIRCUITO</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
-                                            <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px' }} />
+                                            <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '70px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
  
  
@@ -19616,9 +20333,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 return (
  
-                                                  <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
+                                                  <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '10px 12px', margin: '10px 0' }}>
  
-                                                    <span style={{ display: 'block', fontSize: '11.5px', color: '#93C5FD', marginBottom: '7px', lineHeight: 1.45 }}>
+                                                    <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-1e40af)', marginBottom: '7px', lineHeight: 1.45 }}>
  
                                                       <strong>{trovati.length === 1 ? 'Trovato 1 esercizio' : `Trovati ${trovati.length} esercizi`} in libreria:</strong>{' '}
  
@@ -19654,9 +20371,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                               <div style={{ flex: 1, minWidth: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>
  
-                                                  Esercizi con video <span style={{ color: '#8A919C', fontWeight: 'normal' }}>(facoltativo)</span>
+                                                  Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
  
                                                 </label>
  
@@ -19664,7 +20381,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                               <div style={{ width: '92px', flexShrink: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '3px' }}>Round</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Round</label>
  
                                                 <input
  
@@ -19680,7 +20397,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                   title="Quante caselle dare all'atleta per il risultato. Vuoto = una sola."
  
-                                                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', textAlign: 'center' }}
+                                                  style={{ width: '100%', boxSizing: 'border-box', padding: '8px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
  
                                                 />
  
@@ -19690,7 +20407,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             {(block.items || []).map((it: any, i: number) => (
  
-                                              <div key={i} style={{ background: '#23282E', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
+                                              <div key={i} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
  
                                                 <CampoEsercizio
  
@@ -19720,23 +20437,23 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)}
  
-                                                    style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', color: '#F2F3F5', fontSize: '12.5px' }}
+                                                    style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }}
  
                                                   />
  
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="su" size={14} />
  
                                                   </button>
  
-                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: '#2D3238', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#C9CED6', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'giu')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="giu" size={14} />
  
                                                   </button>
  
-                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: '#2A1517', border: 'none', borderRadius: '999px', padding: '9px 10px', color: '#F87171', cursor: 'pointer', flexShrink: 0 }}>
+                                                  <button type="button" onClick={() => togliWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-b91c1c)', cursor: 'pointer', flexShrink: 0 }}>
  
                                                     <Icona nome="cestino" size={14} />
  
@@ -19748,7 +20465,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             ))}
  
-                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: '#0F2236', color: '#93C5FD', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
+                                            <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed #3b82f6', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}>
  
                                               Aggiungi esercizio con video
  
@@ -19768,7 +20485,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               })}
  
-                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: '#2D3238', border: 'none', color: '#F2F3F5', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
                             </div>
  
@@ -19784,25 +20501,25 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  {saveMessage && <p style={{ color: '#C8F135', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
+                  {saveMessage && <p style={{ color: 'var(--fg-10b981)', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
  
-                  <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
+                  <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#C8F135', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
-                    <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={programTrainingTips} onChange={(e) => setProgramTrainingTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                    <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={programTrainingTips} onChange={(e) => setProgramTrainingTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
  
-                    <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                    <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
                   </div>
  
  
  
-                  <button onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
+                  <button onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
  
                 </div>
  
@@ -19834,7 +20551,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         onClick={() => setLibraryView(v.k as any)}
  
-                        style={{ ...pillola(libraryView === v.k, '#E5E7EB'), flex: '1 1 auto' }}
+                        style={{ ...pillola(libraryView === v.k, 'var(--fg-334155)'), flex: '1 1 auto' }}
  
                       >
  
@@ -19854,17 +20571,17 @@ const [notificationError, setNotificationError] = useState('');
  
                       {[
  
-                        { k: 'tutti', t: 'Tutti', n: attivi.length, col: '#C9CED6' },
+                        { k: 'tutti', t: 'Tutti', n: attivi.length, col: 'var(--fg-475569)' },
  
-                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: '#4ADE80' },
+                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: 'var(--fg-16a34a)' },
  
                         { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#d97706' },
  
-                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: '#60A5FA' },
+                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: 'var(--fg-2563eb)' },
  
-                        { k: 'inscadenza', t: '⏳ In scadenza', n: contaInScadenza, col: '#FB923C' },
+                        { k: 'inscadenza', t: '⏳ In scadenza', n: contaInScadenza, col: 'var(--fg-ea580c)' },
  
-                        { k: 'scaduti', t: '⛔ Scaduti', n: contaScaduti, col: '#F87171' },
+                        { k: 'scaduti', t: '⛔ Scaduti', n: contaScaduti, col: 'var(--fg-dc2626)' },
  
                       ].map((f) => (
  
@@ -19904,13 +20621,13 @@ const [notificationError, setNotificationError] = useState('');
  
                       onChange={(e: any) => setCercaProgrammi(e.target.value)}
  
-                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E' }}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}
  
                     />
  
                     {cercaProgrammi && (
  
-                      <button onClick={() => setCercaProgrammi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#8A919C', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                      <button onClick={() => setCercaProgrammi('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--fg-94a3b8)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
  
                         <Icona nome="chiudi" size={15} />
  
@@ -19924,7 +20641,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {libraryView === 'programmi' && (libraryFilter === 'tutti' || libraryFilter === 'assegnati') && (
  
-                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', background: '#23282E', marginBottom: '12px' }}>
+                    <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '12px' }}>
  
                       <option value="">Filtra per utente (Tutti)</option>
  
@@ -19942,7 +20659,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {filteredLibraryPrograms.length === 0 ? (
  
-                    <p style={{ color: '#9AA1AB', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
+                    <p style={{ color: 'var(--fg-64748b)', textAlign: 'center', padding: '30px', fontSize: '13px', lineHeight: 1.5 }}>
  
                       {cercaProgrammi
  
@@ -20006,19 +20723,19 @@ const [notificationError, setNotificationError] = useState('');
  
                       return (
  
-                        <div key={prog.id} style={{ background: prog.trialStyle ? '#0F2236' : progScaduto ? '#2A1517' : prog.visibility === 'none' ? '#2B2210' : '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : progScaduto ? '2px solid #dc2626' : progInScadenza ? '2px solid #f97316' : prog.visibility === 'none' ? '2px solid #8A6A12' : '1px solid rgba(242,243,245,0.12)', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.trialStyle ? 'var(--bg-d6e9fb)' : progScaduto ? 'var(--bg-fee2e2)' : prog.visibility === 'none' ? 'var(--bg-fdf3d3)' : 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : progScaduto ? '2px solid #dc2626' : progInScadenza ? '2px solid #f97316' : prog.visibility === 'none' ? '2px solid var(--bd-e0a80c)' : '1px solid var(--bd-d8dde3)', marginBottom: '16px' }}>
  
                           <div style={{ marginBottom: '12px' }}>
  
                             <div>
  
-                              <h4 style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', color: '#C8F135', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', color: 'var(--fg-10b981)', fontSize: '17px', lineHeight: 1.25 }}>{prog.title}</h4>
  
                               <div style={{ marginBottom: '8px' }}>
  
                                 {prog.trialStyle ? (
  
-                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: '#0F2236', color: '#93C5FD' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: 'var(--bg-dbeafe)', color: 'var(--fg-1e40af)' }}>
  
                                     🎁 Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
  
@@ -20026,7 +20743,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 ) : (
  
-                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? '#2B2210' : prog.visibility === 'all' ? '#0F2236' : '#16281D', color: prog.visibility === 'none' ? '#FCD34D' : prog.visibility === 'all' ? '#7DD3FC' : '#86EFAC' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : prog.visibility === 'all' ? 'var(--bg-e0f2fe)' : 'var(--bg-dcfce7)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : prog.visibility === 'all' ? 'var(--fg-075985)' : 'var(--fg-166534)' }}>
  
                                     {prog.visibility === 'none' ? '🔒 Bozza — non visibile' : prog.visibility === 'all' ? '🌍 Visibile a tutti' : '👥 Visibile agli assegnati'}
  
@@ -20038,7 +20755,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
  
-                                {!prog.trialStyle && <span style={{ fontSize: '11px', color: assignedList.length > 0 ? '#38BDF8' : '#F2F3F5', background: '#2D3238', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
+                                {!prog.trialStyle && <span style={{ fontSize: '11px', color: assignedList.length > 0 ? 'var(--fg-0284c7)' : 'var(--fg-000000)', background: 'var(--bg-f1f5f9)', padding: '3px 8px', borderRadius: '4px', display: 'inline-block' }}>
  
                                   Assegnato: {assignedList.length > 0 ? assignedList.map(a => (a.full_name || a.email || '').trim()).join(', ') : 'Tutti (Generale)'}
  
@@ -20070,7 +20787,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 <>
  
-                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: '#16281D', border: '1px solid #2F7D4B', color: '#86EFAC', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
  
                                   <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} /> Elimina definitivamente</button>
  
@@ -20086,7 +20803,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                       onClick={() => setRisultatiAperti({ progId: prog.id })}
  
-                                      style={{ background: '#16281D', border: '1px solid #2F7D4B', color: '#86EFAC', borderRadius: '999px', padding: '7px 12px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                                      style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', color: 'var(--fg-047857)', borderRadius: '999px', padding: '7px 12px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
  
                                     >
  
@@ -20096,9 +20813,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                   )}
  
-                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? '#2B2210' : '#1B1E22', border: prog.visibility === 'none' ? '1px solid #8A6A12' : '1px solid rgba(242,243,245,0.2)', color: prog.visibility === 'none' ? '#FCD34D' : '#C9CED6', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
+                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', border: prog.visibility === 'none' ? '1px solid var(--bd-fcd34d)' : '1px solid var(--bd-d4d4d8)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
  
-                                  <button onClick={() => duplicateProgram(prog)} style={{ background: '#16281D', border: '1px solid #2F7D4B', color: '#86EFAC', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                  <button onClick={() => duplicateProgram(prog)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
  
                                   <button onClick={() => {
  
@@ -20116,9 +20833,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                     }
  
-                                  }} style={{ background: '#0F2236', border: '1px solid #1E4A75', color: '#93C5FD', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                                  }} style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', color: 'var(--fg-1d4ed8)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
  
-                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: '#2A1517', border: '1px solid #7F2A2A', color: '#F87171', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
  
                                 </>
  
@@ -20162,13 +20879,13 @@ const [notificationError, setNotificationError] = useState('');
  
                 <a href={bannerData.link_url} target="_blank" rel="noopener noreferrer">
  
-                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', boxSizing: 'border-box', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.14)', cursor: 'pointer' }} />
+                  <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', boxSizing: 'border-box', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid var(--bd-26262a)', cursor: 'pointer' }} />
  
                 </a>
  
               ) : (
  
-                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.14)' }} />
+                <img src={bannerData.image_url} alt="Sponsor Banner" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover', borderRadius: '12px', border: '1px solid var(--bd-26262a)' }} />
  
               )}
  
@@ -20180,11 +20897,11 @@ const [notificationError, setNotificationError] = useState('');
  
           {provaAttiva && trialChoice && (
  
-            <div style={{ background: '#2B2210', border: '1px solid #8A6A12', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ background: 'var(--bg-fef9c3)', border: '1px solid var(--bd-facc15)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
  
               <span style={{ fontSize: '20px' }}>⏳</span>
  
-              <span style={{ fontSize: '13px', color: '#FCD34D', fontWeight: 'bold' }}>
+              <span style={{ fontSize: '13px', color: 'var(--fg-854d0e)', fontWeight: 'bold' }}>
  
                 Settimana di prova — {giorniProvaRimasti === 1 ? 'ultimo giorno' : `ancora ${giorniProvaRimasti} giorni`}
  
@@ -20198,11 +20915,11 @@ const [notificationError, setNotificationError] = useState('');
  
           {subscriptionStatus === 'prova' && !trialChoice && (
  
-            <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid rgba(242,243,245,0.12)', padding: '20px', marginBottom: '20px' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', padding: '20px', marginBottom: '20px' }}>
  
-              <h3 style={{ margin: '0 0 6px 0', color: '#C8F135', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
+              <h3 style={{ margin: '0 0 6px 0', color: 'var(--fg-10b981)', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
  
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#C9CED6', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--fg-475569)', lineHeight: 1.5 }}>
  
                 Scegli lo stile di allenamento che preferisci: riceverai subito cinque giorni di allenamento da provare.
  
@@ -20226,7 +20943,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     onClick={() => chooseTrial(s.k)}
  
-                    style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid rgba(242,243,245,0.16)', background: '#23282E', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', cursor: 'pointer' }}
  
                   >
  
@@ -20234,13 +20951,13 @@ const [notificationError, setNotificationError] = useState('');
  
                     <span style={{ flex: 1 }}>
  
-                      <span style={{ display: 'block', fontWeight: 'bold', fontSize: '15px', color: '#F2F3F5' }}>{s.t}</span>
+                      <span style={{ display: 'block', fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' }}>{s.t}</span>
  
-                      <span style={{ display: 'block', fontSize: '12px', color: '#9AA1AB' }}>{s.d}</span>
+                      <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)' }}>{s.d}</span>
  
                     </span>
  
-                    <span style={{ color: '#C8F135', fontWeight: 'bold' }}>→</span>
+                    <span style={{ color: 'var(--fg-10b981)', fontWeight: 'bold' }}>→</span>
  
                   </button>
  
@@ -20256,7 +20973,7 @@ const [notificationError, setNotificationError] = useState('');
  
           {(subscriptionStatus === 'scaduto' || provaScaduta) && (
  
-            <div style={{ background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
+            <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
  
               <div style={{ fontSize: '30px', marginBottom: '8px' }}>💪</div>
  
@@ -20268,7 +20985,7 @@ const [notificationError, setNotificationError] = useState('');
  
               </p>
  
-              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(16,18,20,0.10)', borderRadius: '10px', padding: '12px 14px' }}>
+              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>
  
                 Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
  
@@ -20284,7 +21001,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   rel="noopener noreferrer"
  
-                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: '#23282E', color: '#C8F135', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
+                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
  
                 >
  
@@ -20306,7 +21023,7 @@ const [notificationError, setNotificationError] = useState('');
  
           {activeTab === 'profile' ? (
  
-            <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
@@ -20336,39 +21053,39 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
-                  <h3 style={{ fontSize: '18px', margin: 0, color: '#C8F135' }}>Dati Anagrafici</h3>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Dati Anagrafici</h3>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
  
-                    <input type="text" value={personalData.full_name} onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input type="text" value={personalData.full_name} onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Email</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Email</label>
  
-                    <input type="text" value={session.user.email || ''} disabled style={{ overflowWrap: 'anywhere', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)', background: '#2D3238', color: '#9AA1AB', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input type="text" value={session.user.email || ''} disabled style={{ overflowWrap: 'anywhere', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                    <input type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
                   {isMinorenne(personalData.birth_date) && (
  
-                    <div style={{ background: '#2B2210', border: '1px solid #8A6A12', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '8px', padding: '12px' }}>
  
-                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#FCD34D', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                      <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                      <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                     </div>
  
@@ -20376,13 +21093,13 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Sesso</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Sesso</label>
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
                       {[['m', '♂ Maschio'], ['f', '♀ Femmina']].map(([k, label]) => (
  
-                        <button key={k} type="button" onClick={() => setPersonalData({ ...personalData, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: personalData.gender === k ? '#C8F135' : '#343A42', color: personalData.gender === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+                        <button key={k} type="button" onClick={() => setPersonalData({ ...personalData, gender: k })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: personalData.gender === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: personalData.gender === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
  
                       ))}
  
@@ -20394,17 +21111,17 @@ const [notificationError, setNotificationError] = useState('');
  
                     <div style={{ flex: 1 }}>
  
-                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
  
-                      <input type="number" step="0.1" min="0" value={personalData.weight} onChange={(e) => setPersonalData({ ...personalData, weight: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                      <input type="number" step="0.1" min="0" value={personalData.weight} onChange={(e) => setPersonalData({ ...personalData, weight: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                     </div>
  
                     <div style={{ flex: 1 }}>
  
-                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
  
-                      <input type="number" step="0.1" min="0" value={personalData.height} onChange={(e) => setPersonalData({ ...personalData, height: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                      <input type="number" step="0.1" min="0" value={personalData.height} onChange={(e) => setPersonalData({ ...personalData, height: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                     </div>
  
@@ -20416,7 +21133,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     onClick={() => savePersonalData(session.user.id, personalData, false)}
  
-                    style={{ padding: '12px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
+                    style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
  
                   >
  
@@ -20444,13 +21161,13 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
  
-                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : '#2D3238', color: athleteMaxSubTab === 'strength' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
  
-                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : '#2D3238', color: athleteMaxSubTab === 'metcon' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
  
-                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : '#2D3238', color: athleteMaxSubTab === 'gym' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
  
-                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : '#2D3238', color: athleteMaxSubTab === 'bench' ? '#fff' : '#E5E7EB', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
  
               </div>
  
@@ -20460,7 +21177,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <>
  
-              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: '#C8F135' }}>Strength PR</h3>
+              <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--fg-10b981)' }}>Strength PR</h3>
  
  
  
@@ -20468,19 +21185,19 @@ const [notificationError, setNotificationError] = useState('');
  
                 {maxExerciseNames.map((exName) => (
  
-                  <div key={exName} style={{ background: '#1B1E22', padding: '14px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                    <div style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
  
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
  
                       {REP_SCHEMES.map((reps) => (
  
-                        <div key={reps} style={{ background: '#23282E', padding: '8px 6px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', display: 'flex', flexDirection: 'column' }}>
+                        <div key={reps} style={{ background: 'var(--bg-ffffff)', padding: '8px 6px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', display: 'flex', flexDirection: 'column' }}>
  
-                          <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block', marginBottom: '4px', whiteSpace: 'nowrap' }}>{reps} RM</label>
+                          <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px', whiteSpace: 'nowrap' }}>{reps} RM</label>
  
-                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxTyping(exName, reps, e.target.value)} onBlur={(e) => handleMaxChange(exName, reps, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
+                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxTyping(exName, reps, e.target.value)} onBlur={(e) => handleMaxChange(exName, reps, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
  
                         </div>
  
@@ -20494,7 +21211,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       onClick={() => toggleMaxHistory(session.user.id, exName)}
  
-                      style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px 0 0 0' }}
  
                     >
  
@@ -20530,19 +21247,19 @@ const [notificationError, setNotificationError] = useState('');
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#C8F135' }}>⏱️ Metcon PR</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>⏱️ Metcon PR</h3>
  
-              <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
+              <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
                 {metconPRNames.map((exName) => (
  
-                  <div key={exName} style={{ background: '#1B1E22', padding: '12px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-                      <span style={{ flex: 1, fontWeight: 'bold', color: '#F2F3F5', fontSize: '13px' }}>{exName}</span>
+                      <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
                       <input
  
@@ -20554,13 +21271,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         onChange={(e) => handleSpecialMaxTyping(exName, 'tempo', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'tempo', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
  
-                        style={{ width: '90px', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                        style={{ width: '90px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
  
                       />
  
                     </div>
  
-                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                       {openHistoryKey === `${session.user.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -20592,19 +21309,19 @@ const [notificationError, setNotificationError] = useState('');
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#C8F135' }}>🤸 Gymnastics PR</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🤸 Gymnastics PR</h3>
  
-              <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
+              <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
                 {gymPRNames.map((exName) => (
  
-                  <div key={exName} style={{ background: '#1B1E22', padding: '12px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-                      <span style={{ flex: 1, fontWeight: 'bold', color: '#F2F3F5', fontSize: '13px' }}>{exName}</span>
+                      <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
                       <input
  
@@ -20618,13 +21335,13 @@ const [notificationError, setNotificationError] = useState('');
  
                         onChange={(e) => handleSpecialMaxTyping(exName, 'rep', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'rep', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
  
-                        style={{ width: '90px', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
+                        style={{ width: '90px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
  
                       />
  
                     </div>
  
-                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                    <button onClick={() => toggleMaxHistory(session.user.id, exName)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                       {openHistoryKey === `${session.user.id}|${exName}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -20654,9 +21371,9 @@ const [notificationError, setNotificationError] = useState('');
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: '#C8F135' }}>🏅 Benchmark WOD</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🏅 Benchmark WOD</h3>
  
-              <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '0 0 10px 0' }}>Scegli il livello con cui l&apos;hai affrontato e registra il risultato.</p>
+              <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Scegli il livello con cui l&apos;hai affrontato e registra il risultato.</p>
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
  
@@ -20670,17 +21387,17 @@ const [notificationError, setNotificationError] = useState('');
  
                   return (
  
-                    <div key={b.name} style={{ background: '#1B1E22', padding: '14px', borderRadius: '10px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                    <div key={b.name} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
-                        <span style={{ fontWeight: 'bold', color: '#F2F3F5', fontSize: '16px' }}>{b.name}</span>
+                        <span style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '16px' }}>{b.name}</span>
  
                         <div style={{ display: 'flex', gap: '4px' }}>
  
                           {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
  
-                            <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
+                            <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
  
                           ))}
  
@@ -20690,15 +21407,15 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
  
-                      <div style={{ fontSize: '11px', color: '#FCD34D', background: '#2B2210', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--fg-b45309)', background: 'var(--bg-fef3c7)', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}>🎯 Target: {benchTarget(b, lvl)}</div>
  
  
  
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
-                        <span style={{ fontSize: '11px', color: '#9AA1AB', flex: 1 }}>Il tuo risultato — {unita}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', flex: 1 }}>Il tuo risultato — {unita}</span>
  
                         <ScoreInput
  
@@ -20716,7 +21433,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                      <button onClick={() => toggleMaxHistory(session.user.id, b.name)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
+                      <button onClick={() => toggleMaxHistory(session.user.id, b.name)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
                         {openHistoryKey === `${session.user.id}|${b.name}` ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
  
@@ -20754,11 +21471,11 @@ const [notificationError, setNotificationError] = useState('');
  
                   {needsAnamnesis && (
  
-                    <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '14px' }}>
+                    <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-93c5fd)', borderRadius: '8px', padding: '14px' }}>
  
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#93C5FD', display: 'block', marginBottom: '4px' }}>👋 Benvenuto in AM Training!</span>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-1e40af)', display: 'block', marginBottom: '4px' }}>👋 Benvenuto in AM Training!</span>
  
-                      <span style={{ fontSize: '13px', color: '#93C5FD', lineHeight: 1.4 }}>
+                      <span style={{ fontSize: '13px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>
  
                         Prima di iniziare, compila la tua anamnesi: serve al coach per costruire un programma adatto a te e sicuro. Ci vuole un minuto.
  
@@ -20768,21 +21485,21 @@ const [notificationError, setNotificationError] = useState('');
  
                   )}
  
-                  <h3 style={{ fontSize: '18px', margin: 0, color: '#C8F135' }}>Anamnesi</h3>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Anamnesi</h3>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
  
-                    <textarea value={anamnesis.goal} onChange={(e) => setAnamnesis({ ...anamnesis, goal: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea value={anamnesis.goal} onChange={(e) => setAnamnesis({ ...anamnesis, goal: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Numero allenamenti settimanali</label>
  
-                    <select value={anamnesis.weekly_sessions} onChange={(e) => setAnamnesis({ ...anamnesis, weekly_sessions: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }}>
+                    <select value={anamnesis.weekly_sessions} onChange={(e) => setAnamnesis({ ...anamnesis, weekly_sessions: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }}>
  
                       <option value="">Seleziona...</option>
  
@@ -20794,9 +21511,9 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Durata singolo allenamento</label>
  
-                    <select value={anamnesis.session_duration} onChange={(e) => setAnamnesis({ ...anamnesis, session_duration: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }}>
+                    <select value={anamnesis.session_duration} onChange={(e) => setAnamnesis({ ...anamnesis, session_duration: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }}>
  
                       <option value="">Seleziona...</option>
  
@@ -20816,17 +21533,17 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
  
-                    <textarea value={anamnesis.equipment} onChange={(e) => setAnamnesis({ ...anamnesis, equipment: e.target.value })} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea value={anamnesis.equipment} onChange={(e) => setAnamnesis({ ...anamnesis, equipment: e.target.value })} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
                   <div>
  
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
  
-                    <textarea value={anamnesis.physical_issues} onChange={(e) => setAnamnesis({ ...anamnesis, physical_issues: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea value={anamnesis.physical_issues} onChange={(e) => setAnamnesis({ ...anamnesis, physical_issues: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -20836,7 +21553,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     onClick={() => saveAnamnesis(session.user.id, anamnesis, false)}
  
-                    style={{ padding: '12px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                    style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
  
                   >
  
@@ -20854,15 +21571,15 @@ const [notificationError, setNotificationError] = useState('');
  
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  
-                  <h3 style={{ fontSize: '18px', margin: 0, color: '#C8F135' }}>Privacy e dati personali</h3>
+                  <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Privacy e dati personali</h3>
  
  
  
-                  <div style={{ background: '#16281D', border: '1px solid #2F7D4B', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ background: 'var(--bg-f0fdf4)', border: '1px solid var(--bd-86efac)', borderRadius: '8px', padding: '12px' }}>
  
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#86EFAC', display: 'block', marginBottom: '4px' }}>Stato del consenso</span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-166534)', display: 'block', marginBottom: '4px' }}>Stato del consenso</span>
  
-                    <span style={{ fontSize: '13px', color: '#E5E7EB' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--fg-334155)' }}>
  
                       {privacyConsentAt
  
@@ -20878,7 +21595,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <div>
  
-                    <button onClick={() => setShowPrivacyPolicy(!showPrivacyPolicy)} style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
+                    <button onClick={() => setShowPrivacyPolicy(!showPrivacyPolicy)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
  
                       {showPrivacyPolicy ? '▲ Nascondi informativa' : '▼ Leggi l\'informativa completa'}
  
@@ -20886,7 +21603,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     {showPrivacyPolicy && (
  
-                      <div style={{ marginTop: '10px', background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '14px', maxHeight: '400px', overflowY: 'auto' }}>
+                      <div style={{ marginTop: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px', maxHeight: '400px', overflowY: 'auto' }}>
  
                         <PrivacyPolicyContent minor={isMinorenne(personalData.birth_date)} />
  
@@ -20898,9 +21615,9 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '6px' }}>🔑 Cambia password</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>🔑 Cambia password</span>
  
                     {!showChangePassword ? (
  
@@ -20914,19 +21631,19 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
-                        <input type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                        <input type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        <input type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', fontSize: '13px' }} />
+                        <input type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         <div style={{ display: 'flex', gap: '8px' }}>
  
-                          <button onClick={cambiaPassword} disabled={passwordSaving} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', background: '#C8F135', color: '#101214', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: passwordSaving ? 0.6 : 1 }}>
+                          <button onClick={cambiaPassword} disabled={passwordSaving} style={{ flex: 1, minWidth: 0, padding: '10px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: passwordSaving ? 0.6 : 1 }}>
  
                             {passwordSaving ? 'Salvataggio...' : 'Salva'}
  
                           </button>
  
-                          <button onClick={() => { setShowChangePassword(false); setNewPassword(''); setNewPassword2(''); }} style={{ padding: '10px 16px', borderRadius: '999px', background: '#343A42', color: '#E5E7EB', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                          <button onClick={() => { setShowChangePassword(false); setNewPassword(''); setNewPassword2(''); }} style={{ padding: '10px 16px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px' }}>
  
                             Annulla
  
@@ -20942,11 +21659,11 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#C9CED6', display: 'block', marginBottom: '6px' }}>📥 Scarica i tuoi dati</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>📥 Scarica i tuoi dati</span>
  
-                    <p style={{ fontSize: '12px', color: '#9AA1AB', margin: '0 0 10px 0', lineHeight: 1.4 }}>Ottieni una copia completa di tutti i dati che ti riguardano (anagrafica, anamnesi, massimali, risultati, programmi assegnati) in un file leggibile.</p>
+                    <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0', lineHeight: 1.4 }}>Ottieni una copia completa di tutti i dati che ti riguardano (anagrafica, anamnesi, massimali, risultati, programmi assegnati) in un file leggibile.</p>
  
                     <button onClick={downloadMyData} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '999px', background: '#0284c7', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
  
@@ -20958,11 +21675,11 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  <div style={{ background: '#2A1517', border: '1px solid #7F2A2A', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', borderRadius: '8px', padding: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#FCA5A5', display: 'block', marginBottom: '6px' }}><Icona nome="cestino" size={12} /> Elimina il tuo account</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-991b1b)', display: 'block', marginBottom: '6px' }}><Icona nome="cestino" size={12} /> Elimina il tuo account</span>
  
-                    <p style={{ fontSize: '12px', color: '#FCA5A5', margin: '0 0 10px 0', lineHeight: 1.4 }}>Cancella definitivamente l&apos;account e tutti i dati associati: anagrafica, anamnesi, massimali e risultati. L&apos;operazione non è reversibile.</p>
+                    <p style={{ fontSize: '12px', color: 'var(--fg-7f1d1d)', margin: '0 0 10px 0', lineHeight: 1.4 }}>Cancella definitivamente l&apos;account e tutti i dati associati: anagrafica, anamnesi, massimali e risultati. L&apos;operazione non è reversibile.</p>
  
                     <button onClick={deleteMyAccount} disabled={accountActionLoading} style={{ padding: '10px 16px', borderRadius: '999px', background: '#dc2626', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '13px', opacity: accountActionLoading ? 0.6 : 1 }}>
  
@@ -20974,7 +21691,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                  <p style={{ fontSize: '12px', color: '#9AA1AB', lineHeight: 1.4, margin: 0 }}>
+                  <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.4, margin: 0 }}>
  
                     Per rettificare i dati, limitare o opporti al trattamento, revocare il consenso o per qualsiasi altra richiesta, contatta il coach. Hai diritto di proporre reclamo al Garante per la protezione dei dati personali.
  
@@ -20998,33 +21715,33 @@ const [notificationError, setNotificationError] = useState('');
  
               {athletePrograms.length === 0 ? (
  
-                <div style={{ background: '#1B1E22', color: '#F2F3F5', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid rgba(242,243,245,0.12)', textAlign: 'center' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', textAlign: 'center' }}>
  
                   <svg viewBox="0 0 120 90" style={{ width: '150px', height: 'auto', display: 'block', margin: '0 auto 18px auto' }} aria-hidden="true">
  
                     {/* bilanciere appoggiato: nessun allenamento in corso */}
  
-                    <rect x="16" y="43" width="88" height="4" rx="2" fill="rgba(242,243,245,0.2)" />
+                    <rect x="16" y="43" width="88" height="4" rx="2" style={{ fill: 'var(--fg-cbd5e1)' }} />
  
-                    <rect x="24" y="34" width="9" height="22" rx="3" fill="#8A919C" />
+                    <rect x="24" y="34" width="9" height="22" rx="3" style={{ fill: 'var(--fg-94a3b8)' }} />
  
-                    <rect x="12" y="38" width="8" height="14" rx="3" fill="rgba(242,243,245,0.2)" />
+                    <rect x="12" y="38" width="8" height="14" rx="3" style={{ fill: 'var(--fg-cbd5e1)' }} />
  
-                    <rect x="87" y="34" width="9" height="22" rx="3" fill="#8A919C" />
+                    <rect x="87" y="34" width="9" height="22" rx="3" style={{ fill: 'var(--fg-94a3b8)' }} />
  
-                    <rect x="100" y="38" width="8" height="14" rx="3" fill="rgba(242,243,245,0.2)" />
+                    <rect x="100" y="38" width="8" height="14" rx="3" style={{ fill: 'var(--fg-cbd5e1)' }} />
  
-                    <ellipse cx="60" cy="72" rx="34" ry="4" fill="rgba(242,243,245,0.14)" />
+                    <ellipse cx="60" cy="72" rx="34" ry="4" style={{ fill: 'var(--fg-e2e8f0)' }} />
  
-                    <circle cx="60" cy="20" r="9" fill="none" stroke="#C8F135" strokeWidth="2.5" strokeDasharray="3 3" />
+                    <circle cx="60" cy="20" r="9" fill="none" style={{ stroke: 'var(--fg-10b981)' }} strokeWidth="2.5" strokeDasharray="3 3" />
  
-                    <path d="M60 15v6l4 2" stroke="#C8F135" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    <path d="M60 15v6l4 2" style={{ stroke: 'var(--fg-10b981)' }} strokeWidth="2.5" strokeLinecap="round" fill="none" />
  
                   </svg>
  
  
  
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '17px', color: '#E5E7EB' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '17px', color: 'var(--fg-334155)' }}>
  
                     {subscriptionStatus === 'prova' && !trialChoice
  
@@ -21034,7 +21751,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   </h4>
  
-                  <p style={{ margin: 0, fontSize: '13px', color: '#9AA1AB', lineHeight: 1.55, maxWidth: '300px', marginLeft: 'auto', marginRight: 'auto' }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-64748b)', lineHeight: 1.55, maxWidth: '300px', marginLeft: 'auto', marginRight: 'auto' }}>
  
                     {subscriptionStatus === 'prova' && !trialChoice
  
@@ -21090,15 +21807,15 @@ const [notificationError, setNotificationError] = useState('');
  
                   return (
  
-                    <div key={prog.id} style={{ background: scaduto ? '#2A1517' : '#23282E', color: '#F2F3F5', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid rgba(242,243,245,0.12)', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
  
                       {scaduto && (
  
-                        <div style={{ background: '#2A1517', border: '1px solid #7F2A2A', borderRadius: '10px', padding: '11px 13px', marginBottom: '14px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
+                        <div style={{ background: 'var(--bg-fee2e2)', border: '1px solid var(--bd-fca5a5)', borderRadius: '10px', padding: '11px 13px', marginBottom: '14px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
  
                           <span style={{ fontSize: '17px', flexShrink: 0 }}>⛔</span>
  
-                          <span style={{ fontSize: '12.5px', color: '#FCA5A5', lineHeight: 1.5 }}>
+                          <span style={{ fontSize: '12.5px', color: 'var(--fg-991b1b)', lineHeight: 1.5 }}>
  
                             <strong>Programma scaduto.</strong>{' '}
  
@@ -21118,7 +21835,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       <div style={{ marginBottom: '12px' }}>
  
-                        <h4 style={{ overflowWrap: 'anywhere', color: '#C8F135', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
+                        <h4 style={{ overflowWrap: 'anywhere', color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
  
                         {(prog.startDate || prog.endDate) && (() => {
  
@@ -21152,19 +21869,19 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => setProgressiAperti({ dati: prog_, titolo: prog.title, perAtleta: true })}
  
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '14px', padding: '12px 14px', borderRadius: '999px', border: '1px solid #2F7D4B', background: '#16281D', cursor: 'pointer' }}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '14px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', cursor: 'pointer' }}
  
                           >
  
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
-                              <Icona nome="grafico" size={17} style={{ color: '#86EFAC' }} />
+                              <Icona nome="grafico" size={17} style={{ color: 'var(--fg-047857)' }} />
  
-                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#86EFAC' }}>I tuoi progressi</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-047857)' }}>I tuoi progressi</span>
  
                             </span>
  
-                            <span style={{ fontSize: '12px', color: '#C8F135', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--fg-059669)', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
  
                               {prog_.migliorati}/{prog_.totale}
  
@@ -21192,7 +21909,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             onClick={() => apriConsigli(prog.id, aperto)}
  
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid #8A6A12', background: '#2B2210', cursor: 'pointer' }}
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-fde68a)', background: 'var(--bg-fffbeb)', cursor: 'pointer' }}
  
                           >
  
@@ -21200,7 +21917,7 @@ const [notificationError, setNotificationError] = useState('');
  
                               <span style={{ fontSize: '18px' }}>💡</span>
  
-                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#FCD34D' }}>Consigli del coach</span>
+                              <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-92400e)' }}>Consigli del coach</span>
  
                               {daLeggere && !aperto && (
  
@@ -21210,7 +21927,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             </span>
  
-                            <span style={{ color: '#FCD34D', fontWeight: 'bold', fontSize: '14px' }}>{aperto ? '▲' : '▼'}</span>
+                            <span style={{ color: 'var(--fg-b45309)', fontWeight: 'bold', fontSize: '14px' }}>{aperto ? '▲' : '▼'}</span>
  
                           </button>
  
@@ -21224,9 +21941,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
  
-                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? '#C8F135' : '#2D3238', color: tipsTab === 'training' ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
+                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: tipsTab === 'training' ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
  
-                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : '#2D3238', color: tipsTab === 'nutrition' ? '#fff' : '#E5E7EB', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
+                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : 'var(--bg-f1f5f9)', color: tipsTab === 'nutrition' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
  
                                 </div>
  
@@ -21236,11 +21953,11 @@ const [notificationError, setNotificationError] = useState('');
  
                               {prog.trainingTips && (!prog.nutritionTips || tipsTab === 'training') && (
  
-                                <div style={{ background: '#16281D', border: '1px solid #2F7D4B', borderRadius: '10px', padding: '14px' }}>
+                                <div style={{ background: 'var(--bg-f0fdf4)', border: '1px solid var(--bd-86efac)', borderRadius: '10px', padding: '14px' }}>
  
-                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#86EFAC', marginBottom: '6px' }}>🏋️ Consigli di allenamento</span>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-166534)', marginBottom: '6px' }}>🏋️ Consigli di allenamento</span>
  
-                                  <p style={{ margin: 0, fontSize: '13px', color: '#E5E7EB', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.trainingTips}</p>
+                                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.trainingTips}</p>
  
                                 </div>
  
@@ -21250,11 +21967,11 @@ const [notificationError, setNotificationError] = useState('');
  
                               {prog.nutritionTips && (!prog.trainingTips || tipsTab === 'nutrition') && (
  
-                                <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '10px', padding: '14px' }}>
+                                <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '10px', padding: '14px' }}>
  
-                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#93C5FD', marginBottom: '6px' }}>🥗 Consigli nutrizionali</span>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-1e40af)', marginBottom: '6px' }}>🥗 Consigli nutrizionali</span>
  
-                                  <p style={{ margin: 0, fontSize: '13px', color: '#E5E7EB', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.nutritionTips}</p>
+                                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.nutritionTips}</p>
  
                                 </div>
  
@@ -21298,9 +22015,9 @@ const [notificationError, setNotificationError] = useState('');
  
                               fontSize: '12px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0,
  
-                              background: currentProgramActiveWeek === week.weekName ? '#0B0C0E' : '#2D3238',
+                              background: currentProgramActiveWeek === week.weekName ? 'var(--bg-334155)' : 'var(--bg-e8edf3)',
  
-                              color: currentProgramActiveWeek === week.weekName ? '#fff' : '#9AA1AB',
+                              color: currentProgramActiveWeek === week.weekName ? '#fff' : 'var(--fg-64748b)',
  
                             }}
  
@@ -21370,11 +22087,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                     fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0,
  
-                                    background: attivo ? 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)' : '#2D3238',
+                                    background: attivo ? 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)' : 'var(--bg-e8edf3)',
  
-                                    color: attivo ? '#101214' : '#E5E7EB',
+                                    color: attivo ? 'var(--onacc)' : 'var(--fg-334155)',
  
-                                    boxShadow: attivo ? '0 3px 9px rgba(200,241,53,0.4)' : 'none',
+                                    boxShadow: attivo ? '0 3px 9px rgba(var(--acc-rgb), 0.4)' : 'none',
  
                                     transition: 'background .15s ease',
  
@@ -21398,13 +22115,13 @@ const [notificationError, setNotificationError] = useState('');
  
                                         fontSize: '10px', fontWeight: 'bold',
  
-                                        background: completo ? (attivo ? 'rgba(16,18,20,0.18)' : '#C8F135')
+                                        background: completo ? (attivo ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)')
  
-                                          : fatti > 0 ? (attivo ? 'rgba(16,18,20,0.18)' : '#fcd34d')
+: fatti > 0 ? (attivo ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d')
  
-                                          : (attivo ? 'rgba(255,255,255,0.18)' : '#4A515A'),
+: (attivo ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'),
  
-                                        color: attivo || completo || fatti > 0 ? '#101214' : '#E5E7EB',
+color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-334155)',
  
                                       }}
  
@@ -21440,7 +22157,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             return (
  
-                              <div key={realDayIndex} style={{ background: '#2D3238', padding: '14px', borderRadius: '12px', border: '1px solid rgba(242,243,245,0.12)', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
+                              <div key={realDayIndex} style={{ background: 'var(--bg-eef2f7)', padding: '14px', borderRadius: '12px', border: '1px solid var(--bd-dbe3ec)', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
  
                                 <div
  
@@ -21450,7 +22167,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                 >
  
-                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#F2F3F5' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-141416)' }}>{currentWeekObj.weekName} - {day.dayName}</span>
  
                                   <button
  
@@ -21460,7 +22177,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     title={isDayClosed ? 'Apri' : 'Chiudi'}
  
-                                    style={{ background: 'transparent', border: 'none', color: '#C8F135', padding: '4px 6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', lineHeight: 1, flexShrink: 0 }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--fg-10b981)', padding: '4px 6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', lineHeight: 1, flexShrink: 0 }}
  
                                   >
  
@@ -21478,7 +22195,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                     {day.blocks?.length === 0 ? (
  
-                                      <p style={{ color: '#9AA1AB', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
+                                      <p style={{ color: 'var(--fg-64748b)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>Nessun esercizio inserito.</p>
  
                                     ) : (
  
@@ -21500,7 +22217,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                         return (
  
-                                          <div key={bIdx} style={{ background: '#23282E', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid rgba(242,243,245,0.12)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
+                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
  
                                             <div
  
@@ -21510,7 +22227,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                             >
  
-                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#C8F135' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
+                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
  
                                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
  
@@ -21522,7 +22239,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
  
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(200,241,53,0.35)' }}
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                                   >
  
@@ -21542,7 +22259,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 )}
  
-                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: '#2D3238', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
  
                                               </div>
  
@@ -21556,7 +22273,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 {haElenco(blk.type) ? (
  
-                                                  <div style={{ background: blk.type === 'superserie' ? '#23282E' : '#2B2210', border: blk.type === 'superserie' ? '1px solid rgba(242,243,245,0.12)' : '1px solid #8A6A12', borderRadius: '10px', padding: '12px' }}>
+                                                  <div style={{ background: blk.type === 'superserie' ? 'var(--bg-ffffff)' : 'var(--bg-fffbeb)', border: blk.type === 'superserie' ? '1px solid var(--bd-e2e8f0)' : '1px solid var(--bd-fde68a)', borderRadius: '10px', padding: '12px' }}>
  
                                                     {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
@@ -21570,7 +22287,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {(blk.items || []).length === 0 && (
  
-                                                      <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? '#9AA1AB' : '#FCD34D' }}>Nessun esercizio inserito.</span>
+                                                      <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)' }}>Nessun esercizio inserito.</span>
  
                                                     )}
  
@@ -21580,7 +22297,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#E5E7EB' : '#FCD34D', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.name}
  
@@ -21590,11 +22307,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                             return (
  
-                                                              <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: '#9AA1AB', marginTop: '2px' }}>
+                                                              <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
                                                                 {it.load}
  
-                                                                {suggerito ? <span style={{ color: '#93C5FD', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
+                                                                {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
                                                               </span>
  
@@ -21606,7 +22323,7 @@ const [notificationError, setNotificationError] = useState('');
  
  
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? '#C9CED6' : '#FCD34D', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                                           {it.value}
  
@@ -21660,7 +22377,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                                 title="Avvia il timer"
  
-                                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', cursor: 'pointer', boxShadow: '0 2px 5px rgba(200,241,53,0.35)' }}
+                                                                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', boxShadow: '0 2px 5px rgba(var(--acc-rgb), 0.35)' }}
  
                                                               >
  
@@ -21678,7 +22395,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         {i < (blk.items.length - 1) && (() => {
  
-                                                          const linea = blk.type === 'superserie' ? 'rgba(242,243,245,0.14)' : '#fde68a';
+                                                          const linea = blk.type === 'superserie' ? 'var(--fg-e2e8f0)' : '#fde68a';
  
                                                           const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
@@ -21696,7 +22413,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                                   title="Avvia questo recupero"
  
-                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: '#23282E', color: '#C9CED6', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: 'var(--bg-ffffff)', color: 'var(--fg-475569)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                                 >
  
@@ -21706,7 +22423,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                               ) : (
  
-                                                                <span style={{ flexShrink: 0, fontSize: '10.5px', color: '#8A919C', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+                                                                <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
  
                                                               )) : null}
  
@@ -21728,17 +22445,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid #C8F135' : '1px solid #8A6A12', background: athleteResults[prog.id]?.[resultKey]?.done ? '#16281D' : '#23282E' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-fcd34d)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                                     >
  
-                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? '#C8F135' : '#fde68a' }}>
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : '#fde68a' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
  
                                                       </span>
  
-                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? '#86EFAC' : '#FCD34D' }}>
+                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-92400e)' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
  
@@ -21766,7 +22483,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         return (
  
-                                                          <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? '#9AA1AB' : '#FCD34D', marginTop: '7px', textAlign: 'center' }}>
+                                                          <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)', marginTop: '7px', textAlign: 'center' }}>
  
                                                             Nessun recupero tra i round
  
@@ -21778,9 +22495,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       return (
  
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: '#2B2210', border: '1px solid #8A6A12' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-fef3c7)', border: '1px solid var(--bd-fcd34d)' }}>
  
-                                                          <span style={{ fontSize: '12px', color: '#FCD34D' }}>
+                                                          <span style={{ fontSize: '12px', color: 'var(--fg-92400e)' }}>
  
                                                             Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
  
@@ -21794,7 +22511,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                             aria-label="Avvia il recupero"
  
-                                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(200,241,53,0.35)' }}
+                                                            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', padding: 0, background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                                           >
  
@@ -21812,7 +22529,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {blk.notes && (
  
-                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? '#E5E7EB' : '#FCD34D', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? '#1B1E22' : '#2B2210', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? 'var(--bg-f8fafc)' : 'var(--bg-fef3c7)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                                         {blk.notes}
  
@@ -21828,9 +22545,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {blk.wodNotes && (
  
-                                                      <div style={{ background: '#1F1A33', border: '1px solid #3F3270', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                                      <div style={{ background: 'var(--bg-f5f3ff)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                                        <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: '#E5E7EB', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                                        <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                                       </div>
  
@@ -21840,17 +22557,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid #C8F135' : '1px solid rgba(242,243,245,0.16)', background: athleteResults[prog.id]?.[resultKey]?.done ? '#16281D' : '#23282E' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                                     >
  
-                                                      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? '#C8F135' : '#343A42' }}>
+                                                      <span style={{ width: '22px', height: '22px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold', color: 'var(--onacc)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done ? '\u2713' : ''}
  
                                                       </span>
  
-                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? '#86EFAC' : '#E5E7EB' }}>
+                                                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done ? 'Completata' : 'Segna come fatta'}
  
@@ -21862,17 +22579,17 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 ) : blk.type === 'test' ? (
  
-                                                  <div style={{ background: '#0F2236', padding: '12px', borderRadius: '6px', border: '1px solid #1E4A75', marginBottom: '8px', textAlign: 'center' }}>
+                                                  <div style={{ background: 'var(--bg-eff6ff)', padding: '12px', borderRadius: '6px', border: '1px solid var(--bd-bfdbfe)', marginBottom: '8px', textAlign: 'center' }}>
  
-                                                    <span style={{ fontSize: '16px', color: '#93C5FD', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                                    <span style={{ fontSize: '16px', color: 'var(--fg-1e3a8a)', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
  
-                                                    <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#93C5FD', letterSpacing: '0.5px' }}>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '11px', color: 'var(--fg-1e40af)', letterSpacing: '0.5px' }}>
  
                                                         {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
  
                                                     </span>
  
-                                                    {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: '#93C5FD', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                                    {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: 'var(--fg-1e40af)', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
  
                                                     {(() => {
  
@@ -21884,21 +22601,21 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       return (
  
-                                                        <div style={{ background: '#23282E', border: '1px solid #1E4A75', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
+                                                        <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
  
                                                           <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
  
                                                             {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? '#C8F135' : '#343A42', color: lvl === k ? '#101214' : '#E5E7EB', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
  
                                                             ))}
  
                                                           </div>
  
-                                                          <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#E5E7EB', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                                          <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                                          <div style={{ fontSize: '10px', color: '#FCD34D', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
  
                                                         </div>
  
@@ -21914,19 +22631,19 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>SET</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
  
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#F2F3F5' }}>{blk.sets}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
  
                                                       </div>
  
-                                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>REP</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
  
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#F2F3F5' }}>{blk.reps}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
  
                                                       </div>
  
@@ -21934,11 +22651,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>CARICO / RPE</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</span>
  
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#F2F3F5' }}>{blk.load}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.load}</span>
  
                                                       </div>
  
@@ -21952,15 +22669,15 @@ const [notificationError, setNotificationError] = useState('');
  
                                                           onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
  
-                                                          style={{ background: '#16281D', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid #2F7D4B', cursor: 'pointer' }}
+                                                          style={{ background: 'var(--bg-ecfdf5)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
  
                                                         >
  
-                                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>RECUPERO</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</span>
  
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: '#F2F3F5' }}>{blk.rest}</span>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
  
-                                                        <span style={{ display: 'block', fontSize: '9px', color: '#86EFAC', fontWeight: 'bold', marginTop: '3px' }}>
+                                                        <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px' }}>
  
                                                           {secRec ? '⏱️ AVVIA TIMER' : '⏱️ IMPOSTA TIMER'}
  
@@ -21982,11 +22699,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                         return (
  
-                                                          <div style={{ background: '#0F2236', border: '1px solid #1E4A75', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                          <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
  
-                                                            <span style={{ display: 'block', fontSize: '10px', color: '#93C5FD', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
+                                                            <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-1e40af)', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
  
-                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#93C5FD' }}>{hint}</span>
+                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{hint}</span>
  
                                                           </div>
  
@@ -22004,9 +22721,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       return (
  
-                                                        <div style={{ background: '#1B1E22', border: '1px solid rgba(242,243,245,0.12)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                        <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
  
-                                                          <span style={{ display: 'block', fontSize: '10px', color: '#9AA1AB', marginBottom: '3px' }}>
+                                                          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>
  
                                                             {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVI USATO' : 'CARICHI CHE HAI GIÀ USATO'}
  
@@ -22014,7 +22731,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
  
-                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? '#86EFAC' : '#E5E7EB', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? 'var(--fg-047857)' : 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                               {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
  
@@ -22022,7 +22739,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                             {usati.length > 1 && (
  
-                                                              <span style={{ fontSize: '11px', color: '#8A919C', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                              <span style={{ fontSize: '11px', color: 'var(--fg-94a3b8)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                                 {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
  
@@ -22040,11 +22757,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     {blk.notes && (
  
-                                                      <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)' }}>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                                        <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>NOTE</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</span>
  
-                                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#E5E7EB' }}>{blk.notes}</p>
+                                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)' }}>{blk.notes}</p>
  
                                                       </div>
  
@@ -22054,11 +22771,11 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 ) : (
  
-                                                  <div style={{ background: '#1B1E22', padding: '8px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.12)', marginBottom: '8px' }}>
+                                                  <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
  
-                                                    <span style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>WOD / CIRCUITO</span>
+                                                    <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</span>
  
-                                                    <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: '#E5E7EB', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
+                                                    <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
  
                                                   </div>
  
@@ -22104,9 +22821,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                 {blk.type !== 'warmup' && (
  
-                                                <div style={{ marginTop: '10px', background: '#2D3238', padding: '10px', borderRadius: '6px', border: '1px solid rgba(242,243,245,0.16)' }}>
+                                                <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
  
-                                                  <span style={{ fontSize: '11px', color: '#C8F135', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
+                                                  <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
  
                                                   {usaFinestra && blk.scoreUnit !== 'spunta' && (
  
@@ -22114,7 +22831,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                       onClick={() => setScoreAperto({ progId: prog.id, key: resultKey, blk, lvl: athleteResults[prog.id]?.[resultKey]?.level || blk.benchLevel })}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, #C8F135 0%, #B4DA2B 100%)', color: '#101214', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(200,241,53,0.32)' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', marginBottom: '9px', padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 7px rgba(var(--acc-rgb), 0.32)' }}
  
                                                     >
  
@@ -22165,7 +22882,7 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <div>
  
-                                                      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>Score / Carico</label>
+                                                      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Score / Carico</label>
  
                                                       {(() => {
  
@@ -22205,9 +22922,9 @@ const [notificationError, setNotificationError] = useState('');
  
                                                     <div>
  
-                                                      <label style={{ fontSize: '10px', color: '#9AA1AB', display: 'block' }}>Note personali</label>
+                                                      <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Note personali</label>
  
-                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: '#23282E', border: '1px solid rgba(242,243,245,0.16)', color: '#F2F3F5', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                                      <input type="text" placeholder="Sensazioni..." value={athleteResults[prog.id]?.[resultKey]?.notes || ''} onChange={(e) => handleResultChange(prog.id, resultKey, 'notes', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                                     </div>
  
@@ -22275,7 +22992,7 @@ const [notificationError, setNotificationError] = useState('');
  
         display: 'flex',
  
-        background: '#0B0C0E',
+        background: 'var(--bg-1a1a1d)',
  
         transform: 'translateZ(0)',
  
@@ -22283,7 +23000,7 @@ const [notificationError, setNotificationError] = useState('');
  
         willChange: 'transform',
  
-        borderTop: '1px solid rgba(242,243,245,0.14)',
+        borderTop: '1px solid var(--bd-2a2a2e)',
  
         paddingBottom: 'env(safe-area-inset-bottom)',
  
@@ -22359,9 +23076,9 @@ const [notificationError, setNotificationError] = useState('');
  
                 gap: '3px',
  
-                color: active ? '#C8F135' : '#8A919C',
+                color: active ? 'var(--fg-10b981)' : 'var(--fg-94a3b8)',
  
-                borderTop: active ? '2px solid #C8F135' : '2px solid transparent'
+                borderTop: active ? '2px solid var(--bd-10b981)' : '2px solid transparent'
  
               }}
  
@@ -22384,3 +23101,67 @@ const [notificationError, setNotificationError] = useState('');
   );
  
 }
+ 
+ 
+// Pagina: tiene il tema scelto (anche sul dispositivo) e lo passa all'app.
+ 
+export default function Page() {
+ 
+  const [tema, setTema] = useState<string>('scuro');
+ 
+  useEffect(() => {
+ 
+    try {
+ 
+      const t = window.localStorage.getItem('amt_tema');
+ 
+      if (t && TEMI[t]) {
+ 
+        TEMA_ATTIVO = t;
+ 
+        setTema(t);
+ 
+      }
+ 
+    } catch (e) {
+ 
+      // se il dispositivo non permette di salvare, resta il tema predefinito
+ 
+    }
+ 
+  }, []);
+ 
+  const impostaTema = (t: string) => {
+ 
+    if (!TEMI[t]) return;
+ 
+    TEMA_ATTIVO = t;
+ 
+    setTema(t);
+ 
+    try {
+ 
+      window.localStorage.setItem('amt_tema', t);
+ 
+    } catch (e) {
+ 
+      // niente da fare
+ 
+    }
+ 
+  };
+ 
+  return (
+ 
+    <>
+ 
+      <StileTema tema={tema} />
+ 
+      <TrainingApp tema={tema} impostaTema={impostaTema} />
+ 
+    </>
+ 
+  );
+ 
+}
+ 
