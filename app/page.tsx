@@ -5396,7 +5396,7 @@ function StileTema({ tema }: { tema: string }) {
  
   const vars = (TEMI[tema] || TEMI.scuro).vars;
  
-  const css = ':root{' + Object.keys(vars).map((k) => k + ':' + vars[k]).join(';') + '}';
+  const css = ':root{' + Object.keys(vars).map((k) => k + ':' + vars[k]).join(';') + '}html,body{overscroll-behavior-y:none;background:var(--bg-18181b)}';
  
   return <style>{css}</style>;
  
@@ -6486,6 +6486,8 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [mostraTemi, setMostraTemi] = useState(false);
  
+  const [modificaRapidaKey, setModificaRapidaKey] = useState<string | null>(null);
+ 
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
@@ -6751,6 +6753,54 @@ const [notificationError, setNotificationError] = useState('');
   };
  
  
+ 
+  // Modifica rapida di un blocco dalla scheda del coach: cambia il programma e lo salva subito.
+ 
+  const salvaBloccoRapido = async (progId: string, nomeSettimana: string, nomeGiorno: string, bIdx: number, campi: { [k: string]: string }) => {
+ 
+    const prog = programLibrary.find((p: any) => p.id === progId);
+ 
+    if (!prog) return;
+ 
+    const settimane = JSON.parse(JSON.stringify(prog.weeks || []));
+ 
+    const sett = settimane.find((w: any) => w.weekName === nomeSettimana);
+ 
+    const giorno = sett?.days?.find((g: any) => g.dayName === nomeGiorno);
+ 
+    const blocco = giorno?.blocks?.[bIdx];
+ 
+    if (!blocco) return;
+ 
+    Object.keys(campi).forEach((k) => {
+ 
+      blocco[k] = campi[k];
+ 
+    });
+ 
+    setProgramLibrary((prev: any[]) => prev.map((p: any) => (p.id === progId ? { ...p, weeks: settimane } : p)));
+ 
+    const { error } = await supabase
+ 
+      .from('programs')
+ 
+      .update({ weeks: settimane, days: settimane[0]?.days || [] })
+ 
+      .eq('id', progId);
+ 
+    if (error) {
+ 
+      alert('Errore: ' + error.message);
+ 
+      fetchProgramLibrary();
+ 
+      return;
+ 
+    }
+ 
+    avvisa('Salvato');
+ 
+  };
  
   // Tema: lo salvo sul dispositivo (impostaTema) e sull'account, così lo ritrovi su ogni telefono.
  
@@ -12750,7 +12800,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       setAuthError('Inserisci la data di nascita: serve per stabilire quale informativa privacy ti spetta.');
  
       return;
- 
     }
  
  
@@ -15907,7 +15956,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', marginBottom: '16px' }}>
+                          <div key={prog.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
  
                             <div
  
@@ -15917,7 +15966,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                             >
  
-                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: 'var(--fg-10b981)', fontSize: '16px' }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: 'var(--fg-10b981)', fontSize: '18px' }}>{prog.title}</h4>
  
                               <span style={{ fontSize: '18px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
  
@@ -15991,6 +16040,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                               activeDayObj.blocks.map((blk: any, bIdx: number) => {
  
+const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}|${bIdx}`;
+ 
                                 const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
  
                                 const currentScore = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.score || '';
@@ -16001,7 +16052,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                                 return (
  
-                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '8px', marginBottom: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
  
                                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
@@ -16387,6 +16438,18 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                                       <>
  
+{modificaRapidaKey === chiaveRapida ? (
+ 
+<>
+ 
+<GrigliaModificaRapida blk={blk} onSalva={(campo: string, v: string) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, { [campo]: v })} />
+ 
+{(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
+ 
+</>
+ 
+) : (
+ 
                                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
  
                                         <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
@@ -16440,6 +16503,14 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                                       </div>
  
  
+ 
+)}
+ 
+<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+ 
+<button onClick={() => setModificaRapidaKey(modificaRapidaKey === chiaveRapida ? null : chiaveRapida)} style={{ background: modificaRapidaKey === chiaveRapida ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: modificaRapidaKey === chiaveRapida ? 'var(--onacc)' : 'var(--fg-334155)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>{modificaRapidaKey === chiaveRapida ? 'Fatto' : 'Modifica rapida'}</button>
+ 
+</div>
  
                                       {(() => {
  
@@ -21087,7 +21158,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🏋🏻 Massimali</button>
  
                 <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🎯 Gare</button>
  
@@ -23046,7 +23117,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
         WebkitTransform: 'translateZ(0)',
  
-        willChange: 'transform',
+        WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden',
  
         borderTop: '1px solid var(--bd-2a2a2e)',
  
@@ -23150,6 +23221,72 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
 }
  
+ 
+// Casella della modifica rapida: si scrive e si salva appena si esce dal campo.
+ 
+function CampoRapido({ etichetta, valore, onSalva, largo }: any) {
+ 
+  const [t, setT] = useState(String(valore ?? ''));
+ 
+  useEffect(() => {
+ 
+    setT(String(valore ?? ''));
+ 
+  }, [valore]);
+ 
+  return (
+ 
+    <label style={{ display: 'block', gridColumn: largo ? '1 / -1' : 'auto', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '6px 9px' }}>
+ 
+      <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)' }}>{etichetta}</span>
+ 
+      <input
+ 
+        value={t}
+ 
+        onChange={(e: any) => setT(e.target.value)}
+ 
+        onBlur={() => {
+ 
+          if (t !== String(valore ?? '')) onSalva(t);
+ 
+        }}
+ 
+        enterKeyHint="done"
+ 
+        style={{ width: '100%', boxSizing: 'border-box', border: 'none', outline: 'none', background: 'transparent', color: 'var(--fg-000000)', fontSize: '15px', fontWeight: 'bold', padding: '3px 0' }}
+ 
+      />
+ 
+    </label>
+ 
+  );
+ 
+}
+ 
+function GrigliaModificaRapida({ blk, onSalva }: any) {
+ 
+  const campi: string[][] = [['sets', 'SET'], ['reps', 'REP'], ['load', 'CARICO'], ['rest', 'REC.']];
+ 
+  return (
+ 
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '10px' }}>
+ 
+      {campi.map(([k, etichetta]) => (
+ 
+        <CampoRapido key={k} etichetta={etichetta} valore={blk[k]} onSalva={(v: string) => onSalva(k, v)} />
+ 
+      ))}
+ 
+      <CampoRapido largo etichetta="NOTE" valore={blk.notes} onSalva={(v: string) => onSalva('notes', v)} />
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+
  
 // Pagina: tiene il tema scelto (anche sul dispositivo) e lo passa all'app.
  
