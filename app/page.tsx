@@ -5298,19 +5298,41 @@ const VARS_FUCSIA: { [k: string]: string } = {
  
 };
  
+const VARS_BLU: { [k: string]: string } = {
+ 
+  ...VARS_SCURO,
+ 
+  '--acc-rgb': '77,163,255',
+ 
+  '--bd-10b981': '#4DA3FF',
+ 
+  '--bg-059669': '#3B8FEA',
+ 
+  '--bg-0e8f65': '#2D7AD0',
+ 
+  '--bg-10b981': '#4DA3FF',
+ 
+  '--fg-059669': '#4DA3FF',
+ 
+  '--fg-10b981': '#4DA3FF',
+ 
+};
+ 
 // Temi dell'app: ogni tema dà un valore a ogni colore usato nelle schermate.
  
 // Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
  
 const TEMI: { [k: string]: { nome: string; descrizione: string; anteprima: string[]; vars: { [k: string]: string } } } = {
  
-  classico: { nome: 'Classico', descrizione: 'Schede chiare su sfondo scuro, come prima', anteprima: ['#18181b', '#ffffff', '#10b981'], vars: VARS_CLASSICO },
+  classico: { nome: 'Classico', descrizione: 'Schede chiare su sfondo scuro', anteprima: ['#18181b', '#ffffff', '#10b981'], vars: VARS_CLASSICO },
  
-  scuro: { nome: 'Scuro', descrizione: 'Nero e verde acido', anteprima: ['#0B0C0E', '#23282E', '#C8F135'], vars: VARS_SCURO },
+  scuro: { nome: 'Verde', descrizione: 'Scuro con accento verde acido', anteprima: ['#0B0C0E', '#23282E', '#C8F135'], vars: VARS_SCURO },
  
   arancione: { nome: 'Arancione', descrizione: 'Scuro con accento arancione', anteprima: ['#0B0C0E', '#23282E', '#FF5A1F'], vars: VARS_ARANCIONE },
  
   fucsia: { nome: 'Fucsia', descrizione: 'Scuro con accento fucsia', anteprima: ['#0B0C0E', '#23282E', '#F04FA3'], vars: VARS_FUCSIA },
+ 
+  blu: { nome: 'Blu', descrizione: 'Scuro con accento blu', anteprima: ['#0B0C0E', '#23282E', '#4DA3FF'], vars: VARS_BLU },
  
 };
  
@@ -5388,7 +5410,7 @@ function FinestraTemi({ tema, onScegli, onClose }: any) {
  
     <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 1700 }}>
  
-      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '16px', padding: '18px', width: '100%', maxWidth: '360px', boxSizing: 'border-box' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '16px', padding: '18px', width: '100%', maxWidth: '360px', maxHeight: '88vh', overflowY: 'auto', boxSizing: 'border-box' }}>
  
         <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>Tema dell'app</div>
  
