@@ -9996,6 +9996,7 @@ const [notificationError, setNotificationError] = useState('');
     const risultatiAtleta: { [k: string]: any } = {};
  
     Object.keys(coachAllResults || {}).forEach((pid) => {
+ 
       const r = coachAllResults[pid]?.[athleteId];
  
       if (r) risultatiAtleta[pid] = r;
@@ -11659,6 +11660,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   };
  
  
+ 
   // Lo storico per data parte da quando è stata creata la tabella: per non
  
   // lasciare vuota la crescita dei carichi, ricavo le righe anche dai risultati
@@ -13172,6 +13174,28 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   };
  
  
+ 
+  const addEditingWeek = () => {
+ 
+    const updated = JSON.parse(JSON.stringify(editingProgram));
+ 
+    if (!updated.weeks) updated.weeks = [];
+ 
+    let n = updated.weeks.length + 1;
+ 
+    while (updated.weeks.some((w: any) => w.weekName === `Settimana ${n}`)) n++;
+ 
+    const newName = `Settimana ${n}`;
+ 
+    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] });
+ 
+    setEditingProgram(updated);
+ 
+    setSelectedWeekView(newName);
+ 
+    setSelectedDayView('Giorno 1');
+ 
+  };
  
   const addEditingDay = (wIdx: number) => {
  
@@ -15049,7 +15073,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid var(--bd-2e2e33)', paddingBottom: '12px' }}>
  
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: '1 1 0' }}>
  
           <a
  
@@ -15065,13 +15089,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           >
  
-            <AmtLogo style={{ width: '46px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
+            <AmtLogo style={{ width: '40px', height: 'auto', color: '#ffffff', flexShrink: 0 }} />
  
           </a>
  
           <div style={{ minWidth: 0 }}>
  
-            <h2 style={{ fontSize: '22px', color: 'var(--fg-10b981)', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '2px', lineHeight: 1.1 }}>AMTraining</h2>
+            <h2 style={{ fontSize: 'clamp(16px, 5.2vw, 22px)', color: 'var(--fg-10b981)', margin: 0, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: '1.5px', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>AMTraining</h2>
  
             <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
  
@@ -15085,7 +15109,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
  
  
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
  
           <button
  
@@ -15511,7 +15535,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
  
  
-          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px' }}>Esci</button>
+          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>Esci</button>
  
         </div>
  
@@ -16669,13 +16693,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
  
-                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                    <button onClick={() => setCoachMaxSubTab('strength')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Strength PR</button>
  
-                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                    <button onClick={() => setCoachMaxSubTab('metcon')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Metcon PR</button>
  
-                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                    <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Gymnastics PR</button>
  
-                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+                  <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Benchmark</button>
  
                   </div>
  
@@ -17165,11 +17189,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                     const opzioni = [
  
-                      { k: 'attivo',  t: 'Attivo',  d: 'Vede le sue schede e il banner promozionale', bg: 'var(--bg-dcfce7)', bd: '#4ade80', fg: '#166534' },
+                      { k: 'attivo',  t: 'Attivo',  d: 'Vede le sue schede e il banner promozionale', bg: 'var(--bg-dcfce7)', bd: '#4ade80', fg: 'var(--fg-166534)' },
  
-                      { k: 'prova',   t: 'In prova', d: 'Vede solo la settimana di prova che ha scelto', bg: 'var(--bg-fef9c3)', bd: '#facc15', fg: '#854d0e' },
+                      { k: 'prova',   t: 'In prova', d: 'Vede solo la settimana di prova che ha scelto', bg: 'var(--bg-fef9c3)', bd: '#facc15', fg: 'var(--fg-854d0e)' },
  
-                      { k: 'scaduto', t: 'Scaduto',  d: 'Nessuna scheda: vede l\u2019invito ad abbonarsi', bg: 'var(--bg-fee2e2)', bd: '#f87171', fg: '#991b1b' },
+                      { k: 'scaduto', t: 'Scaduto',  d: 'Nessuna scheda: vede l\u2019invito ad abbonarsi', bg: 'var(--bg-fee2e2)', bd: '#f87171', fg: 'var(--fg-991b1b)' },
  
                     ];
  
@@ -17812,6 +17836,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                     );
  
                   })}
+ 
+            <button onClick={addEditingWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
                 </div>
  
@@ -21027,11 +21053,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ ...pillola(athleteProfileTab === 'anagrafici'), flex: '1 1 auto' }}>Dati Anagrafici</button>
+                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ ...pillola(athleteProfileTab === 'anagrafici', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Dati Anagrafici</button>
  
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ ...pillola(athleteProfileTab === 'anamnesi'), flex: '1 1 auto' }}>Anamnesi</button>
+                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ ...pillola(athleteProfileTab === 'anamnesi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Anamnesi</button>
  
-                <button onClick={() => setAthleteProfileTab('privacy')} style={{ ...pillola(athleteProfileTab === 'privacy'), flex: '1 1 auto' }}>Privacy</button>
+                <button onClick={() => setAthleteProfileTab('privacy')} style={{ ...pillola(athleteProfileTab === 'privacy', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Privacy</button>
  
               </div>
  
@@ -21039,11 +21065,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes'), flex: '1 1 auto' }}>Massimali</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Massimali</button>
  
-                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare'), flex: '1 1 auto' }}>🎯 Gare</button>
+                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🎯 Gare</button>
  
-                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi'), flex: '1 1 auto' }}>🚀 Percorso</button>
+                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🚀 Percorso</button>
  
               </div>
  
@@ -21161,13 +21187,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
  
-                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Strength PR</button>
+                <button onClick={() => setAthleteMaxSubTab('strength')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'strength' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'strength' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Strength PR</button>
  
-                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Metcon PR</button>
+                <button onClick={() => setAthleteMaxSubTab('metcon')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'metcon' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'metcon' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Metcon PR</button>
  
-                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Gymnastics PR</button>
+                <button onClick={() => setAthleteMaxSubTab('gym')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Gymnastics PR</button>
  
-                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: 1, minWidth: 0, padding: '7px', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>Benchmark</button>
+                  <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Benchmark</button>
  
               </div>
  
