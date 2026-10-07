@@ -1135,7 +1135,6 @@ function sortExerciseLibrary(list: any[]) {
     if (ex.pr_kind === 'metcon') return 1;         // metabolici
  
     if (ex.pr_kind === 'gym') return 2;            // ginnastica
- 
     return 3;                                      // generici
  
   };
@@ -1734,11 +1733,81 @@ let audioPronto = false;
  
 // iOS permette di sbloccare la riproduzione
  
+// Suono del timer su iPhone: o i bip si sentono sempre (anche in silenzioso) ma la musica si ferma,
+ 
+// oppure la musica continua ma in silenzioso i bip non si sentono. Lo decide chi usa l'app.
+ 
+function leggiModalitaSuono(): string {
+ 
+  try {
+ 
+    return window.localStorage.getItem('amt_suono') === 'musica' ? 'musica' : 'sempre';
+ 
+  } catch (e) {
+ 
+    return 'sempre';
+ 
+  }
+ 
+}
+ 
+function SceltaSuono() {
+ 
+  const [m, setM] = useState('sempre');
+ 
+  useEffect(() => {
+ 
+    setM(leggiModalitaSuono());
+ 
+  }, []);
+ 
+  const imposta = (v: string) => {
+ 
+    try { window.localStorage.setItem('amt_suono', v); } catch (e) { /* niente */ }
+ 
+    setM(v);
+ 
+  };
+ 
+  const voce = (v: string, titolo: string, sotto: string) => (
+ 
+    <button type="button" onClick={() => imposta(v)} style={{ flex: 1, minWidth: 0, textAlign: 'left', padding: '10px', borderRadius: '10px', cursor: 'pointer', border: m === v ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: m === v ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', color: 'var(--fg-000000)' }}>
+ 
+      <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 'bold' }}>{titolo}</span>
+ 
+      <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{sotto}</span>
+ 
+    </button>
+ 
+  );
+ 
+  return (
+ 
+    <div style={{ marginBottom: '14px' }}>
+ 
+      <div style={{ fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>Suono dei bip</div>
+ 
+      <div style={{ display: 'flex', gap: '8px' }}>
+ 
+        {voce('sempre', 'Sempre udibile', 'Anche in silenzioso, ma ferma la musica')}
+ 
+        {voce('musica', 'Musica continua', 'In silenzioso i bip non si sentono')}
+ 
+      </div>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+ 
+ 
 function preparaAudio() {
  
   try {
  
-try { const sessione = (navigator as any).audioSession; if (sessione) sessione.type = 'ambient'; } catch (e) { /* non supportato */ }
+try { const sessione = (navigator as any).audioSession; if (sessione) sessione.type = leggiModalitaSuono() === 'musica' ? 'ambient' : 'playback'; } catch (e) { /* non supportato */ }
  
     if (!elemCorto) {
  
@@ -3231,7 +3300,8 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
           <button
  
             onClick={() => setNascosto(true)}
-           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', margin: '14px auto 0 auto', padding: '9px 18px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f8fafc)', color: 'var(--fg-475569)', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer' }}
+ 
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', margin: '14px auto 0 auto', padding: '9px 18px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f8fafc)', color: 'var(--fg-475569)', fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
           >
  
@@ -4404,6 +4474,8 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
           <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
  
  
+ 
+<SceltaSuono />
  
           {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', '⏱️', () => setScelta({ tipo: 'libero' }))}
  
@@ -6517,6 +6589,8 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [modificaRapidaKey, setModificaRapidaKey] = useState<string | null>(null);
  
+  const [coachAperti, setCoachAperti] = useState<{ [k: string]: boolean }>({});
+ 
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
@@ -7826,6 +7900,7 @@ const [notificationError, setNotificationError] = useState('');
     // Salvo anche sul profilo, verificando che la riga sia stata davvero aggiornata
  
     const { data: updated, error: profError } = await supabase
+ 
       .from('profiles')
  
       .update({ privacy_consent_at: now, privacy_version: PRIVACY_VERSION })
@@ -10053,7 +10128,7 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!giorno) return;
  
-      const copia = { ...JSON.parse(JSON.stringify(originale)), id: Date.now() + Math.floor(Math.random() * 100000) };
+      const copia = { ...senzaOrigine(originale), id: Date.now() + Math.floor(Math.random() * 100000) };
  
       if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
  
@@ -10562,7 +10637,6 @@ const [notificationError, setNotificationError] = useState('');
         const stesseReps = String(r.primo.reps ?? '') === String(r.ultimo.reps ?? '');
  
         const diffKg = Math.round((r.ultimo.kg - r.primo.kg) * 10) / 10;
- 
         const diffPct = r.primo.kg > 0 ? Math.round(((r.ultimo.kg - r.primo.kg) / r.primo.kg) * 1000) / 10 : 0;
  
  
@@ -13133,7 +13207,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const clonedName = `${weekToClone.weekName} (Copia)`;
  
-    const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
+    const clonedDays = senzaOrigine(weekToClone.days || []);
  
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
@@ -13199,7 +13273,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const clonedName = `${dayToClone.dayName} (Copia)`;
  
-    const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
+    const clonedBlocks = senzaOrigine(dayToClone.blocks || []);
  
     targetWeek.days.push({ dayNumber: nextNumber, dayName: clonedName, blocks: clonedBlocks });
  
@@ -13241,7 +13315,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const clonedName = `${weekToClone.weekName} (Copia)`;
  
-    const clonedDays = JSON.parse(JSON.stringify(weekToClone.days || []));
+    const clonedDays = senzaOrigine(weekToClone.days || []);
  
     updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: clonedName, days: clonedDays });
  
@@ -13327,7 +13401,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const clonedName = `${dayToClone.dayName} (Copia)`;
  
-    const clonedBlocks = JSON.parse(JSON.stringify(dayToClone.blocks || []));
+    const clonedBlocks = senzaOrigine(dayToClone.blocks || []);
  
     targetWeek.days.push({ dayNumber: targetWeek.days.length + 1, dayName: clonedName, blocks: clonedBlocks });
  
@@ -13843,6 +13917,20 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
  
  
+// Dove sono finiti i blocchi dopo gli spostamenti: i risultati li seguono
+ 
+const mappaRisultati: { [vecchia: string]: string } = {};
+ 
+let blocchiNuovi = 0;
+ 
+(editingProgram.weeks || []).forEach((w: any, wi: number) => (w.days || []).forEach((g: any, di: number) => (g.blocks || []).forEach((b: any, bi: number) => {
+ 
+if (b.__o && mappaRisultati[b.__o] === undefined) { mappaRisultati[b.__o] = `${wi}_${di}_${bi}`; } else { blocchiNuovi++; }
+ 
+})));
+ 
+const settimaneSalvate = senzaOrigine(editingProgram.weeks || []);
+ 
     if (!editingProgram.title) {
  
       alert('Il titolo non può essere vuoto');
@@ -13879,9 +13967,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         tips_updated_at: consigliCambiati ? new Date().toISOString() : (editingProgram.tipsUpdatedAt || null),
  
-        weeks: editingProgram.weeks,
+        weeks: settimaneSalvate,
  
-        days: editingProgram.weeks[0]?.days || []
+        days: settimaneSalvate[0]?.days || []
  
       })
  
@@ -13894,6 +13982,34 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       alert('Errore: ' + error.message);
  
     } else {
+ 
+const cambiate = Object.keys(mappaRisultati).some((k) => mappaRisultati[k] !== k);
+ 
+const vecchiCount = normalizeProgramWeeks(originale || { weeks: [] }).reduce((n: number, w: any) => n + (w.days || []).reduce((m: number, g: any) => m + (g.blocks || []).length, 0), 0);
+ 
+if (cambiate || Object.keys(mappaRisultati).length < vecchiCount) {
+ 
+const { data: righeRis } = await supabase.from('program_results').select('athlete_id, results').eq('program_id', editingProgram.id);
+ 
+for (const r of righeRis || []) {
+ 
+const vecchi = r.results || {};
+ 
+const nuovi: { [k: string]: any } = {};
+ 
+Object.keys(vecchi).forEach((k) => {
+ 
+if (/^\d+_\d+_\d+$/.test(k)) { if (mappaRisultati[k] !== undefined) nuovi[mappaRisultati[k]] = vecchi[k]; } else { nuovi[k] = vecchi[k]; }
+ 
+});
+ 
+await supabase.from('program_results').update({ results: nuovi, updated_at: new Date().toISOString() }).eq('program_id', editingProgram.id).eq('athlete_id', r.athlete_id);
+ 
+}
+ 
+fetchAllAthleteResultsForCoach();
+ 
+}
  
       avvisa('Programma aggiornato');
  
@@ -14212,7 +14328,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
               Ho confermato, vai all&apos;accesso
  
             </button>
- 
             <p style={{ margin: '14px 0 0 0', fontSize: '11px', color: 'var(--fg-71717a)', lineHeight: 1.5 }}>
  
               Problemi con la registrazione? Scrivi a{' '}
@@ -15070,7 +15185,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       {anamnesiPopup && !dailyQuote && !showConsentGate && (
  
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1600 }}>
-      <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+ 
+          <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
  
             <div style={{ fontSize: '30px', marginBottom: '10px' }}>📋</div>
  
@@ -16120,7 +16236,9 @@ return (
  
 const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}|${bIdx}`;
  
-const bloccoAperto = true;
+const chiaveBlocco = `b|${chiaveRapida}`;
+ 
+const bloccoAperto = coachAperti[chiaveBlocco] !== false;
  
                                 const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
  
@@ -16134,9 +16252,15 @@ const bloccoAperto = true;
  
                                   <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
  
-<div style={{ marginBottom: '8px' }}>
+<div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
+ 
+<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
  
 <div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</div>
+ 
+<button type="button" onClick={(e) => { e.stopPropagation(); setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto })); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', flexShrink: 0 }}>{bloccoAperto ? '\u25B2' : '\u25BC'}</button>
+ 
+</div>
  
 {((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
  
@@ -16207,9 +16331,9 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           <React.Fragment key={i}>
  
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
  
                                               {it.name}
  
@@ -16235,7 +16359,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
  
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'break-word', minWidth: 0 }}>
  
                                               {it.value}
  
@@ -16378,8 +16502,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                         )}
  
  
- 
-{blk.type === 'warmup' && (<CampoNote valore={coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
  
                                         {(() => {
  
@@ -16812,7 +16934,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       ) : (
  
-                                      <div style={{ display: 'grid', gridTemplateColumns: isMobility(blk.name) ? '1fr' : '1fr 2fr', gap: '8px' }}>
+                                      <div style={{ display: 'grid', gridTemplateColumns: (isMobility(blk.name) || blk.type === 'warmup') ? '1fr' : '1fr 2fr', gap: '8px' }}>
  
                                         {!isMobility(blk.name) && blk.type !== 'warmup' && (
  
@@ -21084,6 +21206,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                     progToEdit.weeks = normalizeProgramWeeks(progToEdit);
  
+progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any, di: number) => (g.blocks || []).forEach((b: any, bi: number) => { b.__o = `${wi}_${di}_${bi}`; })));
+ 
                                     setEditingProgram(progToEdit);
  
                                     if (progToEdit.weeks.length > 0) {
@@ -23433,6 +23557,16 @@ function GrigliaModificaRapida({ blk, onSalva }: any) {
 }
  
 
+ 
+// Copia senza i segni usati per ritrovare i risultati quando si riordina un programma.
+ 
+function senzaOrigine(x: any) {
+ 
+  return JSON.parse(JSON.stringify(x, (k, v) => (k === '__o' ? undefined : v)));
+ 
+}
+ 
+ 
  
 // Pagina: tiene il tema scelto (anche sul dispositivo) e lo passa all'app.
  
