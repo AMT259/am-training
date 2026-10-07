@@ -6488,6 +6488,8 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [modificaRapidaKey, setModificaRapidaKey] = useState<string | null>(null);
  
+  const [coachAperti, setCoachAperti] = useState<{ [k: string]: boolean }>({});
+ 
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
@@ -10705,8 +10707,7 @@ const [notificationError, setNotificationError] = useState('');
  
       righeEx.sort((a, b) => (parseInt(a.reps, 10) || 0) - (parseInt(b.reps, 10) || 0));
  
-      if (righeEx.some((r) => r.diff > 0)) migliorati++;
- 
+      if (righeEx.some((r) => r.diff > 0)) migliorati++; 
       esercizi.push({ nome, righe: righeEx });
  
     });
@@ -12800,6 +12801,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       setAuthError('Inserisci la data di nascita: serve per stabilire quale informativa privacy ti spetta.');
  
       return;
+ 
     }
  
  
@@ -14205,7 +14207,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }} />
  
           {!isResettingPassword && (
- 
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }} />
  
           )}
@@ -16010,7 +16011,27 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
  
-                              {activeWeekObj?.days?.map((day: any) => (
+                              {activeWeekObj?.days?.map((day: any, idx: number) => {
+ 
+const wR = weeks.findIndex((w: any) => w.weekName === activeWeekName);
+ 
+const tuttiBlocchi = day.blocks || [];
+ 
+const fattiG = tuttiBlocchi.filter((_b: any, bi: number) => {
+ 
+const r = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[`${wR}_${idx}_${bi}`];
+ 
+return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done);
+ 
+}).length;
+ 
+const totaleG = tuttiBlocchi.length;
+ 
+const completoG = totaleG > 0 && fattiG === totaleG;
+ 
+const attivoG = activeDayName === day.dayName;
+ 
+return (
  
                                 <button
  
@@ -16024,13 +16045,47 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                                   {day.dayName}
  
+{totaleG > 0 && (
+ 
+<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px', fontSize: '10px', fontWeight: 'bold', background: completoG ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)') : fattiG > 0 ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d') : (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'), color: attivoG || completoG ? 'var(--onacc)' : fattiG > 0 ? '#101214' : 'var(--fg-334155)' }}>
+ 
+{completoG ? <Icona nome="spunta" size={11} /> : `${fattiG}/${totaleG}`}
+ 
+</span>
+ 
+)}
+ 
                                 </button>
  
-                              ))}
+);
+ 
+})}
  
                             </div>
  
  
+ 
+{(() => {
+ 
+const chiaveGiorno = `g|${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}`;
+ 
+const giornoAperto = coachAperti[chiaveGiorno] !== false;
+ 
+return (
+ 
+<div style={{ background: 'var(--bg-eef2f7)', padding: '14px', borderRadius: '12px', border: '1px solid var(--bd-dbe3ec)', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
+ 
+<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveGiorno]: !giornoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: giornoAperto ? '12px' : '0', cursor: 'pointer' }}>
+ 
+<span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-141416)' }}>{activeWeekObj?.weekName} - {activeDayObj?.dayName}</span>
+ 
+<button type="button" onClick={(e) => { e.stopPropagation(); setCoachAperti(prev => ({ ...prev, [chiaveGiorno]: !giornoAperto })); }} title={giornoAperto ? 'Chiudi' : 'Apri'} style={{ background: 'transparent', border: 'none', color: 'var(--fg-10b981)', padding: '4px 6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', lineHeight: 1, flexShrink: 0 }}>{giornoAperto ? '\u25B2' : '\u25BC'}</button>
+ 
+</div>
+ 
+{giornoAperto && (
+ 
+<div>
  
                             {(!activeDayObj || !activeDayObj.blocks || activeDayObj.blocks.length === 0) ? (
  
@@ -16041,6 +16096,10 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                               activeDayObj.blocks.map((blk: any, bIdx: number) => {
  
 const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}|${bIdx}`;
+ 
+const chiaveBlocco = `b|${chiaveRapida}`;
+ 
+const bloccoAperto = !!coachAperti[chiaveBlocco];
  
                                 const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
  
@@ -16054,29 +16113,50 @@ const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayN
  
                                   <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
  
-                                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: bloccoAperto ? '8px' : '0', cursor: 'pointer' }}>
  
-                                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</span>
+<div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</div>
  
-                                      {(blk.type === 'wod' || blk.type === 'test') && (
+<div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
  
-                                        <button
+{(blk.type === 'wod' || blk.type === 'test') && (
  
-                                          type="button"
+<button
  
-                                          onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
+type="button"
  
-                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
  
-                                        >
+style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
-                                            <Icona nome="timer" size={13} /> Timer
+>
  
-                                        </button>
+<Icona nome="timer" size={13} /> Timer
  
-                                      )}
+</button>
  
-                                    </div>
+)}
+ 
+{blk.videoUrl && (
+ 
+<a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '7px 13px', borderRadius: '999px', fontSize: '11.5px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
+ 
+<Icona nome="video" size={13} /> Video
+ 
+</a>
+ 
+)}
+ 
+<button type="button" onClick={(e) => { e.stopPropagation(); setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto })); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{bloccoAperto ? '\u25B2' : '\u25BC'}</button>
+ 
+</div>
+ 
+</div>
+ 
+{bloccoAperto && (
+ 
+<div>
+ 
  
  
  
@@ -16450,59 +16530,72 @@ const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayN
  
 ) : (
  
-                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '10px' }}>
+<>
  
-                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
  
-                                        </div>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
  
-                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
+                                                      </div>
  
-                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
  
-                                        </div>
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
  
-                                        <div style={{ background: 'var(--bg-f8fafc)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
+                                                      </div>
  
-                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO</span>
+                                                    </div>
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.load}</span>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
  
-                                        </div>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                        {(() => {
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</span>
  
-                                          const secRec = parseRestSeconds(blk.rest);
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.load}</span>
  
-                                          return (
+                                                      </div>
  
-                                          <div
+                                                      {(() => {
  
-                                            onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
+                                                        const secRec = parseRestSeconds(blk.rest);
  
-                                            style={{ background: 'var(--bg-ecfdf5)', padding: '6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
+                                                        return (
  
-                                          >
+                                                        <div
  
-                                          <span style={{ fontSize: '9px', color: 'var(--fg-64748b)', display: 'block' }}>REC.</span>
+                                                          onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
  
-                                          <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '12px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
+                                                          style={{ background: 'var(--bg-ecfdf5)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
  
-                                          <span style={{ display: 'block', fontSize: '8px', color: 'var(--fg-047857)', fontWeight: 'bold' }}>⏱️</span>
+                                                        >
  
-                                          </div>
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</span>
  
-                                          ); })()}
+                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
  
-                                      </div>
+                                                        <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px' }}>
+ 
+                                                          {secRec ? '⏱️ AVVIA TIMER' : '⏱️ IMPOSTA TIMER'}
+ 
+                                                        </span>
+ 
+                                                        </div>
+ 
+                                                        ); })()}
+ 
+                                                    </div>
  
  
+ 
+ 
+</>
  
 )}
  
@@ -16750,6 +16843,10 @@ const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayN
  
                                     </div>
  
+</div>
+ 
+)}
+ 
                                   </div>
  
                                 );
@@ -16757,6 +16854,16 @@ const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayN
                               })
  
                             )}
+ 
+</div>
+ 
+)}
+ 
+</div>
+ 
+);
+ 
+})()}
  
                             </>
  
