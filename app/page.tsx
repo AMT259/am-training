@@ -7681,7 +7681,6 @@ const [notificationError, setNotificationError] = useState('');
     if (needsSync) {
  
       await supabase.from('profiles').update({
- 
         full_name: merged.full_name,
  
         birth_date: merged.birth_date || null,
@@ -13122,7 +13121,9 @@ fetchAllAthleteResultsForCoach();
  
                 />
  
-                <span>                  {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
+                <span>
+ 
+                  {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
  
                   <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: 'var(--fg-10b981)', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
  
@@ -14772,9 +14773,9 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
 </div>
  
-{((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
+{bloccoAperto && ((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
  
-<div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
+<div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
  
 {(blk.type === 'wod' || blk.type === 'test') && (
  
@@ -14784,11 +14785,11 @@ type="button"
  
 onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
  
-style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
 >
  
-<Icona nome="timer" size={13} /> Timer
+<Icona nome="timer" size={12} /> Timer
  
 </button>
  
@@ -14796,9 +14797,9 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 {blk.videoUrl && (
  
-<a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '7px 13px', borderRadius: '999px', fontSize: '11.5px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
+<a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
  
-<Icona nome="video" size={13} /> Video
+<Icona nome="video" size={12} /> Video
  
 </a>
  
@@ -14950,7 +14951,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                       title="Avvia questo recupero"
  
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: 'var(--bg-ffffff)', color: 'var(--fg-475569)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ffffff)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                     >
  
@@ -14960,7 +14961,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                   ) : (
  
-                                                    <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+                                                    <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-10b981)', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)' }}>{`rec. ${it.rest}`}</span>
  
                                                   )) : null}
  
@@ -19469,7 +19470,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
               <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
  
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
- 
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
  
               </p>
@@ -20592,49 +20592,51 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                           <div key={bIdx} style={{ background: 'var(--bg-eef2f7)', border: '1px solid var(--bd-dbe3ec)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
  
-                                            <div
+                                            <div style={{ marginBottom: '8px' }}>
  
-                                              onClick={() => toggleBlockCollapse(blockKey)}
+                                              <div onClick={() => toggleBlockCollapse(blockKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
  
-                                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', cursor: 'pointer' }}
+                                                <div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
  
-                                            >
- 
-                                              <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
- 
-                                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
- 
-                                                {(blk.type === 'wod' || blk.type === 'test') && (
- 
-                                                  <button
- 
-                                                    type="button"
- 
-                                                    onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
- 
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '7px 13px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
- 
-                                                  >
- 
-                                                      <Icona nome="timer" size={13} /> Timer
- 
-                                                  </button>
- 
-                                                )}
- 
-                                                {blk.videoUrl && (
- 
-                                                  <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '7px 13px', borderRadius: '999px', fontSize: '11.5px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
- 
-                                                    <Icona nome="video" size={13} /> Video
- 
-                                                  </a>
- 
-                                                )}
- 
-                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>{isClosed ? '▼' : '▲'}</button>
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', flexShrink: 0 }}>{isClosed ? '▼' : '▲'}</button>
  
                                               </div>
+ 
+                                              {!isClosed && ((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
+ 
+                                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
+ 
+                                                  {(blk.type === 'wod' || blk.type === 'test') && (
+ 
+                                                    <button
+ 
+                                                      type="button"
+ 
+                                                      onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
+ 
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+ 
+                                                    >
+ 
+                                                      <Icona nome="timer" size={12} /> Timer
+ 
+                                                    </button>
+ 
+                                                  )}
+ 
+                                                  {blk.videoUrl && (
+ 
+                                                    <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
+ 
+                                                      <Icona nome="video" size={12} /> Video
+ 
+                                                    </a>
+ 
+                                                  )}
+ 
+                                                </div>
+ 
+                                              )}
  
                                             </div>
  
@@ -20778,7 +20780,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                                   title="Avvia questo recupero"
  
-                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: `1px solid ${linea}`, background: 'var(--bg-ffffff)', color: 'var(--fg-475569)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ffffff)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                                 >
  
@@ -20788,7 +20790,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                               ) : (
  
-                                                                <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>{`rec. ${it.rest}`}</span>
+                                                                <span style={{ flexShrink: 0, fontSize: '10.5px', color: 'var(--fg-10b981)', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)' }}>{`rec. ${it.rest}`}</span>
  
                                                               )) : null}
  
