@@ -1,17 +1,10 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/birthdays",
-      "schedule": "0 23 * * *"
-    },
-    {
-      "path": "/api/cron/expiring-programs",
-      "schedule": "0 23 * * *"
-    },
-    {
-      "path": "/api/cron/competition-days",
-      "schedule": "0 23 * * *"
-    }
+    { "path": "/api/cron/birthdays", "schedule": "0 22 * * *" },
+    { "path": "/api/cron/birthdays", "schedule": "0 23 * * *" },
+    { "path": "/api/cron/birthdays/competition-days", "schedule": "0 22 * * *" },
+    { "path": "/api/cron/birthdays/competition-days", "schedule": "0 23 * * *" },
+    { "path": "/api/cron/birthdays/expiring-programs", "schedule": "0 22 * * *" },
+    { "path": "/api/cron/birthdays/expiring-programs", "schedule": "0 23 * * *" }
   ]
 }
- 
