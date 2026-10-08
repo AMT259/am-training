@@ -2392,7 +2392,7 @@ function SpuntaFatta({ fatto, onChange }: any) {
  
       onClick={() => onChange(fatto ? '' : 'si')}
  
-      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '999px', cursor: 'pointer', marginTop: '9px', border: fatto ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: fatto ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '999px', cursor: 'pointer', marginTop: '9px', border: fatto ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: fatto ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
     >
  
@@ -11647,7 +11647,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
- 
     if (isMinorenne(signupBirthDate) && !signupGuardian.trim()) {
  
       setAuthError('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
@@ -14057,6 +14056,7 @@ fetchAllAthleteResultsForCoach();
               <div onClick={(e) => e.stopPropagation()} style={{
  
                 position: 'fixed',
+ 
                 top: '72px',
  
                 right: '12px',
@@ -14983,7 +14983,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-fcd34d)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                         >
  
@@ -15091,7 +15091,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                         >
  
@@ -16496,7 +16496,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
- 
                     const isSelected = selectedWeekView === week.weekName;
  
                     return (
@@ -20667,9 +20666,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       <React.Fragment key={i}>
  
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0, gridColumn: '1 / -1' }}>
  
                                                           {it.name}
  
@@ -20693,7 +20692,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         </span>
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.value}
  
@@ -20811,7 +20810,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-fcd34d)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                                     >
  
@@ -20921,7 +20920,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
  
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px', borderRadius: '999px', cursor: 'pointer', marginBottom: '8px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
  
                                                     >
  
@@ -21584,7 +21583,25 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           <CellaSerie etichetta="CARICO / RPE" centro valore={blk?.load} onSalva={(v: string) => onCambia({ load: v })} />
  
-          <CellaSerie etichetta="RECUPERO" centro valore={recupero} onSalva={(v: string) => onCambia({ rest: v, restSerie: null })} />
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', minWidth: 0 }}>
+ 
+            <div style={{ flex: 1, minWidth: 0 }}>
+ 
+              <CellaSerie etichetta="RECUPERO" centro valore={recupero} onSalva={(v: string) => onCambia({ rest: v, restSerie: null })} />
+ 
+            </div>
+ 
+            {onTimer && (
+ 
+              <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(blk?.rest))} style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+                <Icona nome="timer" size={16} />
+ 
+              </button>
+ 
+            )}
+ 
+          </div>
  
         </div>
  
@@ -21722,4 +21739,4 @@ export default function Page() {
  
 }
  
- 
+ S
