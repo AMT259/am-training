@@ -13122,9 +13122,7 @@ fetchAllAthleteResultsForCoach();
  
                 />
  
-                <span>
- 
-                  {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
+                <span>                  {isMinorenne(signupBirthDate) ? 'In qualità di esercente la responsabilità genitoriale, ho letto e accetto l’' : 'Ho letto e accetto l’'}
  
                   <button type="button" onClick={() => setShowPrivacyPolicy(true)} style={{ background: 'none', border: 'none', color: 'var(--fg-10b981)', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '12px' }}>informativa privacy</button>
  
@@ -14846,15 +14844,21 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               {it.name}
  
+                                            </span>
+ 
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'break-word', minWidth: 0 }}>
+ 
+                                              {it.value}
+ 
                                               {String(it.load || '').trim() ? (() => {
  
                                                 const suggerito = computeLoadHint(it.load, it.value, trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], it.name));
  
                                                 return (
  
-                                                  <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: 'var(--fg-64748b)', marginTop: '2px' }}>
+                                                  <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
-                                                    {it.load}
+                                                    {`(${String(it.load).trim()})`}
  
                                                     {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
@@ -14863,12 +14867,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                                 );
  
                                               })() : null}
- 
-                                            </span>
- 
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'break-word', minWidth: 0 }}>
- 
-                                              {it.value}
  
                                             </span>
  
@@ -15193,7 +15191,8 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                         if (!usati || usati.length === 0) return null;
  
                                         return (
-                                           <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+ 
+                                          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
  
                                             <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-64748b)', marginBottom: '2px' }}>
  
@@ -20673,15 +20672,21 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           {it.name}
  
+                                                        </span>
+ 
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', minWidth: 0 }}>
+ 
+                                                          {it.value}
+ 
                                                           {String(it.load || '').trim() ? (() => {
  
                                                             const suggerito = computeLoadHint(it.load, it.value, trovaMaxes(athleteMaxes, it.name));
  
                                                             return (
  
-                                                              <span style={{ display: 'block', fontSize: '10.5px', fontWeight: 'normal', color: 'var(--fg-64748b)', marginTop: '2px' }}>
+                                                              <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
-                                                                {it.load}
+                                                                {`(${String(it.load).trim()})`}
  
                                                                 {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
@@ -20690,12 +20695,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                             );
  
                                                           })() : null}
- 
-                                                        </span>
- 
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                          {it.value}
  
                                                         </span>
  
