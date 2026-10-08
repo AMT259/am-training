@@ -1,20 +1,14 @@
 'use client';
  
- 
- 
 import React, { useState, useEffect } from 'react';
  
 import { createClient } from '@supabase/supabase-js';
- 
- 
  
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
  
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
  
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
- 
- 
  
 // Funzione di utilità per formattare la data da aaaa-mm-gg a gg\mm\aaaa
  
@@ -40,8 +34,6 @@ const formatDateToIT = (dateString: string) => {
  
 };
  
- 
- 
 const METABOLIC_EXERCISES = [
  
   '500mt Row', '1000mt Row', '2000mt Row',
@@ -56,8 +48,6 @@ const METABOLIC_EXERCISES = [
  
 ];
  
- 
- 
 const GYMNASTICS_EXERCISES = [
  
   'Pull Up', 'C2B', 'BMU', 'RMU', 'HSPU', 'Wall Facing HSPU',
@@ -65,8 +55,6 @@ const GYMNASTICS_EXERCISES = [
   'Strict Pull Up', 'Strict RMU', 'Strict HSPU',
  
 ];
- 
- 
  
 // Converte "1:45" o "1.45" o "105" in secondi
  
@@ -96,8 +84,6 @@ function timeToSeconds(txt: any): number | null {
  
 }
  
- 
- 
 function secondsToTime(sec: number): string {
  
   const m = Math.floor(sec / 60);
@@ -107,8 +93,6 @@ function secondsToTime(sec: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
  
 }
- 
- 
  
 // Elenco storico di riferimento: gli esercizi dei massimali ora arrivano dalla Libreria Esercizi
  
@@ -124,19 +108,13 @@ const STRENGTH_EXERCISES = [
  
 ];
  
- 
- 
 const REP_SCHEMES = [1, 3, 5, 10];
- 
- 
  
 const MOTIVATIONAL_QUOTES = [
  
   'Abbiamo un gran potere… Poter scegliere!!!\nAd ognuno la propria scelta!!',
  
 ];
- 
- 
  
 function getDailyQuote() {
  
@@ -152,8 +130,6 @@ function getDailyQuote() {
  
 }
  
- 
- 
 function todayKey() {
  
   const d = new Date();
@@ -161,8 +137,6 @@ function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
  
 }
- 
- 
  
 function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: string) => void }) {
  
@@ -177,8 +151,6 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
     return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio. Si registra automaticamente quando il massimale viene aggiornato o superato in scheda.</p>;
  
   }
- 
- 
  
   const blocks = REP_SCHEMES.map((r) => {
  
@@ -221,8 +193,6 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
     const last = Number(pts[pts.length - 1].value);
  
     const delta = Math.round((last - first) * 10) / 10;
- 
- 
  
     return (
  
@@ -288,8 +258,6 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
   }).filter(Boolean);
  
- 
- 
   if (blocks.length === 0) {
  
     return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico per questo esercizio.</p>;
@@ -300,15 +268,11 @@ function MaxHistoryChart({ points, onDelete }: { points: any[]; onDelete?: (id: 
  
 }
  
- 
- 
 function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points: any[]; lowerIsBetter?: boolean; unit: string; onDelete?: (id: string) => void }) {
  
   if (!points) return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Caricamento...</p>;
  
   if (points.length === 0) return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
- 
- 
  
   const fmt = (v: number) => (unit === 'tempo' ? secondsToTime(v) : unit === 'round' ? `${numberToRounds(v)} round` : `${v} rep`);
  
@@ -343,8 +307,6 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
   const diff = Math.round((last - first) * 10) / 10;
  
   const improved = lowerIsBetter ? diff < 0 : diff > 0;
- 
- 
  
   return (
  
@@ -404,11 +366,7 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
  
 }
  
- 
- 
 const METCON_ORDER = ['run', 'row', 'ski', 'bike erg', 'assault bike'];
- 
- 
  
 function sortMetconNames(names: string[]): string[] {
  
@@ -444,8 +402,6 @@ function sortMetconNames(names: string[]): string[] {
  
 }
  
- 
- 
 // Stato temporale di un programma, per colorare le date
  
 // Legge una data come mezzanotte locale, non UTC: altrimenti in Italia
@@ -464,8 +420,6 @@ function parseLocalDate(s: any): Date | null {
  
 }
  
- 
- 
 // Giorni trascorsi dalla scadenza. Negativo o zero se non è ancora scaduto.
  
 function giorniDallaScadenza(endDate: any): number | null {
@@ -482,13 +436,9 @@ function giorniDallaScadenza(endDate: any): number | null {
  
 }
  
- 
- 
 // Dopo quanti giorni dalla scadenza il programma sparisce dalla vista dell'atleta
  
 const GIORNI_VISIBILITA_DOPO_SCADENZA = 7;
- 
- 
  
 function programmaDaNascondere(endDate: any): boolean {
  
@@ -498,21 +448,15 @@ function programmaDaNascondere(endDate: any): boolean {
  
 }
  
- 
- 
 function getProgramDateStatus(startDate: any, endDate: any) {
  
   const today = new Date();
  
   today.setHours(0, 0, 0, 0);
  
- 
- 
   const end = parseLocalDate(endDate);
  
   const start = parseLocalDate(startDate);
- 
- 
  
   if (end) {
  
@@ -526,21 +470,15 @@ function getProgramDateStatus(startDate: any, endDate: any) {
  
   }
  
- 
- 
   if (start && start.getTime() > today.getTime()) {
  
     return { color: 'var(--fg-1d4ed8)', bg: 'var(--bg-dbeafe)', icon: '', label: 'Non ancora iniziato' };
  
   }
  
- 
- 
   return { color: 'var(--fg-047857)', bg: 'var(--bg-d1fae5)', icon: '', label: '' };
  
 }
- 
- 
  
 // Mostra il testo di un WOD trasformando in link i nomi degli esercizi
  
@@ -552,15 +490,11 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
   const items = (library || []).filter((e: any) => e && e.name && e.video_url && !e.dismissed);
  
- 
- 
   if (!raw || items.length === 0) {
  
     return <p style={style}>{raw}</p>;
  
   }
- 
- 
  
   // I nomi più lunghi hanno la precedenza: "Hang Power Clean" prima di "Power Clean"
  
@@ -570,19 +504,13 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
   const isWordChar = (ch: string) => /[a-zA-Z0-9]/.test(ch || '');
  
- 
- 
   const parts: any[] = [];
  
   let i = 0;
  
- 
- 
   while (i < raw.length) {
  
     let match: any = null;
- 
- 
  
     for (const ex of sorted) {
  
@@ -590,13 +518,9 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
       if (!n || !lower.startsWith(n, i)) continue;
  
- 
- 
       const before = i === 0 ? ' ' : raw[i - 1];
  
       if (isWordChar(before)) continue;
- 
- 
  
       let len = n.length;
  
@@ -612,15 +536,11 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
       if (isWordChar(after)) continue;
  
- 
- 
       match = { ex, len };
  
       break;
  
     }
- 
- 
  
     if (match) {
  
@@ -641,8 +561,6 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
     }
  
   }
- 
- 
  
   return (
  
@@ -686,8 +604,6 @@ function WodText({ text, library, style }: { text: any; library: any[]; style?: 
  
 }
  
- 
- 
 // I benchmark hanno sempre gli stessi movimenti: cambiano solo i carichi
  
 // (dove previsti) e il tempo obiettivo. {w} e {w2} vengono sostituiti dal livello scelto.
@@ -702,15 +618,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '43/30 kg', t: '3-6 min' }, int: { w: '35/25 kg', t: '5-8 min' }, beg: { w: '20/15 kg', t: '6-10 min' } },
  
- 
- 
   { name: 'Grace', type: 'time', cat: 'Girls',
  
     desc: '30 Clean & Jerk {w}',
  
     rx: { w: '61/43 kg', t: '2-5 min' }, int: { w: '43/30 kg', t: '3-6 min' }, beg: { w: '30/20 kg', t: '4-8 min' } },
- 
- 
  
   { name: 'Isabel', type: 'time', cat: 'Girls',
  
@@ -718,15 +630,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '61/43 kg', t: '2-5 min' }, int: { w: '43/30 kg', t: '3-7 min' }, beg: { w: '30/20 kg', t: '4-8 min' } },
  
- 
- 
   { name: 'Elizabeth', type: 'time', cat: 'Girls',
  
     desc: '21-15-9\nClean {w}\nRing Dip',
  
     rx: { w: '61/43 kg', t: '5-9 min' }, int: { w: '43/30 kg', t: '7-12 min' }, beg: { w: '30/20 kg', t: '8-14 min' } },
- 
- 
  
   { name: 'Diane', type: 'time', cat: 'Girls',
  
@@ -734,15 +642,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '102/70 kg', t: '3-8 min' }, int: { w: '80/55 kg', t: '6-12 min' }, beg: { w: '60/40 kg', t: '8-14 min' } },
  
- 
- 
   { name: 'Karen', type: 'time', cat: 'Girls',
  
     desc: '150 Wall Ball {w}',
  
     rx: { w: '9/6 kg', t: '6-12 min' }, int: { w: '6/4 kg', t: '7-13 min' }, beg: { w: '4/3 kg', t: '8-15 min' } },
- 
- 
  
   { name: 'Annie', type: 'time', cat: 'Girls',
  
@@ -750,15 +654,11 @@ const BENCHMARK_WODS = [
  
     rx: { t: '5-10 min' }, int: { t: '8-14 min' }, beg: { t: '12-20 min' } },
  
- 
- 
   { name: 'Helen', type: 'time', cat: 'Girls',
  
     desc: '3 round:\n400 m Run\n21 KB Swing {w}\n12 Pull Up',
  
     rx: { w: '24/16 kg', t: '8-12 min' }, int: { w: '16/12 kg', t: '10-14 min' }, beg: { w: '12/8 kg', t: '12-17 min' } },
- 
- 
  
   { name: 'Jackie', type: 'time', cat: 'Girls',
  
@@ -766,15 +666,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '20 kg', t: '6-11 min' }, int: { w: '15 kg', t: '8-13 min' }, beg: { w: '10 kg', t: '10-16 min' } },
  
- 
- 
   { name: 'Angie', type: 'time', cat: 'Girls',
  
     desc: '100 Pull Up\n100 Push Up\n100 Sit Up\n100 Air Squat',
  
     rx: { t: '12-20 min' }, int: { t: '18-27 min' }, beg: { t: '25-35 min' } },
- 
- 
  
   { name: 'Nancy', type: 'time', cat: 'Girls',
  
@@ -782,15 +678,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '43/30 kg', t: '12-18 min' }, int: { w: '30/20 kg', t: '14-20 min' }, beg: { w: '20/15 kg', t: '16-24 min' } },
  
- 
- 
   { name: 'Kelly', type: 'time', cat: 'Girls',
  
     desc: '5 round:\n400 m Run\n30 Box Jump {w}\n30 Wall Ball {w2}',
  
     rx: { w: '24/20"', w2: '9/6 kg', t: '25-35 min' }, int: { w: '20/16"', w2: '6/4 kg', t: '28-38 min' }, beg: { w: '20/16"', w2: '4/3 kg', t: '32-45 min' } },
- 
- 
  
   { name: 'Amanda', type: 'time', cat: 'Girls',
  
@@ -798,15 +690,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: '61/43 kg', t: '5-12 min' }, int: { w: '43/30 kg', t: '8-15 min' }, beg: { w: '30/20 kg', t: '10-18 min' } },
  
- 
- 
   { name: 'Barbara', type: 'time', cat: 'Girls',
  
     desc: '5 round (3 min rest tra i round):\n20 Pull Up\n30 Push Up\n40 Sit Up\n50 Air Squat',
  
     rx: { t: '25-35 min' }, int: { t: '32-42 min' }, beg: { t: '40-50 min' } },
- 
- 
  
   // ---- THE GIRLS — a round ----
  
@@ -816,23 +704,17 @@ const BENCHMARK_WODS = [
  
     rx: { t: '15-22 round' }, int: { t: '11-16 round' }, beg: { t: '7-12 round' } },
  
- 
- 
   { name: 'Mary', type: 'rounds', cat: 'Girls',
  
     desc: 'AMRAP 20 min:\n5 HSPU\n10 Pistol\n15 Pull Up',
  
     rx: { t: '8-14 round' }, int: { t: '5-9 round' }, beg: { t: '3-6 round' } },
  
- 
- 
   { name: 'Nicole', type: 'reps', cat: 'Girls',
  
     desc: 'AMRAP 20 min:\n400 m Run\nMax Pull Up unbroken\n(risultato = totale pull up)',
  
     rx: { t: '40-70 rep' }, int: { t: '25-45 rep' }, beg: { t: '15-30 rep' } },
- 
- 
  
   // ---- HERO WOD — a tempo ----
  
@@ -842,15 +724,11 @@ const BENCHMARK_WODS = [
  
     rx: { w: 'Con giubbotto 9/6 kg', t: '40-60 min' }, int: { w: 'Senza zavorra', t: '38-55 min' }, beg: { w: 'Senza zavorra, partizionato 20x 5-10-15', t: '45-65 min' } },
  
- 
- 
   { name: 'DT', type: 'time', cat: 'Hero',
  
     desc: '5 round:\n12 Deadlift\n9 Hang Power Clean\n6 Push Jerk\n{w}',
  
     rx: { w: '70/47,5 kg', t: '8-14 min' }, int: { w: '50/35 kg', t: '9-15 min' }, beg: { w: '35/25 kg', t: '10-17 min' } },
- 
- 
  
   { name: 'JT', type: 'time', cat: 'Hero',
  
@@ -858,15 +736,11 @@ const BENCHMARK_WODS = [
  
     rx: { t: '8-16 min' }, int: { t: '14-22 min' }, beg: { t: '20-30 min' } },
  
- 
- 
   { name: 'Michael', type: 'time', cat: 'Hero',
  
     desc: '3 round:\n800 m Run\n50 Back Extension\n50 Sit Up',
  
     rx: { t: '25-35 min' }, int: { t: '30-40 min' }, beg: { t: '35-48 min' } },
- 
- 
  
   { name: 'Randy', type: 'time', cat: 'Hero',
  
@@ -874,23 +748,17 @@ const BENCHMARK_WODS = [
  
     rx: { w: '34/25 kg', t: '4-9 min' }, int: { w: '25/15 kg', t: '5-10 min' }, beg: { w: '15/10 kg', t: '6-12 min' } },
  
- 
- 
   { name: 'Jerry', type: 'time', cat: 'Hero',
  
     desc: '1 miglio Run\n2000 m Row\n1 miglio Run',
  
     rx: { t: '22-32 min' }, int: { t: '28-38 min' }, beg: { t: '35-45 min' } },
  
- 
- 
   { name: 'Daniel', type: 'time', cat: 'Hero',
  
     desc: '50 Pull Up\n400 m Run\n21 Thruster {w}\n800 m Run\n21 Thruster {w}\n400 m Run\n50 Pull Up',
  
     rx: { w: '43 kg', t: '15-25 min' }, int: { w: '30 kg', t: '19-29 min' }, beg: { w: '20 kg', t: '24-35 min' } },
- 
- 
  
   // ---- HERO WOD — a round ----
  
@@ -901,8 +769,6 @@ const BENCHMARK_WODS = [
     rx: { w: '32/24 kg', t: '12-20 round' }, int: { w: '24/16 kg', t: '9-15 round' }, beg: { w: '16/12 kg', t: '6-11 round' } },
  
 ];
- 
- 
  
 // Compone la descrizione sostituendo i carichi del livello scelto
  
@@ -920,8 +786,6 @@ function benchDesc(b: any, lvl: string) {
  
 }
  
- 
- 
 function benchTarget(b: any, lvl: string) {
  
   const spec = lvl === 'int' ? b.int : lvl === 'beg' ? b.beg : b.rx;
@@ -930,11 +794,7 @@ function benchTarget(b: any, lvl: string) {
  
 }
  
- 
- 
 const BENCHMARK_NAMES = BENCHMARK_WODS.map((b) => b.name);
- 
- 
  
 // I risultati "a round" si scrivono 18+5 e si confrontano come numero unico
  
@@ -958,8 +818,6 @@ function roundsToNumber(txt: any): number | null {
  
 }
  
- 
- 
 function numberToRounds(n: number): string {
  
   const r = Math.floor(n / 1000);
@@ -969,8 +827,6 @@ function numberToRounds(n: number): string {
   return rep > 0 ? `${r}+${rep}` : `${r}`;
  
 }
- 
- 
  
 // Campo per inserire un risultato, con il formato adatto al tipo di prova.
  
@@ -986,19 +842,13 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
   const enter = (e: any) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); };
  
- 
- 
   const groupBlur = (e: any) => {
  
     // se il fuoco resta dentro lo stesso gruppo (es. da minuti a secondi) non salvo
  
     if (e.currentTarget.contains(e.relatedTarget)) return;
  
- 
- 
     const grezzo = String(value || '');
- 
- 
  
     if (mode === 'time') {
  
@@ -1016,8 +866,6 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
     }
  
- 
- 
     if (mode === 'rounds') {
  
       const [r, rep] = grezzo.split('+');
@@ -1034,13 +882,9 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
     }
  
- 
- 
     onCommit(grezzo);
  
   };
- 
- 
  
   if (mode === 'time') {
  
@@ -1066,8 +910,6 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
   }
  
- 
- 
   if (mode === 'rounds') {
  
     const p = String(value || '').split('+');
@@ -1092,8 +934,6 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
   }
  
- 
- 
   if (mode === 'reps') {
  
     return (
@@ -1108,8 +948,6 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
   }
  
- 
- 
   return (
  
     <div onBlur={groupBlur} style={{ width: '100%' }}>
@@ -1121,8 +959,6 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
   );
  
 }
- 
- 
  
 // Ordina la libreria per categoria: Forza, Metcon, Ginnastica, poi i generici
  
@@ -1164,8 +1000,6 @@ function sortExerciseLibrary(list: any[]) {
  
 }
  
- 
- 
 // L'esercizio "Mobility" si comporta in modo speciale: niente serie, ripetizioni
  
 // o recupero, solo il testo scritto dal coach, il video, una spunta "fatto"
@@ -1181,8 +1015,6 @@ function isMobility(nome: any) {
   return MOBILITY_NAMES.some((m) => pulito === m.replace(/[^a-z0-9à]/g, ''));
  
 }
- 
- 
  
 // Età compiuta alla data odierna, calcolata dalla data di nascita
  
@@ -1204,8 +1036,6 @@ function calcolaEta(dataNascita: any): number | null {
  
 }
  
- 
- 
 function isMinorenne(dataNascita: any): boolean {
  
   const eta = calcolaEta(dataNascita);
@@ -1214,15 +1044,9 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
- 
- 
 const PRIVACY_VERSION = '3.0';
  
- 
- 
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
- 
- 
  
 const RPE_TABLE: { [rpe: string]: number[] } = {
  
@@ -1248,8 +1072,6 @@ const RPE_TABLE: { [rpe: string]: number[] } = {
  
 };
  
- 
- 
 // Da uno score con più carichi ("80 / 85 / 90") prende il più alto:
  
 // è la serie migliore, quella che dice davvero se sta crescendo.
@@ -1266,8 +1088,6 @@ function caricoMigliore(testo: any): number | null {
  
 }
  
- 
- 
 function parseWeightValue(s: any): number | null {
  
   if (s === null || s === undefined) return null;
@@ -1281,8 +1101,6 @@ function parseWeightValue(s: any): number | null {
   return isNaN(v) ? null : v;
  
 }
- 
- 
  
 // Stima il massimale su 1 ripetizione partendo dai massimali inseriti (formula di Epley)
  
@@ -1310,15 +1128,11 @@ function estimate1RM(exMaxes: any): number | null {
  
 }
  
- 
- 
 function roundLoad(kg: number): number {
  
   return Math.round(kg / 2.5) * 2.5;
  
 }
- 
- 
  
 // Trova i massimali di un esercizio anche se il nome è scritto in modo
  
@@ -1344,8 +1158,6 @@ function trovaMaxes(tuttiMaxes: any, nomeEsercizio: any): any {
  
 }
  
- 
- 
 // Legge il campo "carico" e calcola il peso consigliato in kg
  
 function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
@@ -1359,8 +1171,6 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
   const oneRM = estimate1RM(exMaxes);
  
   const hasDirect1RM = exMaxes && parseWeightValue(exMaxes[1]);
- 
- 
  
   // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"
  
@@ -1400,8 +1210,6 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
   }
  
- 
- 
   // Caso 2: RPE scritto in qualsiasi modo — "RPE 8", "8 RPE", "@8",
  
   // e anche gli intervalli "7/8 rpe" o "RPE 7-8" (in tal caso vale la media)
@@ -1415,8 +1223,6 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
     txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)/i) ||
  
     txt.match(/(\d{1,2}(?:[.,]5)?)\s*RPE/i);
- 
- 
  
   if (rpeMatch && oneRM) {
  
@@ -1446,15 +1252,9 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
   }
  
- 
- 
   return null;
  
 }
- 
- 
- 
- 
  
 // Stima il massimale per un numero qualsiasi di ripetizioni.
  
@@ -1464,13 +1264,9 @@ function stimaRM(exMaxes: any, reps: number): { kg: number; reale: boolean } | n
  
   if (!exMaxes || reps < 1) return null;
  
- 
- 
   const diretto = parseWeightValue(exMaxes[reps]);
  
   if (diretto) return { kg: diretto, reale: true };
- 
- 
  
   // Cerco il massimale inserito con il numero di ripetizioni più vicino
  
@@ -1482,13 +1278,9 @@ function stimaRM(exMaxes: any, reps: number): { kg: number; reale: boolean } | n
  
   if (noti.length === 0) return null;
  
- 
- 
   noti.sort((a, b) => Math.abs(a.r - reps) - Math.abs(b.r - reps));
  
   const base = noti[0];
- 
- 
  
   // Epley: porto il massimale noto a 1RM, poi lo riporto alle ripetizioni volute
  
@@ -1499,8 +1291,6 @@ function stimaRM(exMaxes: any, reps: number): { kg: number; reale: boolean } | n
   return { kg: roundLoad(kg), reale: false };
  
 }
- 
- 
  
 // Giorni che mancano a una data (0 = oggi, negativo = passata)
  
@@ -1518,8 +1308,6 @@ function giorniAlla(data: any): number | null {
  
 }
  
- 
- 
 // Conto alla rovescia verso la prossima gara, con le successive in coda
  
 function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: boolean }) {
@@ -1532,17 +1320,11 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
     .sort((a: any, b: any) => a.mancano - b.mancano);
  
- 
- 
   if (future.length === 0) return null;
- 
- 
  
   const prossima = future[0];
  
   const dopo = future.slice(1, 4);
- 
- 
  
   // Il colore si accende avvicinandosi: verde, arancione sotto il mese, rosso nell'ultima settimana
  
@@ -1558,8 +1340,6 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
         : { bg: 'var(--bg-f0fdf4)', bordo: 'var(--bd-86efac)', testo: 'var(--fg-166534)', forte: 'var(--fg-16a34a)' };
  
- 
- 
   const testoGiorni =
  
     prossima.mancano === 0 ? 'È oggi!' :
@@ -1567,8 +1347,6 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
     prossima.mancano === 1 ? 'manca 1 giorno' :
  
     `mancano ${prossima.mancano} giorni`;
- 
- 
  
   return (
  
@@ -1616,8 +1394,6 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
 }
  
- 
- 
 // ---- TIMER ----
  
 // Legge il tempo di recupero scritto dal coach: "1'30", "1'", "90 sec", "1:30", "2 min"
@@ -1630,15 +1406,11 @@ function parseRestSeconds(testo: any): number | null {
  
   if (!t) return null;
  
- 
- 
   // minuti e secondi insieme: 1'30  1'30"  1'30''  1:30  1m30  1m30s
  
   const insieme = t.match(/^(\d+)\s*(?:'|:|m|min)\s*(\d{1,2})\s*(?:"|''|s|sec)?$/);
  
   if (insieme) return parseInt(insieme[1], 10) * 60 + parseInt(insieme[2], 10);
- 
- 
  
   // solo minuti: 2'  2min  2m  1,5'
  
@@ -1646,15 +1418,11 @@ function parseRestSeconds(testo: any): number | null {
  
   if (soloMin) return Math.round(parseFloat(soloMin[1].replace(',', '.')) * 60);
  
- 
- 
   // solo secondi: 90"  90''  90s  90sec
  
   const soloSec = t.match(/^(\d+)\s*(?:"|''|s|sec)$/);
  
   if (soloSec) return parseInt(soloSec[1], 10);
- 
- 
  
   // solo numero: fino a 10 lo leggo come minuti, oltre come secondi
  
@@ -1667,8 +1435,6 @@ function parseRestSeconds(testo: any): number | null {
     return n <= 10 ? n * 60 : n;
  
   }
- 
- 
  
   // ultimo tentativo: primo numero utile dentro un testo piu' lungo (es. "recupero 90 sec")
  
@@ -1684,13 +1450,9 @@ function parseRestSeconds(testo: any): number | null {
  
   if (minDentro) return parseInt(minDentro[1], 10) * 60;
  
- 
- 
   return null;
  
 }
- 
- 
  
 function mmss(secondi: number): string {
  
@@ -1701,8 +1463,6 @@ function mmss(secondi: number): string {
   return `${m}:${String(s % 60).padStart(2, '0')}`;
  
 }
- 
- 
  
 // Suono e vibrazione ai cambi di fase.
  
@@ -1716,8 +1476,6 @@ const SUONO_MEDIO = 'data:audio/wav;base64,UklGRjMMAABXQVZFZm10IBAAAAABAAEAESsAA
  
 const SUONO_LUNGO = 'data:audio/wav;base64,UklGRnAgAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YUwgAACA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufTonUILG2nD9uGROAkidM342oYuCCqA1vjSeiYIM4ze98hvHwo9l+X1vmMYDEej6/K0VxMQUq7w7alMDhVdufPnnUIMHGnD9eCROQskdcz22IUwCiyA1PXPeygMNYvb9MZvIg4/l+HxvGQcEUmi5u2yWRgVVKzq6KdPFBtftu3inEUSIWq/79uQPBEodcjw1IU0ETCAz+/Ley0SOYvW7cJwJxRCldzruWUhF0yg4eevWx0bVqrl4qVSGiBhs+fdmkgYJmu86daPQBctdsTpz4U4FzWAy+nHezIYPYrR579xLBpGlNfltmcnHU+e2+GsXSMhWaff3aJUICZisOHXmUweLGy449GPRB0yd8DjyoQ9HTmAx+PDfDYeQYnN4btyMSBJk9LfsmgsI1Kc1tuqXygnW6XZ16BXJitkrdvSl08kMW613cyORyM3d7zdxoRBIz6Awt2/fDskRYnI27dzNiZNks3Zr2oxKVWa0NanYS4sXaPT0p5ZKzFmqtbNllIqNm+x18eNSyk8eLjXwYRFKUKAvte7fD8qSYjD1bR0OyxQkMfTrGs3L1iZy9CkZDQyYKDOzJxcMTZop9DIlFUwO3Cu0cKMTy9AeLTRvYRJL0aAutC2fEQwTYi+z7B1QDJUj8LNqW08NFuXxsqiZjk4Yp7IxppfNzxqpMrCklg2QHGry72LUzVFebDLuINNNUuAtcqyfUk2UYe5yax1RThXjr3Hpm5BOl6VwMSfaD89ZZvCwZhhPUFsosS9kVw8RXOnxbiKVjtKeqzFtINRO0+AscSufU08VYa1w6h2Sj5bjbjBonBHQGGTu76cakRDZ5m9u5ZkQ0Ztn764j19CSnSkv7OJWkFPeqi/r4NWQlSArL6qfVJDWYawvaV3T0RejLO7n3FMRmSRtbmabEpJaZe3tpRnSExvnLiyjmJIUHWgua6IXkdUe6S5qoJaSFiAqLimflZJXYWrt6F4VEphiq61nHNRTGaQsLOXbk9PbJSxsJJpTlFxmbKtjGVOVXads6qHYU1Ye6CypoJeTlyApLKifltPYISmsZ15WVBliamvmXVXUmmOqq2UcFVUbpKsq5BsVFdzlqyoi2hUWneZraWGZVRdfJysoYJiVGGAn6ydfmBVZIShq5p6XlZoiKOplnZcWGyMpaeScltacJCmpY5vWlx1k6aiiWxaX3mWpqCFaVpifZmmnYFmWmWAm6aZf2RbaIOdpJZ7Ylxsh56jknhhXm+Kn6GPdGBgc42gn4txYGJ2kKCdiG9fZHqSoJuEbGBnfZWgmIFqYGmAlp+Vf2lhbIOYnpJ8Z2Jvhpmdj3lmZHKImpyMdmZldYuamol0ZWd4jZuYhnJlaXuPmpaEcGZsfpGak4FvZm6AkpmRf21ncIKTmI99bGhzhJSXjHtsanWGlJaKeWtreIiVlId3a216ipWShXVrbnyMlJGDdGxwfo2Uj4FzbHKAjpONgHJtdIGOkot+cW52g4+RiXxxb3iFj5CHe3FxeoaPj4V5cXJ8h4+Ng3hxdH2IjoyCeHJ1f4mOioB3c3eAiY2JgHdzeIGKjId/dnR6goqLhn52dXuDioqEfXd2fISJiYN8d3h+hImIgnx3eX+FiIeBe3h6gIWIhoB7eXuAhYeEgHt6fICFhoOAe3p9gYSFgn98e36BhISCf3x8f4GEg4F/fX1/gYODgH99foCBgoKAf35/gIGCgYB/f3+AgIGAgICAgICAgICAgIA=';
  
- 
- 
 let canaleAudio: any = null;
  
 let elemCorto: any = null;
@@ -1727,8 +1485,6 @@ let elemMedio: any = null;
 let elemLungo: any = null;
  
 let audioPronto = false;
- 
- 
  
 // Va chiamata dentro un tocco dell'utente: e' l'unico momento in cui
  
@@ -1802,8 +1558,6 @@ function SceltaSuono() {
  
 }
  
- 
- 
 function preparaAudio() {
  
   try {
@@ -1840,8 +1594,6 @@ try { const sessione = (navigator as any).audioSession; if (sessione) sessione.t
  
     }
  
- 
- 
     // riproduzione muta immediata: sblocca l'audio per le volte successive
  
     [elemCorto, elemMedio, elemLungo].forEach((el: any) => {
@@ -1858,8 +1610,6 @@ try { const sessione = (navigator as any).audioSession; if (sessione) sessione.t
  
     });
  
- 
- 
     const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
  
     if (AC) {
@@ -1870,15 +1620,11 @@ try { const sessione = (navigator as any).audioSession; if (sessione) sessione.t
  
     }
  
- 
- 
     audioPronto = true;
  
   } catch (e) { /* audio non disponibile */ }
  
 }
- 
- 
  
 function bip(frequenza: number, durata: number) {
  
@@ -1906,15 +1652,11 @@ function bip(frequenza: number, durata: number) {
  
 }
  
- 
- 
 function vibra(schema: number | number[]) {
  
   try { if (navigator.vibrate) navigator.vibrate(schema); } catch (e) { /* niente */ }
  
 }
- 
- 
  
 // Costruisce la sequenza di fasi in base al tipo di timer scelto
  
@@ -1922,15 +1664,11 @@ function costruisciFasi(cfg: any): any[] {
  
   if (!cfg) return [];
  
- 
- 
   if (cfg.tipo === 'recupero') {
  
     return [{ nome: 'Recupero', secondi: cfg.secondi, colore: 'var(--fg-0284c7)', round: null }];
  
   }
- 
- 
  
   if (cfg.tipo === 'intervalli') {
  
@@ -1952,8 +1690,6 @@ function costruisciFasi(cfg: any): any[] {
  
   }
  
- 
- 
   if (cfg.tipo === 'emom') {
  
     const fasi: any[] = [];
@@ -1968,15 +1704,11 @@ function costruisciFasi(cfg: any): any[] {
  
   }
  
- 
- 
   if (cfg.tipo === 'amrap') {
  
     return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
  
   }
- 
- 
  
   if (cfg.tipo === 'tabata') {
  
@@ -1994,13 +1726,9 @@ function costruisciFasi(cfg: any): any[] {
  
   }
  
- 
- 
   return [];
  
 }
- 
- 
  
 // Campo con tendina dei suggerimenti agganciata alla casella.
  
@@ -2016,13 +1744,9 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
   const contenitore = React.useRef<any>(null);
  
- 
- 
   const pulisci = (s: any) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
  
   const cerca = pulisci(valore);
- 
- 
  
   const suggeriti = (elenco || [])
  
@@ -2031,8 +1755,6 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
     .filter((n: string) => pulisci(n) !== cerca)
  
     .slice(0, 8);
- 
- 
  
   // Se il campo è in fondo allo schermo apro la tendina verso l'alto
  
@@ -2047,8 +1769,6 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
     setSopra(sotto < 220);
  
   };
- 
- 
  
   useEffect(() => {
  
@@ -2074,8 +1794,6 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
   }, [aperta]);
  
- 
- 
   return (
  
     <div ref={contenitore} style={{ position: 'relative', ...(style || {}) }}>
@@ -2095,8 +1813,6 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
         style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px' }}
  
       />
- 
- 
  
       {aperta && suggeriti.length > 0 && (
  
@@ -2158,15 +1874,11 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
 }
  
- 
- 
 // Finestra con i progressi di carico di un programma
  
 function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
   if (!dati) return null;
- 
- 
  
   return (
  
@@ -2207,8 +1919,6 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
           </span>
  
         </div>
- 
- 
  
         <div style={{ padding: '14px 18px', overflowY: 'auto', flex: 1 }}>
  
@@ -2254,8 +1964,6 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
           ))}
  
- 
- 
           {dati.esclusi > 0 && (
  
             <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--fg-94a3b8)', lineHeight: 1.5 }}>
@@ -2267,8 +1975,6 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
           )}
  
         </div>
- 
- 
  
         <div style={{ padding: '12px 18px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -2287,8 +1993,6 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
   );
  
 }
- 
- 
  
 // Legge lo schema delle ripetizioni scritto dal coach e dice quante caselle
  
@@ -2314,13 +2018,9 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
   }
  
- 
- 
   const testoReps = String(blk?.reps ?? '').trim();
  
   const nSerie = parseInt(String(blk?.sets ?? ''), 10) || 0;
- 
- 
  
   // schema a scalare: 12-10-8, 21/15/9, 5,5,3
  
@@ -2332,8 +2032,6 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
   }
  
- 
- 
   // serie uguali
  
   if (nSerie > 0) {
@@ -2342,13 +2040,9 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
   }
  
- 
- 
   return [{ reps: testoReps }];
  
 }
- 
- 
  
 // Schermata per inserire il carico di ogni serie, più le note.
  
@@ -2362,15 +2056,11 @@ function RiepilogoScore({ punteggio, note }: { punteggio: string; note: string }
  
   if (!punteggio && !note) return null;
  
- 
- 
   // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
  
   // grande e i parziali sotto, in piccolo
  
   const parti = punteggio ? punteggio.match(/^(.+?)\s*\((.+)\)$/) : null;
- 
- 
  
 const righeSS = punteggio && punteggio.split(' \u00b7 ').every((r: string) => /^[^:()]*[A-Za-z][^:()]*:\s*\S/.test(r)) ? punteggio.split(' \u00b7 ') : null;
  
@@ -2442,8 +2132,6 @@ function haElenco(t: any) {
  
 }
  
- 
- 
 function nomeElenco(t: any) {
  
   return t === 'superserie' ? 'Superserie' : 'Warm up';
@@ -2461,8 +2149,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
   const items = (blk?.items || []).filter((it: any) => it && (it.name || it.value));
  
   const nRound = Math.min(Math.max(parseInt(String(blk?.rounds ?? ''), 10) || 1, 1), 12);
- 
- 
  
   const iniziali = (() => {
  
@@ -2482,8 +2168,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
   })();
  
- 
- 
   const [valori, setValori] = useState<string[][]>(
  
     items.map((_: any, i: number) =>
@@ -2494,11 +2178,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
   );
  
- 
- 
   const [noteLocali, setNoteLocali] = useState(String(dato?.notes || ''));
- 
- 
  
   const scrivi = (i: number, r: number, v: string) => {
  
@@ -2509,8 +2189,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
     setValori(copia);
  
   };
- 
- 
  
   // gli esercizi lasciati in bianco non finiscono nel riepilogo
  
@@ -2529,8 +2207,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
     .filter(Boolean)
  
     .join('  \u00b7  ');
- 
- 
  
   return (
  
@@ -2566,8 +2242,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
         </div>
  
- 
- 
         <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
  
           {items.length === 0 && (
@@ -2579,8 +2253,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
             </p>
  
           )}
- 
- 
  
           {items.map((it: any, i: number) => (
  
@@ -2595,8 +2267,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
                 {it.scoreUnit && SCORE_UNITS[it.scoreUnit] ? <span style={{ color: 'var(--fg-059669)', fontWeight: 'normal' }}>{` \u00b7 ${SCORE_UNITS[it.scoreUnit].nome}`}</span> : null}
  
               </span>
- 
- 
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '5px' }}>
  
@@ -2650,8 +2320,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
           ))}
  
- 
- 
           <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', margin: '4px 0 5px 0' }}>
  
             Note personali
@@ -2673,8 +2341,6 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
           />
  
         </div>
- 
- 
  
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
@@ -2748,8 +2414,6 @@ function SpuntaFatta({ fatto, onChange }: any) {
  
 }
  
- 
- 
 // Menu a tendina del tipo di score per un singolo esercizio della superserie.
  
 function SelettoreScoreItem({ valore, onChange }: any) {
@@ -2784,8 +2448,6 @@ function SelettoreScoreItem({ valore, onChange }: any) {
  
 }
  
- 
- 
 // Menu della superserie: risultato per ogni esercizio oppure solo la spunta "fatto".
  
 function SelettoreModoSuperserie({ valore, onChange }: any) {
@@ -2817,8 +2479,6 @@ function SelettoreModoSuperserie({ valore, onChange }: any) {
   );
  
 }
- 
- 
  
 // Note personali nei blocchi con "solo spunta", dove non si apre la finestra dello score.
  
@@ -2872,8 +2532,6 @@ placeholder={placeholder || 'Note personali: sensazioni, difficoltà...'}
  
 }
  
- 
- 
 // Quanti blocchi interi da 4 mesi sono passati da una data (0 = meno di 4 mesi).
  
 function periodiDa4Mesi(dataIso: string): number {
@@ -2892,8 +2550,6 @@ function periodiDa4Mesi(dataIso: string): number {
  
 }
  
- 
- 
 // Tipo di score scelto dal coach per il blocco, in fase di creazione del programma.
  
 // Vuoto = etichetta generica "Risultato". Cambia solo l'indicazione che vede
@@ -2911,8 +2567,6 @@ const SCORE_UNITS: { [k: string]: { nome: string; placeholder: string } } = {
   round: { nome: 'Round + rep', placeholder: 'round+rep' },
  
 };
- 
- 
  
 // Menu a tendina per l'editor del programma (blocchi forza e WOD).
  
@@ -2954,8 +2608,6 @@ function SelettoreScore({ valore, onChange }: any) {
  
 }
  
- 
- 
 // Sistema il valore prima del salvataggio: tempo -> "m:ss", round -> "r+rep".
  
 // Le caselle vuote valgono zero; se sono vuote tutte e due il valore resta vuoto.
@@ -2993,8 +2645,6 @@ function normalizzaScore(valore: string, tipo: string): string {
   return t;
  
 }
- 
- 
  
 // Due caselle affiancate: min / sec per il tempo, rnd / rep per i round.
  
@@ -3084,15 +2734,11 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
 }
  
- 
- 
 function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const serie = serieDaBlocco(blk);
  
   const iniziali = String(valore || '').split(/\s*[\/]\s*/).map((s: string) => s.trim());
- 
- 
  
   const [carichi, setCarichi] = useState<string[]>(
  
@@ -3104,11 +2750,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const [nascosto, setNascosto] = useState(false);
  
- 
- 
   const riepilogo = carichi.map((c) => normalizzaScore(c, blk?.scoreUnit || '')).filter(Boolean).join(' / ');
- 
- 
  
   if (nascosto) {
  
@@ -3146,8 +2788,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   }
  
- 
- 
   return (
  
     <div
@@ -3181,8 +2821,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
           </span>
  
         </div>
- 
- 
  
         <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
  
@@ -3256,8 +2894,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
           ))}
  
- 
- 
           {serie.length > 1 && (
  
             <p style={{ fontSize: '10.5px', color: 'var(--fg-94a3b8)', margin: '4px 0 14px 0', lineHeight: 1.45 }}>
@@ -3273,8 +2909,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
           )}
  
           {serie.length === 1 && <div style={{ height: '10px' }} />}
- 
- 
  
           <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '5px' }}>
  
@@ -3296,8 +2930,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
           />
  
- 
- 
           <button
  
             onClick={() => setNascosto(true)}
@@ -3311,8 +2943,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
           </button>
  
         </div>
- 
- 
  
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
@@ -3350,8 +2980,6 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
 }
  
- 
- 
 // Campo del timer: minuti e secondi separati, come si legge un cronometro.
  
 // Una casella lasciata vuota vale zero.
@@ -3362,8 +2990,6 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
   const [sec_, setSec_] = useState(String(valore % 60));
  
- 
- 
   useEffect(() => {
  
     setMin_(String(Math.floor(valore / 60)));
@@ -3371,8 +2997,6 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
     setSec_(String(valore % 60));
  
   }, [valore]);
- 
- 
  
   const applica = (testoMin: string, testoSec: string) => {
  
@@ -3390,8 +3014,6 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
   };
  
- 
- 
   const casella: React.CSSProperties = {
  
     width: '100%', boxSizing: 'border-box', textAlign: 'center',
@@ -3402,8 +3024,6 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
   };
  
- 
- 
   const etich: React.CSSProperties = {
  
     display: 'block', fontSize: '10px', color: 'var(--fg-71717a)',
@@ -3411,8 +3031,6 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
     textAlign: 'center', marginTop: '3px', letterSpacing: '0.5px',
  
   };
- 
- 
  
   return (
  
@@ -3446,11 +3064,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
         </div>
  
- 
- 
         <span style={{ fontSize: '26px', fontWeight: 'bold', color: 'var(--fg-71717a)', paddingTop: '10px' }}>:</span>
- 
- 
  
         <div style={{ flex: 1, minWidth: 0 }}>
  
@@ -3484,19 +3098,13 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
 }
  
- 
- 
 // Campo per i valori senza tempo, come il numero di round
  
 function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
   const [testo, setTesto] = useState(String(valore));
  
- 
- 
   useEffect(() => { setTesto(String(valore)); }, [valore]);
- 
- 
  
   const applica = (n: number) => {
  
@@ -3508,8 +3116,6 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
   };
  
- 
- 
   const btnPiccolo: React.CSSProperties = {
  
     padding: '12px 15px', borderRadius: '10px', border: 'none',
@@ -3517,8 +3123,6 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
     background: 'var(--bg-3a3a40)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   };
- 
- 
  
   return (
  
@@ -3558,8 +3162,6 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
 }
  
- 
- 
 // Capisce se il valore di un esercizio del riscaldamento è un tempo
  
 // (30", 45 sec, 1'30) e non un numero di ripetizioni (10 rep, 12).
@@ -3572,25 +3174,17 @@ function tempoDaValore(valore: any): number | null {
  
   const t = String(valore).toLowerCase().trim();
  
- 
- 
   // se parla di ripetizioni non e' un tempo
  
   if (/(rep|rip|volt)/i.test(t)) return null;
- 
- 
  
   // deve contenere un segno di tempo: apostrofo, virgolette, sec, min, due punti
  
   if (!/(["\u201d\u2033']|sec|min|\bs\b|\bm\b|:)/i.test(t)) return null;
  
- 
- 
   return parseRestSeconds(t);
  
 }
- 
- 
  
 // Timer a schermo intero: recupero, tempo libero, intervalli, EMOM, tabata
  
@@ -3609,8 +3203,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
   const [attivo, setAttivo] = useState(false);
  
   const [preparazione, setPreparazione] = useState<number | null>(null);
- 
- 
  
   // impostazioni modificabili prima di partire
  
@@ -3644,8 +3236,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   const [bozza, setBozza] = useState<{ [k: string]: string }>({});
  
- 
- 
   const fasi = costruisciFasi(scelta);
  
   const faseCorrente = fasi[fase] || null;
@@ -3653,8 +3243,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
   const libero = scelta?.tipo === 'libero';
  
   const unoAUno = scelta?.tipo === 'unoauno';
- 
- 
  
   // Il recupero parte subito; gli altri timer hanno dieci secondi di preparazione
  
@@ -3676,8 +3264,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     }
  
- 
- 
     // La preparazione serve solo al primo avvio: riprendendo dopo una pausa si riparte subito
  
     const giaIniziato = trascorsi > 0 || restano > 0 || fase > 0 || (unoAUno && r1UltimoLavoro > 0);
@@ -3692,15 +3278,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     }
  
- 
- 
     setPreparazione(10);
  
     bip(660, 0.12);
  
   };
- 
- 
  
   // Uno a uno: chiude il round di lavoro e fa partire un recupero di pari durata
  
@@ -3710,13 +3292,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     const ultimo = r1Round >= (scelta?.round || 1);
  
- 
- 
     setR1UltimoLavoro(misurato);
  
     setGiri((g: { round: number; secondi: number }[]) => [...g, { round: r1Round, secondi: misurato }]);
- 
- 
  
     // un solo segnale: quello di fine sessione se era l'ultimo round,
  
@@ -3729,8 +3307,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       vibra(150);
  
     }
- 
- 
  
     if (ultimo) {
  
@@ -3748,8 +3324,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     }
  
- 
- 
     riferimento.current = null;
  
     setR1InLavoro(false);
@@ -3757,8 +3331,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     setRestano(misurato);
  
   };
- 
- 
  
   // Tengo lo schermo acceso mentre il timer corre: il caso piu' frequente
  
@@ -3769,8 +3341,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     let blocco: any = null;
  
     let vivo = true;
- 
- 
  
     const attiva = async () => {
  
@@ -3786,11 +3356,7 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     };
  
- 
- 
     if (attivo || preparazione !== null) attiva();
- 
- 
  
     const alRientro = () => {
  
@@ -3799,8 +3365,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     };
  
     document.addEventListener('visibilitychange', alRientro);
- 
- 
  
     return () => {
  
@@ -3813,8 +3377,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     };
  
   }, [attivo, preparazione]);
- 
- 
  
   // Il recupero dei blocchi di forza parte da solo: quando lo tocchi
  
@@ -3835,8 +3397,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     }
  
   }, []);
- 
- 
  
   // Conto alla rovescia di preparazione
  
@@ -3882,15 +3442,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   }, [preparazione]);
  
- 
- 
   // Motore del timer
  
   useEffect(() => {
  
     if (!attivo) return;
- 
- 
  
     // Mi appoggio all'orologio di sistema: se l'app va in sottofondo e il
  
@@ -3902,15 +3458,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     }
  
- 
- 
     const t = setInterval(() => {
  
       const passati = Math.floor((Date.now() - (riferimento.current?.inizio || Date.now())) / 1000);
  
       const base = riferimento.current?.base || 0;
- 
- 
  
       if (libero) {
  
@@ -3920,13 +3472,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       }
  
- 
- 
       if (unoAUno) {
  
         if (r1InLavoro) { setTrascorsi(base + passati); return; }
- 
- 
  
         // recupero calcolato sull'orologio: al rientro dall'app il tempo è quello vero
  
@@ -3941,8 +3489,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
           return;
  
         }
- 
- 
  
         bip(1000, 0.3);
  
@@ -3962,8 +3508,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       }
  
- 
- 
       // Conto alla rovescia sull'orologio: se l'app resta in sottofondo e il battito
  
       // si ferma, al rientro il tempo si riallinea. Se nel frattempo sono passate
@@ -3971,8 +3515,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       // più fasi, le recupero una dopo l'altra fino a quella giusta.
  
       const resta = base - passati;
- 
- 
  
       if (resta > 0) {
  
@@ -3984,15 +3526,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       }
  
- 
- 
       let indice = fase;
  
       let avanzo = -resta;
  
       const nuoviGiri: { round: number; secondi: number }[] = [];
- 
- 
  
       while (indice < fasi.length) {
  
@@ -4014,15 +3552,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       }
  
- 
- 
       if (nuoviGiri.length > 0) {
  
         setGiri((g: { round: number; secondi: number }[]) => [...g, ...nuoviGiri]);
  
       }
- 
- 
  
       if (indice >= fasi.length) {
  
@@ -4040,8 +3574,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       }
  
- 
- 
       bip(1000, 0.25);
  
       vibra(150);
@@ -4054,13 +3586,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     }, 1000);
  
- 
- 
     return () => clearInterval(t);
  
   }, [attivo, fase, fasi.length, libero, unoAUno, r1InLavoro, r1Round]);
- 
- 
  
   // Il recupero dei blocchi di forza si chiude da solo quando scade:
  
@@ -4072,15 +3600,11 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
     if (!partito || attivo || restano > 0) return;
  
- 
- 
     const t = setTimeout(() => onClose(), 1400);
  
     return () => clearTimeout(t);
  
   }, [scelta, partito, attivo, restano]);
- 
- 
  
   // Tornando nell'app dopo che il telefono si è bloccato, riallineo subito
  
@@ -4094,13 +3618,9 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       if (!attivo || !riferimento.current) return;
  
- 
- 
       const passati = Math.floor((Date.now() - riferimento.current.inizio) / 1000);
  
       const base = riferimento.current.base || 0;
- 
- 
  
       if (libero || (unoAUno && r1InLavoro)) {
  
@@ -4113,8 +3633,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       }
  
     };
- 
- 
  
     document.addEventListener('visibilitychange', alRientro);
  
@@ -4130,8 +3648,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   }, [attivo, libero, unoAUno, r1InLavoro]);
  
- 
- 
   const ferma = () => { setAttivo(false); setPreparazione(null); riferimento.current = null; };
  
   const azzera = () => {
@@ -4144,8 +3660,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   };
  
- 
- 
   const finito = !partito ? false : unoAUno
  
     ? (!attivo && preparazione === null && r1Round >= (scelta?.round || 1) && !r1InLavoro && restano === 0 && r1UltimoLavoro > 0)
@@ -4153,8 +3667,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
     : (!libero && !attivo && preparazione === null && fase >= fasi.length - 1 && restano === 0 && fasi.length > 0);
  
   const coloreSfondo = preparazione !== null ? '#f59e0b' : finito ? 'var(--fg-334155)' : (faseCorrente?.colore || 'var(--fg-10b981)');
- 
- 
  
   // Timer nascosto durante l'impostazione: resta solo un pulsante per rientrare
  
@@ -4194,8 +3706,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   }
  
- 
- 
   // Timer ridotto a barra: il conteggio continua e sotto si vede la scheda
  
   if (ridotto) {
@@ -4206,8 +3716,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       : (faseCorrente?.colore || 'var(--fg-10b981)');
  
- 
- 
     const testoFase = preparazione !== null ? 'PRONTI'
  
       : libero ? 'TEMPO LIBERO'
@@ -4215,8 +3723,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
       : unoAUno ? (r1InLavoro ? 'LAVORO' : 'RECUPERO')
  
       : (faseCorrente?.nome || '').toUpperCase();
- 
- 
  
     const valore = preparazione !== null ? String(preparazione)
  
@@ -4226,8 +3732,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
       : mmss(restano);
  
- 
- 
     const round = unoAUno ? `${Math.min(r1Round, scelta.round)}/${scelta.round}`
  
       : (faseCorrente?.round && (scelta.tipo === 'tabata' ? 8 : scelta.round))
@@ -4235,8 +3739,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
         ? `${faseCorrente.round}/${scelta.tipo === 'tabata' ? 8 : scelta.round}`
  
         : null;
- 
- 
  
     return (
  
@@ -4282,8 +3784,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
         </button>
  
- 
- 
         {unoAUno && attivo && r1InLavoro && (
  
           <button onClick={chiudiRound} style={{ padding: '8px 12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -4312,8 +3812,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   }
  
- 
- 
   const scatola: React.CSSProperties = {
  
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -4324,8 +3822,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
  
   };
  
- 
- 
   const btn = (bg: string): React.CSSProperties => ({
  
     padding: '14px 22px', borderRadius: '10px', border: 'none', background: bg,
@@ -4333,8 +3829,6 @@ function WorkoutTimer({ config, onClose, onRidotto, onSalvaTempi }: { config: an
 color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   });
- 
- 
  
   // Barra compatta: il timer continua a correre mentre si consulta la scheda
  
@@ -4350,8 +3844,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
       : (faseCorrente?.nome || '');
  
- 
- 
     const valore = preparazione !== null ? String(preparazione)
  
       : libero ? mmss(trascorsi)
@@ -4360,8 +3852,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
       : mmss(restano);
  
- 
- 
     const tinta = preparazione !== null ? '#f59e0b'
  
       : finito ? 'var(--fg-94a3b8)'
@@ -4369,8 +3859,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
       : unoAUno ? (r1InLavoro ? 'var(--fg-10b981)' : 'var(--fg-0284c7)')
  
       : (faseCorrente?.colore || 'var(--fg-10b981)');
- 
- 
  
     return (
  
@@ -4408,8 +3896,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
         </button>
  
- 
- 
         {unoAUno && attivo && r1InLavoro && (
  
           <button onClick={chiudiRound} style={{ padding: '9px 12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -4438,8 +3924,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   }
  
- 
- 
   // Schermata di scelta del tipo di timer
  
   if (!scelta) {
@@ -4462,8 +3946,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
     );
  
- 
- 
     return (
  
       <div style={scatola}>
@@ -4473,8 +3955,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
           <h3 style={{ color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '19px' }}>Scegli il timer</h3>
  
           <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
- 
- 
  
 <SceltaSuono />
  
@@ -4489,8 +3969,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
           {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', 'ripeti', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
  
           {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', 'fiamma', () => setScelta({ tipo: 'tabata' }))}
- 
- 
  
           <button
  
@@ -4526,8 +4004,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   }
  
- 
- 
   // Impostazioni per intervalli ed EMOM
  
   if (scelta.daImpostare) {
@@ -4542,8 +4018,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
     );
  
- 
- 
     return (
  
       <div style={scatola}>
@@ -4555,8 +4029,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
             {scelta.tipo === 'emom' ? 'EMOM' : scelta.tipo === 'amrap' ? 'AMRAP' : scelta.tipo === 'unoauno' ? 'Rest 1:1' : scelta.tipo === 'recupero' ? 'Recupero' : 'Intervalli'}
  
           </h3>
- 
- 
  
           {scelta.tipo === 'recupero' && (
  
@@ -4573,8 +4045,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
             </>
  
           )}
- 
- 
  
           {scelta.tipo === 'intervalli' && (
  
@@ -4604,8 +4074,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
           {scelta.tipo !== 'amrap' && scelta.tipo !== 'recupero' && campo('Round', cfgRound, setCfgRound, 1, 1, 99, '')}
  
- 
- 
           <div style={{ display: 'flex', gap: '8px', marginTop: '18px' }}>
  
             <button
@@ -4633,8 +4101,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
             <button onClick={() => setScelta(null)} style={btn('var(--btn-neutro)')}>Indietro</button>
  
           </div>
- 
- 
  
           <button
  
@@ -4668,13 +4134,9 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   }
  
- 
- 
   // Timer in funzione
  
   const totaleRound = scelta.tipo === 'tabata' ? 8 : (scelta.round || null);
- 
- 
  
   return (
  
@@ -4708,8 +4170,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             </span>
  
- 
- 
             {unoAUno && !finito && (
  
               <span style={{ display: 'block', fontSize: '19px', color: 'var(--fg-e4e4e7)', marginBottom: '14px', fontWeight: 'bold' }}>
@@ -4722,8 +4182,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             )}
  
- 
- 
             {!unoAUno && totaleRound && faseCorrente?.round && !finito && (
  
               <span style={{ display: 'block', fontSize: '19px', color: 'var(--fg-e4e4e7)', marginBottom: '14px', fontWeight: 'bold' }}>
@@ -4734,15 +4192,11 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             )}
  
- 
- 
             <span style={{ display: 'block', fontSize: 'clamp(84px, 26vw, 128px)', fontWeight: 'bold', color: '#fff', lineHeight: 0.95, fontVariantNumeric: 'tabular-nums', letterSpacing: '-3px' }}>
  
               {libero ? mmss(trascorsi) : unoAUno ? (r1InLavoro ? mmss(trascorsi) : mmss(restano)) : mmss(restano)}
  
             </span>
- 
- 
  
             {unoAUno && attivo && r1InLavoro && (
  
@@ -4764,8 +4218,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
         )}
  
- 
- 
         {giri.length > 0 && (unoAUno || scelta.tipo === 'intervalli' || scelta.tipo === 'emom') && (() => {
  
           const totale = giri.reduce((a: number, g: any) => a + g.secondi, 0);
@@ -4776,8 +4228,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
           const peggiore = Math.max(...giri.map((g: any) => g.secondi));
  
- 
- 
           return (
  
             <div style={{ marginTop: '22px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '12px', textAlign: 'left', maxHeight: finito ? '46vh' : '26vh', overflowY: 'auto' }}>
@@ -4787,8 +4237,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
                 {finito ? 'RESOCONTO' : 'ROUND COMPLETATI'}
  
               </span>
- 
- 
  
               {[...giri].reverse().map((g: any, i: number) => (
  
@@ -4806,8 +4254,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
               ))}
  
- 
- 
               {unoAUno && finito && onSalvaTempi && (
  
                 <button
@@ -4823,8 +4269,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
                 </button>
  
               )}
- 
- 
  
               {giri.length > 1 && (
  
@@ -4845,8 +4289,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
           );
  
         })()}
- 
- 
  
         <div style={{ display: 'flex', gap: '9px', justifyContent: 'center', marginTop: '20px', flexWrap: 'wrap' }}>
  
@@ -4874,8 +4316,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
         </div>
  
- 
- 
         <p style={{ fontSize: '11px', color: 'var(--fg-71717a)', marginTop: '14px', lineHeight: 1.45 }}>
  
           Con &quot;Riduci&quot; il timer diventa una barra in alto e continua a correre: sotto puoi leggere la scheda e inserire i risultati.
@@ -4889,8 +4329,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
   );
  
 }
- 
- 
  
 const VARS_CLASSICO: { [k: string]: string } = {
  
@@ -5464,8 +4902,7 @@ function luminanzaRel(hex: string): number {
  
   const f = (v: number) => {
  
-    const c = v / 255;
- 
+    const c = v / 255; 
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
  
   };
@@ -5588,8 +5025,6 @@ function pillola(attivo: boolean, colore = 'var(--fg-10b981)', dim: 'grande' | '
  
   }[dim];
  
- 
- 
   return {
  
     ...misure,
@@ -5626,8 +5061,6 @@ function pillola(attivo: boolean, colore = 'var(--fg-10b981)', dim: 'grande' | '
  
 }
  
- 
- 
 // Riga di pulsanti che scorre in orizzontale invece di andare a capo
  
 const rigaPillole: React.CSSProperties = {
@@ -5646,15 +5079,11 @@ const rigaPillole: React.CSSProperties = {
  
 };
  
- 
- 
 // Il sito dove vendi le programmazioni: toccando il logo si apre questo.
  
 // Se cambi negozio, basta modificare questo indirizzo.
  
 const SITO_NEGOZIO = 'https://a-m-training.sumupstore.com/prodotti';
- 
- 
  
 // Icone disegnate per i pulsanti: nitide a ogni dimensione e uguali
  
@@ -5685,8 +5114,6 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
     'aria-hidden': true,
  
   };
- 
- 
  
   switch (nome) {
  
@@ -5878,8 +5305,6 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
 }
  
- 
- 
 function AmtLogo({ style }: { style?: React.CSSProperties }) {
  
   return (
@@ -5894,8 +5319,6 @@ function AmtLogo({ style }: { style?: React.CSSProperties }) {
  
 }
  
- 
- 
 function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
   const hStyle: React.CSSProperties = { color: 'var(--fg-10b981)', fontSize: '14px', margin: '18px 0 6px 0' };
@@ -5905,8 +5328,6 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
   const pStyle: React.CSSProperties = { margin: '0 0 8px 0', fontSize: '13px', lineHeight: 1.55, color: 'var(--fg-334155)' };
  
   const bStyle: React.CSSProperties = { margin: '10px 0', fontSize: '13px', lineHeight: 1.55, color: 'var(--fg-7f1d1d)', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', borderRadius: '8px', padding: '10px 12px' };
- 
- 
  
   if (minor) {
  
@@ -6092,8 +5513,6 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
   }
  
- 
- 
   return (
  
     <div>
@@ -6266,13 +5685,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
 }
  
- 
- 
- 
- 
 function TrainingApp({ tema, impostaTema }: any) {
- 
- 
  
   useEffect(() => {
  
@@ -6438,8 +5851,6 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [historyCache, setHistoryCache] = useState<{ [key: string]: any[] }>({});
  
- 
- 
   useEffect(() => {
  
     const t = setTimeout(() => setShowSplash(false), 2800);
@@ -6447,8 +5858,6 @@ function TrainingApp({ tema, impostaTema }: any) {
     return () => clearTimeout(t);
  
   }, []);
- 
- 
  
   useEffect(() => {
  
@@ -6484,8 +5893,6 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [resetMessage, setResetMessage] = useState('');
  
- 
- 
   const [athletes, setAthletes] = useState<any[]>([]);
  
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>([]);
@@ -6512,33 +5919,23 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [programEndDate, setProgramEndDate] = useState('');
  
- 
- 
   const [collapsedBlocks, setCollapsedBlocks] = useState<{ [key: string]: boolean }>({});
  
   const [collapsedProgramDays, setCollapsedProgramDays] = useState<{ [key: string]: boolean }>({});
- 
- 
  
   const [selectedWeeksByProgram, setSelectedWeeksByProgram] = useState<{ [programId: string]: string }>({});
  
   const [selectedDaysByProgram, setSelectedDaysByProgram] = useState<{ [programId: string]: string }>({});
  
- 
- 
   const [coachSelectedWeek, setCoachSelectedWeek] = useState<{ [programId: string]: string }>({});
  
   const [coachSelectedDay, setCoachSelectedDay] = useState<{ [programId: string]: string }>({});
- 
- 
  
   const [bannerData, setBannerData] = useState<{ image_url: string; link_url: string }>({ image_url: '', link_url: '' });
  
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
  
   const [bannerSaving, setBannerSaving] = useState(false);
- 
- 
  
   const [programWeeks, setProgramWeeks] = useState<any[]>([
  
@@ -6557,8 +5954,6 @@ function TrainingApp({ tema, impostaTema }: any) {
     }
  
   ]);
- 
- 
  
   const [programLibrary, setProgramLibrary] = useState<any[]>([]);
  
@@ -6587,8 +5982,6 @@ function TrainingApp({ tema, impostaTema }: any) {
     .filter((e: any) => !e.dismissed && e.track_max)
  
     .map((e: any) => e.name);
- 
- 
  
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
  
@@ -6636,17 +6029,11 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
  
- 
- 
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
  
   const [selectedDayView, setSelectedDayView] = useState('Giorno 1');
  
- 
- 
   const [libraryFilterAthlete, setLibraryFilterAthlete] = useState('');
- 
- 
  
   const [newExName, setNewExName] = useState('');
  
@@ -6654,13 +6041,9 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [newExType, setNewExType] = useState('');
  
- 
- 
   const [athleteResults, setAthleteResults] = useState<{ [key: string]: any }>({});
  
   const [coachAllResults, setCoachAllResults] = useState<{ [key: string]: any }>({});
- 
- 
  
   const [athleteMaxes, setAthleteMaxes] = useState<{ [exercise: string]: any }>({});
  
@@ -6698,11 +6081,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
- 
- 
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
- 
- 
  
   const [saveMessage, setSaveMessage] = useState('');
  
@@ -6720,8 +6099,6 @@ const [notificationError, setNotificationError] = useState('');
  
   const [showDeletedExercises, setShowDeletedExercises] = useState(false);
  
- 
- 
   const normalizeProgramWeeks = (prog: any) => {
  
     if (prog.weeks && prog.weeks.length > 0) return prog.weeks;
@@ -6736,8 +6113,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const getCalendarDaysDifference = (dateString: string) => {
  
     if (!dateString) return null;
@@ -6748,27 +6123,19 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!year || !month || !day) return null;
  
- 
- 
     const target = Date.UTC(year, month - 1, day);
  
     const today = new Date();
  
     const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
  
- 
- 
     return Math.round((target - todayUTC) / 86400000);
  
   };
  
- 
- 
   const fetchNotifications = async () => {
  
     if (!session?.user?.id) return;
- 
- 
  
     const { data, error } = await supabase
  
@@ -6784,8 +6151,6 @@ const [notificationError, setNotificationError] = useState('');
  
       .limit(50);
  
- 
- 
     if (error) {
  
       console.error('Errore caricamento notifiche:', error);
@@ -6796,17 +6161,11 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setNotificationError('');
- 
- 
  
     setNotifications(data || []);
  
   };
- 
- 
  
   const createNotificationIfMissing = async (
  
@@ -6822,8 +6181,6 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!session?.user?.id) return;
  
- 
- 
     const { data: existing, error: checkError } = await supabase
  
       .from('notifications')
@@ -6836,8 +6193,6 @@ const [notificationError, setNotificationError] = useState('');
  
       .limit(1);
  
- 
- 
     if (checkError) {
  
       console.error('Errore controllo notifica:', checkError);
@@ -6848,11 +6203,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     if (existing && existing.length > 0) return;
- 
- 
  
     const { error } = await supabase.from('notifications').insert([{
  
@@ -6870,8 +6221,6 @@ const [notificationError, setNotificationError] = useState('');
  
 }]);
  
- 
- 
     if (error) {
  
       console.error('Errore creazione notifica:', error);
@@ -6882,11 +6231,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     await fetchNotifications();
- 
- 
  
     fetch('/api/send-push', {
  
@@ -6908,13 +6253,9 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const syncProgramNotifications = async () => {
  
     if (!session?.user?.id || !programLibrary.length) return;
- 
- 
  
     if (role === 'athlete') {
  
@@ -6923,8 +6264,6 @@ const [notificationError, setNotificationError] = useState('');
         (prog) => prog.assignedAthleteIds?.includes(session.user.id)
  
       );
- 
- 
  
       for (const prog of assignedPrograms) {
  
@@ -6946,8 +6285,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // La scadenza dei programmi la annuncia il controllo automatico giornaliero
  
     // (app/api/cron/expiring-programs): arriva anche ad app chiusa e manda la push.
@@ -6955,8 +6292,6 @@ const [notificationError, setNotificationError] = useState('');
     // Qui non serve: farebbe un secondo avviso con un testo diverso.
  
   };
- 
- 
  
   // Modifica rapida di un blocco dalla scheda del coach: cambia il programma e lo salva subito.
  
@@ -7142,8 +6477,6 @@ const [notificationError, setNotificationError] = useState('');
  
   if (!session?.user?.id) return;
  
- 
- 
   const { error } = await supabase
  
     .from('notifications')
@@ -7153,8 +6486,6 @@ const [notificationError, setNotificationError] = useState('');
     .eq('id', notificationId)
  
     .eq('user_id', session.user.id);
- 
- 
  
   if (error) {
  
@@ -7166,21 +6497,15 @@ const [notificationError, setNotificationError] = useState('');
  
   }
  
- 
- 
   setNotifications(prev =>
  
     prev.filter(n => n.id !== notificationId)
  
   );
  
- 
- 
   setNotificationError('');
  
 };
- 
- 
  
   // ---- PUSH NOTIFICATIONS ----
  
@@ -7204,13 +6529,9 @@ const [notificationError, setNotificationError] = useState('');
  
   }
  
- 
- 
   const subscribeToPush = async () => {
  
     if (!session?.user?.id) return;
- 
- 
  
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
  
@@ -7219,8 +6540,6 @@ const [notificationError, setNotificationError] = useState('');
       return;
  
     }
- 
- 
  
     const permission = await Notification.requestPermission();
  
@@ -7232,11 +6551,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     const registration = await navigator.serviceWorker.ready;
- 
- 
  
     const existing = await registration.pushManager.getSubscription();
  
@@ -7256,11 +6571,7 @@ const [notificationError, setNotificationError] = useState('');
  
       }));
  
- 
- 
     const subJson = subscription.toJSON();
- 
- 
  
     const { error } = await supabase.from('push_subscriptions').upsert(
  
@@ -7280,8 +6591,6 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
- 
- 
     if (error) {
  
       console.error('Errore salvataggio sottoscrizione push:', error);
@@ -7292,13 +6601,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setNotificationError('');
  
   };
- 
- 
  
   const markNotificationAsRead = async (notificationId: string) => {
  
@@ -7312,8 +6617,6 @@ const [notificationError, setNotificationError] = useState('');
  
       .eq('user_id', session?.user?.id);
  
- 
- 
     setNotifications(prev =>
  
       prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
@@ -7322,13 +6625,9 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const markAllNotificationsAsRead = async () => {
  
     if (!session?.user?.id) return;
- 
- 
  
     await supabase
  
@@ -7340,13 +6639,9 @@ const [notificationError, setNotificationError] = useState('');
  
       .eq('is_read', false);
  
- 
- 
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
  
   };
- 
- 
  
   useEffect(() => {
  
@@ -7360,8 +6655,6 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     // Se l'indirizzo contiene il rimando dal link di recupero, apro subito il cambio password
  
     if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
@@ -7369,8 +6662,6 @@ const [notificationError, setNotificationError] = useState('');
       setRecoveryMode(true);
  
     }
- 
- 
  
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
  
@@ -7382,13 +6673,9 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     return () => subscription.unsubscribe();
  
   }, []);
- 
- 
  
   useEffect(() => {
  
@@ -7444,8 +6731,6 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
- 
- 
       const channel = supabase
  
         .channel('realtime-programs')
@@ -7457,8 +6742,6 @@ const [notificationError, setNotificationError] = useState('');
         })
  
         .subscribe();
- 
- 
  
       const bannerChannel = supabase
  
@@ -7472,8 +6755,6 @@ const [notificationError, setNotificationError] = useState('');
  
         .subscribe();
  
- 
- 
       const exChannel = supabase
  
         .channel('realtime-exercises')
@@ -7485,8 +6766,6 @@ const [notificationError, setNotificationError] = useState('');
         })
  
         .subscribe();
- 
- 
  
       const resultsChannel = supabase
  
@@ -7500,8 +6779,6 @@ const [notificationError, setNotificationError] = useState('');
  
         .subscribe();
  
- 
- 
       const maxesChannel = supabase
  
         .channel('realtime-maxes')
@@ -7513,8 +6790,6 @@ const [notificationError, setNotificationError] = useState('');
         })
  
         .subscribe();
- 
- 
  
       const notificationsChannel = supabase
  
@@ -7538,8 +6813,6 @@ const [notificationError, setNotificationError] = useState('');
  
         .subscribe();
  
- 
- 
       return () => {
  
         supabase.removeChannel(channel);
@@ -7560,8 +6833,6 @@ const [notificationError, setNotificationError] = useState('');
  
   }, [session, role]);
  
- 
- 
   useEffect(() => {
  
     if (session && programLibrary.length > 0) {
@@ -7571,8 +6842,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   }, [session, role, programLibrary]);
- 
- 
  
   useEffect(() => {
  
@@ -7610,8 +6879,6 @@ const [notificationError, setNotificationError] = useState('');
  
       const initialDays: { [id: string]: string } = {};
  
- 
- 
       programLibrary.forEach(prog => {
  
         const weeks = normalizeProgramWeeks(prog);
@@ -7642,8 +6909,6 @@ const [notificationError, setNotificationError] = useState('');
  
   }, [programLibrary]);
  
- 
- 
   const fetchUserProfile = async (userId: string) => {
  
     const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
@@ -7652,8 +6917,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchAthletes = async () => {
  
     const { data } = await supabase.from('profiles').select('*').eq('role', 'athlete');
@@ -7661,8 +6924,6 @@ const [notificationError, setNotificationError] = useState('');
     if (data) setAthletes(data);
  
   };
- 
- 
  
   const fetchBanner = async () => {
  
@@ -7676,19 +6937,13 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const saveBanner = async (e: React.FormEvent) => {
  
     e.preventDefault();
  
     setBannerSaving(true);
  
- 
- 
     let imageUrl = bannerData.image_url;
- 
- 
  
     try {
  
@@ -7700,19 +6955,13 @@ const [notificationError, setNotificationError] = useState('');
  
         const filePath = `${fileName}`;
  
- 
- 
         const { error: uploadError } = await supabase.storage
  
           .from('banners')
  
           .upload(filePath, bannerImageFile);
  
- 
- 
         if (uploadError) throw uploadError;
- 
- 
  
         const { data: publicURLData } = supabase.storage
  
@@ -7720,17 +6969,11 @@ const [notificationError, setNotificationError] = useState('');
  
           .getPublicUrl(filePath);
  
- 
- 
         imageUrl = publicURLData.publicUrl;
  
       }
  
- 
- 
       const newBannerValue = { image_url: imageUrl, link_url: bannerData.link_url };
- 
- 
  
       const { error } = await supabase.from('settings').upsert({
  
@@ -7742,11 +6985,7 @@ const [notificationError, setNotificationError] = useState('');
  
       }, { onConflict: 'key' });
  
- 
- 
       if (error) throw error;
- 
- 
  
       setBannerData(newBannerValue);
  
@@ -7765,8 +7004,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   const fetchProgramLibrary = async () => {
  
@@ -7810,8 +7047,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchExerciseLibrary = async () => {
  
     const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
@@ -7819,8 +7054,6 @@ const [notificationError, setNotificationError] = useState('');
     if (data) setExerciseLibrary(data);
  
   };
- 
- 
  
   const fetchAthleteResults = async () => {
  
@@ -7848,8 +7081,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchAllAthleteResultsForCoach = async () => {
  
     const { data } = await supabase.from('program_results').select('*');
@@ -7872,8 +7103,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchAthleteMaxes = async (athleteId: string) => {
  
     const { data } = await supabase.from('athlete_maxes').select('*').eq('athlete_id', athleteId).single();
@@ -7893,12 +7122,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
- 
- 
- 
- 
  
   const fetchAllAthleteMaxesForCoach = async () => {
  
@@ -7922,13 +7145,9 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const checkPrivacyConsent = async (userId: string) => {
  
     const { data } = await supabase.from('profiles').select('privacy_consent_at,privacy_version').eq('id', userId).maybeSingle();
- 
- 
  
     // Rileggo i dati aggiornati dell'account: è la fonte più affidabile
  
@@ -7940,15 +7159,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const metaVersion = meta.privacy_version || null;
  
- 
- 
     const consent = data?.privacy_consent_at || metaConsent || null;
  
     const versione = data?.privacy_version || metaVersion || null;
  
     setPrivacyConsentAt(consent);
- 
- 
  
     // Serve il consenso se non è mai stato dato, oppure se l'informativa è cambiata
  
@@ -7959,8 +7174,6 @@ const [notificationError, setNotificationError] = useState('');
       return;
  
     }
- 
- 
  
     // Allineo le due copie, senza bloccare nulla se l'aggiornamento non è permesso
  
@@ -7978,8 +7191,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const acceptPrivacyConsent = async () => {
  
     if (!consentGateChecked || !session?.user?.id) return;
@@ -7988,15 +7199,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const now = new Date().toISOString();
  
- 
- 
     // Salvo il consenso nei dati dell'account: non dipende dai permessi della tabella
  
     // profiles, quindi resta memorizzato anche se quell'aggiornamento non va a buon fine.
  
     const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now, privacy_version: PRIVACY_VERSION } });
- 
- 
  
     // Salvo anche sul profilo, verificando che la riga sia stata davvero aggiornata
  
@@ -8010,11 +7217,7 @@ const [notificationError, setNotificationError] = useState('');
  
       .select('privacy_consent_at');
  
- 
- 
     setConsentSaving(false);
- 
- 
  
     if (metaError && (profError || !updated || updated.length === 0)) {
  
@@ -8024,8 +7227,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setPrivacyConsentAt(now);
  
     setShowConsentGate(false);
@@ -8033,8 +7234,6 @@ const [notificationError, setNotificationError] = useState('');
     setConsentGateChecked(false);
  
   };
- 
- 
  
   const downloadMyData = async () => {
  
@@ -8062,15 +7261,11 @@ const [notificationError, setNotificationError] = useState('');
  
       ]);
  
- 
- 
       const assigned = programLibrary
  
         .filter((p: any) => p.assignedAthleteIds?.includes(uid))
  
         .map((p: any) => ({ titolo: p.title, dataInizio: p.startDate, dataFine: p.endDate, settimane: p.weeks }));
- 
- 
  
       const payload = {
  
@@ -8093,8 +7288,6 @@ const [notificationError, setNotificationError] = useState('');
         notifiche_ricevute: notifs.data || [],
  
       };
- 
- 
  
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
  
@@ -8124,8 +7317,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const deleteMyAccount = async () => {
  
     if (!session?.user?.id) return;
@@ -8133,8 +7324,6 @@ const [notificationError, setNotificationError] = useState('');
     if (!confirm('Vuoi eliminare definitivamente il tuo account e tutti i dati associati? L\'operazione non è reversibile.')) return;
  
     if (!confirm('Conferma finale: verranno cancellati anagrafica, anamnesi, massimali e risultati. Procedere?')) return;
- 
- 
  
     setAccountActionLoading(true);
  
@@ -8170,8 +7359,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Quando l'app torna in primo piano ricontrollo lo stato abbonamento:
  
   // se il coach l'ha cambiato nel frattempo, la schermata si aggiorna da sola
@@ -8179,8 +7366,6 @@ const [notificationError, setNotificationError] = useState('');
   useEffect(() => {
  
     if (!session?.user?.id || role === 'coach') return;
- 
- 
  
     const ricontrolla = () => {
  
@@ -8191,8 +7376,6 @@ const [notificationError, setNotificationError] = useState('');
       fetchProgramLibrary();
  
     };
- 
- 
  
     document.addEventListener('visibilitychange', ricontrolla);
  
@@ -8207,8 +7390,6 @@ const [notificationError, setNotificationError] = useState('');
     };
  
   }, [session, role]);
- 
- 
  
   const fetchSubscription = async (userId: string) => {
  
@@ -8226,8 +7407,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchAllSubscriptionsForCoach = async () => {
  
     const { data } = await supabase.from('profiles').select('id,subscription_status').eq('role', 'athlete');
@@ -8243,8 +7422,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   const creaAtletaManuale = async () => {
  
@@ -8272,8 +7449,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setAddingAthlete(true);
  
     try {
@@ -8290,8 +7465,6 @@ const [notificationError, setNotificationError] = useState('');
  
       const esito = await res.json();
  
- 
- 
       if (!res.ok) {
  
         alert('Errore: ' + (esito.error || 'creazione non riuscita'));
@@ -8299,8 +7472,6 @@ const [notificationError, setNotificationError] = useState('');
         return;
  
       }
- 
- 
  
       alert(`Atleta creato! Comunicagli email e password: al primo accesso gli verrà chiesto di accettare l'informativa privacy.`);
  
@@ -8326,15 +7497,11 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const setAthleteSubscription = async (athleteId: string, stato: string) => {
  
     const precedente = coachSubs[athleteId] || 'prova';
  
     if (precedente === stato) return;
- 
- 
  
     setCoachSubs({ ...coachSubs, [athleteId]: stato });
  
@@ -8350,8 +7517,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     const avvisi: { [k: string]: { title: string; message: string } } = {
  
       attivo: { title: 'Abbonamento attivo! ', message: 'Il tuo abbonamento è attivo: trovi le tue schede nella sezione Allenamenti.' },
@@ -8366,8 +7531,6 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!avviso) return;
  
- 
- 
     fetch('/api/notify-user', {
  
       method: 'POST',
@@ -8380,15 +7543,11 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Solo il coach può cambiare lo stile: la scadenza resta legata all'iscrizione
  
   const setAthleteTrialStyle = async (athleteId: string, stile: string) => {
  
     const nuovo = stile || null;
- 
- 
  
     // Aggiorno subito la scheda aperta, altrimenti il menu resterebbe sul valore vecchio
  
@@ -8399,8 +7558,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a)));
- 
- 
  
     const { error } = await supabase.from('profiles').update({ trial_choice: nuovo }).eq('id', athleteId);
  
@@ -8414,27 +7571,19 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Apre i consigli e li segna come letti, così il pallino "nuovo" sparisce
  
   const apriConsigli = async (programId: string, giaAperto: boolean) => {
  
     if (giaAperto) { setOpenTipsProgram(null); return; }
  
- 
- 
     setOpenTipsProgram(programId);
  
     setTipsTab('training');
  
- 
- 
     const ora = new Date().toISOString();
  
     setTipsReadAt((prev) => ({ ...prev, [programId]: ora }));
- 
- 
  
     await supabase.from('program_results').upsert(
  
@@ -8446,8 +7595,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const consigliDaLeggere = (prog: any) => {
  
     if (!prog?.tipsUpdatedAt) return false;
@@ -8457,8 +7604,6 @@ const [notificationError, setNotificationError] = useState('');
     return !letto || new Date(letto).getTime() < new Date(prog.tipsUpdatedAt).getTime();
  
   };
- 
- 
  
   const chooseTrial = async (stile: string) => {
  
@@ -8470,8 +7615,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchTrialCta = async () => {
  
     const { data } = await supabase.from('settings').select('value').eq('key', 'trial_cta').maybeSingle();
@@ -8479,8 +7622,6 @@ const [notificationError, setNotificationError] = useState('');
     if (data?.value) setTrialCta(data.value);
  
   };
- 
- 
  
   const saveTrialCta = async () => {
  
@@ -8496,13 +7637,9 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const fetchPersonalData = async (userId: string) => {
  
     const { data } = await supabase.from('profiles').select('full_name,birth_date,weight,height,gender,guardian_name').eq('id', userId).maybeSingle();
- 
- 
  
     const meta = session?.user?.user_metadata || {};
  
@@ -8526,8 +7663,6 @@ const [notificationError, setNotificationError] = useState('');
  
     setPersonalData(merged);
  
- 
- 
     const needsSync =
  
       (!data?.birth_date && meta.birth_date) ||
@@ -8541,8 +7676,6 @@ const [notificationError, setNotificationError] = useState('');
       (!data?.guardian_name && meta.guardian_name) ||
  
       (!data?.full_name && meta.full_name);
- 
- 
  
     if (needsSync) {
  
@@ -8562,8 +7695,6 @@ const [notificationError, setNotificationError] = useState('');
  
       }).eq('id', userId);
  
- 
- 
       // Rileggo lo stato: il sesso serve a scegliere la scheda di prova giusta
  
       if (!data?.gender && merged.gender) fetchSubscription(userId);
@@ -8571,8 +7702,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   const fetchAllPersonalDataForCoach = async () => {
  
@@ -8608,8 +7737,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const savePersonalData = async (userId: string, data: any, isCoachEditing: boolean) => {
  
     // Se la data di nascita fa cambiare categoria (maggiorenne/minorenne), l'informativa
@@ -8624,8 +7751,6 @@ const [notificationError, setNotificationError] = useState('');
  
     const cambiaCategoria = isMinorenne(dataPrecedente) !== isMinorenne(data.birth_date);
  
- 
- 
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
  
       alert('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
@@ -8633,8 +7758,6 @@ const [notificationError, setNotificationError] = useState('');
       return;
  
     }
- 
- 
  
     setPersonalDataSaving(true);
  
@@ -8656,8 +7779,6 @@ const [notificationError, setNotificationError] = useState('');
  
     setPersonalDataSaving(false);
  
- 
- 
     if (error) {
  
       alert('Errore durante il salvataggio: ' + error.message);
@@ -8678,8 +7799,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     if (cambiaCategoria) {
  
       // Azzero il consenso: al prossimo caricamento comparirà l'informativa corretta
@@ -8689,8 +7808,6 @@ const [notificationError, setNotificationError] = useState('');
         .update({ privacy_consent_at: null, privacy_version: null })
  
         .eq('id', userId);
- 
- 
  
       if (!isCoachEditing) {
  
@@ -8708,21 +7825,15 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
- 
- 
       alert('Dati salvati. La nuova data di nascita richiede un\'informativa privacy diversa: al prossimo accesso all\'atleta verrà chiesto di rileggerla e accettarla.');
  
       return;
  
     }
  
- 
- 
     alert('Dati anagrafici salvati con successo!');
  
   };
- 
- 
  
   const fetchAllAnamnesisForCoach = async () => {    const { data } = await supabase.from('athlete_anamnesis').select('*');
  
@@ -8753,8 +7864,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   const fetchOwnAnamnesis = async (athleteId: string) => {
  
@@ -8799,8 +7908,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   const saveAnamnesis = async (athleteId: string, data: any, isCoachEditing: boolean) => {
  
@@ -8878,8 +7985,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Aggiorna solo a schermo mentre si digita (nessun salvataggio, nessun record)
  
   // Legge/scrive i massimali dell'atleta giusto: se stesso oppure quello aperto dal coach
@@ -8887,8 +7992,6 @@ const [notificationError, setNotificationError] = useState('');
   const getMaxesOf = (athleteId: string) =>
  
     athleteId === session?.user?.id ? athleteMaxes : (coachAthleteMaxes[athleteId] || {});
- 
- 
  
   const setMaxesOf = (athleteId: string, updated: any) => {
  
@@ -8898,13 +8001,9 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const getSavedOf = (athleteId: string) =>
  
     athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
- 
- 
  
   const setSavedOf = (athleteId: string, updated: any) => {
  
@@ -8914,8 +8013,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Confronto "morbido": ignora maiuscole, spazi e punteggiatura,
  
   // così "10 cal Assault Bike" e "10cal assault-bike" sono lo stesso esercizio
@@ -8923,8 +8020,6 @@ const [notificationError, setNotificationError] = useState('');
   const sameName = (a: string, b: string) =>
  
     String(a).toLowerCase().replace(/[^a-z0-9]/g, '') === String(b).toLowerCase().replace(/[^a-z0-9]/g, '');
- 
- 
  
   const addPrExercise = async (kind: 'metcon' | 'gym') => {
  
@@ -8950,8 +8045,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const removePrExercise = async (name: string) => {
  
     if (!confirm(`Togliere "${name}" dall'elenco dei PR? I dati già registrati restano nello storico.`)) return;
@@ -8965,8 +8058,6 @@ const [notificationError, setNotificationError] = useState('');
     fetchExerciseLibrary();
  
   };
- 
- 
  
   const addMaxTrackedExercise = async () => {
  
@@ -8992,8 +8083,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const toggleTrackMax = async (id: string, value: boolean) => {
  
     await supabase.from('exercises_library').update({ track_max: value }).eq('id', id);
@@ -9001,8 +8090,6 @@ const [notificationError, setNotificationError] = useState('');
     fetchExerciseLibrary();
  
   };
- 
- 
  
   // Rinomina l'esercizio ovunque: libreria, massimali degli atleti e storico
  
@@ -9022,8 +8109,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // Controllo doppioni: un altro esercizio con lo stesso nome
  
     const gemello = exerciseLibrary.find((e: any) => e.id !== ex.id && sameName(e.name, nuovoNome));
@@ -9036,15 +8121,11 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     const { error } = await supabase.from('exercises_library')
  
       .update({ name: nuovoNome, video_url: libEditVideo.trim(), aliases: libEditAlias.trim() })
  
       .eq('id', ex.id);
- 
- 
  
     if (error) {
  
@@ -9054,15 +8135,11 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // Se il nome è cambiato, lo porto anche nei massimali e nello storico
  
     if (nuovoNome !== ex.name) {
  
       await supabase.from('athlete_max_history').update({ exercise: nuovoNome }).eq('exercise', ex.name);
- 
- 
  
       const { data: tuttiMax } = await supabase.from('athlete_maxes').select('athlete_id,maxes');
  
@@ -9090,8 +8167,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setLibEditId(null);
  
     setLibEditName('');
@@ -9103,8 +8178,6 @@ const [notificationError, setNotificationError] = useState('');
     fetchExerciseLibrary();
  
   };
- 
- 
  
   const renameExerciseEverywhere = async (id: string, oldName: string, newNameRaw: string) => {
  
@@ -9120,13 +8193,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     await supabase.from('exercises_library').update({ name: newName }).eq('id', id);
  
     await supabase.from('athlete_max_history').update({ exercise: newName }).eq('exercise', oldName);
- 
- 
  
     const { data: allMaxes } = await supabase.from('athlete_maxes').select('athlete_id,maxes');
  
@@ -9154,8 +8223,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setEditingExerciseId(null);
  
     setEditingExerciseName('');
@@ -9169,8 +8236,6 @@ const [notificationError, setNotificationError] = useState('');
     else fetchAthleteMaxes(session.user.id);
  
   };
- 
- 
  
   const deleteHistoryPoint = async (pointId: string, cacheKey: string) => {
  
@@ -9196,8 +8261,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Registra un valore nello storico. Se esiste già un valore per lo stesso
  
   // esercizio/ripetizioni nello stesso giorno, lo sostituisce: così le correzioni
@@ -9209,8 +8272,6 @@ const [notificationError, setNotificationError] = useState('');
     const startOfDay = new Date();
  
     startOfDay.setHours(0, 0, 0, 0);
- 
- 
  
     const { data: existing } = await supabase
  
@@ -9230,8 +8291,6 @@ const [notificationError, setNotificationError] = useState('');
  
       .limit(1);
  
- 
- 
     if (existing && existing.length > 0) {
  
       await supabase.from('athlete_max_history')
@@ -9246,8 +8305,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     setHistoryCache((prev) => {
  
       const copy = { ...prev };
@@ -9259,8 +8316,6 @@ const [notificationError, setNotificationError] = useState('');
     });
  
   };
- 
- 
  
   // ---- FORZA ----
  
@@ -9274,8 +8329,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const handleMaxChange = async (exercise: string, reps: number, value: string, athleteId?: string) => {
  
     const aid = athleteId || session.user.id;
@@ -9286,8 +8339,6 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
- 
- 
     await supabase.from('athlete_maxes').upsert(
  
       { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
@@ -9295,8 +8346,6 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'athlete_id' }
  
     );
- 
- 
  
     const w = parseWeightValue(value);
  
@@ -9330,8 +8379,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // ---- METCON E GINNASTICA ----
  
   const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string, athleteId?: string) => {
@@ -9346,8 +8393,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const handleSpecialMaxChange = async (exercise: string, kind: 'tempo' | 'rep', raw: string, athleteId?: string) => {
  
     const aid = athleteId || session.user.id;
@@ -9360,8 +8405,6 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
- 
- 
     await supabase.from('athlete_maxes').upsert(
  
       { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
@@ -9369,8 +8412,6 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'athlete_id' }
  
     );
- 
- 
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
  
@@ -9383,8 +8424,6 @@ const [notificationError, setNotificationError] = useState('');
       await recordMaxHistory(aid, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
  
       setSavedOf(aid, updatedAll);
- 
- 
  
       const migliore = kind === 'tempo' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
  
@@ -9414,8 +8453,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // ---- BENCHMARK ----
  
   const handleBenchTyping = (name: string, raw: string, level: string, athleteId?: string) => {
@@ -9428,8 +8465,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const handleBenchSave = async (name: string, raw: string, level: string, type: string, athleteId?: string) => {
  
     const aid = athleteId || session.user.id;
@@ -9440,8 +8475,6 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
- 
- 
     await supabase.from('athlete_maxes').upsert(
  
       { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
@@ -9449,8 +8482,6 @@ const [notificationError, setNotificationError] = useState('');
       { onConflict: 'athlete_id' }
  
     );
- 
- 
  
     const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
  
@@ -9463,8 +8494,6 @@ const [notificationError, setNotificationError] = useState('');
       await recordMaxHistory(aid, name, -3, numeric, 'benchmark');
  
       setSavedOf(aid, updatedAll);
- 
- 
  
       const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
  
@@ -9494,8 +8523,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const toggleMaxHistory = async (athleteId: string, exercise: string) => {
  
     const key = `${athleteId}|${exercise}`;
@@ -9512,8 +8539,6 @@ const [notificationError, setNotificationError] = useState('');
  
     if (historyCache[key]) return;
  
- 
- 
     const { data } = await supabase
  
       .from('athlete_max_history')
@@ -9526,13 +8551,9 @@ const [notificationError, setNotificationError] = useState('');
  
       .order('recorded_at', { ascending: true });
  
- 
- 
     setHistoryCache((prev) => ({ ...prev, [key]: data || [] }));
  
   };
- 
- 
  
   // Aggiorna il massimale se il peso inserito nella scheda supera quello registrato
  
@@ -9542,17 +8563,11 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!nameTrim) return;
  
- 
- 
     const currentAll = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
- 
- 
  
     const startOfDay = new Date();
  
     startOfDay.setHours(0, 0, 0, 0);
- 
- 
  
     const saveMax = async (updatedAll: any) => {
  
@@ -9582,8 +8597,6 @@ const [notificationError, setNotificationError] = useState('');
  
     };
  
- 
- 
     const wasRecordedToday = async (exercise: string, repsKey: number, source: string) => {
  
       const { data } = await supabase
@@ -9608,8 +8621,6 @@ const [notificationError, setNotificationError] = useState('');
  
     };
  
- 
- 
     // --- 0. Benchmark WOD ---
  
     const bench = BENCHMARK_WODS.find((b: any) => b.name.toLowerCase() === nameTrim.toLowerCase());
@@ -9628,8 +8639,6 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!val || val <= 0) return;
  
- 
- 
       const prevRaw = currentAll[bench.name]?.result;
  
       const prev = bench.type === 'time'
@@ -9642,19 +8651,13 @@ const [notificationError, setNotificationError] = useState('');
  
           : parseWeightValue(prevRaw);
  
- 
- 
       const isCorrection = await wasRecordedToday(bench.name, -3, 'scheda');
  
       const migliore = bench.type === 'time' ? (prev === null || val < prev) : (prev === null || val > prev);
  
- 
- 
       if (!isCorrection && !migliore) return;
  
       if (isCorrection && prev !== null && val === prev) return;
- 
- 
  
       const testo = bench.type === 'time' ? secondsToTime(val) : bench.type === 'rounds' ? numberToRounds(val) : String(val);
  
@@ -9663,8 +8666,6 @@ const [notificationError, setNotificationError] = useState('');
       if (!(await saveMax(updatedAll))) return;
  
       await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
- 
- 
  
       if (!isCorrection) {
  
@@ -9688,8 +8689,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // --- 1. Esercizio metabolico: il risultato è un tempo, più basso è meglio ---
  
     const met = metconPRNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
@@ -9704,21 +8703,15 @@ const [notificationError, setNotificationError] = useState('');
  
       const isCorrection = await wasRecordedToday(met, -1, 'scheda');
  
- 
- 
       if (!isCorrection && prevSec !== null && seconds >= prevSec) return;
  
       if (isCorrection && prevSec !== null && seconds === prevSec) return;
- 
- 
  
       const updatedAll = { ...currentAll, [met]: { ...(currentAll[met] || {}), time: secondsToTime(seconds) } };
  
       if (!(await saveMax(updatedAll))) return;
  
       await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
- 
- 
  
       if (!isCorrection) {
  
@@ -9742,8 +8735,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // --- 2. Esercizio di ginnastica: il risultato sono le ripetizioni ---
  
     const gym = gymPRNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
@@ -9758,21 +8749,15 @@ const [notificationError, setNotificationError] = useState('');
  
       const isCorrection = await wasRecordedToday(gym, -2, 'scheda');
  
- 
- 
       if (!isCorrection && prevReps !== null && reps <= prevReps) return;
  
       if (isCorrection && prevReps !== null && reps === prevReps) return;
- 
- 
  
       const updatedAll = { ...currentAll, [gym]: { ...(currentAll[gym] || {}), reps: String(reps) } };
  
       if (!(await saveMax(updatedAll))) return;
  
       await recordMaxHistory(athleteId, gym, -2, reps, 'scheda');
- 
- 
  
       if (!isCorrection) {
  
@@ -9796,13 +8781,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     // --- 3. Esercizio di forza: il risultato è un peso ---
  
     if (blockType && blockType !== 'forza') return;
- 
- 
  
     const weight = parseWeightValue(scoreText);
  
@@ -9810,19 +8791,13 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!weight || !repsNum) return;
  
- 
- 
     const repsInt = Math.round(repsNum);
  
     if (!REP_SCHEMES.includes(repsInt)) return;
  
- 
- 
     const match = maxExerciseNames.find((n) => n.toLowerCase() === nameTrim.toLowerCase());
  
     if (!match) return;
- 
- 
  
     const currentEx = currentAll[match] || {};
  
@@ -9830,21 +8805,15 @@ const [notificationError, setNotificationError] = useState('');
  
     const isCorrection = await wasRecordedToday(match, repsInt, 'scheda');
  
- 
- 
     if (!isCorrection && previous !== null && weight <= previous) return;
  
     if (isCorrection && previous !== null && weight === previous) return;
- 
- 
  
     const updatedAll = { ...currentAll, [match]: { ...currentEx, [repsInt]: String(weight) } };
  
     if (!(await saveMax(updatedAll))) return;
  
     await recordMaxHistory(athleteId, match, repsInt, weight, 'scheda');
- 
- 
  
     if (!isCorrection) {
  
@@ -9866,8 +8835,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Registra il carico nello storico, con la data del giorno.
  
   // Serve a chi ripete la stessa settimana: nella scheda il valore viene
@@ -9882,8 +8849,6 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!prog) return;
  
- 
- 
       const [wi, di, bi] = String(blockKey).split('_').map((n) => parseInt(n, 10));
  
       const settimane = normalizeProgramWeeks(prog);
@@ -9892,13 +8857,9 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!blk || blk.type !== 'forza' || !blk.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
- 
- 
       const oggi = new Date();
  
       const giorno = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, '0')}-${String(oggi.getDate()).padStart(2, '0')}`;
- 
- 
  
       // Ogni serie diventa una riga con le SUE ripetizioni: così il report può
  
@@ -9908,8 +8869,6 @@ const [notificationError, setNotificationError] = useState('');
  
       const carichi = String(valore || '').split(/\s*[\/]\s*/).map((s) => s.trim());
  
- 
- 
       // uno score con un solo numero vale per tutto il blocco
  
       const righe = carichi.length > 1 && serie.length > 1
@@ -9917,8 +8876,6 @@ const [notificationError, setNotificationError] = useState('');
         ? carichi.map((cr, i) => ({ kg: parseWeightValue(cr), reps: serie[i]?.reps ?? String(blk.reps ?? ''), pos: i }))
  
         : [{ kg: caricoMigliore(valore), reps: String(blk.reps ?? ''), pos: 0 }];
- 
- 
  
       // prima ripulisco le righe di quel blocco in quella giornata, così
  
@@ -9935,8 +8892,6 @@ const [notificationError, setNotificationError] = useState('');
         .eq('block_key', blockKey)
  
         .eq('day', giorno);
- 
- 
  
       const daSalvare = righe
  
@@ -9962,11 +8917,7 @@ const [notificationError, setNotificationError] = useState('');
  
         }));
  
- 
- 
       if (daSalvare.length === 0) return;
- 
- 
  
       await supabase.from('load_history').upsert(daSalvare, { onConflict: 'athlete_id, program_id, block_key, day' });
  
@@ -9978,13 +8929,14 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const handleResultChange = async (programId: string, blockKey: string, field: string | { [k: string]: string }, value?: string, athleteIdOverride?: string) => {
  
     // un solo punto di verita': o un campo singolo, o piu' campi insieme. Scriverli
+ 
     // in due chiamate separate significava costruirli entrambi sullo stesso stato
+ 
     // vecchio, e la seconda scrittura cancellava la prima.
+ 
     const campi: { [k: string]: string } = typeof field === 'string' ? { [field]: value ?? '' } : field;
  
     if (athleteIdOverride) {
@@ -9997,19 +8949,13 @@ const [notificationError, setNotificationError] = useState('');
  
       const currentBlockResults = currentAthleteResults[blockKey] || { score: '', notes: '' };
  
- 
- 
       const updatedBlockResults = { ...currentBlockResults, ...campi };
  
       const updatedAthleteResults = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
  
       const updatedProgResults = { ...currentProgResults, [athleteIdOverride]: updatedAthleteResults };
  
- 
- 
       setCoachAllResults({ ...coachAllResults, [programId]: updatedProgResults });
- 
- 
  
       await supabase.from('program_results').upsert(
  
@@ -10029,31 +8975,21 @@ const [notificationError, setNotificationError] = useState('');
  
       );
  
- 
- 
       if (campi.score !== undefined) registraCarico(programId, blockKey, campi.score, athleteIdOverride);
  
       return;
  
     }
  
- 
- 
     const currentProgResults = athleteResults[programId] || {};
  
     const currentBlockResults = currentProgResults[blockKey] || { score: '', notes: '' };
- 
- 
  
     const updatedBlockResults = { ...currentBlockResults, ...campi };
  
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
  
- 
- 
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
- 
- 
  
     await supabase.from('program_results').upsert(
  
@@ -10073,15 +9009,9 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
- 
- 
     if (campi.score !== undefined) registraCarico(programId, blockKey, campi.score, session.user.id);
  
- 
- 
   };
- 
- 
  
   const handleLogin = async (e: React.FormEvent) => {
  
@@ -10101,8 +9031,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Se cambiando la data di nascita si passa da maggiorenne a minorenne (o viceversa),
  
   // l'informativa da leggere è un'altra: il consenso già dato va ripreso da capo.
@@ -10113,11 +9041,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const oraMinorenne = isMinorenne(nuovaData);
  
- 
- 
     setSignupBirthDate(nuovaData);
- 
- 
  
     if (privacyConsent && eraMinorenne !== oraMinorenne) {
  
@@ -10129,13 +9053,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     if (!oraMinorenne) setSignupGuardian('');
  
   };
- 
- 
  
   // Duplica un esercizio: nella stessa seduta oppure in altre a scelta
  
@@ -10146,8 +9066,6 @@ const [notificationError, setNotificationError] = useState('');
     setDupTargets([]);
  
   };
- 
- 
  
   // Elenco di tutte le sedute del programma in lavorazione
  
@@ -10185,15 +9103,11 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const confermaDuplica = () => {
  
     if (!dupBlock) return;
  
     const { contesto, wIdx, dIdx, bIdx } = dupBlock;
- 
- 
  
     const prog = contesto === 'edit'
  
@@ -10201,15 +9115,11 @@ const [notificationError, setNotificationError] = useState('');
  
       : { weeks: JSON.parse(JSON.stringify(programWeeks)) };
  
- 
- 
     const settimane = normalizeProgramWeeks(prog);
  
     const originale = settimane[wIdx]?.days?.[dIdx]?.blocks?.[bIdx];
  
     if (!originale) { setDupBlock(null); return; }
- 
- 
  
     // Nessuna seduta scelta: duplico subito sotto l'originale, nella stessa seduta
  
@@ -10218,8 +9128,6 @@ const [notificationError, setNotificationError] = useState('');
       ? dupTargets
  
       : [`${wIdx}_${dIdx}`];
- 
- 
  
     destinazioni.forEach((chiave) => {
  
@@ -10239,13 +9147,9 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     if (contesto === 'edit') setEditingProgram({ ...prog, weeks: settimane });
  
     else setProgramWeeks(settimane);
- 
- 
  
     const quante = destinazioni.length;
  
@@ -10257,15 +9161,11 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Cerca l'ultima volta che l'atleta ha fatto un esercizio e con che peso.
  
   // Serve per suggerire un carico anche dove non ci sono massimali registrati.
  
   const ultimoCaricoUsato = (nomeEsercizio: string, repsAttuali?: any) => ricercaUltimoCarico(nomeEsercizio, athleteResults, repsAttuali);
- 
- 
  
   const ultimoCaricoUsatoPer = (athleteId: string, nomeEsercizio: string, repsAttuali?: any) => {
  
@@ -10282,8 +9182,6 @@ const [notificationError, setNotificationError] = useState('');
     return ricercaUltimoCarico(nomeEsercizio, risultatiAtleta, repsAttuali);
  
   };
- 
- 
  
   // Se l'atleta ha scritto un peso diverso per ogni serie (es. "7/7/6/6"),
  
@@ -10307,8 +9205,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Il menu delle tre sezioni si aggancia in alto quando si scorre oltre,
  
   // cosi' non serve risalire tutta la pagina per cambiare sezione
@@ -10316,8 +9212,6 @@ const [notificationError, setNotificationError] = useState('');
   useEffect(() => {
  
     if (role !== 'coach') return;
- 
- 
  
     const controlla = () => {
  
@@ -10328,8 +9222,6 @@ const [notificationError, setNotificationError] = useState('');
       setMenuAgganciato(ancora.getBoundingClientRect().top < 0);
  
     };
- 
- 
  
     controlla();
  
@@ -10347,8 +9239,6 @@ const [notificationError, setNotificationError] = useState('');
  
   }, [role, coachSubView, activeTab]);
  
- 
- 
   // Esercizi del riscaldamento: elenco dentro il blocco
  
   const aggiornaWarmItems = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, nuovi: any[]) => {
@@ -10359,23 +9249,17 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const aggiungiWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[]) => {
  
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, [...(attuali || []), { name: '', value: '', videoUrl: '' }]);
  
   };
  
- 
- 
   const modificaWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number, campo: string, valore: string) => {
  
     const copia = [...(attuali || [])];
  
     copia[i] = { ...copia[i], [campo]: valore };
- 
- 
  
     // Scrivendo un esercizio già in libreria, ne recupero il video
  
@@ -10387,13 +9271,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
  
   };
- 
- 
  
   const spostaWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number, verso: 'su' | 'giu') => {
  
@@ -10409,15 +9289,11 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const togliWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
  
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, (attuali || []).filter((_: any, k: number) => k !== i));
  
   };
- 
- 
  
   // Sceglie il tipo di blocco. Passando a WARM UP, se il nome è vuoto
  
@@ -10438,7 +9314,6 @@ const [notificationError, setNotificationError] = useState('');
         blocco.name = nomeElenco(tipo);
  
       }
- 
  
       if (tipo !== 'forza') {
  
@@ -10461,9 +9336,8 @@ const [notificationError, setNotificationError] = useState('');
         blocco.rest = '90 sec';
  
       }
+ 
     };
- 
- 
  
     if (contesto === 'edit') {
  
@@ -10486,8 +9360,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
- 
  
   // Visibilita' di settimane e giorni verso l'atleta. Il flag vive dentro il
  
@@ -10513,11 +9385,7 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!salvato) return;
  
- 
- 
     const settimane = JSON.parse(JSON.stringify(normalizeProgramWeeks(salvato)));
- 
- 
  
     // aggancio per nome, con l'indice come riserva: se la settimana o il giorno
  
@@ -10534,8 +9402,6 @@ const [notificationError, setNotificationError] = useState('');
     const settimana = settimane[ws];
  
     if (!settimana) return;
- 
- 
  
     if (dIdx === null) {
  
@@ -10555,8 +9421,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     const { error } = await supabase
  
       .from('programs')
@@ -10564,8 +9428,6 @@ const [notificationError, setNotificationError] = useState('');
       .update({ weeks: settimane, days: settimane[0]?.days || [] })
  
       .eq('id', editingProgram.id);
- 
- 
  
     if (error) {
  
@@ -10575,13 +9437,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     fetchProgramLibrary();
  
   };
- 
- 
  
   const toggleVisibilitaSettimana = async (wIdx: number) => {
  
@@ -10603,8 +9461,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   const toggleVisibilitaGiorno = async (wIdx: number, dIdx: number) => {
  
     if (!editingProgram) return;
@@ -10624,8 +9480,6 @@ const [notificationError, setNotificationError] = useState('');
     avvisa(d.hidden ? "Giorno nascosto all'atleta" : "Giorno di nuovo visibile all'atleta");
  
   };
- 
- 
  
   // Il pulsante occhio, uguale per settimane e giorni.
  
@@ -10671,13 +9525,9 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!prog || !risultati) return [];
  
- 
- 
     const settimane = normalizeProgramWeeks(prog);
  
     const raccolta: { [chiave: string]: any } = {};
- 
- 
  
     settimane.forEach((sett: any, wi: number) => {
  
@@ -10687,21 +9537,15 @@ const [notificationError, setNotificationError] = useState('');
  
           if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
- 
- 
           const dato = risultati[`${wi}_${di}_${bi}`];
  
           const kg = parseWeightValue(dato?.score);
  
           if (!kg) return;
  
- 
- 
           const chiave = String(blk.name).toLowerCase().replace(/[^a-z0-9]/g, '');
  
           const voce = { kg, reps: blk.reps || null, settimana: sett.weekName || `Settimana ${wi + 1}`, ordine: wi * 100 + di };
- 
- 
  
           if (!raccolta[chiave]) {
  
@@ -10725,8 +9569,6 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     // Un solo dato non dice nulla sull'andamento: lo scarto
  
     return Object.values(raccolta)
@@ -10740,8 +9582,6 @@ const [notificationError, setNotificationError] = useState('');
         const diffKg = Math.round((r.ultimo.kg - r.primo.kg) * 10) / 10;
  
         const diffPct = r.primo.kg > 0 ? Math.round(((r.ultimo.kg - r.primo.kg) / r.primo.kg) * 1000) / 10 : 0;
- 
- 
  
         // Con ripetizioni diverse il confronto diretto ingannerebbe:
  
@@ -10759,8 +9599,6 @@ const [notificationError, setNotificationError] = useState('');
  
         const diffStimaPct = stima1 > 0 ? Math.round(((stima2 - stima1) / stima1) * 1000) / 10 : 0;
  
- 
- 
         return { ...r, stesseReps, diffKg, diffPct, stima1: Math.round(stima1 * 10) / 10, stima2: Math.round(stima2 * 10) / 10, diffStima, diffStimaPct };
  
       })
@@ -10768,8 +9606,6 @@ const [notificationError, setNotificationError] = useState('');
       .sort((a: any, b: any) => (b.stesseReps ? b.diffPct : b.diffStimaPct) - (a.stesseReps ? a.diffPct : a.diffStimaPct));
  
   };
- 
- 
  
   const fetchStoricoCarichi = async (athleteId: string) => {
  
@@ -10786,8 +9622,6 @@ const [notificationError, setNotificationError] = useState('');
     setStoricoCarichi(data || []);
  
   };
- 
- 
  
   const fetchStoricoCarichiCoach = async () => {
  
@@ -10813,8 +9647,6 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
- 
- 
   // Progressi calcolati sullo storico per data: funziona anche per chi ripete
  
   // la stessa settimana, dove nella scheda il carico viene sovrascritto
@@ -10823,13 +9655,9 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!righe || righe.length === 0) return null;
  
- 
- 
     const utili = programId ? righe.filter((r: any) => r.program_id === programId) : righe;
  
     if (utili.length === 0) return null;
- 
- 
  
     // Di ogni giornata e schema di ripetizioni tengo la serie migliore:
  
@@ -10849,8 +9677,6 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     const raccolta: { [esercizio: string]: { [reps: string]: any[] } } = {};
  
     Object.values(perGiorno).forEach((r: any) => {
@@ -10867,29 +9693,21 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     const esercizi: any[] = [];
  
     let migliorati = 0;
  
     let esclusi = 0;
  
- 
- 
     Object.keys(raccolta).forEach((nome) => {
  
       const righeEx: any[] = [];
- 
- 
  
       Object.keys(raccolta[nome]).forEach((reps) => {
  
         const serie = raccolta[nome][reps].sort((a: any, b: any) => String(a.day).localeCompare(String(b.day)));
  
         if (serie.length < 2) { esclusi++; return; }
- 
- 
  
         const primo = Number(serie[0].load_kg);
  
@@ -10903,8 +9721,6 @@ const [notificationError, setNotificationError] = useState('');
  
       });
  
- 
- 
       if (righeEx.length === 0) return;
  
       righeEx.sort((a, b) => (parseInt(a.reps, 10) || 0) - (parseInt(b.reps, 10) || 0));
@@ -10915,8 +9731,6 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     if (esercizi.length === 0) return null;
  
     esercizi.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -10924,8 +9738,6 @@ const [notificationError, setNotificationError] = useState('');
     return { esercizi, migliorati, totale: esercizi.length, esclusi };
  
   };
- 
- 
  
   // Unisce i due modi: prima prova con lo storico per data, che copre anche
  
@@ -10937,8 +9749,6 @@ const [notificationError, setNotificationError] = useState('');
  
     const dentroProgramma = calcolaProgressi(prog, risultati);
  
- 
- 
     if (!daStorico) return dentroProgramma;
  
     if (!dentroProgramma) return daStorico;
@@ -10946,8 +9756,6 @@ const [notificationError, setNotificationError] = useState('');
     return daStorico.esercizi.length >= dentroProgramma.esercizi.length ? daStorico : dentroProgramma;
  
   };
- 
- 
  
   // Progressi di carico dentro un programma: confronta il primo e l'ultimo
  
@@ -10959,15 +9767,11 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!prog || !risultati) return null;
  
- 
- 
     const settimane = normalizeProgramWeeks(prog);
  
     const raccolta: { [esercizio: string]: { [reps: string]: { kg: number; ordine: number }[] } } = {};
  
     let scartati = 0;
- 
- 
  
     settimane.forEach((sett: any, wi: number) => {
  
@@ -10977,19 +9781,13 @@ const [notificationError, setNotificationError] = useState('');
  
           if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
  
- 
- 
           const kg = parseWeightValue(risultati[`${wi}_${di}_${bi}`]?.score);
  
           if (!kg) return;
  
- 
- 
           const reps = String(blk.reps ?? '').trim();
  
           if (!reps) { scartati++; return; }
- 
- 
  
           if (!raccolta[blk.name]) raccolta[blk.name] = {};
  
@@ -11003,29 +9801,21 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     const esercizi: any[] = [];
  
     let migliorati = 0;
  
     let esclusi = 0;
  
- 
- 
     Object.keys(raccolta).forEach((nome) => {
  
       const righe: any[] = [];
- 
- 
  
       Object.keys(raccolta[nome]).forEach((reps) => {
  
         const serie = raccolta[nome][reps].sort((a, b) => a.ordine - b.ordine);
  
         if (serie.length < 2) { esclusi++; return; }
- 
- 
  
         const primo = serie[0].kg;
  
@@ -11039,8 +9829,6 @@ const [notificationError, setNotificationError] = useState('');
  
       });
  
- 
- 
       if (righe.length === 0) return;
  
       righe.sort((a, b) => (parseInt(a.reps, 10) || 0) - (parseInt(b.reps, 10) || 0));
@@ -11051,8 +9839,6 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
- 
- 
     if (esercizi.length === 0) return null;
  
     esercizi.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -11060,8 +9846,6 @@ const [notificationError, setNotificationError] = useState('');
     return { esercizi, migliorati, totale: esercizi.length, esclusi: esclusi + scartati };
  
   };
- 
- 
  
   // Finestra rapida con i risultati di un programma, aperta dalla libreria.
  
@@ -11071,13 +9855,9 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!risultatiAperti) return null;
  
- 
- 
     const prog = programLibrary.find((p: any) => p.id === risultatiAperti.progId);
  
     if (!prog) return null;
- 
- 
  
     const settimane = normalizeProgramWeeks(prog);
  
@@ -11088,8 +9868,6 @@ const [notificationError, setNotificationError] = useState('');
       ? athletes.filter((a: any) => prog.assignedAthleteIds.includes(a.id))
  
       : athletes.filter((a: any) => perAtleta[a.id]);
- 
- 
  
     const sett = risultatiAperti.sett || settimane[0]?.weekName;
  
@@ -11112,8 +9890,6 @@ const [notificationError, setNotificationError] = useState('');
     const indiciBlocchi = tuttiBlocchi.map((_b: any, bi: number) => bi);
  
     const blocchi = indiciBlocchi.map((bi: number) => tuttiBlocchi[bi]);
- 
- 
  
     return (
  
@@ -11141,8 +9917,6 @@ const [notificationError, setNotificationError] = useState('');
  
           </div>
  
- 
- 
           <div style={{ padding: '12px 16px', overflowY: 'auto', flex: 1 }}>
  
             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '3px' }}>
@@ -11167,8 +9941,6 @@ const [notificationError, setNotificationError] = useState('');
  
             </div>
  
- 
- 
             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '3px' }}>
  
               {(settObj?.days || []).map((d: any) => (
@@ -11191,8 +9963,6 @@ const [notificationError, setNotificationError] = useState('');
  
             </div>
  
- 
- 
             {assegnati.length === 0 ? (
  
               <p style={{ fontSize: '12.5px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun atleta assegnato a questo programma.</p>
@@ -11212,8 +9982,6 @@ const [notificationError, setNotificationError] = useState('');
                 }).length;
  
                 const pieno = blocchi.length > 0 && fatti === blocchi.length;
- 
- 
  
                 return (
  
@@ -11263,78 +10031,130 @@ const [notificationError, setNotificationError] = useState('');
  
                     </div>
  
- 
- 
                     {blocchi.map((blk: any, bi: number) => {
  
                       const bReale = indiciBlocchi[bi];
+ 
                       const dato = suoi[`${wIdx}_${dIdx}_${bReale}`];
+ 
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
+ 
                       const chiaveDettaglio = `${ath.id}_${wIdx}_${dIdx}_${bReale}`;
+ 
                       const aperto = dettaglioEsercizioAperto === chiaveDettaglio;
  
                       return (
+ 
                         <div key={bi} style={{ background: compilato ? 'var(--bg-f8fafc)' : 'var(--bg-fef2f2)', borderRadius: '6px', marginBottom: '4px', overflow: 'hidden' }}>
+ 
                           <div
+ 
                             onClick={() => setDettaglioEsercizioAperto(aperto ? null : chiaveDettaglio)}
+ 
                             style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '9px', padding: '7px 10px', flexWrap: 'wrap', cursor: 'pointer' }}
+ 
                           >
+ 
                             <span style={{ fontSize: '11.5px', color: compilato ? 'var(--fg-334155)' : 'var(--fg-991b1b)', overflowWrap: 'anywhere' }}>
+ 
                               {blk.name || (blk.type === 'warmup' ? 'Warm up' : `Esercizio ${bReale + 1}`)}
+ 
                             </span>
+ 
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px', minWidth: 0, maxWidth: '100%' }}>
+ 
                               <span style={{ fontSize: '12px', fontWeight: 'bold', color: compilato ? 'var(--fg-047857)' : 'var(--fg-b91c1c)', overflowWrap: 'anywhere', textAlign: 'right' }}>
+ 
                                 {compilato ? (dato.score || 'solo note') : 'non inserito'}
+ 
                               </span>
+ 
                               <Icona nome={aperto ? 'su' : 'giu'} size={12} style={{ color: 'var(--fg-94a3b8)' }} />
+ 
                             </span>
+ 
                           </div>
  
                           {aperto && (
+ 
                             <div style={{ padding: '0 10px 10px 10px' }}>
+ 
                               {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
+ 
                                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>
+ 
                                   {[
+ 
                                     blk.sets && `${blk.sets} serie`,
+ 
                                     blk.reps && `${blk.reps} rip`,
+ 
                                     blk.load && String(blk.load),
+ 
                                     blk.rest && `rec. ${blk.rest}`,
+ 
                                   ].filter(Boolean).join('  ·  ')}
+ 
                                 </span>
+ 
                               )}
  
                               {blk.type === 'wod' && blk.wodNotes && (
+ 
                                 <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--bg-f1f5f9)', borderRadius: '6px', padding: '7px 9px' }}>
+ 
                                   {blk.wodNotes}
+ 
                                 </p>
+ 
                               )}
  
                               {haElenco(blk.type) && (blk.items || []).length > 0 && (
+ 
                                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px', lineHeight: 1.5 }}>
+ 
                                   {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 ? `${parseInt(String(blk.rounds), 10)} round · ` : ''}
+ 
                                   {(blk.items || []).map((it: any) => `${it.name}${it.value ? ' ' + it.value : ''}`).join(' · ')}
+ 
                                 </span>
+ 
                               )}
  
                               {blk.notes && (
+ 
                                 <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
+ 
                                   {blk.notes}
+ 
                                 </p>
+ 
                               )}
  
                               {dato?.notes && (
+ 
                                 <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--fg-475569)', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line' }}>
+ 
                                   &ldquo;{dato.notes}&rdquo;
+ 
                                 </p>
+ 
                               )}
  
                               {!blk.notes && !dato?.notes && blk.type !== 'wod' && !(haElenco(blk.type) && (blk.items || []).length > 0) && !((blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest)) && (
+ 
                                 <p style={{ margin: 0, fontSize: '11px', color: 'var(--fg-94a3b8)' }}>Nessun dettaglio aggiuntivo per questo esercizio.</p>
+ 
                               )}
+ 
                             </div>
+ 
                           )}
+ 
                         </div>
+ 
                       );
+ 
                     })}
  
                   </div>
@@ -11346,8 +10166,6 @@ const [notificationError, setNotificationError] = useState('');
             )}
  
           </div>
- 
- 
  
           <div style={{ padding: '11px 16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -11366,8 +10184,6 @@ const [notificationError, setNotificationError] = useState('');
     );
  
   };
- 
- 
  
   // Tutti i programmi di un atleta con i suoi risultati, compresi quelli
  
@@ -11395,8 +10211,6 @@ const [notificationError, setNotificationError] = useState('');
  
       .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
  
- 
- 
     if (suoi.length === 0) {
  
       return (
@@ -11417,8 +10231,6 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
- 
- 
     return (
  
       <div>
@@ -11428,8 +10240,6 @@ const [notificationError, setNotificationError] = useState('');
           {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
  
         </span>
- 
- 
  
         {suoi.map((prog: any) => {
  
@@ -11443,8 +10253,6 @@ const [notificationError, setNotificationError] = useState('');
  
           const settimane = normalizeProgramWeeks(prog);
  
- 
- 
           const sett = progrSett[prog.id] || settimane[0]?.weekName;
  
           const settObj = settimane.find((w: any) => w.weekName === sett) || settimane[0];
@@ -11456,8 +10264,6 @@ const [notificationError, setNotificationError] = useState('');
           const dIdx = (settObj?.days || []).findIndex((d: any) => d.dayName === giorno);
  
           const blocchi = settObj?.days?.[dIdx]?.blocks || [];
- 
- 
  
           // quanto ha compilato in tutto il programma
  
@@ -11484,8 +10290,6 @@ const [notificationError, setNotificationError] = useState('');
             });
  
           });
- 
- 
  
           return (
  
@@ -11533,8 +10337,6 @@ const [notificationError, setNotificationError] = useState('');
  
               </button>
  
- 
- 
               {aperto && !perAtleta && (
  
                 <div style={{ padding: '12px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
@@ -11575,8 +10377,6 @@ const [notificationError, setNotificationError] = useState('');
  
                   })()}
  
- 
- 
                   <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '8px', paddingBottom: '3px' }}>
  
                     {settimane.map((w: any) => (
@@ -11605,8 +10405,6 @@ const [notificationError, setNotificationError] = useState('');
  
                   </div>
  
- 
- 
                   <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '3px' }}>
  
                     {(settObj?.days || []).map((d: any, di: number) => {
@@ -11628,8 +10426,6 @@ const [notificationError, setNotificationError] = useState('');
                       const pieno = bl.length > 0 && f === bl.length;
  
                       const sel = giorno === d.dayName;
- 
- 
  
                       return (
  
@@ -11685,8 +10481,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                   </div>
  
- 
- 
                   {blocchi.length === 0 ? (
  
                     <p style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun esercizio in questo giorno.</p>
@@ -11700,8 +10494,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
  
                       const nome = blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`);
- 
- 
  
                       return (
  
@@ -11735,8 +10527,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           </div>
  
- 
- 
                           {/* Cosa gli avevi chiesto: serie, ripetizioni, carico, recupero */}
  
                           {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
@@ -11759,8 +10549,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           )}
  
- 
- 
                           {/* Il testo del WOD, per capire a cosa si riferisce il punteggio */}
  
                           {blk.type === 'wod' && blk.wodNotes && (
@@ -11772,8 +10560,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                             </p>
  
                           )}
- 
- 
  
                           {/* Gli esercizi del riscaldamento */}
  
@@ -11789,8 +10575,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           )}
  
- 
- 
                           {/* Le tue indicazioni sull'esercizio */}
  
                           {blk.notes && (
@@ -11802,8 +10586,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                             </p>
  
                           )}
- 
- 
  
                           {/* Quello che ha scritto lui */}
  
@@ -11841,8 +10623,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   // Riepilogo dei cicli conclusi: cosa ha fatto l'atleta nel tempo, senza
  
   // entrare nel contenuto delle schede. Serve a dare il senso del percorso.
@@ -11852,8 +10632,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     const oggi = new Date();
  
     oggi.setHours(0, 0, 0, 0);
- 
- 
  
     return programLibrary
  
@@ -11875,8 +10653,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         const settimane = normalizeProgramWeeks(p);
  
- 
- 
         let sedute = 0;
  
         let seduteFatte = 0;
@@ -11884,8 +10660,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
         let esercizi = 0;
  
         let eserciziFatti = 0;
- 
- 
  
         settimane.forEach((w: any, wi: number) => {
  
@@ -11896,8 +10670,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             if (blocchi.length === 0) return;
  
             sedute++;
- 
- 
  
             let quanti = 0;
  
@@ -11923,8 +10695,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         });
  
- 
- 
         return { prog: p, sedute, seduteFatte, esercizi, eserciziFatti };
  
       })
@@ -11934,8 +10704,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       .sort((a: any, b: any) => String(b.prog.endDate || '').localeCompare(String(a.prog.endDate || '')));
  
   };
- 
- 
  
   // Lo storico per data parte da quando è stata creata la tabella: per non
  
@@ -11947,8 +10715,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const righe: any[] = [];
  
- 
- 
     programLibrary
  
       .filter((p: any) => !p.isDeleted)
@@ -11959,13 +10725,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         if (!ris) return;
  
- 
- 
         const base = String(prog.startDate || '').split('T')[0];
  
         const settimane = normalizeProgramWeeks(prog);
- 
- 
  
         settimane.forEach((w: any, wi: number) => {
  
@@ -11978,8 +10740,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
               const kg = caricoMigliore(ris[`${wi}_${di}_${bi}`]?.score);
  
               if (!kg) return;
- 
- 
  
               // sposto la data di una settimana per volta, così l'ordine è giusto
  
@@ -11994,8 +10754,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                 giorno = `${d0.getFullYear()}-${String(d0.getMonth() + 1).padStart(2, '0')}-${String(d0.getDate()).padStart(2, '0')}`;
  
               }
- 
- 
  
               righe.push({
  
@@ -12017,13 +10775,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       });
  
- 
- 
     return righe;
  
   };
- 
- 
  
   // Riepilogo del percorso: quanto ha fatto, cosa ha concluso, quanto è cresciuto.
  
@@ -12034,8 +10788,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     const risultatiDi = (progId: string) =>
  
       perAtleta ? athleteResults[progId] : coachAllResults[progId]?.[athleteId];
- 
- 
  
     // I programmi che ha davvero svolto: assegnati a lui e ormai finiti
  
@@ -12054,8 +10806,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       })
  
       .sort((a: any, b: any) => String(b.endDate || '').localeCompare(String(a.endDate || '')));
- 
- 
  
     // Sedute completate: un giorno conta se ha compilato almeno un esercizio
  
@@ -12093,8 +10843,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       });
  
- 
- 
     // Da quanto si allena, contando dal primo carico registrato
  
     let mesi = 0;
@@ -12115,8 +10863,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     const numero = (valore: any, etichetta: string) => (
  
       <div style={{ flex: '1 1 90px', minWidth: 0, background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px 10px', textAlign: 'center' }}>
@@ -12128,8 +10874,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       </div>
  
     );
- 
- 
  
     return (
  
@@ -12145,15 +10889,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         </div>
  
- 
- 
       </div>
  
     );
  
   };
- 
- 
  
   // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
  
@@ -12165,13 +10905,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     oggi.setHours(0, 0, 0, 0);
  
- 
- 
     let dal: string | null = null;
  
     let al: string | null = null;
- 
- 
  
     if (periodoProgressi === 'scelto') {
  
@@ -12189,15 +10925,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     const fonte = (righe && righe.length > 0)
  
       ? righe
  
       : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
- 
- 
  
     const nelPeriodo = fonte.filter((r: any) => {
  
@@ -12211,11 +10943,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     });
  
- 
- 
     const dati = progressiDaStorico(nelPeriodo);
- 
- 
  
     // Ordino per miglioramento: prima quelli cresciuti di più
  
@@ -12232,8 +10960,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       });
  
     }
- 
- 
  
     const bottone = (k: string, etichetta: string) => (
  
@@ -12263,8 +10989,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     );
  
- 
- 
     return (
  
       <div>
@@ -12285,21 +11009,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         </p>
  
- 
- 
         {athleteId && riepilogoPercorso(athleteId, righe, perAtleta)}
- 
- 
- 
- 
  
         <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '9px' }}>
  
           CRESCITA DEI CARICHI
  
         </span>
- 
- 
  
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
  
@@ -12314,8 +11030,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
           {bottone('scelto', 'Scegli date')}
  
         </div>
- 
- 
  
         {periodoProgressi === 'scelto' && (
  
@@ -12361,8 +11075,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
- 
- 
         {!dati ? (
  
           <p style={{ fontSize: '12.5px', color: 'var(--fg-94a3b8)', lineHeight: 1.5, margin: 0 }}>
@@ -12388,8 +11100,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
               </span>
  
             </div>
- 
- 
  
             {dati.esercizi.map((ex: any, i: number) => (
  
@@ -12439,8 +11149,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
- 
- 
         {athleteId && (
  
           <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
@@ -12457,8 +11165,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   // Cerca nel testo di un WOD i nomi degli esercizi presenti in libreria.
  
   // Riconosce anche le abbreviazioni che hai indicato negli alias.
@@ -12466,8 +11172,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   const trovaEserciziNelTesto = (testo: string, giaPresenti: any[]) => {
  
     if (!testo || !testo.trim()) return [];
- 
- 
  
     const pulisci = (s: any) => String(s || '')
  
@@ -12483,17 +11187,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       .trim();
  
- 
- 
     const testoPulito = ' ' + pulisci(testo) + ' ';
  
     const nomiGia = new Set((giaPresenti || []).map((it: any) => pulisci(it?.name)).filter(Boolean));
  
- 
- 
     const trovati: any[] = [];
- 
- 
  
     exerciseLibrary
  
@@ -12506,8 +11204,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
         if (!nome || nomiGia.has(nome)) return;
  
         if (trovati.some((t) => pulisci(t.name) === nome)) return;
- 
- 
  
         // il nome per esteso, più le eventuali abbreviazioni
  
@@ -12523,8 +11219,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           .forEach((a: string) => forme.push(a));
  
- 
- 
         // cerco la forma come parola intera, non dentro un'altra parola
  
         const presente = forme.some((f) => testoPulito.includes(' ' + f + ' '));
@@ -12533,8 +11227,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       });
  
- 
- 
     // gli esercizi con il nome più lungo per primi: sono i più specifici
  
     trovati.sort((a, b) => String(b.name).length - String(a.name).length);
@@ -12542,8 +11234,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return trovati;
  
   };
- 
- 
  
   // Messaggio di conferma che compare in alto e sparisce da solo
  
@@ -12554,8 +11244,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setTimeout(() => setMessaggio(null), 3200);
  
   };
- 
- 
  
   // Confronto per la ricerca: ignora maiuscole e accenti
  
@@ -12575,13 +11263,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const ricercaUltimoCarico = (nomeEsercizio: string, risultatiPerProgramma: any, repsAttuali?: any) => {
  
     if (!nomeEsercizio || !risultatiPerProgramma) return null;
- 
- 
  
     // Programmi dal più recente al più vecchio
  
@@ -12591,23 +11275,17 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
  
- 
- 
     // Raccolgo l'ultimo carico per ogni schema di ripetizioni diverso
  
     const trovati: { kg: number; reps: any; testo: string }[] = [];
  
     const gia = new Set<string>();
  
- 
- 
     for (const prog of programmi) {
  
       const risultati = risultatiPerProgramma[prog.id];
  
       if (!risultati) continue;
- 
- 
  
       const settimane = normalizeProgramWeeks(prog);
  
@@ -12625,8 +11303,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             if (!sameName(blk?.name, nomeEsercizio)) continue;
  
- 
- 
             if (blk?.scoreUnit && blk.scoreUnit !== 'kg') continue;
  
             const grezzo = risultati[`${wi}_${di}_${bi}`]?.score;
@@ -12635,8 +11311,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             if (!kg) continue;
  
- 
- 
             const chiave = String(blk.reps ?? '');
  
             if (gia.has(chiave)) continue;   // di ogni schema tengo solo il più recente
@@ -12644,8 +11318,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             gia.add(chiave);
  
             trovati.push({ kg, reps: blk.reps || null, testo: String(grezzo || '').trim() });
- 
- 
  
             if (trovati.length >= 3) return ordinaPerRipetizioni(trovati, repsAttuali);
  
@@ -12657,13 +11329,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     return trovati.length > 0 ? ordinaPerRipetizioni(trovati, repsAttuali) : null;
  
   };
- 
- 
  
   // Metto per primo lo schema uguale a quello di oggi: è il confronto più utile
  
@@ -12678,8 +11346,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return [...uguale, ...altri];
  
   };
- 
- 
  
   // ---- COMPETITION DAY: calendario gare ----
  
@@ -12698,8 +11364,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setCompetitions(data || []);
  
   };
- 
- 
  
   const fetchAllCompetitionsForCoach = async () => {
  
@@ -12725,8 +11389,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const salvaCompetizione = async (athleteId: string, isCoach: boolean) => {
  
     if (!newComp.name.trim() || !newComp.event_date) {
@@ -12736,8 +11398,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
- 
- 
  
     const dati = {
  
@@ -12751,19 +11411,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     };
  
- 
- 
     const { error } = editCompId
  
       ? await supabase.from('competition_days').update(dati).eq('id', editCompId)
  
       : await supabase.from('competition_days').insert([dati]);
  
- 
- 
     if (error) { alert('Errore: ' + error.message); return; }
- 
- 
  
     setNewComp({ name: '', event_date: '', notes: '' });
  
@@ -12776,8 +11430,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     else fetchCompetitions(athleteId);
  
   };
- 
- 
  
   const eliminaCompetizione = async (id: string, athleteId: string, isCoach: boolean) => {
  
@@ -12793,15 +11445,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   // Pannello per gestire il calendario gare, uguale per atleta e coach
  
   const pannelloCompetizioni = (athleteId: string, gare: any[], isCoach: boolean) => {
  
     const ordinate = [...(gare || [])].sort((a, b) => String(a.event_date).localeCompare(String(b.event_date)));
- 
- 
  
     return (
  
@@ -12819,15 +11467,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         </div>
  
- 
- 
         {ordinate.length === 0 && !showCompForm && (
  
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-94a3b8)' }}>Nessuna gara in calendario.</p>
  
         )}
- 
- 
  
         {ordinate.map((g: any) => {
  
@@ -12875,8 +11519,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         })}
  
- 
- 
         {showCompForm ? (
  
           <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '12px', boxSizing: 'border-box', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
@@ -12901,8 +11543,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             />
  
- 
- 
             <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
  
               Data della gara
@@ -12920,8 +11560,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
               style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }}
  
             />
- 
- 
  
             <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
  
@@ -12977,8 +11615,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const handleSignUp = async (e: React.FormEvent) => {
  
     e.preventDefault();
@@ -12986,8 +11622,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     if (authLoading) return;   // evita doppi invii se si tocca più volte
  
     setAuthError('');
- 
- 
  
     if (!signupGender) {
  
@@ -12997,8 +11631,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     if (!signupBirthDate) {
  
       setAuthError('Inserisci la data di nascita: serve per stabilire quale informativa privacy ti spetta.');
@@ -13006,8 +11638,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
- 
- 
  
     if (!firstName.trim() || !lastName.trim()) {
  
@@ -13017,8 +11647,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     if (isMinorenne(signupBirthDate) && !signupGuardian.trim()) {
  
       setAuthError('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
@@ -13027,8 +11655,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     if (!privacyConsent) {
  
       setAuthError('Devi accettare l\'informativa sul trattamento dei dati personali per registrarti.');
@@ -13036,8 +11662,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
- 
- 
  
     setAuthLoading(true);
  
@@ -13075,8 +11699,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setAuthLoading(false);
  
- 
- 
     if (error) {
  
       setAuthError(error.message);
@@ -13090,8 +11712,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       setSignupDoneEmail(email);
  
       setIsRegistering(false);
- 
- 
  
       fetch('/api/notify-coach', {
  
@@ -13135,8 +11755,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const handlePasswordReset = async (e: React.FormEvent) => {
  
     e.preventDefault();
@@ -13169,8 +11787,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const cambiaPassword = async () => {
  
     if (newPassword.length < 6) {
@@ -13189,15 +11805,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     setPasswordSaving(true);
  
     const { error } = await supabase.auth.updateUser({ password: newPassword });
  
     setPasswordSaving(false);
- 
- 
  
     if (error) {
  
@@ -13206,8 +11818,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
- 
- 
  
     setNewPassword('');
  
@@ -13227,8 +11837,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const handleLogout = async () => {
  
     await supabase.auth.signOut();
@@ -13236,8 +11844,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setSession(null);
  
   };
- 
- 
  
   const toggleBlockCollapse = (blockKey: string) => {
  
@@ -13251,8 +11857,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const toggleProgramDayCollapse = (key: string) => {
  
     setCollapsedProgramDays(prev => {
@@ -13264,8 +11868,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     });
  
   };
- 
- 
  
   const toggleAthleteSelection = (athleteId: string, currentList: string[], setListFn: (list: string[]) => void) => {
  
@@ -13280,8 +11882,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     }
  
   };
- 
- 
  
   const addWeek = () => {
  
@@ -13300,8 +11900,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setSelectedDayView('Giorno 1');
  
   };
- 
- 
  
   const cloneWeek = (weekToClone: any) => {
  
@@ -13323,8 +11921,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const moveWeekOrder = (index: number, direction: 'left' | 'right') => {
  
     const newIndex = direction === 'left' ? index - 1 : index + 1;
@@ -13343,8 +11939,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const addDay = (wIdx: number) => {
  
     const updated = JSON.parse(JSON.stringify(programWeeks));
@@ -13362,8 +11956,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setSelectedDayView(newName);
  
   };
- 
- 
  
   const cloneDay = (wIdx: number, dayToClone: any) => {
  
@@ -13385,8 +11977,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const moveDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
  
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
@@ -13406,8 +11996,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setProgramWeeks(updated);
  
   };
- 
- 
  
   const cloneEditingWeek = (weekToClone: any) => {
  
@@ -13429,8 +12017,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const moveEditingWeekOrder = (index: number, direction: 'left' | 'right') => {
  
     const newIndex = direction === 'left' ? index - 1 : index + 1;
@@ -13448,8 +12034,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setEditingProgram(updated);
  
   };
- 
- 
  
   const addEditingWeek = () => {
  
@@ -13493,8 +12077,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const cloneEditingDay = (wIdx: number, dayToClone: any) => {
  
     const updated = JSON.parse(JSON.stringify(editingProgram));
@@ -13512,8 +12094,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setSelectedDayView(clonedName);
  
   };
- 
- 
  
   const moveEditingDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
  
@@ -13535,15 +12115,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const removeBlockFromFreeDay = (wIdx: number, dayIndex: number, blockIndex: number) => {
  
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
     const blocco = updated[wIdx].days[dayIndex].blocks[blockIndex];
- 
- 
  
     // chiedo conferma solo se c'è qualcosa da perdere
  
@@ -13567,15 +12143,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     updated[wIdx].days[dayIndex].blocks.splice(blockIndex, 1);
  
     setProgramWeeks(updated);
  
   };
- 
- 
  
   const moveFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
  
@@ -13599,8 +12171,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const moveEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, direction: 'up' | 'down') => {
  
     const updated = JSON.parse(JSON.stringify(editingProgram));
@@ -13623,8 +12193,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   // Salva in libreria un esercizio scritto al volo mentre si costruisce una scheda
  
   const salvaInLibreriaDaScheda = async (nome: string, video: string) => {
@@ -13632,8 +12200,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     const pulito = String(nome || '').trim();
  
     if (!pulito) return;
- 
- 
  
     const esistente = exerciseLibrary.find((e: any) => sameName(e.name, pulito));
  
@@ -13657,8 +12223,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     const { error } = await supabase.from('exercises_library').insert([{ name: pulito, video_url: video || '' }]);
  
     if (error) { alert('Errore: ' + error.message); return; }
@@ -13669,17 +12233,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const addGlobalExercise = async (e: React.FormEvent) => {
  
     e.preventDefault();
  
- 
- 
     if (!newExName) return;
- 
- 
  
     // Se un esercizio con lo stesso nome esiste già, lo aggiorno invece di duplicarlo
  
@@ -13721,8 +12279,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
- 
- 
     const { error } = await supabase.from('exercises_library').insert([{
  
       name: newExName,
@@ -13753,8 +12309,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const deleteGlobalExercise = async (id: string) => {
  
     if (confirm('Vuoi spostare questo esercizio nel cestino?')) {
@@ -13767,8 +12321,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const restoreGlobalExercise = async (id: string) => {
  
     await supabase.from('exercises_library').update({ dismissed: false }).eq('id', id);
@@ -13776,8 +12328,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     fetchExerciseLibrary();
  
   };
- 
- 
  
   const permanentlyDeleteGlobalExercise = async (id: string) => {
  
@@ -13788,8 +12338,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     fetchExerciseLibrary();
  
   };
- 
- 
  
   const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
  
@@ -13805,8 +12353,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
- 
- 
   const updateFreeBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
  
     const updated = JSON.parse(JSON.stringify(programWeeks));
@@ -13816,8 +12362,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setProgramWeeks(updated);
  
   };
- 
- 
  
 const updateFreeBlockCampi = (wIdx: number, dayIndex: number, blockIndex: number, campi: { [k: string]: any }) => {
  
@@ -13838,8 +12382,6 @@ setProgramWeeks(updated);
       return;
  
     }
- 
- 
  
     const newProgram = {
  
@@ -13869,11 +12411,7 @@ setProgramWeeks(updated);
  
     };
  
- 
- 
     const { error } = await supabase.from('programs').insert([newProgram]);
- 
- 
  
     if (error) {
  
@@ -13915,8 +12453,6 @@ setProgramWeeks(updated);
  
       fetchProgramLibrary();
  
- 
- 
       const quanti = (programVisibility === 'all')
  
         ? athletes.length
@@ -13936,8 +12472,6 @@ setProgramWeeks(updated);
     }
  
   };
- 
- 
  
   const duplicateProgram = async (prog: any) => {
  
@@ -13963,11 +12497,7 @@ setProgramWeeks(updated);
  
     };
  
- 
- 
     const { error } = await supabase.from('programs').insert([duplicatedProgram]);
- 
- 
  
     if (error) {
  
@@ -13983,8 +12513,6 @@ setProgramWeeks(updated);
  
   };
  
- 
- 
   const updateEditingBlock = (wIdx: number, dayIndex: number, blockIndex: number, field: string, value: any) => {
  
     const updated = JSON.parse(JSON.stringify(editingProgram));
@@ -13994,8 +12522,6 @@ setProgramWeeks(updated);
     setEditingProgram(updated);
  
   };
- 
- 
  
 const updateEditingBlockCampi = (wIdx: number, dayIndex: number, blockIndex: number, campi: { [k: string]: any }) => {
  
@@ -14023,8 +12549,6 @@ setEditingProgram(updated);
  
   };
  
- 
- 
   const saveEditedProgram = async () => {
  
     // Il pallino "nuovo" compare all'atleta solo se i consigli sono stati davvero modificati
@@ -14036,8 +12560,6 @@ setEditingProgram(updated);
       (originale?.trainingTips || '') !== (editingProgram?.trainingTips || '') ||
  
       (originale?.nutritionTips || '') !== (editingProgram?.nutritionTips || '');
- 
- 
  
 // Dove sono finiti i blocchi dopo gli spostamenti: i risultati li seguono
  
@@ -14060,8 +12582,6 @@ const settimaneSalvate = senzaOrigine(editingProgram.weeks || []);
       return;
  
     }
- 
- 
  
     const { error } = await supabase
  
@@ -14096,8 +12616,6 @@ const settimaneSalvate = senzaOrigine(editingProgram.weeks || []);
       })
  
       .eq('id', editingProgram.id);
- 
- 
  
     if (error) {
  
@@ -14143,8 +12661,6 @@ fetchAllAthleteResultsForCoach();
  
   };
  
- 
- 
   const deleteProgram = async (id: string) => {
  
     if (!confirm('Sei sicuro di voler eliminare questo programma?')) return;
@@ -14162,8 +12678,6 @@ fetchAllAthleteResultsForCoach();
     await fetchProgramLibrary();
  
   };
- 
- 
  
   const toggleProgramVisibility = async (prog: any) => {
  
@@ -14187,8 +12701,6 @@ fetchAllAthleteResultsForCoach();
  
   };
  
- 
- 
   const restoreProgram = async (id: string) => {
  
     if (!confirm('Vuoi ripristinare questo programma?')) return;
@@ -14206,8 +12718,6 @@ fetchAllAthleteResultsForCoach();
     await fetchProgramLibrary();
  
   };
- 
- 
  
   const permanentlyDeleteProgram = async (id: string) => {
  
@@ -14227,8 +12737,6 @@ fetchAllAthleteResultsForCoach();
  
   };
  
- 
- 
   // Rientro dal link di recupero: prima di tutto si imposta la nuova password
  
   if (recoveryMode) {
@@ -14239,8 +12747,6 @@ fetchAllAthleteResultsForCoach();
  
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');`}</style>
  
- 
- 
         <AmtLogo style={{ width: '110px', height: 'auto', color: '#ffffff', display: 'block', marginBottom: '18px' }} />
  
         <h1 style={{ color: 'var(--fg-10b981)', margin: '0 0 6px 0', fontSize: '28px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '2px' }}>Nuova password</h1>
@@ -14250,8 +12756,6 @@ fetchAllAthleteResultsForCoach();
           Scegli la password che userai d&apos;ora in avanti per accedere.
  
         </p>
- 
- 
  
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '320px' }}>
  
@@ -14287,8 +12791,6 @@ fetchAllAthleteResultsForCoach();
  
           <span style={{ fontSize: '11px', color: 'var(--fg-71717a)' }}>Almeno 6 caratteri.</span>
  
- 
- 
           <button
  
             onClick={cambiaPassword}
@@ -14310,8 +12812,6 @@ fetchAllAthleteResultsForCoach();
     );
  
   }
- 
- 
  
   if (showSplash || loading) {
  
@@ -14365,8 +12865,6 @@ fetchAllAthleteResultsForCoach();
  
   }
  
- 
- 
   if (!session) {
  
     return (
@@ -14414,8 +12912,6 @@ fetchAllAthleteResultsForCoach();
           <div style={{ color: 'var(--fg-94a3b8)', fontSize: '14px', fontFamily: "'Permanent Marker', cursive", marginTop: '4px', animation: 'fadeInUp 0.6s ease-out 0.5s both' }}>Improve Your Fitness</div>
  
         </div>
- 
- 
  
         {signupDoneEmail ? (
  
@@ -14465,8 +12961,6 @@ fetchAllAthleteResultsForCoach();
  
         <>
  
- 
- 
         <form onSubmit={isResettingPassword ? handlePasswordReset : (isRegistering ? handleSignUp : handleLogin)} style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '320px', gap: '12px' }}>
  
           <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff' }} />
@@ -14496,8 +12990,6 @@ fetchAllAthleteResultsForCoach();
                 <input type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
               </div>
- 
- 
  
               {isMinorenne(signupBirthDate) && (
  
@@ -14567,8 +13059,6 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
- 
- 
               <div style={{ display: 'flex', gap: '12px' }}>
  
                 <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
@@ -14576,8 +13066,6 @@ fetchAllAthleteResultsForCoach();
                 <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
               </div>
- 
- 
  
               {consensoAzzerato && (
  
@@ -14671,8 +13159,6 @@ fetchAllAthleteResultsForCoach();
  
         </form>
  
- 
- 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
  
           {!isResettingPassword && (
@@ -14696,8 +13182,6 @@ fetchAllAthleteResultsForCoach();
         </>
  
         )}
- 
- 
  
         {showPrivacyPolicy && (
  
@@ -14727,8 +13211,6 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
- 
- 
               <div
  
                 onScroll={(e) => {
@@ -14752,8 +13234,6 @@ fetchAllAthleteResultsForCoach();
                 </div>
  
               </div>
- 
- 
  
               <div style={{ padding: '14px 20px', borderTop: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)' }}>
  
@@ -14785,8 +13265,6 @@ fetchAllAthleteResultsForCoach();
  
   }
  
- 
- 
   // La settimana di prova dura sette giorni dalla scelta, poi scade da sola
  
   const DURATA_PROVA_GIORNI = 7;
@@ -14807,13 +13285,9 @@ fetchAllAthleteResultsForCoach();
  
   const provaScaduta = subscriptionStatus === 'prova' && !!trialChoice && !provaAttiva;
  
- 
- 
   const athletePrograms = programLibrary.filter((prog) => {
  
     if (prog.isDeleted) return false;
- 
- 
  
     // Una settimana dopo la scadenza il programma sparisce dagli allenamenti.
  
@@ -14821,15 +13295,11 @@ fetchAllAthleteResultsForCoach();
  
     if (programmaDaNascondere(prog.endDate)) return false;
  
- 
- 
     // I programmi della settimana di prova: solo a chi ce l'ha attiva e ha scelto quello stile
  
     if (prog.trialStyle) {
  
       if (!provaAttiva || trialChoice !== prog.trialStyle) return false;
- 
- 
  
       // Sulla Sala Pesi la scheda cambia in base al sesso: se la scheda ne indica uno,
  
@@ -14838,8 +13308,7 @@ fetchAllAthleteResultsForCoach();
       // per non mostrarne due o nessuna.
  
       if (prog.trialGender) {
- 
-        return prog.trialGender === (athleteGender || 'm');
+         return prog.trialGender === (athleteGender || 'm');
  
       }
  
@@ -14847,13 +13316,9 @@ fetchAllAthleteResultsForCoach();
  
     }
  
- 
- 
     // Abbonamento scaduto: nessuna scheda
  
     if (subscriptionStatus === 'scaduto') return false;
- 
- 
  
     // In prova: solo le schede espressamente assegnate dal coach
  
@@ -14862,8 +13327,6 @@ fetchAllAthleteResultsForCoach();
       return prog.visibility !== 'none' && prog.assignedAthleteIds?.includes(session?.user?.id);
  
     }
- 
- 
  
     if (prog.visibility === 'none') return false;            // bozza: solo il coach
  
@@ -14887,8 +13350,6 @@ fetchAllAthleteResultsForCoach();
  
   });
  
- 
- 
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
  
     if (libraryView === 'cestino') {
@@ -14903,13 +13364,9 @@ fetchAllAthleteResultsForCoach();
  
     if (!contiene(prog.title, cercaProgrammi)) return false;
  
- 
- 
     // Primo: la categoria
  
     if (libraryFilter === 'prove') return !!prog.trialStyle;
- 
- 
  
     if (libraryFilter === 'scaduti' || libraryFilter === 'inscadenza') {
  
@@ -14923,13 +13380,9 @@ fetchAllAthleteResultsForCoach();
  
     }
  
- 
- 
     if (libraryFilter === 'bozze') return !prog.trialStyle && prog.visibility === 'none';
  
     if (libraryFilter === 'assegnati' && (prog.trialStyle || prog.visibility === 'none')) return false;
- 
- 
  
     // Poi: il filtro per atleta, valido sia su "Tutti" sia su "Assegnati"
  
@@ -14940,8 +13393,6 @@ fetchAllAthleteResultsForCoach();
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
  
   });
- 
- 
  
   const attivi = programLibrary.filter((p: any) => !p.isDeleted);
  
@@ -14971,11 +13422,7 @@ fetchAllAthleteResultsForCoach();
  
   }).length;
  
- 
- 
   const contaCestino = programLibrary.filter((p: any) => p.isDeleted).length;
- 
- 
  
   return (
  
@@ -15000,8 +13447,6 @@ fetchAllAthleteResultsForCoach();
         ::-webkit-scrollbar-track { background: transparent; }
  
       `}</style>
- 
- 
  
       {dupBlock && (() => {
  
@@ -15028,8 +13473,6 @@ fetchAllAthleteResultsForCoach();
                 </p>
  
               </div>
- 
- 
  
               <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
  
@@ -15083,8 +13526,6 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
- 
- 
               <div style={{ padding: '12px 20px 18px 20px', borderTop: '1px solid var(--bd-e2e8f0)', display: 'flex', gap: '8px' }}>
  
                 <button type="button" onClick={confermaDuplica} style={{ flex: 1, minWidth: 0, padding: '13px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
@@ -15108,8 +13549,6 @@ fetchAllAthleteResultsForCoach();
         );
  
       })()}
- 
- 
  
       {messaggio && (
  
@@ -15143,9 +13582,8 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
- 
- 
       {scoreAperto && (
+ 
         scoreAperto.blk?.type === 'superserie' ? (
  
           <FinestraSuperserie
@@ -15169,7 +13607,6 @@ fetchAllAthleteResultsForCoach();
           />
  
         ) : (
- 
  
         <FinestraScore
  
@@ -15197,11 +13634,7 @@ fetchAllAthleteResultsForCoach();
  
       ))}
  
- 
- 
       {finestraRisultati()}
- 
- 
  
       {progressiAperti && (
  
@@ -15218,8 +13651,6 @@ fetchAllAthleteResultsForCoach();
         />
  
       )}
- 
- 
  
       {timerConfig && (
  
@@ -15244,8 +13675,6 @@ fetchAllAthleteResultsForCoach();
         />
  
       )}
- 
- 
  
       {prBadge && (
  
@@ -15277,8 +13706,6 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
- 
- 
       {dailyQuote && !showConsentGate && (
  
         <div onClick={() => setDailyQuote('')} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1500 }}>
@@ -15302,8 +13729,6 @@ fetchAllAthleteResultsForCoach();
         </div>
  
       )}
- 
- 
  
       {anamnesiPopup && !dailyQuote && !showConsentGate && (
  
@@ -15405,8 +13830,6 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
- 
- 
       {mostraTemi && <FinestraTemi tema={tema} onScegli={scegliTema} onClose={() => setMostraTemi(false)} />}
  
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid var(--bd-2e2e33)', paddingBottom: '12px' }}>
@@ -15444,8 +13867,6 @@ fetchAllAthleteResultsForCoach();
           </div>
  
         </div>
- 
- 
  
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
  
@@ -15609,8 +14030,6 @@ fetchAllAthleteResultsForCoach();
  
             </button>
  
- 
- 
             {showNotifications && (
  
               <div
@@ -15622,8 +14041,6 @@ fetchAllAthleteResultsForCoach();
               />
  
             )}
- 
- 
  
             {showNotifications && (
  
@@ -15737,8 +14154,6 @@ fetchAllAthleteResultsForCoach();
  
                 </div>
  
- 
- 
                 {notificationError && (
  
                   <div style={{ padding: '10px 14px', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontSize: '11px', borderBottom: '1px solid var(--bd-fecaca)', lineHeight: 1.4 }}>
@@ -15748,8 +14163,6 @@ fetchAllAthleteResultsForCoach();
                   </div>
  
                 )}
- 
- 
  
                 {notifications.length === 0 ? (
  
@@ -15871,21 +14284,15 @@ fetchAllAthleteResultsForCoach();
  
           </div>
  
- 
- 
           {role !== 'athlete' && (<button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>Esci</button>)}
  
         </div>
  
       </header>
  
- 
- 
       {role === 'coach' ? (
  
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
- 
- 
  
           {coachSubView === 'banner' ? (
  
@@ -15930,8 +14337,6 @@ fetchAllAthleteResultsForCoach();
                 </button>
  
               </form>
- 
- 
  
               <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
@@ -16009,11 +14414,7 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
- 
- 
                   <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
- 
- 
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
@@ -16025,8 +14426,6 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
- 
- 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
                     <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="bilanciere" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Massimali</button>
@@ -16036,8 +14435,6 @@ fetchAllAthleteResultsForCoach();
                     <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
  
                   </div>
- 
- 
  
                   <button
  
@@ -16050,8 +14447,6 @@ fetchAllAthleteResultsForCoach();
                     <Icona nome="modifica" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Personal
  
                   </button>
- 
- 
  
                   {coachAthleteDetailTab === 'anagrafici' && (() => {
  
@@ -16165,15 +14560,9 @@ fetchAllAthleteResultsForCoach();
  
                   })()}
  
- 
- 
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
- 
- 
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
- 
- 
  
                   {coachAthleteDetailTab === 'personal' && (() => {
  
@@ -16185,13 +14574,9 @@ fetchAllAthleteResultsForCoach();
  
                 );
  
- 
- 
                 return (
  
                   <div>
- 
- 
  
                     {athletePersonalPrograms.length === 0 ? (
  
@@ -16219,11 +14604,9 @@ fetchAllAthleteResultsForCoach();
  
                         const realDayIndex = activeWeekObj?.days?.findIndex((d: any) => d.dayName === activeDayName);
  
- 
- 
                         return (
  
-                          <div key={prog.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
+                          <div key={prog.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '16px 12px', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
  
                             <div
  
@@ -16238,8 +14621,6 @@ fetchAllAthleteResultsForCoach();
                               <span style={{ fontSize: '18px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
  
                             </div>
- 
- 
  
                             {personalExpandedProgramId === prog.id && (
  
@@ -16272,8 +14653,6 @@ fetchAllAthleteResultsForCoach();
                               ))}
  
                             </div>
- 
- 
  
                             <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '14px', paddingBottom: '4px' }}>
  
@@ -16329,21 +14708,13 @@ return (
  
                             </div>
  
- 
- 
 {(() => {
  
 const giornoAperto = true;
  
 return (
  
-<div style={{ background: 'var(--bg-eef2f7)', padding: '14px', borderRadius: '12px', border: '1px solid var(--bd-dbe3ec)', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
- 
-<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
- 
-<span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-141416)' }}>{activeWeekObj?.weekName} - {activeDayObj?.dayName}</span>
- 
-</div>
+<div style={{ marginBottom: '6px' }}>
  
 {giornoAperto && (
  
@@ -16369,11 +14740,9 @@ const bloccoAperto = coachAperti[chiaveBlocco] !== false;
  
                                 const currentNotes = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.notes || '';
  
- 
- 
                                 return (
  
-                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
+                                  <div key={bIdx} style={{ padding: '12px 0', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
 <div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
  
@@ -16427,9 +14796,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 <div>
  
- 
- 
- 
                                     {haElenco(blk.type) ? (
  
                                       <div style={{ background: blk.type === 'superserie' ? 'var(--bg-ffffff)' : 'var(--bg-fffbeb)', border: blk.type === 'superserie' ? '1px solid var(--bd-e2e8f0)' : '1px solid var(--bd-fde68a)', borderRadius: '10px', padding: '12px' }}>
@@ -16480,15 +14846,11 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                             </span>
  
- 
- 
                                             <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'break-word', minWidth: 0 }}>
  
                                               {it.value}
  
                                             </span>
- 
- 
  
                                             <span style={{ display: 'flex', justifyContent: 'center' }}>
  
@@ -16517,8 +14879,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                               )}
  
                                             </span>
- 
- 
  
                                             <span style={{ display: 'flex', justifyContent: 'center' }}>
  
@@ -16624,8 +14984,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         )}
  
- 
- 
                                         {(() => {
  
                                           const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
@@ -16683,8 +15041,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                           );
  
                                         })()}
- 
- 
  
                                         {blk.notes && (
  
@@ -16792,7 +15148,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 {(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
  
- 
                                       {(() => {
  
                                         const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], blk.name));
@@ -16812,8 +15167,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                           );
  
                                         }
- 
- 
  
                                         const usati = ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps);
  
@@ -16869,8 +15222,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
- 
- 
                                     {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
                                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
@@ -16903,8 +15254,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
- 
- 
                                     {blk.type === 'forza' && blk.notes && (
  
                                       <div style={{ background: 'var(--bg-fffbeb)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-fde68a)', marginBottom: '10px' }}>
@@ -16917,9 +15266,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
- 
- 
-                                    <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
+                                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                                       <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />INSERISCI SCORE / NOTE (Personal):</span>
  
@@ -17073,10 +15420,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   })()}
  
- 
- 
- 
- 
                   {coachAthleteDetailTab === 'maxes' && (
  
                   <div>
@@ -17092,8 +15435,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                   <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Benchmark</button>
  
                   </div>
- 
- 
  
                   {coachMaxSubTab === 'strength' && (
  
@@ -17143,15 +15484,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       </div>
  
- 
- 
                       <button onClick={() => setShowExerciseManager(!showExerciseManager)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 }}>
  
                         {showExerciseManager ? '\u25b2 Nascondi gestione esercizi' : '\u25bc Gestisci esercizi'}
  
                       </button>
- 
- 
  
                       {showExerciseManager && (
  
@@ -17225,8 +15562,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     </div>
  
- 
- 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
  
                     {maxExerciseNames.map((exName) => {
@@ -17271,8 +15606,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           </div>
  
- 
- 
                           <button
  
                             onClick={() => toggleMaxHistory(selectedCoachAthlete.id, exName)}
@@ -17285,15 +15618,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           </button>
  
- 
- 
                           {openHistoryKey === `${selectedCoachAthlete.id}|${exName}` && (
  
                             <MaxHistoryChart points={historyCache[`${selectedCoachAthlete.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${selectedCoachAthlete.id}|${exName}`)} />
  
                           )}
- 
- 
  
                         </div>
  
@@ -17303,13 +15632,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
- 
- 
                   </div>
  
                   )}
- 
- 
  
                   {coachMaxSubTab === 'metcon' && (
  
@@ -17340,10 +15665,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     </div>
  
                   </div>
- 
- 
- 
- 
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
@@ -17383,21 +15704,15 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         )}
  
- 
- 
                       </div>
  
                     ))}
  
                   </div>
  
- 
- 
                   </div>
  
                   )}
- 
- 
  
                   {coachMaxSubTab === 'gym' && (
  
@@ -17428,10 +15743,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     </div>
  
                   </div>
- 
- 
- 
- 
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
@@ -17471,8 +15782,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         )}
  
- 
- 
                       </div>
  
                     ))}
@@ -17482,8 +15791,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                   </div>
  
                   )}
- 
- 
  
                   {coachMaxSubTab === 'bench' && (
  
@@ -17565,13 +15872,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   )}
  
- 
- 
                   </div>
  
                   )}
- 
- 
  
                   {coachAthleteDetailTab === 'abbonamento' && (() => {
  
@@ -17598,8 +15901,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           Chi si registra parte automaticamente &quot;In prova&quot;. Cambia lo stato quando acquista o quando l&apos;abbonamento finisce.
  
                         </p>
- 
- 
  
                         {opzioni.map((o) => (
  
@@ -17649,8 +15950,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         ))}
  
- 
- 
                         <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
  
                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
@@ -17688,8 +15987,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     );
  
                   })()}
- 
- 
  
                   {coachAthleteDetailTab === 'anamnesi' && (() => {
  
@@ -17799,8 +16096,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'var(--fg-10b981)' }}>Seleziona un Atleta</h3>
  
- 
- 
  <div style={{ position: 'relative', marginBottom: '12px' }}>
  
    <input
@@ -17829,8 +16124,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
  </div>
  
- 
- 
                   {!showAddAthlete ? (
  
                     <button
@@ -17857,8 +16150,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       </p>
  
- 
- 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
  
                         <div style={{ display: 'flex', gap: '9px' }}>
@@ -17873,8 +16164,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
- 
- 
                         <div>
  
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
@@ -17882,8 +16171,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           <input type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
- 
- 
  
                         {isMinorenne(personalData.birth_date) && (
  
@@ -17913,8 +16200,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         </div>
  
- 
- 
                         <div style={{ display: 'flex', gap: '9px' }}>
  
                           <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
@@ -17922,8 +16207,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
- 
- 
  
                         <div>
  
@@ -17940,8 +16223,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           </select>
  
                         </div>
- 
- 
  
                         <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
  
@@ -18027,13 +16308,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
- 
- 
               <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
  
               <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
- 
- 
  
               {editingProgram.trialStyle ? (
  
@@ -18073,8 +16350,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               )}
  
- 
- 
               <div style={{ marginBottom: '20px' }}>
  
                 <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
@@ -18112,10 +16387,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                   </div>
  
                 )}
- 
- 
- 
- 
  
                 {!editingProgram.trialStyle && (<>
  
@@ -18199,8 +16470,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
- 
- 
               <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
@@ -18234,8 +16503,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
             <button onClick={addEditingWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
                 </div>
- 
- 
  
                 {(() => {
  
@@ -18279,13 +16546,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
- 
- 
               {editingProgram.weeks?.filter((w: any) => w.weekName === selectedWeekView).map((week: any) => {
  
                 const actualWIdx = editingProgram.weeks.findIndex((w: any) => w.weekName === selectedWeekView);
- 
- 
  
                 return (
  
@@ -18335,8 +16598,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           if (!confirm(`Eliminare "${week.weekName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
- 
- 
                           const updated = JSON.parse(JSON.stringify(editingProgram));
  
                           updated.weeks.splice(actualWIdx, 1);
@@ -18360,8 +16621,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       )}
  
                     </div>
- 
- 
  
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
  
@@ -18392,8 +16651,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
                     </div>
- 
- 
  
                     {(() => {
  
@@ -18432,8 +16689,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       );
  
                     })()}
- 
- 
  
                     {week.days?.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
  
@@ -18507,8 +16762,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                 if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
- 
- 
                                 const updated = JSON.parse(JSON.stringify(editingProgram));
  
                                 updated.weeks[actualWIdx].days.splice(actualDIdx, 1);
@@ -18527,15 +16780,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           </div>
  
- 
- 
                           {day.blocks?.map((block: any, bIdx: number) => {
  
                             const blockKey = `edit_${actualWIdx}_${actualDIdx}_${bIdx}`;
  
                             const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
- 
- 
  
                             return (
  
@@ -18643,8 +16892,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       }
  
- 
- 
                                       const updated = JSON.parse(JSON.stringify(editingProgram));
  
                                       updated.weeks[actualWIdx].days[actualDIdx].blocks.splice(bIdx, 1);
@@ -18656,8 +16903,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                   </div>
  
                                 </div>
- 
- 
  
                                 <div style={{ marginBottom: '10px' }}>
  
@@ -18734,8 +16979,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                   )}
  
                                 </div>
- 
- 
  
                                 {!isClosed && (
  
@@ -18889,8 +17132,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                         </div>
  
- 
- 
                                         {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
  
                                         {(block.items || []).map((it: any, i: number) => (
@@ -18910,8 +17151,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                               style={{ marginBottom: '7px' }}
  
                                             />
- 
- 
  
                                             <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
@@ -18945,12 +17184,12 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                               />
  
- 
                                             </div>
  
                                             {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+ 
                                               <input
  
                                                 type="text"
@@ -18968,7 +17207,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                               />
  
                                               <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
- 
  
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -18992,25 +17230,17 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                             </div>
  
- 
- 
                                             <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                           </div>
  
                                         ))}
  
- 
- 
- 
- 
                                         <button type="button" onClick={() => aggiungiWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                           Aggiungi esercizio
  
                                         </button>
- 
- 
  
       <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
@@ -19052,7 +17282,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
 <TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateEditingBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
  
- 
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
                                         <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
@@ -19072,8 +17301,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                         <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
                                         <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
- 
- 
  
                                           {(() => {
  
@@ -19112,8 +17339,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                             );
  
                                           })()}
- 
- 
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -19172,8 +17397,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                               style={{ marginBottom: '7px' }}
  
                                             />
- 
- 
  
                                             <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
  
@@ -19249,8 +17472,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               })}
  
- 
- 
               <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
  
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}><Icona nome="lampadina" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Consigli per l&apos;atleta</span>
@@ -19264,8 +17485,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                 <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
               </div>
- 
- 
  
               <button onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
  
@@ -19379,8 +17598,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
- 
- 
               {activeTab === 'exercises' ? (
  
                 <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
@@ -19396,8 +17613,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     </button>
  
                   </div>
- 
- 
  
                   {!showDeletedExercises && (
  
@@ -19424,8 +17639,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     </form>
  
                   )}
- 
- 
  
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
  
@@ -19454,8 +17667,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     )}
  
                   </div>
- 
- 
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
@@ -19542,8 +17753,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                               Servono a riconoscere l&apos;esercizio nel testo dei WOD: scrivendo &quot;DU&quot; qui, un WOD con &quot;50 DU&quot; propone questo esercizio.
  
                             </p>
- 
- 
  
                             <div style={{ display: 'flex', gap: '7px' }}>
  
@@ -19679,11 +17888,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
  
- 
- 
                   <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
- 
- 
  
                   {programTrialStyle ? (
  
@@ -19723,8 +17928,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   )}
  
- 
- 
                   <div style={{ marginBottom: '16px' }}>
  
                     <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Settimana di prova:</label>
@@ -19762,10 +17965,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       </div>
  
                     )}
- 
- 
- 
- 
  
                     {!programTrialStyle && (<>
  
@@ -19839,8 +18038,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
- 
- 
                   <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
@@ -19874,8 +18071,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       <button onClick={addWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
                     </div>
- 
- 
  
                     {(() => {
  
@@ -19919,13 +18114,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
- 
- 
                   {programWeeks.filter((w) => w.weekName === selectedWeekView).map((week) => {
  
                     const actualWIdx = programWeeks.findIndex((w) => w.weekName === selectedWeekView);
- 
- 
  
                     return (
  
@@ -19973,8 +18164,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                               if (!confirm(`Eliminare "${week.weekName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
- 
- 
                               const upd = JSON.parse(JSON.stringify(programWeeks));
  
                               upd.splice(actualWIdx, 1);
@@ -19998,8 +18187,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           )}
  
                         </div>
- 
- 
  
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
  
@@ -20030,8 +18217,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
                         </div>
- 
- 
  
                         {(() => {
  
@@ -20070,8 +18255,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           );
  
                         })()}
- 
- 
  
                         {week.days.filter((d: any) => d.dayName === selectedDayView).map((day: any) => {
  
@@ -20143,8 +18326,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                     if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
- 
- 
                                     const upd = JSON.parse(JSON.stringify(programWeeks));
  
                                     upd[actualWIdx].days.splice(actualDIdx, 1);
@@ -20163,15 +18344,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                               </div>
  
- 
- 
                               {day.blocks.map((block: any, bIdx: number) => {
  
                                 const blockKey = `prog_${actualWIdx}_${actualDIdx}_${bIdx}`;
  
                                 const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
- 
- 
  
                                 return (
  
@@ -20261,8 +18438,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                     </div>
  
- 
- 
                                     <div style={{ marginBottom: '10px' }}>
  
                                       {block.type === 'test' ? (
@@ -20334,8 +18509,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                       )}
  
                                     </div>
- 
- 
  
                                     {!isClosed && (
  
@@ -20489,8 +18662,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                             </div>
  
- 
- 
                                         {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
  
                                             {(block.items || []).map((it: any, i: number) => (
@@ -20510,8 +18681,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                                   style={{ marginBottom: '7px' }}
  
                                                 />
- 
- 
  
                                                 <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
@@ -20545,12 +18714,12 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                                   />
  
- 
                                                 </div>
  
                                             {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
+ 
                                                   <input
  
                                                     type="text"
@@ -20568,7 +18737,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                                   />
  
                                                   <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
- 
  
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -20592,25 +18760,17 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                                 </div>
  
- 
- 
                                                 <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                               </div>
  
                                             ))}
  
- 
- 
- 
- 
                                             <button type="button" onClick={() => aggiungiWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
                                               Aggiungi esercizio
  
                                             </button>
- 
- 
  
       <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
@@ -20652,7 +18812,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
 <TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateFreeBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
  
- 
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
                                             <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
@@ -20672,8 +18831,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
                                             <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
- 
- 
  
                                               {(() => {
  
@@ -20712,8 +18869,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                                 );
  
                                               })()}
- 
- 
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -20772,8 +18927,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                                   style={{ marginBottom: '7px' }}
  
                                                 />
- 
- 
  
                                                 <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
  
@@ -20849,8 +19002,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   })}
  
- 
- 
                   {saveMessage && <p style={{ color: 'var(--fg-10b981)', fontSize: '14px', marginBottom: '12px' }}>{saveMessage}</p>}
  
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
@@ -20867,8 +19018,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
- 
- 
                   <button onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
  
                 </div>
@@ -20882,8 +19031,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     {libraryView === 'cestino' ? 'Cestino Programmi' : 'Libreria Programmi'}
  
                   </h3>
- 
- 
  
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
  
@@ -20912,8 +19059,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     ))}
  
                   </div>
- 
- 
  
                   {libraryView === 'programmi' && (
  
@@ -20955,10 +19100,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   )}
  
- 
- 
- 
- 
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
  
                     <input
@@ -20987,8 +19128,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
- 
- 
                   {libraryView === 'programmi' && (libraryFilter === 'tutti' || libraryFilter === 'assegnati') && (
  
                     <select value={libraryFilterAthlete} onChange={(e) => setLibraryFilterAthlete(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '12px' }}>
@@ -21004,8 +19143,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     </select>
  
                   )}
- 
- 
  
                   {filteredLibraryPrograms.length === 0 ? (
  
@@ -21049,8 +19186,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
  
- 
- 
                       const weeks = normalizeProgramWeeks(prog);
  
                       const activeWeekName = coachSelectedWeek[prog.id] || (weeks.length > 0 ? weeks[0].weekName : '');
@@ -21059,8 +19194,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       const activeDay = coachSelectedDay[prog.id] || (activeWeekObj?.days && activeWeekObj.days.length > 0 ? activeWeekObj.days[0].dayName : '');
  
- 
- 
                       // Stato scadenza: le settimane di prova non cambiano mai colore
  
                       const gg = prog.trialStyle ? null : giorniDallaScadenza(prog.endDate);
@@ -21068,8 +19201,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       const progScaduto = gg !== null && gg > 0;
  
                       const progInScadenza = gg !== null && gg <= 0 && gg >= -7;
- 
- 
  
                       return (
  
@@ -21124,8 +19255,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                   </span>
  
                                   ); })()}
- 
- 
  
                               </div>
  
@@ -21197,8 +19326,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                           </div>
  
- 
- 
                         </div>
  
                       );
@@ -21220,8 +19347,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
       ) : (
  
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
- 
- 
  
           {subscriptionStatus === 'attivo' && bannerData.image_url && (
  
@@ -21245,8 +19370,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
           )}
  
- 
- 
           {provaAttiva && trialChoice && (
  
             <div style={{ background: 'var(--bg-fef9c3)', border: '1px solid var(--bd-facc15)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -21262,8 +19385,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
             </div>
  
           )}
- 
- 
  
           {subscriptionStatus === 'prova' && !trialChoice && (
  
@@ -21321,8 +19442,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
           )}
  
- 
- 
           {(subscriptionStatus === 'scaduto' || provaScaduta) && (
  
             <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
@@ -21367,12 +19486,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
           )}
  
- 
- 
- 
- 
- 
- 
           {activeTab === 'profile' ? (
  
             <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
@@ -21387,8 +19500,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               </div>
  
- 
- 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
                 <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="bilanciere" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Massimali</button>
@@ -21398,8 +19509,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                 <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
  
               </div>
- 
- 
  
               {athleteProfileTab === 'anagrafici' && (
  
@@ -21497,15 +19606,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               )}
  
- 
- 
               {athleteProfileTab === 'gare' && pannelloCompetizioni(session.user.id, competitions, false)}
  
- 
- 
               {athleteProfileTab === 'progressi' && pannelloProgressi(storicoCarichi, true, session.user.id)}
- 
- 
  
               {athleteProfileTab === 'maxes' && (
  
@@ -21523,15 +19626,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               </div>
  
- 
- 
               {athleteMaxSubTab === 'strength' && (
  
               <>
  
               <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--fg-10b981)' }}>Strength PR</h3>
- 
- 
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  
@@ -21557,8 +19656,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     </div>
  
- 
- 
                     <button
  
                       onClick={() => toggleMaxHistory(session.user.id, exName)}
@@ -21571,15 +19668,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     </button>
  
- 
- 
                     {openHistoryKey === `${session.user.id}|${exName}` && (
  
                       <MaxHistoryChart points={historyCache[`${session.user.id}|${exName}`]} onDelete={(id) => deleteHistoryPoint(id, `${session.user.id}|${exName}`)} />
  
                     )}
- 
- 
  
                   </div>
  
@@ -21587,13 +19680,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               </div>
  
- 
- 
               </>
  
               )}
- 
- 
  
               {athleteMaxSubTab === 'metcon' && (
  
@@ -21641,21 +19730,15 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     )}
  
- 
- 
                   </div>
  
                 ))}
  
               </div>
  
- 
- 
               </>
  
               )}
- 
- 
  
               {athleteMaxSubTab === 'gym' && (
  
@@ -21705,8 +19788,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     )}
  
- 
- 
                   </div>
  
                 ))}
@@ -21716,8 +19797,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
               </>
  
               )}
- 
- 
  
               {athleteMaxSubTab === 'bench' && (
  
@@ -21757,13 +19836,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       </div>
  
- 
- 
                       <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
  
                       <div style={{ fontSize: '11px', color: 'var(--fg-b45309)', background: 'var(--bg-fef3c7)', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(b, lvl)}</div>
- 
- 
  
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
@@ -21782,8 +19857,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                         />
  
                       </div>
- 
- 
  
                       <button onClick={() => toggleMaxHistory(session.user.id, b.name)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '8px 0 0 0' }}>
  
@@ -21809,13 +19882,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               )}
  
- 
- 
               </>
  
               )}
- 
- 
  
               {athleteProfileTab === 'anamnesi' && (
  
@@ -21917,15 +19986,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               )}
  
- 
- 
               {athleteProfileTab === 'privacy' && (
  
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  
                   <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Privacy e dati personali</h3>
- 
- 
  
                   <div style={{ background: 'var(--bg-f0fdf4)', border: '1px solid var(--bd-86efac)', borderRadius: '8px', padding: '12px' }}>
  
@@ -21942,8 +20007,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                     </span>
  
                   </div>
- 
- 
  
                   <div>
  
@@ -21964,8 +20027,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                     )}
  
                   </div>
- 
- 
  
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
@@ -22009,8 +20070,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   </div>
  
- 
- 
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}><Icona nome="scarica" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Scarica i tuoi dati</span>
@@ -22024,8 +20083,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                     </button>
  
                   </div>
- 
- 
  
                   <div style={{ background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', borderRadius: '8px', padding: '14px' }}>
  
@@ -22041,23 +20098,17 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   </div>
  
- 
- 
                   <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.4, margin: 0 }}>
  
                     Per rettificare i dati, limitare o opporti al trattamento, revocare il consenso o per qualsiasi altra richiesta, contatta il coach. Hai diritto di proporre reclamo al Garante per la protezione dei dati personali.
  
                   </p>
  
+<button onClick={handleLogout} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fee2e2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Esci</button>
+ 
                 </div>
  
               )}
- 
-<div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-<button onClick={handleLogout} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fee2e2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Esci</button>
- 
-</div>
  
             </div>
  
@@ -22066,8 +20117,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
             <div>
  
               <CompetitionCountdown gare={competitions} />
- 
- 
  
               <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
  
@@ -22096,8 +20145,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                     <path d="M60 15v6l4 2" style={{ stroke: 'var(--fg-10b981)' }} strokeWidth="2.5" strokeLinecap="round" fill="none" />
  
                   </svg>
- 
- 
  
                   <h4 style={{ margin: '0 0 8px 0', fontSize: '17px', color: 'var(--fg-334155)' }}>
  
@@ -22161,11 +20208,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   const giorniRimasti = scaduto ? GIORNI_VISIBILITA_DOPO_SCADENZA - giorniScaduto : null;
  
- 
- 
                   return (
  
-                    <div key={prog.id} style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '20px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '16px 12px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
  
                       {scaduto && (
  
@@ -22189,8 +20234,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       )}
  
- 
- 
                       <div style={{ marginBottom: '12px' }}>
  
                         <h4 style={{ overflowWrap: 'anywhere', color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
@@ -22212,8 +20255,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                         })()}
  
                       </div>
- 
- 
  
                       {(() => {
  
@@ -22251,8 +20292,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       })()}
  
- 
- 
                       {(prog.trainingTips || prog.nutritionTips) && (() => {
  
                         const aperto = openTipsProgram === prog.id;
@@ -22289,8 +20328,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                           </button>
  
- 
- 
                           {aperto && (
  
                             <div style={{ marginTop: '8px' }}>
@@ -22307,8 +20344,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                               )}
  
- 
- 
                               {prog.trainingTips && (!prog.nutritionTips || tipsTab === 'training') && (
  
                                 <div style={{ background: 'var(--bg-f0fdf4)', border: '1px solid var(--bd-86efac)', borderRadius: '10px', padding: '14px' }}>
@@ -22320,8 +20355,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                                 </div>
  
                               )}
- 
- 
  
                               {prog.nutritionTips && (!prog.trainingTips || tipsTab === 'nutrition') && (
  
@@ -22342,8 +20375,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                         </div>
  
                         ); })()}
- 
- 
  
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px' }}>
  
@@ -22389,8 +20420,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       </div>
  
- 
- 
                       {currentWeekObj?.days ? (
  
                         <div>
@@ -22402,8 +20431,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                               if (day?.hidden) return null;
  
                               const attivo = currentProgramActiveDay === day.dayName;
- 
- 
  
                               // quanti blocchi di quel giorno hanno un risultato compilato
  
@@ -22426,8 +20453,6 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                               const totale = blocchi.length;
  
                               const completo = totale > 0 && fatti === totale;
- 
- 
  
                               return (
  
@@ -22499,53 +20524,18 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                           </div>
  
- 
- 
                           {currentWeekObj.days.filter((d: any) => d.dayName === currentProgramActiveDay && !d?.hidden).map((day: any) => {
  
                             const realWeekIndex = weeks.findIndex((w: any) => w.weekName === currentProgramActiveWeek);
  
                             const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
  
-                            const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
  
-                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
- 
- 
+                            const isDayClosed = false;
  
                             return (
  
-                              <div key={realDayIndex} style={{ background: 'var(--bg-eef2f7)', padding: '14px', borderRadius: '12px', border: '1px solid var(--bd-dbe3ec)', boxShadow: 'inset 0 2px 5px rgba(15,23,42,0.07)', marginBottom: '14px' }}>
- 
-                                <div
- 
-                                  onClick={() => toggleProgramDayCollapse(dayCollapseKey)}
- 
-                                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: isDayClosed ? '0' : '12px', cursor: 'pointer' }}
- 
-                                >
- 
-                                  <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-141416)' }}>{currentWeekObj.weekName} - {day.dayName}</span>
- 
-                                  <button
- 
-                                    type="button"
- 
-                                    onClick={(e) => { e.stopPropagation(); toggleProgramDayCollapse(dayCollapseKey); }}
- 
-                                    title={isDayClosed ? 'Apri' : 'Chiudi'}
- 
-                                    style={{ background: 'transparent', border: 'none', color: 'var(--fg-10b981)', padding: '4px 6px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold', lineHeight: 1, flexShrink: 0 }}
- 
-                                  >
- 
-                                    {isDayClosed ? '▼' : '▲'}
- 
-                                  </button>
- 
-                                </div>
- 
- 
+                              <div key={realDayIndex} style={{ marginBottom: '6px' }}>
  
                                 {!isDayClosed && (
  
@@ -22571,11 +20561,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                         const isClosed = collapsedBlocks[blockKey] === undefined ? true : collapsedBlocks[blockKey];
  
- 
- 
                                         return (
  
-                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', padding: '14px', borderRadius: '10px', marginBottom: '10px', border: '1px solid var(--bd-e6ebf2)', boxShadow: '0 2px 6px rgba(15,23,42,0.09)' }}>
+                                          <div key={bIdx} style={{ padding: '12px 0', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
  
                                             <div
  
@@ -22622,8 +20610,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                               </div>
  
                                             </div>
- 
- 
  
                                             {!isClosed && (
  
@@ -22679,15 +20665,11 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         </span>
  
- 
- 
                                                         <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                                           {it.value}
  
                                                         </span>
- 
- 
  
                                                         <span style={{ display: 'flex', justifyContent: 'center' }}>
  
@@ -22716,8 +20698,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                           )}
  
                                                         </span>
- 
- 
  
                                                         <span style={{ display: 'flex', justifyContent: 'center' }}>
  
@@ -22823,8 +20803,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     )}
  
- 
- 
 {blk.type === 'warmup' && (<CampoNote valore={athleteResults[prog.id]?.[resultKey]?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} />)}
  
                                                     {(() => {
@@ -22884,8 +20862,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                       );
  
                                                     })()}
- 
- 
  
                                                     {blk.notes && (
  
@@ -22991,9 +20967,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
 <TabellaSerie blk={blk} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
- 
- 
- 
                                                     {(() => {
  
                                                       const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
@@ -23013,8 +20986,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                         );
  
                                                       }
- 
- 
  
                                                       // Nessun massimale per questo esercizio: mostro l'ultimo carico che ha usato
  
@@ -23084,8 +21055,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 )}
  
- 
- 
                                                 {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
                                                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
@@ -23118,13 +21087,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 )}
  
- 
- 
- 
- 
                                                 {blk.type !== 'warmup' && (
  
-                                                <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
+                                                <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                                                   <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />I TUOI RISULTATI / NOTE:</span>
  
@@ -23177,7 +21142,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                                       );
  
                                                     })()
- 
  
                                                   ) : (
  
@@ -23282,8 +21246,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
         </div>
  
       )}
- 
- 
  
       <div style={{
  
@@ -23407,7 +21369,6 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
 }
  
- 
 // Casella della modifica rapida: si scrive e si salva appena si esce dal campo.
  
 function CampoRapido({ etichetta, valore, onSalva, largo }: any) {
@@ -23472,7 +21433,6 @@ function GrigliaModificaRapida({ blk, onSalva }: any) {
  
 }
  
-
  
 // Copia senza i segni usati per ritrovare i risultati quando si riordina un programma.
  
@@ -23481,8 +21441,6 @@ function senzaOrigine(x: any) {
   return JSON.parse(JSON.stringify(x, (k, v) => (k === '__o' ? undefined : v)));
  
 }
- 
- 
  
 // Forza: una riga per serie (ripetizioni, carico, recupero). I dati restano negli stessi campi di prima
  
@@ -23528,7 +21486,7 @@ function campiDaRighe(righe: RigaSerie[]) {
  
 }
  
-function CellaSerie({ valore, onSalva, placeholder }: any) {
+function CellaSerie({ valore, onSalva, placeholder, etichetta, centro }: any) {
  
   const [t, setT] = useState(String(valore ?? ''));
  
@@ -23540,145 +21498,177 @@ function CellaSerie({ valore, onSalva, placeholder }: any) {
  
   return (
  
-    <input
+    <label style={{ display: 'block', minWidth: 0 }}>
  
-      value={t}
+      {etichetta && <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '2px' }}>{etichetta}</span>}
  
-      placeholder={placeholder}
+      <input
  
-      onChange={(e: any) => setT(e.target.value)}
+        value={t}
  
-      onBlur={() => {
+        placeholder={placeholder}
  
-        if (t !== String(valore ?? '')) onSalva(t);
+        onChange={(e: any) => setT(e.target.value)}
  
-      }}
+        onBlur={() => {
  
-      enterKeyHint="next"
+          if (t !== String(valore ?? '')) onSalva(t);
  
-      style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', textAlign: 'center', padding: '10px 4px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold' }}
+        }}
  
-    />
+        enterKeyHint="next"
+ 
+        style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', textAlign: centro ? 'center' : 'left', padding: '9px 8px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '15px', fontWeight: 'bold' }}
+ 
+      />
+ 
+    </label>
  
   );
  
 }
  
+// Tabella delle serie. Vista: righe "Set 1, Set 2..." senza riquadri, le colonne vuote spariscono e il testo lungo va a capo.
+ 
+// Modifica: un blocco per serie, con i campi larghi abbastanza da non tagliare quello che scrivi.
+ 
 function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
  
   const righe = righeSerie(blk);
  
-  const colonne = modifica ? 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr) 28px' : 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr)';
- 
-  const intest: React.CSSProperties = { fontSize: '11px', color: 'var(--fg-64748b)', textAlign: 'center', fontWeight: 'bold' };
- 
-  const cella: React.CSSProperties = { background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px 4px', textAlign: 'center', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0 };
- 
   const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => onCambia(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+ 
+  const bottoneTimer = (r: RigaSerie, grande?: boolean) => (
+ 
+    <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(r.rest))} style={{ flexShrink: 0, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '999px', width: grande ? '38px' : '30px', height: grande ? '38px' : '30px', color: 'var(--fg-047857)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+      <Icona nome="timer" size={14} />
+ 
+    </button>
+ 
+  );
+ 
+  if (modifica) {
+ 
+    return (
+ 
+      <div style={{ marginBottom: '10px' }}>
+ 
+        {righe.map((r, i) => (
+ 
+          <div key={i} style={{ padding: '10px 0', borderTop: i === 0 ? 'none' : '1px solid var(--bd-e2e8f0)' }}>
+ 
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+ 
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{`Set ${i + 1}`}</span>
+ 
+              {righe.length > 1 && (
+ 
+                <button type="button" title="Togli la serie" onClick={() => onCambia(righe.filter((_x, j) => j !== i))} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '26px', height: '26px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+                  <Icona nome="chiudi" size={13} />
+ 
+                </button>
+ 
+              )}
+ 
+            </div>
+ 
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '8px', marginBottom: '8px' }}>
+ 
+              <CellaSerie etichetta="Ripetizioni" centro valore={r.reps} onSalva={(v: string) => aggiorna(i, 'reps', v)} />
+ 
+              <CellaSerie etichetta="RPE e %" valore={r.load} onSalva={(v: string) => aggiorna(i, 'load', v)} />
+ 
+            </div>
+ 
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+ 
+              <div style={{ flex: 1, minWidth: 0 }}>
+ 
+                <CellaSerie etichetta="Recupero" valore={r.rest} onSalva={(v: string) => aggiorna(i, 'rest', v)} />
+ 
+              </div>
+ 
+              {onTimer && bottoneTimer(r, true)}
+ 
+            </div>
+ 
+          </div>
+ 
+        ))}
+ 
+        <button type="button" onClick={() => onCambia([...righe, { ...righe[righe.length - 1] }])} style={{ width: '100%', boxSizing: 'border-box', marginTop: '4px', padding: '9px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+ 
+          <Icona nome="piu" size={14} /> Aggiungi serie
+ 
+        </button>
+ 
+      </div>
+ 
+    );
+ 
+  }
+ 
+  const haReps = righe.some((r) => r.reps);
+ 
+  const haLoad = righe.some((r) => r.load);
+ 
+  const haRest = righe.some((r) => r.rest);
+ 
+  const colonne = ['44px', haReps ? 'minmax(0, 0.9fr)' : '', haLoad ? 'minmax(0, 1.6fr)' : '', haRest ? 'minmax(0, 1fr)' : ''].filter(Boolean).join(' ');
+ 
+  const intest: React.CSSProperties = { fontSize: '10.5px', color: 'var(--fg-64748b)', fontWeight: 'bold' };
+ 
+  const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, lineHeight: 1.3 };
  
   return (
  
     <div style={{ marginBottom: '10px' }}>
  
-      <div style={{ display: 'grid', gridTemplateColumns: colonne, gap: '6px', marginBottom: '6px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '8px', paddingBottom: '4px' }}>
  
-        <span style={intest}>Ripetizioni</span>
+        <span />
  
-        <span style={intest}>RPE e %</span>
+        {haReps && <span style={intest}>Ripetizioni</span>}
  
-        <span style={intest}>Recupero</span>
+        {haLoad && <span style={intest}>RPE e %</span>}
  
-        {modifica && <span />}
+        {haRest && <span style={intest}>Recupero</span>}
  
       </div>
  
       {righe.map((r, i) => (
  
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '8px', alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-          {modifica ? (
+          <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{`Set ${i + 1}`}</span>
  
-            <>
+          {haReps && <span style={testo}>{r.reps || '–'}</span>}
  
-              <CellaSerie valore={r.reps} onSalva={(v: string) => aggiorna(i, 'reps', v)} />
+          {haLoad && <span style={testo}>{r.load || '–'}</span>}
  
-              <CellaSerie valore={r.load} onSalva={(v: string) => aggiorna(i, 'load', v)} />
+          {haRest && (
  
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+            <span
  
-                <CellaSerie valore={r.rest} onSalva={(v: string) => aggiorna(i, 'rest', v)} />
+              onClick={onTimer ? () => onTimer(parseRestSeconds(r.rest)) : undefined}
  
-                {onTimer && (
+              style={{ ...testo, display: 'inline-flex', alignItems: 'center', gap: '5px', justifySelf: 'start', cursor: onTimer ? 'pointer' : 'default', color: onTimer ? 'var(--fg-047857)' : 'var(--fg-000000)' }}
  
-                  <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(r.rest))} style={{ flexShrink: 0, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-047857)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+            >
  
-                    <Icona nome="timer" size={14} />
+              {onTimer && <Icona nome="timer" size={13} />}
  
-                  </button>
+              <span>{r.rest || '–'}</span>
  
-                )}
- 
-              </div>
- 
-              {righe.length > 1 ? (
- 
-                <button type="button" title="Togli la serie" onClick={() => onCambia(righe.filter((_x, j) => j !== i))} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '28px', height: '28px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
- 
-                  <Icona nome="chiudi" size={14} />
- 
-                </button>
- 
-              ) : (
- 
-                <span />
- 
-              )}
- 
-            </>
- 
-          ) : (
- 
-            <>
- 
-              <div style={cella}>{r.reps || '\u2013'}</div>
- 
-              <div style={cella}>{r.load || '\u2013'}</div>
- 
-              <div
- 
-                onClick={onTimer ? () => onTimer(parseRestSeconds(r.rest)) : undefined}
- 
-                style={{ ...cella, cursor: onTimer ? 'pointer' : 'default', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
- 
-              >
- 
-                {onTimer && <Icona nome="timer" size={13} style={{ color: 'var(--fg-047857)' }} />}
- 
-                <span>{r.rest || '\u2013'}</span>
- 
-              </div>
- 
-            </>
+            </span>
  
           )}
  
         </div>
  
       ))}
- 
-      {modifica && (
- 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
- 
-          <button type="button" onClick={() => onCambia([...righe, { ...righe[righe.length - 1] }])} style={{ flex: '1 1 auto', padding: '9px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
- 
-            <Icona nome="piu" size={14} /> Aggiungi serie
- 
-          </button>
- 
-        </div>
- 
-      )}
  
     </div>
  
@@ -23747,4 +21737,5 @@ export default function Page() {
   );
  
 }
+ 
  
