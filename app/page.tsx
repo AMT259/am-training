@@ -11647,6 +11647,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
       return;
  
     }
+ 
     if (isMinorenne(signupBirthDate) && !signupGuardian.trim()) {
  
       setAuthError('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
@@ -15192,8 +15193,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                         if (!usati || usati.length === 0) return null;
  
                                         return (
- 
-                                          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                           <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
  
                                             <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-64748b)', marginBottom: '2px' }}>
  
@@ -16496,6 +16496,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
+ 
                     const isSelected = selectedWeekView === week.weekName;
  
                     return (
@@ -21739,4 +21740,4 @@ export default function Page() {
  
 }
  
- S
+ 
