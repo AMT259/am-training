@@ -1,4 +1,3 @@
-// app/api/cron/birthdays/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
  
@@ -7,14 +6,32 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
  
+// Data e ora di Roma, qualunque sia il fuso del server
+const ROMA = (d: Date) => {
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(d);
+  const v = (t: string) => p.find((x) => x.type === t)?.value || '';
+  return { chiave: `${v('year')}-${v('month')}-${v('day')}`, ora: parseInt(v('hour'), 10) };
+};
+const sommaGiorni = (chiave: string, n: number) => {
+  const [a, m, g] = chiave.split('-').map(Number);
+  return new Date(Date.UTC(a, m - 1, g + n)).toISOString().split('T')[0];
+};
+ 
 export const dynamic = 'force-dynamic';
  
 export async function GET(req: NextRequest) {
   try {
-    const today = new Date();
-    const todayMonth = today.getMonth() + 1;
-    const todayDay = today.getDate();
-    const todayKey = `${today.getFullYear()}-${String(todayMonth).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`;
+    // Il cron parte alle 22 e alle 23 UTC: si lavora solo quando a Roma e' mezzanotte.
+    // Per provarlo a mano a qualsiasi ora: aggiungi ?prova=1 all'indirizzo
+    const adesso = ROMA(new Date());
+    const prova = req.nextUrl.searchParams.get('prova') === '1';
+    if (adesso.ora !== 0 && !prova) {
+      return NextResponse.json({ ok: true, saltato: `a Roma sono le ${adesso.ora}: si parte solo a mezzanotte` });
+    }
+    const oggiKey = adesso.chiave;
+ 
+    const todayKey = oggiKey;
+    const [, todayMonth, todayDay] = todayKey.split('-').map(Number);
  
     const { data: profiles, error } = await supabaseAdmin
       .from('profiles')
@@ -26,12 +43,12 @@ export async function GET(req: NextRequest) {
  
     const birthdayPeople = (profiles || []).filter((p: any) => {
       if (!p.birth_date) return false;
-      const d = new Date(p.birth_date);
-      return d.getMonth() + 1 === todayMonth && d.getDate() === todayDay;
+      const [, m, g] = String(p.birth_date).slice(0, 10).split('-').map(Number);
+      return m === todayMonth && g === todayDay;
     });
  
     if (birthdayPeople.length === 0) {
-      return NextResponse.json({ birthdays: 0 });
+      return NextResponse.json({ giorno: todayKey, birthdays: 0 });
     }
  
     const coaches = (profiles || []).filter((p: any) => p.role === 'coach');
@@ -89,7 +106,7 @@ export async function GET(req: NextRequest) {
     const newRows = rows.filter((r) => !already.has(`${r.user_id}|${r.notification_type}`));
  
     if (newRows.length === 0) {
-      return NextResponse.json({ birthdays: birthdayPeople.length, sent: 0, note: 'già inviate oggi' });
+      return NextResponse.json({ giorno: todayKey, birthdays: birthdayPeople.length, sent: 0, note: 'già inviate oggi' });
     }
  
     await supabaseAdmin.from('notifications').insert(newRows);
@@ -107,9 +124,8 @@ export async function GET(req: NextRequest) {
         )
     );
  
-    return NextResponse.json({ birthdays: birthdayPeople.length, sent: newRows.length });
+    return NextResponse.json({ giorno: todayKey, birthdays: birthdayPeople.length, sent: newRows.length });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Errore cron compleanni' }, { status: 500 });
   }
 }
- 
