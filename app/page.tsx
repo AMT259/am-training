@@ -8535,7 +8535,8 @@ const [notificationError, setNotificationError] = useState('');
       return;
  
     }
-   setOpenHistoryKey(key);
+ 
+    setOpenHistoryKey(key);
  
     if (historyCache[key]) return;
  
@@ -10614,8 +10615,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             </div>
  
           );
- 
-        })}
+         })}
  
       </div>
  
@@ -14405,7 +14405,7 @@ fetchAllAthleteResultsForCoach();
  
               {selectedCoachAthlete ? (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+                <div style={coachAthleteDetailTab === 'personal' ? {} : { background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
@@ -15071,7 +15071,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         {blk.wodNotes && (
  
-                                          <div style={{ background: 'var(--bg-f5f3ff)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
                                             <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
@@ -18814,6 +18814,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                               L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
  
                                             </span>
+ 
                                           </div>
  
                                         ) : block.type === 'forza' ? (
@@ -20900,7 +20901,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     {blk.wodNotes && (
  
-                                                      <div style={{ background: 'var(--bg-f5f3ff)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
+                                                      <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
                                                         <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
@@ -21559,23 +21560,25 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const recupero = Array.isArray(blk?.restSerie) && blk.restSerie.length > 0 ? blk.restSerie.map((x: any) => testoCampo(x)).join(' / ') : testoCampo(blk?.rest);
  
+  const griglia: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '8px' };
+ 
   if (modifica) {
  
     return (
  
-      <div style={{ marginBottom: '10px' }}>
+      <div style={{ marginBottom: '2px' }}>
  
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: '8px' }}>
+        <div style={griglia}>
  
           <CellaSerie etichetta="SET" centro valore={blk?.sets} onSalva={(v: string) => onCambia({ sets: v })} />
  
           <CellaSerie etichetta="REP" centro valore={blk?.reps} onSalva={(v: string) => onCambia({ reps: v })} />
  
+          <CellaSerie etichetta="CARICO / RPE" centro valore={blk?.load} onSalva={(v: string) => onCambia({ load: v })} />
+ 
           <CellaSerie etichetta="RECUPERO" centro valore={recupero} onSalva={(v: string) => onCambia({ rest: v, restSerie: null })} />
  
         </div>
- 
-        <CellaSerie etichetta="CARICO / RPE" valore={blk?.load} onSalva={(v: string) => onCambia({ load: v })} />
  
       </div>
  
@@ -21591,67 +21594,57 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const secRec = parseRestSeconds(blk?.rest);
  
-  const carico = pulito(blk?.load);
- 
   return (
  
-    <div style={{ marginBottom: '10px' }}>
+    <div style={griglia}>
  
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: carico ? '8px' : 0 }}>
+      <div style={box}>
  
-        <div style={box}>
+        <span style={et}>SET</span>
  
-          <span style={et}>SET</span>
- 
-          <span style={val}>{pulito(blk?.sets) || '–'}</span>
- 
-        </div>
- 
-        <div style={box}>
- 
-          <span style={et}>REP</span>
- 
-          <span style={val}>{pulito(blk?.reps) || '–'}</span>
- 
-        </div>
- 
-        <div
- 
-          onClick={onTimer ? () => onTimer(secRec) : undefined}
- 
-          style={{ ...box, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', cursor: onTimer ? 'pointer' : 'default' }}
- 
-        >
- 
-          <span style={et}>RECUPERO</span>
- 
-          <span style={val}>{pulito(recupero) || '–'}</span>
- 
-          {onTimer && (
- 
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>
- 
-              <Icona nome="timer" size={10} /> {secRec ? 'AVVIA' : 'IMPOSTA'}
- 
-            </span>
- 
-          )}
- 
-        </div>
+        <span style={val}>{pulito(blk?.sets) || '\u2013'}</span>
  
       </div>
  
-      {carico && (
+      <div style={box}>
  
-        <div style={box}>
+        <span style={et}>REP</span>
  
-          <span style={et}>CARICO / RPE</span>
+        <span style={val}>{pulito(blk?.reps) || '\u2013'}</span>
  
-          <span style={val}>{carico}</span>
+      </div>
  
-        </div>
+      <div style={box}>
  
-      )}
+        <span style={et}>CARICO / RPE</span>
+ 
+        <span style={val}>{pulito(blk?.load) || '\u2013'}</span>
+ 
+      </div>
+ 
+      <div
+ 
+        onClick={onTimer ? () => onTimer(secRec) : undefined}
+ 
+        style={{ ...box, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', cursor: onTimer ? 'pointer' : 'default' }}
+ 
+      >
+ 
+        <span style={et}>RECUPERO</span>
+ 
+        <span style={val}>{pulito(recupero) || '\u2013'}</span>
+ 
+        {onTimer && (
+ 
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>
+ 
+            <Icona nome="timer" size={10} /> {secRec ? 'AVVIA TIMER' : 'IMPOSTA TIMER'}
+ 
+          </span>
+ 
+        )}
+ 
+      </div>
  
     </div>
  
