@@ -10615,7 +10615,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             </div>
  
           );
-         })}
+ 
+        })}
  
       </div>
  
@@ -11836,6 +11837,14 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     alert('Password aggiornata! Da ora accedi con quella nuova.');
  
   };
+ 
+  // In Personal i programmi si aprono solo quando li tocchi: cambiando atleta o scheda tornano chiusi
+ 
+  useEffect(() => {
+ 
+    setPersonalExpandedProgramId(null);
+ 
+  }, [selectedCoachAthlete?.id, coachAthleteDetailTab]);
  
   const handleLogout = async () => {
  
@@ -14048,7 +14057,6 @@ fetchAllAthleteResultsForCoach();
               <div onClick={(e) => e.stopPropagation()} style={{
  
                 position: 'fixed',
- 
                 top: '72px',
  
                 right: '12px',
@@ -14743,7 +14751,7 @@ const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayN
  
 const chiaveBlocco = `b|${chiaveRapida}`;
  
-const bloccoAperto = coachAperti[chiaveBlocco] !== false;
+const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
                                 const resultKey = `${realWeekIndex}_${realDayIndex}_${bIdx}`;
  
@@ -17009,11 +17017,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                           onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
  
-                                          style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                          title={`Salva "${block.name}" in Libreria Esercizi`} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', boxSizing: 'border-box', marginBottom: '8px', padding: '5px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
  
                                         >
  
-                                          <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                          <Icona nome="piu" size={12} /> Salva in libreria
  
                                         </button>
  
@@ -18539,11 +18547,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                               onClick={() => salvaInLibreriaDaScheda(block.name, block.videoUrl || '')}
  
-                                              style={{ width: '100%', boxSizing: 'border-box', marginBottom: '8px', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                                              title={`Salva "${block.name}" in Libreria Esercizi`} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', boxSizing: 'border-box', marginBottom: '8px', padding: '5px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
  
                                             >
  
-                                              <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                              <Icona nome="piu" size={12} /> Salva in libreria
  
                                             </button>
  
