@@ -5707,8 +5707,7 @@ function TrainingApp({ tema, impostaTema }: any) {
           console.error('Errore registrazione Service Worker:', error);
  
         });
- 
-    }
+     }
  
   }, []);
  
@@ -6011,6 +6010,14 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [coachSubs, setCoachSubs] = useState<{ [athleteId: string]: string }>({});
  
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
+ 
+  // Messaggio della finestra iniziale: lo scrive il coach nell'area Banner
+ 
+  const [messaggioIniziale, setMessaggioIniziale] = useState('');
+ 
+  const [messaggioAttivo, setMessaggioAttivo] = useState(true);
+ 
+  const [messaggioInizialeSalvando, setMessaggioInizialeSalvando] = useState(false);
  
   const [benchLevel, setBenchLevel] = useState<{ [name: string]: 'rx' | 'int' | 'beg' }>({});
  
@@ -6687,6 +6694,8 @@ const [notificationError, setNotificationError] = useState('');
       fetchExerciseLibrary();
  
       fetchBanner();
+ 
+      fetchMessaggioIniziale();
  
       fetchNotifications();
  
@@ -7616,6 +7625,46 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const fetchMessaggioIniziale = async () => {
+ 
+    const { data } = await supabase.from('settings').select('value').eq('key', 'welcome_message').maybeSingle();
+ 
+    if (data?.value && typeof data.value.text === 'string') {
+ 
+      setMessaggioIniziale(data.value.text);
+ 
+      setMessaggioAttivo(data.value.attivo !== false);
+ 
+    } else {
+ 
+      // Mai impostato: resta la frase di sempre, finché non la cambi
+ 
+      setMessaggioIniziale(MOTIVATIONAL_QUOTES[0]);
+ 
+      setMessaggioAttivo(true);
+ 
+    }
+ 
+  };
+ 
+  const salvaMessaggioIniziale = async () => {
+ 
+    setMessaggioInizialeSalvando(true);
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'welcome_message', value: { text: messaggioIniziale, attivo: messaggioAttivo }, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    setMessaggioInizialeSalvando(false);
+ 
+    alert(error ? 'Errore: ' + error.message : 'Messaggio iniziale salvato!');
+ 
+  };
+ 
   const fetchTrialCta = async () => {
  
     const { data } = await supabase.from('settings').select('value').eq('key', 'trial_cta').maybeSingle();
@@ -7681,6 +7730,7 @@ const [notificationError, setNotificationError] = useState('');
     if (needsSync) {
  
       await supabase.from('profiles').update({
+ 
         full_name: merged.full_name,
  
         birth_date: merged.birth_date || null,
@@ -11346,8 +11396,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return [...uguale, ...altri];
  
   };
- 
-  // ---- COMPETITION DAY: calendario gare ----
+   // ---- COMPETITION DAY: calendario gare ----
  
   const fetchCompetitions = async (athleteId: string) => {
  
@@ -13715,17 +13764,15 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
-      {dailyQuote && !showConsentGate && (
+      {dailyQuote && messaggioAttivo && messaggioIniziale.trim() && !showConsentGate && (
  
         <div onClick={() => setDailyQuote('')} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1500 }}>
  
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
  
-            <div style={{ fontSize: '30px', marginBottom: '10px' }}><Icona nome="bilanciere" size={30} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
+            <AmtLogo style={{ width: '110px', height: 'auto', display: 'block', margin: '0 auto 16px auto', color: 'currentColor' }} />
  
-            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.85, marginBottom: '12px', fontWeight: 'bold' }}>AM Training</div>
- 
-            <p style={{ fontSize: '18px', lineHeight: 1.5, margin: '0 0 22px 0', fontWeight: 'bold', whiteSpace: 'pre-line' }}>{dailyQuote}</p>
+            <p style={{ fontSize: '18px', lineHeight: 1.5, margin: '0 0 22px 0', fontWeight: 'bold', whiteSpace: 'pre-line' }}>{messaggioIniziale}</p>
  
             <button onClick={() => setDailyQuote('')} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
  
@@ -13739,7 +13786,7 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
-      {anamnesiPopup && !dailyQuote && !showConsentGate && (
+      {anamnesiPopup && !(dailyQuote && messaggioAttivo && messaggioIniziale.trim()) && !showConsentGate && (
  
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1600 }}>
  
@@ -14346,6 +14393,62 @@ fetchAllAthleteResultsForCoach();
                 </button>
  
               </form>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="megafono" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Messaggio iniziale</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  Compare una volta al giorno all&apos;apertura dell&apos;app, sotto il tuo logo. Se lo lasci vuoto o lo spegni, non compare.
+ 
+                </p>
+ 
+                <button
+ 
+                  type="button"
+ 
+                  onClick={() => setMessaggioAttivo(!messaggioAttivo)}
+ 
+                  style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '10px 14px', marginBottom: '10px', borderRadius: '999px', border: messaggioAttivo ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: messaggioAttivo ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', cursor: 'pointer' }}
+ 
+                >
+ 
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: messaggioAttivo ? 'var(--fg-047857)' : 'var(--fg-64748b)' }}>
+ 
+                    {messaggioAttivo ? 'Visibile agli utenti' : 'Nascosto'}
+ 
+                  </span>
+ 
+                  <span style={{ width: '40px', height: '22px', borderRadius: '999px', background: messaggioAttivo ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)', position: 'relative', flexShrink: 0 }}>
+ 
+                    <span style={{ position: 'absolute', top: '3px', left: messaggioAttivo ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '999px', background: '#fff', transition: 'left .15s ease' }} />
+ 
+                  </span>
+ 
+                </button>
+ 
+                <textarea
+ 
+                  rows={4}
+ 
+                  placeholder={'Scrivi qui il messaggio.\nVai a capo dove vuoi: le righe verranno rispettate.'}
+ 
+                  value={messaggioIniziale}
+ 
+                  onChange={(e) => setMessaggioIniziale(e.target.value)}
+ 
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }}
+ 
+                />
+ 
+                <button type="button" onClick={salvaMessaggioIniziale} disabled={messaggioInizialeSalvando} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: messaggioInizialeSalvando ? 0.6 : 1 }}>
+ 
+                  {messaggioInizialeSalvando ? 'Salvataggio...' : 'Salva messaggio'}
+ 
+                </button>
+ 
+              </div>
  
               <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
@@ -19470,6 +19573,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
               <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
  
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
+ 
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
  
               </p>
