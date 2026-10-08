@@ -518,11 +518,11 @@ function getProgramDateStatus(startDate: any, endDate: any) {
  
     const diff = Math.round((end.getTime() - today.getTime()) / 86400000);
  
-    if (diff < 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '⛔', label: 'Scaduto' };
+    if (diff < 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '', label: 'Scaduto' };
  
-    if (diff === 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '⚠️', label: 'Scade oggi' };
+    if (diff === 0) return { color: 'var(--fg-b91c1c)', bg: 'var(--bg-fee2e2)', icon: '', label: 'Scade oggi' };
  
-    if (diff <= 7) return { color: 'var(--fg-b45309)', bg: 'var(--bg-fef3c7)', icon: '⏳', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
+    if (diff <= 7) return { color: 'var(--fg-b45309)', bg: 'var(--bg-fef3c7)', icon: '', label: `Scade tra ${diff} ${diff === 1 ? 'giorno' : 'giorni'}` };
  
   }
  
@@ -530,13 +530,13 @@ function getProgramDateStatus(startDate: any, endDate: any) {
  
   if (start && start.getTime() > today.getTime()) {
  
-    return { color: 'var(--fg-1d4ed8)', bg: 'var(--bg-dbeafe)', icon: '🕒', label: 'Non ancora iniziato' };
+    return { color: 'var(--fg-1d4ed8)', bg: 'var(--bg-dbeafe)', icon: '', label: 'Non ancora iniziato' };
  
   }
  
  
  
-  return { color: 'var(--fg-047857)', bg: 'var(--bg-d1fae5)', icon: '📅', label: '' };
+  return { color: 'var(--fg-047857)', bg: 'var(--bg-d1fae5)', icon: '', label: '' };
  
 }
  
@@ -1135,6 +1135,7 @@ function sortExerciseLibrary(list: any[]) {
     if (ex.pr_kind === 'metcon') return 1;         // metabolici
  
     if (ex.pr_kind === 'gym') return 2;            // ginnastica
+ 
     return 3;                                      // generici
  
   };
@@ -1575,7 +1576,7 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
       <span style={{ display: 'block', fontSize: '10px', color: stile.testo, letterSpacing: '0.5px', marginBottom: '4px' }}>
  
-        🎯 {perCoach ? 'PROSSIMA GARA' : 'IL TUO COMPETITION DAY'}
+        <Icona nome="bersaglio" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> {perCoach ? 'PROSSIMA GARA' : 'IL TUO COMPETITION DAY'}
  
       </span>
  
@@ -4447,7 +4448,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
       <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', cursor: 'pointer', marginBottom: '9px' }}>
  
-        <span style={{ fontSize: '24px' }}>{icona}</span>
+<Icona nome={icona} size={24} />
  
         <span style={{ flex: 1, minWidth: 0 }}>
  
@@ -4477,17 +4478,17 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
 <SceltaSuono />
  
-          {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', '⏱️', () => setScelta({ tipo: 'libero' }))}
+          {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', 'timer', () => setScelta({ tipo: 'libero' }))}
  
-          {opzione('Intervalli', 'Lavoro e recupero, per il numero di round che vuoi', '🔁', () => setScelta({ tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound, daImpostare: true }))}
+          {opzione('Intervalli', 'Lavoro e recupero, per il numero di round che vuoi', 'ripeti', () => setScelta({ tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound, daImpostare: true }))}
  
-          {opzione('Rest 1:1', 'Recuperi quanto ci hai messo a fare il round', '⚖️', () => setScelta({ tipo: 'unoauno', round: cfgRound, daImpostare: true }))}
+          {opzione('Rest 1:1', 'Recuperi quanto ci hai messo a fare il round', 'bilancia', () => setScelta({ tipo: 'unoauno', round: cfgRound, daImpostare: true }))}
  
-          {opzione('EMOM', 'Un blocco a inizio di ogni minuto', '⏳', () => setScelta({ tipo: 'emom', durata: cfgEmomDurata, round: cfgRound, daImpostare: true }))}
+          {opzione('EMOM', 'Un blocco a inizio di ogni minuto', 'clessidra', () => setScelta({ tipo: 'emom', durata: cfgEmomDurata, round: cfgRound, daImpostare: true }))}
  
-          {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', '🔂', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
+          {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', 'ripeti', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
  
-          {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', '🔥', () => setScelta({ tipo: 'tabata' }))}
+          {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', 'fiamma', () => setScelta({ tipo: 'tabata' }))}
  
  
  
@@ -5693,6 +5694,106 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
       return <svg {...comuni}><path d="M12 21a9 9 0 1 1 0-18c4.97 0 9 3.58 9 8 0 1.06-.47 2.08-1.32 2.83-.84.75-1.99 1.17-3.18 1.17h-2.5a2 2 0 0 0-1 3.75 1.3 1.3 0 0 1-1 2.25" /><circle cx="8.5" cy="10.5" r="1" /><circle cx="12" cy="7.5" r="1" /><circle cx="15.5" cy="10.5" r="1" /></svg>;
  
+    case 'calendario':
+ 
+      return <svg {...comuni}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
+ 
+    case 'appunti':
+ 
+      return <svg {...comuni}><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h6" /></svg>;
+ 
+    case 'bilanciere':
+ 
+      return <svg {...comuni}><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11" /></svg>;
+ 
+    case 'bersaglio':
+ 
+      return <svg {...comuni}><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>;
+ 
+    case 'razzo':
+ 
+      return <svg {...comuni}><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" /><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" /></svg>;
+ 
+    case 'utente':
+ 
+      return <svg {...comuni}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
+ 
+    case 'utenti':
+ 
+      return <svg {...comuni}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
+ 
+    case 'megafono':
+ 
+      return <svg {...comuni}><path d="m3 11 18-5v12L3 14v-3z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></svg>;
+ 
+    case 'clessidra':
+ 
+      return <svg {...comuni}><path d="M5 22h14M5 2h14" /><path d="M17 22v-4.17a2 2 0 0 0-.59-1.41L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22" /><path d="M7 2v4.17a2 2 0 0 0 .59 1.41L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2" /></svg>;
+ 
+    case 'lucchetto':
+ 
+      return <svg {...comuni}><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
+ 
+    case 'mondo':
+ 
+      return <svg {...comuni}><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>;
+ 
+    case 'regalo':
+ 
+      return <svg {...comuni}><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5" /></svg>;
+ 
+    case 'avviso':
+ 
+      return <svg {...comuni}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z" /><path d="M12 9v4M12 17h.01" /></svg>;
+ 
+    case 'divieto':
+ 
+      return <svg {...comuni}><circle cx="12" cy="12" r="10" /><path d="m4.9 4.9 14.2 14.2" /></svg>;
+ 
+    case 'lampadina':
+ 
+      return <svg {...comuni}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /><path d="M9 18h6M10 22h4" /></svg>;
+ 
+    case 'fiamma':
+ 
+      return <svg {...comuni}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></svg>;
+ 
+    case 'ripeti':
+ 
+      return <svg {...comuni}><path d="m17 2 4 4-4 4" /><path d="M3 11v-1a4 4 0 0 1 4-4h14" /><path d="m7 22-4-4 4-4" /><path d="M21 13v1a4 4 0 0 1-4 4H3" /></svg>;
+ 
+    case 'bilancia':
+ 
+      return <svg {...comuni}><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z" /><path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>;
+ 
+    case 'medaglia':
+ 
+      return <svg {...comuni}><circle cx="12" cy="8" r="6" /><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11" /></svg>;
+ 
+    case 'persona':
+ 
+      return <svg {...comuni}><circle cx="12" cy="5" r="1" /><path d="m9 20 3-6 3 6M6 8l6 2 6-2M12 10v4" /></svg>;
+ 
+    case 'trofeo':
+ 
+      return <svg {...comuni}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-1.04 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98 1.04 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z" /></svg>;
+ 
+    case 'link':
+ 
+      return <svg {...comuni}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>;
+ 
+    case 'chiave':
+ 
+      return <svg {...comuni}><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>;
+ 
+    case 'scarica':
+ 
+      return <svg {...comuni}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="m7 10 5 5 5-5M12 15V3" /></svg>;
+ 
+    case 'foglia':
+ 
+      return <svg {...comuni}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z" /><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" /></svg>;
+ 
     case 'video':
  
       return <svg {...comuni}><rect x="2" y="5" width="14" height="14" rx="3" /><path d="M16 10l6-3v10l-6-3z" /></svg>;
@@ -6859,7 +6960,7 @@ const [notificationError, setNotificationError] = useState('');
  
   // Modifica rapida di un blocco dalla scheda del coach: cambia il programma e lo salva subito.
  
-  const salvaBloccoRapido = async (progId: string, nomeSettimana: string, nomeGiorno: string, bIdx: number, campi: { [k: string]: string }) => {
+  const salvaBloccoRapido = async (progId: string, nomeSettimana: string, nomeGiorno: string, bIdx: number, campi: { [k: string]: any }) => {
  
     const prog = programLibrary.find((p: any) => p.id === progId);
  
@@ -8253,7 +8354,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const avvisi: { [k: string]: { title: string; message: string } } = {
  
-      attivo: { title: 'Abbonamento attivo! 🎉', message: 'Il tuo abbonamento è attivo: trovi le tue schede nella sezione Allenamenti.' },
+      attivo: { title: 'Abbonamento attivo! ', message: 'Il tuo abbonamento è attivo: trovi le tue schede nella sezione Allenamenti.' },
  
       scaduto: { title: 'Abbonamento scaduto', message: 'Il tuo abbonamento è terminato. Apri l\'app per scoprire come rinnovarlo.' },
  
@@ -10637,6 +10738,7 @@ const [notificationError, setNotificationError] = useState('');
         const stesseReps = String(r.primo.reps ?? '') === String(r.ultimo.reps ?? '');
  
         const diffKg = Math.round((r.ultimo.kg - r.primo.kg) * 10) / 10;
+ 
         const diffPct = r.primo.kg > 0 ? Math.round(((r.ultimo.kg - r.primo.kg) / r.primo.kg) * 1000) / 10 : 0;
  
  
@@ -12169,7 +12271,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>
  
-          {perAtleta ? '🚀 Il tuo percorso' : '🚀 Il suo percorso'}
+          {perAtleta ? 'Il tuo percorso' : 'Il suo percorso'}
  
         </h4>
  
@@ -12707,7 +12809,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         <div>
  
-          <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>🎯 Competition Day</h4>
+          <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}><Icona nome="bersaglio" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Competition Day</h4>
  
           <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
  
@@ -12863,7 +12965,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           <button onClick={() => { setShowCompForm(true); setEditCompId(null); setNewComp({ name: '', event_date: '', notes: '' }); }} style={{ width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
-            ➕ Aggiungi una gara
+            <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Aggiungi una gara
  
           </button>
  
@@ -13717,6 +13819,16 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
  
  
+const updateFreeBlockCampi = (wIdx: number, dayIndex: number, blockIndex: number, campi: { [k: string]: any }) => {
+ 
+const updated = JSON.parse(JSON.stringify(programWeeks));
+ 
+Object.assign(updated[wIdx].days[dayIndex].blocks[blockIndex], campi);
+ 
+setProgramWeeks(updated);
+ 
+};
+ 
   const saveProgramToLibrary = async () => {
  
     if (!programTitle) {
@@ -13884,6 +13996,16 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   };
  
  
+ 
+const updateEditingBlockCampi = (wIdx: number, dayIndex: number, blockIndex: number, campi: { [k: string]: any }) => {
+ 
+const updated = JSON.parse(JSON.stringify(editingProgram));
+ 
+Object.assign(updated.weeks[wIdx].days[dayIndex].blocks[blockIndex], campi);
+ 
+setEditingProgram(updated);
+ 
+};
  
   const addBlockToEditingDay = (wIdx: number, dayIndex: number) => {
  
@@ -14299,7 +14421,7 @@ fetchAllAthleteResultsForCoach();
  
           <div style={{ background: 'var(--bg-0f2e22)', border: '1px solid var(--bd-10b981)', borderRadius: '14px', padding: '22px 20px', width: '100%', maxWidth: '340px', textAlign: 'center' }}>
  
-            <div style={{ fontSize: '34px', marginBottom: '10px' }}>📬</div>
+            <div style={{ fontSize: '34px', marginBottom: '10px' }}><Icona nome="campana" size={34} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
             <h3 style={{ margin: '0 0 10px 0', color: 'var(--fg-10b981)', fontSize: '18px' }}>Ci siamo quasi!</h3>
  
@@ -14328,6 +14450,7 @@ fetchAllAthleteResultsForCoach();
               Ho confermato, vai all&apos;accesso
  
             </button>
+ 
             <p style={{ margin: '14px 0 0 0', fontSize: '11px', color: 'var(--fg-71717a)', lineHeight: 1.5 }}>
  
               Problemi con la registrazione? Scrivi a{' '}
@@ -14382,7 +14505,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '12px', color: '#fbbf24', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>
  
-                    ⚠️ Utente minorenne — dati del genitore
+                    <Icona nome="avviso" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Utente minorenne — dati del genitore
  
                   </label>
  
@@ -14460,7 +14583,7 @@ fetchAllAthleteResultsForCoach();
  
                 <div style={{ background: '#422006', border: '1px solid #f59e0b', borderRadius: '8px', padding: '11px 13px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
  
-                  <span style={{ fontSize: '17px', flexShrink: 0 }}>⚠️</span>
+                  <span style={{ fontSize: '17px', flexShrink: 0 }}><Icona nome="avviso" size={17} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></span>
  
                   <span style={{ fontSize: '12px', color: '#fde68a', lineHeight: 1.5 }}>
  
@@ -15130,7 +15253,7 @@ fetchAllAthleteResultsForCoach();
  
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, #f59e0b 0%, #d97706 100%)', color: '#101214', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
  
-            <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏆</div>
+            <div style={{ fontSize: '40px', marginBottom: '8px' }}><Icona nome="trofeo" size={40} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.9, marginBottom: '10px', fontWeight: 'bold' }}>Nuovo record personale</div>
  
@@ -15144,7 +15267,7 @@ fetchAllAthleteResultsForCoach();
  
             <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
  
-              Grande! 💪
+              Grande! 
  
             </button>
  
@@ -15162,7 +15285,7 @@ fetchAllAthleteResultsForCoach();
  
           <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
  
-            <div style={{ fontSize: '30px', marginBottom: '10px' }}>💪</div>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}><Icona nome="bilanciere" size={30} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
             <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.85, marginBottom: '12px', fontWeight: 'bold' }}>AM Training</div>
  
@@ -15188,7 +15311,7 @@ fetchAllAthleteResultsForCoach();
  
           <div style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '26px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
  
-            <div style={{ fontSize: '30px', marginBottom: '10px' }}>📋</div>
+            <div style={{ fontSize: '30px', marginBottom: '10px' }}><Icona nome="appunti" size={30} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
             <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: 'var(--fg-059669)' }}>{anamnesiPopup.mancante ? 'Compila la tua anamnesi' : 'Rinnova la tua anamnesi'}</h3>
  
@@ -15716,7 +15839,7 @@ fetchAllAthleteResultsForCoach();
  
 >
  
-  🗑️
+  <Icona nome="cestino" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> 
  
 </button>
  
@@ -15750,7 +15873,7 @@ fetchAllAthleteResultsForCoach();
  
  
  
-          <button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>Esci</button>
+          {role !== 'athlete' && (<button onClick={handleLogout} style={{ background: '#3a1f24', border: '1px solid var(--bd-7f1d1d)', color: '#fca5a5', padding: '8px 12px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', flexShrink: 0 }}>Esci</button>)}
  
         </div>
  
@@ -15812,7 +15935,7 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
-                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🔗 Invito ad abbonarsi</h4>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito ad abbonarsi</h4>
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
@@ -15906,11 +16029,11 @@ fetchAllAthleteResultsForCoach();
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🏋🏻 Massimali</button>
+                    <button onClick={() => setCoachAthleteDetailTab('maxes')} style={{ ...pillola(coachAthleteDetailTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="bilanciere" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Massimali</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🎯 Gare</button>
+                    <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gare</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>🚀 Percorso</button>
+                    <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
  
                   </div>
  
@@ -15924,7 +16047,7 @@ fetchAllAthleteResultsForCoach();
  
                   >
  
-                    📝 Personal
+                    <Icona nome="modifica" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Personal
  
                   </button>
  
@@ -16651,7 +16774,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                             </div>
  
@@ -16665,92 +16788,10 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       <>
  
-{modificaRapidaKey === chiaveRapida ? (
- 
-<>
- 
-<GrigliaModificaRapida blk={blk} onSalva={(campo: string, v: string) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, { [campo]: v })} />
+<TabellaSerie blk={blk} modifica onCambia={(righe: any[]) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campiDaRighe(righe))} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
 {(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
  
-</>
- 
-) : (
- 
-<>
- 
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
- 
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
- 
-                                                      </div>
- 
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
- 
-                                                      </div>
- 
-                                                    </div>
- 
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
- 
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.load}</span>
- 
-                                                      </div>
- 
-                                                      {(() => {
- 
-                                                        const secRec = parseRestSeconds(blk.rest);
- 
-                                                        return (
- 
-                                                        <div
- 
-                                                          onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
- 
-                                                          style={{ background: 'var(--bg-ecfdf5)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
- 
-                                                        >
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
- 
-                                                        <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px' }}>
- 
-                                                          {secRec ? '⏱️ AVVIA TIMER' : '⏱️ IMPOSTA TIMER'}
- 
-                                                        </span>
- 
-                                                        </div>
- 
-                                                        ); })()}
- 
-                                                    </div>
- 
- 
- 
- 
-</>
- 
-)}
- 
-<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
- 
-<button onClick={() => setModificaRapidaKey(modificaRapidaKey === chiaveRapida ? null : chiaveRapida)} style={{ background: modificaRapidaKey === chiaveRapida ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: modificaRapidaKey === chiaveRapida ? 'var(--onacc)' : 'var(--fg-334155)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 12px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>{modificaRapidaKey === chiaveRapida ? 'Fatto' : 'Modifica rapida'}</button>
- 
-</div>
  
                                       {(() => {
  
@@ -16880,7 +16921,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
  
-                                      <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 INSERISCI SCORE / NOTE (Personal):</span>
+                                      <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />INSERISCI SCORE / NOTE (Personal):</span>
  
                                       {(blk.type !== 'warmup' && !isMobility(blk.name)) ? (
  
@@ -17060,7 +17101,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     <div style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '16px' }}>
  
-                      <span style={{ fontSize: '13px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>🏋️ Esercizi tracciati nei massimali</span>
+                      <span style={{ fontSize: '13px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}><Icona nome="bilanciere" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Esercizi tracciati nei massimali</span>
  
                       <p style={{ fontSize: '11px', color: 'var(--fg-64748b)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
  
@@ -17274,7 +17315,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>⏱️ Metcon PR</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}><Icona nome="timer" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Metcon PR</h4>
  
                   <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
@@ -17362,7 +17403,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>🤸 Gymnastics PR</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}><Icona nome="persona" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gymnastics PR</h4>
  
                   <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
@@ -17448,7 +17489,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div>
  
-                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}>🏅 Benchmark WOD</h4>
+                  <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Benchmark WOD</h4>
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
  
@@ -17480,7 +17521,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
  
-                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginBottom: '8px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginBottom: '8px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(b, lvl)}</div>
  
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
@@ -17626,11 +17667,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                             <option value="">Non ancora scelta</option>
  
-                            <option value="pesi">🏋️ Sala Pesi</option>
+                            <option value="pesi">Sala Pesi</option>
  
-                            <option value="hybrid">🏃 Hybrid</option>
+                            <option value="hybrid">Hybrid</option>
  
-                            <option value="cross">🤸 Cross Training</option>
+                            <option value="cross">Cross Training</option>
  
                           </select>
  
@@ -17800,7 +17841,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     >
  
-                      ➕ Aggiungi atleta manualmente
+                      <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Aggiungi atleta manualmente
  
                     </button>
  
@@ -17890,11 +17931,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}>
  
-                            <option value="attivo">✅ Attivo</option>
+                            <option value="attivo">Attivo</option>
  
-                            <option value="prova">🎁 In prova</option>
+                            <option value="prova">In prova</option>
  
-                            <option value="scaduto">⛔ Scaduto</option>
+                            <option value="scaduto">Scaduto</option>
  
                           </select>
  
@@ -17998,7 +18039,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                 <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
  
-                  <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                  <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Durata automatica</span>
  
                   <span style={{ fontSize: '12px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
  
@@ -18042,11 +18083,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <option value="">Non è un programma di prova</option>
  
-                  <option value="pesi">🏋️ Prova — Sala Pesi</option>
+                  <option value="pesi">Prova — Sala Pesi</option>
  
-                  <option value="hybrid">🏃 Prova — Hybrid</option>
+                  <option value="hybrid">Prova — Hybrid</option>
  
-                  <option value="cross">🤸 Prova — Cross Training</option>
+                  <option value="cross">Prova — Cross Training</option>
  
                 </select>
  
@@ -18100,11 +18141,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                 }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                  <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
+                  <option value="none">Nessuno — bozza, la vedi solo tu</option>
  
-                  <option value="all">🌍 Tutti gli atleti</option>
+                  <option value="all">Tutti gli atleti</option>
  
-                  <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
+                  <option value="selected">Solo gli atleti selezionati qui sotto</option>
  
                 </select>
  
@@ -18162,7 +18203,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
@@ -18718,7 +18759,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                         >
  
-                                          ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                          <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Salva &quot;{block.name}&quot; in Libreria Esercizi
  
                                         </button>
  
@@ -18762,7 +18803,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                               <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                             </div>
  
@@ -19009,45 +19050,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       <div>
  
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+<TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateEditingBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
  
-                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</label>
- 
-                                            <input type="number" value={block.sets || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                          </div>
- 
-                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</label>
- 
-                                            <input type="text" value={block.reps || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                          </div>
- 
-                                        </div>
- 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
- 
-                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</label>
- 
-                                            <input type="text" value={block.load || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                          </div>
- 
-                                          <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</label>
- 
-                                            <input type="text" value={block.rest || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                          </div>
- 
-                                        </div>
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -19249,7 +19253,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
  
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}><Icona nome="lampadina" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Consigli per l&apos;atleta</span>
  
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
@@ -19387,7 +19391,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '999px', border: 'none', background: showDeletedExercises ? 'var(--bg-10b981)' : '#64748b', color: showDeletedExercises ? 'var(--onacc)' : '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
  
-                      {showDeletedExercises ? 'Torna agli esercizi' : '🗑️ Cestino'}
+                      {showDeletedExercises ? 'Torna agli esercizi' : 'Cestino'}
  
                     </button>
  
@@ -19407,11 +19411,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         <option value="">Esercizio generico (nessun massimale)</option>
  
-                        <option value="forza">🏋️ Forza — con massimali 1/3/5/10 RM</option>
+                        <option value="forza">Forza — con massimali 1/3/5/10 RM</option>
  
-                        <option value="metcon">⏱️ Metcon — risultato a tempo</option>
+                        <option value="metcon">Metcon — risultato a tempo</option>
  
-                        <option value="gym">🤸 Ginnastica — massimo di ripetizioni</option>
+                        <option value="gym">Ginnastica — massimo di ripetizioni</option>
  
                       </select>
  
@@ -19587,7 +19591,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                               <span style={{ display: 'inline-block', marginTop: '5px', background: ex.pr_kind === 'metcon' ? 'var(--bg-dbeafe)' : 'var(--bg-fce7f3)', color: ex.pr_kind === 'metcon' ? 'var(--fg-1e40af)' : 'var(--fg-9d174d)', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
  
-                                {ex.pr_kind === 'metcon' ? '⏱️ Metcon PR' : '🤸 Gymnastics PR'}
+                                {ex.pr_kind === 'metcon' ? 'Metcon PR' : 'Gymnastics PR'}
  
                               </span>
  
@@ -19595,7 +19599,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                               <span style={{ display: 'inline-block', marginTop: '5px', background: 'var(--bg-dcfce7)', color: 'var(--fg-166534)', fontSize: '10px', fontWeight: 'bold', padding: '2px 7px', borderRadius: '20px' }}>
  
-                                🏋️ Forza — massimali
+                                <Icona nome="bilanciere" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Forza — massimali
  
                               </span>
  
@@ -19619,9 +19623,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
  
-                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: 'var(--bg-10b981)', border: 'none', color: 'var(--onacc)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                              <button onClick={() => restoreGlobalExercise(ex.id)} style={{ background: 'var(--bg-10b981)', border: 'none', color: 'var(--onacc)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="ripeti" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Ripristina</button>
  
-                              <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>🗑️ Definitivo</button>
+                              <button onClick={() => permanentlyDeleteGlobalExercise(ex.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Definitivo</button>
  
                             </div>
  
@@ -19685,7 +19689,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
  
-                      <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}>📅 Durata automatica</span>
+                      <span style={{ fontSize: '12px', color: 'var(--fg-1e40af)', fontWeight: 'bold', display: 'block', marginBottom: '3px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Durata automatica</span>
  
                       <span style={{ fontSize: '12px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>Le settimane di prova durano sette giorni dal momento in cui l&apos;atleta le sceglie, quindi le date non servono.</span>
  
@@ -19729,11 +19733,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       <option value="">Non è un programma di prova</option>
  
-                      <option value="pesi">🏋️ Prova — Sala Pesi</option>
+                      <option value="pesi">Prova — Sala Pesi</option>
  
-                      <option value="hybrid">🏃 Prova — Hybrid</option>
+                      <option value="hybrid">Prova — Hybrid</option>
  
-                      <option value="cross">🤸 Prova — Cross Training</option>
+                      <option value="cross">Prova — Cross Training</option>
  
                     </select>
  
@@ -19785,11 +19789,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                      <option value="none">🔒 Nessuno — bozza, la vedi solo tu</option>
+                      <option value="none">Nessuno — bozza, la vedi solo tu</option>
  
-                      <option value="all">🌍 Tutti gli atleti</option>
+                      <option value="all">Tutti gli atleti</option>
  
-                      <option value="selected">👥 Solo gli atleti selezionati qui sotto</option>
+                      <option value="selected">Solo gli atleti selezionati qui sotto</option>
  
                     </select>
  
@@ -19839,7 +19843,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
  
-                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}>📅 SETTIMANE</span>
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
@@ -20355,7 +20359,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                             >
  
-                                              ➕ Salva &quot;{block.name}&quot; in Libreria Esercizi
+                                              <Icona nome="piu" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Salva &quot;{block.name}&quot; in Libreria Esercizi
  
                                             </button>
  
@@ -20399,7 +20403,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                                  <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                                  <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                                 </div>
  
@@ -20646,45 +20650,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                           <div>
  
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+<TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateFreeBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
  
-                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</label>
- 
-                                                <input type="number" value={block.sets} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'sets', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                              </div>
- 
-                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</label>
- 
-                                                <input type="text" value={block.reps} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'reps', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                              </div>
- 
-                                            </div>
- 
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
- 
-                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</label>
- 
-                                                <input type="text" value={block.load} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'load', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                              </div>
- 
-                                              <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</label>
- 
-                                                <input type="text" value={block.rest} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rest', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold' }} />
- 
-                                              </div>
- 
-                                            </div>
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -20888,7 +20855,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '14px', marginBottom: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}>💡 Consigli per l&apos;atleta</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)', display: 'block', marginBottom: '10px' }}><Icona nome="lampadina" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Consigli per l&apos;atleta</span>
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
@@ -20922,9 +20889,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     {[
  
-                      { k: 'programmi', t: '📋 Programmi', n: 0 },
+                      { k: 'programmi', t: 'Programmi', n: 0 },
  
-                      { k: 'cestino', t: '🗑️ Cestino', n: contaCestino },
+                      { k: 'cestino', t: 'Cestino', n: contaCestino },
  
                     ].map((v) => (
  
@@ -20956,15 +20923,15 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         { k: 'tutti', t: 'Tutti', n: attivi.length, col: 'var(--fg-475569)' },
  
-                        { k: 'assegnati', t: '✅ Assegnati', n: contaAssegnati, col: 'var(--fg-16a34a)' },
+                        { k: 'assegnati', t: 'Assegnati', n: contaAssegnati, col: 'var(--fg-16a34a)' },
  
-                        { k: 'bozze', t: '🔒 Bozze', n: contaBozze, col: '#d97706' },
+                        { k: 'bozze', t: 'Bozze', n: contaBozze, col: '#d97706' },
  
-                        { k: 'prove', t: '🎁 Prove', n: contaProve, col: 'var(--fg-2563eb)' },
+                        { k: 'prove', t: 'Prove', n: contaProve, col: 'var(--fg-2563eb)' },
  
-                        { k: 'inscadenza', t: '⏳ In scadenza', n: contaInScadenza, col: 'var(--fg-ea580c)' },
+                        { k: 'inscadenza', t: 'In scadenza', n: contaInScadenza, col: 'var(--fg-ea580c)' },
  
-                        { k: 'scaduti', t: '⛔ Scaduti', n: contaScaduti, col: 'var(--fg-dc2626)' },
+                        { k: 'scaduti', t: 'Scaduti', n: contaScaduti, col: 'var(--fg-dc2626)' },
  
                       ].map((f) => (
  
@@ -21120,7 +21087,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                   <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: 'var(--bg-dbeafe)', color: 'var(--fg-1e40af)' }}>
  
-                                    🎁 Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
+                                    <Icona nome="regalo" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} /> Settimana di prova — {prog.trialStyle === 'pesi' ? 'Sala Pesi' : prog.trialStyle === 'hybrid' ? 'Hybrid' : 'Cross Training'}
  
                                   </span>
  
@@ -21128,7 +21095,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                   <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '20px', background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : prog.visibility === 'all' ? 'var(--bg-e0f2fe)' : 'var(--bg-dcfce7)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : prog.visibility === 'all' ? 'var(--fg-075985)' : 'var(--fg-166534)' }}>
  
-                                    {prog.visibility === 'none' ? '🔒 Bozza — non visibile' : prog.visibility === 'all' ? '🌍 Visibile a tutti' : '👥 Visibile agli assegnati'}
+                                    {prog.visibility === 'none' ? 'Bozza — non visibile' : prog.visibility === 'all' ? 'Visibile a tutti' : 'Visibile agli assegnati'}
  
                                   </span>
  
@@ -21170,7 +21137,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                 <>
  
-                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>♻️ Ripristina</button>
+                                  <button onClick={() => restoreProgram(prog.id)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="ripeti" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Ripristina</button>
  
                                   <button onClick={() => permanentlyDeleteProgram(prog.id)} style={{ background: '#7f1d1d', border: 'none', color: '#fff', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="cestino" size={12} /> Elimina definitivamente</button>
  
@@ -21196,7 +21163,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                   )}
  
-                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', border: prog.visibility === 'none' ? '1px solid var(--bd-fcd34d)' : '1px solid var(--bd-d4d4d8)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? '👁 Mostra' : '🙈 Nascondi'}</button>}
+                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', border: prog.visibility === 'none' ? '1px solid var(--bd-fcd34d)' : '1px solid var(--bd-d4d4d8)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? 'Mostra' : 'Nascondi'}</button>}
  
                                   <button onClick={() => duplicateProgram(prog)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
  
@@ -21284,7 +21251,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
             <div style={{ background: 'var(--bg-fef9c3)', border: '1px solid var(--bd-facc15)', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-              <span style={{ fontSize: '20px' }}>⏳</span>
+              <span style={{ fontSize: '20px' }}><Icona nome="clessidra" size={20} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></span>
  
               <span style={{ fontSize: '13px', color: 'var(--fg-854d0e)', fontWeight: 'bold' }}>
  
@@ -21302,7 +21269,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
             <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', padding: '20px', marginBottom: '20px' }}>
  
-              <h3 style={{ margin: '0 0 6px 0', color: 'var(--fg-10b981)', fontSize: '19px' }}>🎁 La tua settimana di prova</h3>
+              <h3 style={{ margin: '0 0 6px 0', color: 'var(--fg-10b981)', fontSize: '19px' }}><Icona nome="regalo" size={19} style={{ marginRight: '6px', verticalAlign: '-2px' }} />La tua settimana di prova</h3>
  
               <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--fg-475569)', lineHeight: 1.5 }}>
  
@@ -21314,11 +21281,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                 {[
  
-                  { k: 'pesi', icon: '🏋️', t: 'Sala Pesi', d: 'Forza e ipertrofia, schede classiche da palestra' },
+                  { k: 'pesi', icon: '', t: 'Sala Pesi', d: 'Forza e ipertrofia, schede classiche da palestra' },
  
-                  { k: 'hybrid', icon: '🏃', t: 'Hybrid', d: 'Resistenza e forza insieme, lavoro continuo' },
+                  { k: 'hybrid', icon: '', t: 'Hybrid', d: 'Resistenza e forza insieme, lavoro continuo' },
  
-                  { k: 'cross', icon: '🤸', t: 'Cross Training', d: 'Sollevamenti, ginnastica e circuiti misti' },
+                  { k: 'cross', icon: '', t: 'Cross Training', d: 'Sollevamenti, ginnastica e circuiti misti' },
  
                 ].map((s) => (
  
@@ -21360,7 +21327,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
             <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
  
-              <div style={{ fontSize: '30px', marginBottom: '8px' }}>💪</div>
+              <div style={{ fontSize: '30px', marginBottom: '8px' }}><Icona nome="bilanciere" size={30} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
               <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
  
@@ -21424,11 +21391,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🏋🏻 Massimali</button>
+                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="bilanciere" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Massimali</button>
  
-                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🎯 Gare</button>
+                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gare</button>
  
-                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>🚀 Percorso</button>
+                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
  
               </div>
  
@@ -21632,7 +21599,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>⏱️ Metcon PR</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="timer" size={18} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Metcon PR</h3>
  
               <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Inserisci il tempo nel formato minuti:secondi (es. 1:45). Più basso è, meglio è.</p>
  
@@ -21694,7 +21661,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🤸 Gymnastics PR</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="persona" size={18} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gymnastics PR</h3>
  
               <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Massimo numero di ripetizioni consecutive (unbroken).</p>
  
@@ -21756,7 +21723,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               <>
  
-              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}>🏅 Benchmark WOD</h3>
+              <h3 style={{ fontSize: '18px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={18} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Benchmark WOD</h3>
  
               <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0' }}>Scegli il livello con cui l&apos;hai affrontato e registra il risultato.</p>
  
@@ -21794,7 +21761,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(b, lvl)}</p>
  
-                      <div style={{ fontSize: '11px', color: 'var(--fg-b45309)', background: 'var(--bg-fef3c7)', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}>🎯 Target: {benchTarget(b, lvl)}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--fg-b45309)', background: 'var(--bg-fef3c7)', display: 'inline-block', padding: '3px 8px', borderRadius: '20px', fontWeight: 'bold', marginBottom: '10px' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(b, lvl)}</div>
  
  
  
@@ -21858,7 +21825,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-93c5fd)', borderRadius: '8px', padding: '14px' }}>
  
-                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-1e40af)', display: 'block', marginBottom: '4px' }}>👋 Benvenuto in AM Training!</span>
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-1e40af)', display: 'block', marginBottom: '4px' }}>Benvenuto in AM Training!</span>
  
                       <span style={{ fontSize: '13px', color: 'var(--fg-1e3a8a)', lineHeight: 1.4 }}>
  
@@ -22002,7 +21969,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>🔑 Cambia password</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}><Icona nome="chiave" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Cambia password</span>
  
                     {!showChangePassword ? (
  
@@ -22046,7 +22013,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>📥 Scarica i tuoi dati</span>
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}><Icona nome="scarica" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Scarica i tuoi dati</span>
  
                     <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 10px 0', lineHeight: 1.4 }}>Ottieni una copia completa di tutti i dati che ti riguardano (anagrafica, anamnesi, massimali, risultati, programmi assegnati) in un file leggibile.</p>
  
@@ -22085,6 +22052,12 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                 </div>
  
               )}
+ 
+<div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+<button onClick={handleLogout} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fee2e2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Esci</button>
+ 
+</div>
  
             </div>
  
@@ -22198,7 +22171,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                         <div style={{ background: 'var(--bg-fee2e2)', border: '1px solid var(--bd-fca5a5)', borderRadius: '10px', padding: '11px 13px', marginBottom: '14px', display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
  
-                          <span style={{ fontSize: '17px', flexShrink: 0 }}>⛔</span>
+                          <span style={{ fontSize: '17px', flexShrink: 0 }}><Icona nome="divieto" size={17} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></span>
  
                           <span style={{ fontSize: '12.5px', color: 'var(--fg-991b1b)', lineHeight: 1.5 }}>
  
@@ -22300,7 +22273,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
  
-                              <span style={{ fontSize: '18px' }}>💡</span>
+                              <span style={{ fontSize: '18px' }}><Icona nome="lampadina" size={18} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></span>
  
                               <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-92400e)' }}>Consigli del coach</span>
  
@@ -22326,9 +22299,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
  
-                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: tipsTab === 'training' ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🏋️ Allenamento</button>
+                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: tipsTab === 'training' ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="bilanciere" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Allenamento</button>
  
-                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : 'var(--bg-f1f5f9)', color: tipsTab === 'nutrition' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>🥗 Nutrizione</button>
+                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : 'var(--bg-f1f5f9)', color: tipsTab === 'nutrition' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="foglia" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Nutrizione</button>
  
                                 </div>
  
@@ -22340,7 +22313,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                                 <div style={{ background: 'var(--bg-f0fdf4)', border: '1px solid var(--bd-86efac)', borderRadius: '10px', padding: '14px' }}>
  
-                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-166534)', marginBottom: '6px' }}>🏋️ Consigli di allenamento</span>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-166534)', marginBottom: '6px' }}><Icona nome="bilanciere" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Consigli di allenamento</span>
  
                                   <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.trainingTips}</p>
  
@@ -22354,7 +22327,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                                 <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '10px', padding: '14px' }}>
  
-                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-1e40af)', marginBottom: '6px' }}>🥗 Consigli nutrizionali</span>
+                                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-1e40af)', marginBottom: '6px' }}><Icona nome="foglia" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Consigli nutrizionali</span>
  
                                   <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{prog.nutritionTips}</p>
  
@@ -23002,7 +22975,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
  
-                                                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}>🎯 Target: {benchTarget(bench, lvl)}</div>
+                                                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                                         </div>
  
@@ -23016,65 +22989,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                   <div>
  
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+<TabellaSerie blk={blk} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>SET</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.sets}</span>
- 
-                                                      </div>
- 
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>REP</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.reps}</span>
- 
-                                                      </div>
- 
-                                                    </div>
- 
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
- 
-                                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>CARICO / RPE</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.load}</span>
- 
-                                                      </div>
- 
-                                                      {(() => {
- 
-                                                        const secRec = parseRestSeconds(blk.rest);
- 
-                                                        return (
- 
-                                                        <div
- 
-                                                          onClick={() => { preparaAudio(); setTimerConfig(secRec ? { tipo: 'recupero', secondi: secRec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }}
- 
-                                                          style={{ background: 'var(--bg-ecfdf5)', padding: '8px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-6ee7b7)', cursor: 'pointer' }}
- 
-                                                        >
- 
-                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>RECUPERO</span>
- 
-                                                        <span style={{ overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)' }}>{blk.rest}</span>
- 
-                                                        <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px' }}>
- 
-                                                          {secRec ? '⏱️ AVVIA TIMER' : '⏱️ IMPOSTA TIMER'}
- 
-                                                        </span>
- 
-                                                        </div>
- 
-                                                        ); })()}
- 
-                                                    </div>
  
  
  
@@ -23210,7 +23126,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 <div style={{ marginTop: '10px', background: 'var(--bg-f1f5f9)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)' }}>
  
-                                                  <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>📝 I TUOI RISULTATI / NOTE:</span>
+                                                  <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />I TUOI RISULTATI / NOTE:</span>
  
                                                   {usaFinestra && blk.scoreUnit !== 'spunta' && (
  
@@ -23401,19 +23317,19 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
           ? [
  
-              { key: 'programs', icon: '📋', label: 'Programmi' },
+              { key: 'programs', icon: 'appunti', label: 'Programmi' },
  
-              { key: 'athletes', icon: '👤', label: 'Profili' },
+              { key: 'athletes', icon: 'utente', label: 'Profili' },
  
-              { key: 'banner', icon: '📢', label: 'Banner' },
+              { key: 'banner', icon: 'megafono', label: 'Banner' },
  
             ]
  
           : [
  
-              { key: 'create', icon: '🏋️', label: 'Allenamenti' },
+              { key: 'create', icon: 'bilanciere', label: 'Allenamenti' },
  
-              { key: 'profile', icon: '👤', label: 'Profilo' },
+              { key: 'profile', icon: 'utente', label: 'Profilo' },
  
             ]
  
@@ -23473,7 +23389,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
             >
  
-              <span style={{ fontSize: '19px', lineHeight: 1 }}>{item.icon}</span>
+<Icona nome={item.icon} size={21} />
  
               <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{item.label}</span>
  
@@ -23567,6 +23483,208 @@ function senzaOrigine(x: any) {
 }
  
  
+ 
+// Forza: una riga per serie (ripetizioni, carico, recupero). I dati restano negli stessi campi di prima
+ 
+// (set, rep, carico, recupero): la tabella li legge e, se li modifichi, li riscrive nello stesso formato.
+ 
+type RigaSerie = { reps: string; load: string; rest: string };
+ 
+function righeSerie(blk: any): RigaSerie[] {
+ 
+  const testo = (v: any) => String(v ?? '').trim();
+ 
+  const parti = (v: any) => testo(v).split('/').map((x) => x.trim());
+ 
+  const nSet = Math.max(1, parseInt(testo(blk?.sets), 10) || 1);
+ 
+  const repsP = parti(blk?.reps);
+ 
+  const n = Math.max(nSet, repsP.length > 1 ? repsP.length : 1);
+ 
+  const numerico = (p: string[]) => p.every((x) => /^([\d.,]+\s*(%|kg)?)?$/i.test(x));
+ 
+  const reps = repsP.length === n && n > 1 ? repsP : Array(n).fill(testo(blk?.reps));
+ 
+  const loadT = testo(blk?.load);
+ 
+  const loadP = parti(blk?.load);
+ 
+  const load = loadT === '/' ? Array(n).fill('') : loadP.length === n && n > 1 && numerico(loadP) ? loadP : Array(n).fill(loadT);
+ 
+  const rest = Array.isArray(blk?.restSerie) && blk.restSerie.length === n ? blk.restSerie.map((x: any) => testo(x)) : Array(n).fill(testo(blk?.rest));
+ 
+  return Array.from({ length: n }, (_v, i) => ({ reps: reps[i], load: load[i], rest: rest[i] }));
+ 
+}
+ 
+function campiDaRighe(righe: RigaSerie[]) {
+ 
+  const uguali = (k: 'reps' | 'load' | 'rest') => righe.every((r) => r[k] === righe[0][k]);
+ 
+  const unisci = (k: 'reps' | 'load' | 'rest') => (uguali(k) ? righe[0][k] : righe.map((r) => r[k]).join('/'));
+ 
+  return { sets: String(righe.length), reps: unisci('reps'), load: unisci('load'), rest: righe[0].rest, restSerie: uguali('rest') ? null : righe.map((r) => r.rest) };
+ 
+}
+ 
+function CellaSerie({ valore, onSalva, placeholder }: any) {
+ 
+  const [t, setT] = useState(String(valore ?? ''));
+ 
+  useEffect(() => {
+ 
+    setT(String(valore ?? ''));
+ 
+  }, [valore]);
+ 
+  return (
+ 
+    <input
+ 
+      value={t}
+ 
+      placeholder={placeholder}
+ 
+      onChange={(e: any) => setT(e.target.value)}
+ 
+      onBlur={() => {
+ 
+        if (t !== String(valore ?? '')) onSalva(t);
+ 
+      }}
+ 
+      enterKeyHint="next"
+ 
+      style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', textAlign: 'center', padding: '10px 4px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold' }}
+ 
+    />
+ 
+  );
+ 
+}
+ 
+function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
+ 
+  const righe = righeSerie(blk);
+ 
+  const colonne = modifica ? 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr) 28px' : 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr)';
+ 
+  const intest: React.CSSProperties = { fontSize: '11px', color: 'var(--fg-64748b)', textAlign: 'center', fontWeight: 'bold' };
+ 
+  const cella: React.CSSProperties = { background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px 4px', textAlign: 'center', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0 };
+ 
+  const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => onCambia(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+ 
+  return (
+ 
+    <div style={{ marginBottom: '10px' }}>
+ 
+      <div style={{ display: 'grid', gridTemplateColumns: colonne, gap: '6px', marginBottom: '6px' }}>
+ 
+        <span style={intest}>Ripetizioni</span>
+ 
+        <span style={intest}>RPE e %</span>
+ 
+        <span style={intest}>Recupero</span>
+ 
+        {modifica && <span />}
+ 
+      </div>
+ 
+      {righe.map((r, i) => (
+ 
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+ 
+          {modifica ? (
+ 
+            <>
+ 
+              <CellaSerie valore={r.reps} onSalva={(v: string) => aggiorna(i, 'reps', v)} />
+ 
+              <CellaSerie valore={r.load} onSalva={(v: string) => aggiorna(i, 'load', v)} />
+ 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+ 
+                <CellaSerie valore={r.rest} onSalva={(v: string) => aggiorna(i, 'rest', v)} />
+ 
+                {onTimer && (
+ 
+                  <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(r.rest))} style={{ flexShrink: 0, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-047857)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+                    <Icona nome="timer" size={14} />
+ 
+                  </button>
+ 
+                )}
+ 
+              </div>
+ 
+              {righe.length > 1 ? (
+ 
+                <button type="button" title="Togli la serie" onClick={() => onCambia(righe.filter((_x, j) => j !== i))} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '28px', height: '28px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+                  <Icona nome="chiudi" size={14} />
+ 
+                </button>
+ 
+              ) : (
+ 
+                <span />
+ 
+              )}
+ 
+            </>
+ 
+          ) : (
+ 
+            <>
+ 
+              <div style={cella}>{r.reps || '\u2013'}</div>
+ 
+              <div style={cella}>{r.load || '\u2013'}</div>
+ 
+              <div
+ 
+                onClick={onTimer ? () => onTimer(parseRestSeconds(r.rest)) : undefined}
+ 
+                style={{ ...cella, cursor: onTimer ? 'pointer' : 'default', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+ 
+              >
+ 
+                {onTimer && <Icona nome="timer" size={13} style={{ color: 'var(--fg-047857)' }} />}
+ 
+                <span>{r.rest || '\u2013'}</span>
+ 
+              </div>
+ 
+            </>
+ 
+          )}
+ 
+        </div>
+ 
+      ))}
+ 
+      {modifica && (
+ 
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+ 
+          <button type="button" onClick={() => onCambia([...righe, { ...righe[righe.length - 1] }])} style={{ flex: '1 1 auto', padding: '9px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+ 
+            <Icona nome="piu" size={14} /> Aggiungi serie
+ 
+          </button>
+ 
+        </div>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
  
 // Pagina: tiene il tema scelto (anche sul dispositivo) e lo passa all'app.
  
