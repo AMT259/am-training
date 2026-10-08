@@ -4902,7 +4902,8 @@ function luminanzaRel(hex: string): number {
  
   const f = (v: number) => {
  
-    const c = v / 255; 
+    const c = v / 255;
+ 
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
  
   };
@@ -8534,8 +8535,7 @@ const [notificationError, setNotificationError] = useState('');
       return;
  
     }
- 
-    setOpenHistoryKey(key);
+   setOpenHistoryKey(key);
  
     if (historyCache[key]) return;
  
@@ -13308,7 +13308,8 @@ fetchAllAthleteResultsForCoach();
       // per non mostrarne due o nessuna.
  
       if (prog.trialGender) {
-         return prog.trialGender === (athleteGender || 'm');
+ 
+        return prog.trialGender === (athleteGender || 'm');
  
       }
  
@@ -14710,11 +14711,21 @@ return (
  
 {(() => {
  
-const giornoAperto = true;
+const chiaveGiorno = `d|${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}`;
+ 
+const giornoAperto = coachAperti[chiaveGiorno] === true;
  
 return (
  
 <div style={{ marginBottom: '6px' }}>
+ 
+<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveGiorno]: !giornoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', borderBottom: giornoAperto ? 'none' : '1px solid var(--bd-e2e8f0)', cursor: 'pointer' }}>
+ 
+<span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' }}>{activeWeekObj?.weekName} - {activeDayObj?.dayName}</span>
+ 
+<span style={{ fontSize: '16px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{giornoAperto ? '\u25B2' : '\u25BC'}</span>
+ 
+</div>
  
 {giornoAperto && (
  
@@ -14742,7 +14753,7 @@ const bloccoAperto = coachAperti[chiaveBlocco] !== false;
  
                                 return (
  
-                                  <div key={bIdx} style={{ padding: '12px 0', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-eef2f7)', border: '1px solid var(--bd-dbe3ec)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
  
 <div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
  
@@ -14798,11 +14809,11 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     {haElenco(blk.type) ? (
  
-                                      <div style={{ background: blk.type === 'superserie' ? 'var(--bg-ffffff)' : 'var(--bg-fffbeb)', border: blk.type === 'superserie' ? '1px solid var(--bd-e2e8f0)' : '1px solid var(--bd-fde68a)', borderRadius: '10px', padding: '12px' }}>
+                                      <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}>
  
                                         {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
-                                          <span style={{ display: 'inline-block', background: blk.type === 'superserie' ? '#c2410c' : '#f59e0b', color: blk.type === 'superserie' ? '#fff' : '#101214', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                          <span style={{ display: 'inline-block', background: '#c2410c', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
                                             {parseInt(String(blk.rounds), 10)} round
  
@@ -14812,7 +14823,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         {(blk.items || []).length === 0 && (
  
-                                          <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)' }}>Nessun esercizio inserito.</span>
+                                          <span style={{ fontSize: '12px', color: 'var(--fg-64748b)' }}>Nessun esercizio inserito.</span>
  
                                         )}
  
@@ -14822,7 +14833,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
+                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
  
                                               {it.name}
  
@@ -14846,7 +14857,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                             </span>
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'break-word', minWidth: 0 }}>
+                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'break-word', minWidth: 0 }}>
  
                                               {it.value}
  
@@ -14914,7 +14925,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                             {i < (blk.items.length - 1) && (() => {
  
-                                              const linea = blk.type === 'superserie' ? 'var(--fg-e2e8f0)' : '#fde68a';
+                                              const linea = 'var(--fg-e2e8f0)';
  
                                               const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
@@ -14968,13 +14979,13 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         >
  
-                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : '#fde68a' }}>
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
  
                                           </span>
  
-                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-92400e)' }}>
+                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
  
                                             {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
  
@@ -15000,7 +15011,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                             return (
  
-                                              <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)', marginTop: '7px', textAlign: 'center' }}>
+                                              <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '7px', textAlign: 'center' }}>
  
                                                 Nessun recupero tra i round
  
@@ -15012,9 +15023,9 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           return (
  
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-fef3c7)', border: '1px solid var(--bd-fcd34d)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-fcd34d)' }}>
  
-                                              <span style={{ fontSize: '12px', color: 'var(--fg-92400e)' }}>
+                                              <span style={{ fontSize: '12px', color: 'var(--fg-334155)' }}>
  
                                                 Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
  
@@ -15044,7 +15055,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         {blk.notes && (
  
-                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? 'var(--bg-f8fafc)' : 'var(--bg-fef3c7)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                             {blk.notes}
  
@@ -15144,7 +15155,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       <>
  
-<TabellaSerie blk={blk} modifica onCambia={(righe: any[]) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campiDaRighe(righe))} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
+<QuattroRiquadri blk={blk} modifica onCambia={(campi: any) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campi)} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
 {(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
  
@@ -17280,7 +17291,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       <div>
  
-<TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateEditingBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
+<QuattroRiquadri blk={block} modifica onCambia={(campi: any) => updateEditingBlockCampi(actualWIdx, actualDIdx, bIdx, campi)} />
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -18803,14 +18814,13 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                                               L&apos;atleta non inserisce punteggi: vede il testo e il video, può spuntare &quot;fatto&quot; e lasciare una nota.
  
                                             </span>
- 
                                           </div>
  
                                         ) : block.type === 'forza' ? (
  
                                           <div>
  
-<TabellaSerie blk={block} modifica onCambia={(righe: any[]) => updateFreeBlockCampi(actualWIdx, actualDIdx, bIdx, campiDaRighe(righe))} />
+<QuattroRiquadri blk={block} modifica onCambia={(campi: any) => updateFreeBlockCampi(actualWIdx, actualDIdx, bIdx, campi)} />
  
                                         <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
  
@@ -20530,12 +20540,21 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                             const realDayIndex = currentWeekObj.days.findIndex((d: any) => d.dayName === day.dayName);
  
+                            const dayCollapseKey = `${prog.id}_w_${realWeekIndex}_d_${realDayIndex}`;
  
-                            const isDayClosed = false;
+                            const isDayClosed = collapsedProgramDays[dayCollapseKey] === undefined ? true : collapsedProgramDays[dayCollapseKey];
  
                             return (
  
                               <div key={realDayIndex} style={{ marginBottom: '6px' }}>
+ 
+<div onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', borderBottom: isDayClosed ? '1px solid var(--bd-e2e8f0)' : 'none', cursor: 'pointer' }}>
+ 
+<span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+ 
+<span style={{ fontSize: '16px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{isDayClosed ? '\u25BC' : '\u25B2'}</span>
+ 
+</div>
  
                                 {!isDayClosed && (
  
@@ -20563,7 +20582,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                         return (
  
-                                          <div key={bIdx} style={{ padding: '12px 0', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+                                          <div key={bIdx} style={{ background: 'var(--bg-eef2f7)', border: '1px solid var(--bd-dbe3ec)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
  
                                             <div
  
@@ -20617,11 +20636,11 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 {haElenco(blk.type) ? (
  
-                                                  <div style={{ background: blk.type === 'superserie' ? 'var(--bg-ffffff)' : 'var(--bg-fffbeb)', border: blk.type === 'superserie' ? '1px solid var(--bd-e2e8f0)' : '1px solid var(--bd-fde68a)', borderRadius: '10px', padding: '12px' }}>
+                                                  <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}>
  
                                                     {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
-                                                      <span style={{ display: 'inline-block', background: blk.type === 'superserie' ? '#c2410c' : '#f59e0b', color: blk.type === 'superserie' ? '#fff' : '#101214', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+                                                      <span style={{ display: 'inline-block', background: '#c2410c', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
                                                         {parseInt(String(blk.rounds), 10)} round
  
@@ -20631,7 +20650,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     {(blk.items || []).length === 0 && (
  
-                                                      <span style={{ fontSize: '12px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)' }}>Nessun esercizio inserito.</span>
+                                                      <span style={{ fontSize: '12px', color: 'var(--fg-64748b)' }}>Nessun esercizio inserito.</span>
  
                                                     )}
  
@@ -20641,7 +20660,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 26px 26px', alignItems: 'center', columnGap: '8px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.name}
  
@@ -20665,7 +20684,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         </span>
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: blk.type === 'superserie' ? 'var(--fg-475569)' : 'var(--fg-b45309)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
+                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', maxWidth: '110px', textAlign: 'right' }}>
  
                                                           {it.value}
  
@@ -20733,7 +20752,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         {i < (blk.items.length - 1) && (() => {
  
-                                                          const linea = blk.type === 'superserie' ? 'var(--fg-e2e8f0)' : '#fde68a';
+                                                          const linea = 'var(--fg-e2e8f0)';
  
                                                           const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
@@ -20787,13 +20806,13 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     >
  
-                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : '#fde68a' }}>
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
  
                                                       </span>
  
-                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-92400e)' }}>
+                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
  
                                                         {athleteResults[prog.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
  
@@ -20821,7 +20840,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         return (
  
-                                                          <span style={{ display: 'block', fontSize: '11px', color: blk.type === 'superserie' ? 'var(--fg-64748b)' : 'var(--fg-a16207)', marginTop: '7px', textAlign: 'center' }}>
+                                                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '7px', textAlign: 'center' }}>
  
                                                             Nessun recupero tra i round
  
@@ -20833,9 +20852,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       return (
  
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-fef3c7)', border: '1px solid var(--bd-fcd34d)' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginTop: '8px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-fcd34d)' }}>
  
-                                                          <span style={{ fontSize: '12px', color: 'var(--fg-92400e)' }}>
+                                                          <span style={{ fontSize: '12px', color: 'var(--fg-334155)' }}>
  
                                                             Rest tra i round <strong style={{ fontSize: '14px' }}>{grezzo}</strong>
  
@@ -20865,7 +20884,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     {blk.notes && (
  
-                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: blk.type === 'superserie' ? 'var(--fg-334155)' : 'var(--fg-78350f)', lineHeight: 1.5, fontStyle: 'italic', background: blk.type === 'superserie' ? 'var(--bg-f8fafc)' : 'var(--bg-fef3c7)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                                         {blk.notes}
  
@@ -20965,7 +20984,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                   <div>
  
-<TabellaSerie blk={blk} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
+<QuattroRiquadri blk={blk} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
                                                     {(() => {
  
@@ -21528,25 +21547,17 @@ function CellaSerie({ valore, onSalva, placeholder, etichetta, centro }: any) {
  
 }
  
-// Tabella delle serie. Vista: righe "Set 1, Set 2..." senza riquadri, le colonne vuote spariscono e il testo lungo va a capo.
+// Forza: quattro riquadri (set, ripetizioni, recupero, carico/RPE). Vista: compatti, il recupero avvia il timer.
  
-// Modifica: un blocco per serie, con i campi larghi abbastanza da non tagliare quello che scrivi.
+// Modifica: gli stessi riquadri con il campo da scrivere; ogni modifica riscrive solo i campi di quel blocco.
  
-function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
+function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
-  const righe = righeSerie(blk);
+  const testoCampo = (v: any) => String(v ?? '').trim();
  
-  const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => onCambia(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+  const pulito = (v: any) => (testoCampo(v) === '/' ? '' : testoCampo(v));
  
-  const bottoneTimer = (r: RigaSerie, grande?: boolean) => (
- 
-    <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(r.rest))} style={{ flexShrink: 0, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '999px', width: grande ? '38px' : '30px', height: grande ? '38px' : '30px', color: 'var(--fg-047857)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
- 
-      <Icona nome="timer" size={14} />
- 
-    </button>
- 
-  );
+  const recupero = Array.isArray(blk?.restSerie) && blk.restSerie.length > 0 ? blk.restSerie.map((x: any) => testoCampo(x)).join(' / ') : testoCampo(blk?.rest);
  
   if (modifica) {
  
@@ -21554,55 +21565,17 @@ function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
  
       <div style={{ marginBottom: '10px' }}>
  
-        {righe.map((r, i) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: '8px' }}>
  
-          <div key={i} style={{ padding: '10px 0', borderTop: i === 0 ? 'none' : '1px solid var(--bd-e2e8f0)' }}>
+          <CellaSerie etichetta="SET" centro valore={blk?.sets} onSalva={(v: string) => onCambia({ sets: v })} />
  
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+          <CellaSerie etichetta="REP" centro valore={blk?.reps} onSalva={(v: string) => onCambia({ reps: v })} />
  
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{`Set ${i + 1}`}</span>
+          <CellaSerie etichetta="RECUPERO" centro valore={recupero} onSalva={(v: string) => onCambia({ rest: v, restSerie: null })} />
  
-              {righe.length > 1 && (
+        </div>
  
-                <button type="button" title="Togli la serie" onClick={() => onCambia(righe.filter((_x, j) => j !== i))} style={{ background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '26px', height: '26px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
- 
-                  <Icona nome="chiudi" size={13} />
- 
-                </button>
- 
-              )}
- 
-            </div>
- 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '8px', marginBottom: '8px' }}>
- 
-              <CellaSerie etichetta="Ripetizioni" centro valore={r.reps} onSalva={(v: string) => aggiorna(i, 'reps', v)} />
- 
-              <CellaSerie etichetta="RPE e %" valore={r.load} onSalva={(v: string) => aggiorna(i, 'load', v)} />
- 
-            </div>
- 
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
- 
-              <div style={{ flex: 1, minWidth: 0 }}>
- 
-                <CellaSerie etichetta="Recupero" valore={r.rest} onSalva={(v: string) => aggiorna(i, 'rest', v)} />
- 
-              </div>
- 
-              {onTimer && bottoneTimer(r, true)}
- 
-            </div>
- 
-          </div>
- 
-        ))}
- 
-        <button type="button" onClick={() => onCambia([...righe, { ...righe[righe.length - 1] }])} style={{ width: '100%', boxSizing: 'border-box', marginTop: '4px', padding: '9px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
- 
-          <Icona nome="piu" size={14} /> Aggiungi serie
- 
-        </button>
+        <CellaSerie etichetta="CARICO / RPE" valore={blk?.load} onSalva={(v: string) => onCambia({ load: v })} />
  
       </div>
  
@@ -21610,57 +21583,55 @@ function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
  
   }
  
-  const haReps = righe.some((r) => r.reps);
+  const box: React.CSSProperties = { background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '6px 8px', textAlign: 'center', minWidth: 0 };
  
-  const haLoad = righe.some((r) => r.load);
+  const et: React.CSSProperties = { display: 'block', fontSize: '10px', color: 'var(--fg-64748b)' };
  
-  const haRest = righe.some((r) => r.rest);
+  const val: React.CSSProperties = { overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' };
  
-  const colonne = ['44px', haReps ? 'minmax(0, 0.9fr)' : '', haLoad ? 'minmax(0, 1.6fr)' : '', haRest ? 'minmax(0, 1fr)' : ''].filter(Boolean).join(' ');
+  const secRec = parseRestSeconds(blk?.rest);
  
-  const intest: React.CSSProperties = { fontSize: '10.5px', color: 'var(--fg-64748b)', fontWeight: 'bold' };
- 
-  const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, lineHeight: 1.3 };
+  const carico = pulito(blk?.load);
  
   return (
  
     <div style={{ marginBottom: '10px' }}>
  
-      <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '8px', paddingBottom: '4px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '8px', marginBottom: carico ? '8px' : 0 }}>
  
-        <span />
+        <div style={box}>
  
-        {haReps && <span style={intest}>Ripetizioni</span>}
+          <span style={et}>SET</span>
  
-        {haLoad && <span style={intest}>RPE e %</span>}
+          <span style={val}>{pulito(blk?.sets) || '–'}</span>
  
-        {haRest && <span style={intest}>Recupero</span>}
+        </div>
  
-      </div>
+        <div style={box}>
  
-      {righe.map((r, i) => (
+          <span style={et}>REP</span>
  
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '8px', alignItems: 'center', padding: '8px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+          <span style={val}>{pulito(blk?.reps) || '–'}</span>
  
-          <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>{`Set ${i + 1}`}</span>
+        </div>
  
-          {haReps && <span style={testo}>{r.reps || '–'}</span>}
+        <div
  
-          {haLoad && <span style={testo}>{r.load || '–'}</span>}
+          onClick={onTimer ? () => onTimer(secRec) : undefined}
  
-          {haRest && (
+          style={{ ...box, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', cursor: onTimer ? 'pointer' : 'default' }}
  
-            <span
+        >
  
-              onClick={onTimer ? () => onTimer(parseRestSeconds(r.rest)) : undefined}
+          <span style={et}>RECUPERO</span>
  
-              style={{ ...testo, display: 'inline-flex', alignItems: 'center', gap: '5px', justifySelf: 'start', cursor: onTimer ? 'pointer' : 'default', color: onTimer ? 'var(--fg-047857)' : 'var(--fg-000000)' }}
+          <span style={val}>{pulito(recupero) || '–'}</span>
  
-            >
+          {onTimer && (
  
-              {onTimer && <Icona nome="timer" size={13} />}
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>
  
-              <span>{r.rest || '–'}</span>
+              <Icona nome="timer" size={10} /> {secRec ? 'AVVIA' : 'IMPOSTA'}
  
             </span>
  
@@ -21668,7 +21639,19 @@ function TabellaSerie({ blk, modifica, onCambia, onTimer }: any) {
  
         </div>
  
-      ))}
+      </div>
+ 
+      {carico && (
+ 
+        <div style={box}>
+ 
+          <span style={et}>CARICO / RPE</span>
+ 
+          <span style={val}>{carico}</span>
+ 
+        </div>
+ 
+      )}
  
     </div>
  
