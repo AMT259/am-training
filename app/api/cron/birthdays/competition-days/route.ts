@@ -1,4 +1,3 @@
-// app/api/cron/competition-days/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
  
@@ -7,20 +6,37 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
  
+// Data e ora di Roma, qualunque sia il fuso del server
+const ROMA = (d: Date) => {
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' }).formatToParts(d);
+  const v = (t: string) => p.find((x) => x.type === t)?.value || '';
+  return { chiave: `${v('year')}-${v('month')}-${v('day')}`, ora: parseInt(v('hour'), 10) };
+};
+const sommaGiorni = (chiave: string, n: number) => {
+  const [a, m, g] = chiave.split('-').map(Number);
+  return new Date(Date.UTC(a, m - 1, g + n)).toISOString().split('T')[0];
+};
+ 
+export const dynamic = 'force-dynamic';
+ 
 // Momenti in cui avvisare: sono quelli in cui un programma va ripensato
 const TAPPE = [60, 30, 14, 7, 0];
  
 export async function GET(req: NextRequest) {
   try {
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
+    // Il cron parte alle 22 e alle 23 UTC: si lavora solo quando a Roma e' mezzanotte.
+    // Per provarlo a mano a qualsiasi ora: aggiungi ?prova=1 all'indirizzo
+    const adesso = ROMA(new Date());
+    const prova = req.nextUrl.searchParams.get('prova') === '1';
+    if (adesso.ora !== 0 && !prova) {
+      return NextResponse.json({ ok: true, saltato: `a Roma sono le ${adesso.ora}: si parte solo a mezzanotte` });
+    }
+    const oggiKey = adesso.chiave;
  
     // Calcolo le date che oggi ricadono su una delle tappe
     const bersagli: { [giorno: string]: number } = {};
     TAPPE.forEach((n) => {
-      const d = new Date(oggi);
-      d.setDate(d.getDate() + n);
-      bersagli[d.toISOString().split('T')[0]] = n;
+      bersagli[sommaGiorni(oggiKey, n)] = n;
     });
  
     const { data: gare } = await supabaseAdmin
@@ -72,7 +88,8 @@ export async function GET(req: NextRequest) {
     };
  
     for (const gara of gare) {
-      const mancano = bersagli[String(gara.event_date)];
+      const mancano = bersagli[String(gara.event_date).slice(0, 10)];
+      if (mancano === undefined) continue;
       const quando =
         mancano === 0 ? 'è oggi' :
         mancano === 7 ? 'è fra una settimana' :
