@@ -1398,6 +1398,34 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
  
 // Legge il tempo di recupero scritto dal coach: "1'30", "1'", "90 sec", "1:30", "2 min"
  
+// "emom 5'", "e2mom 10'", "emom 10 min", "amrap 12'": il timer giusto già impostato.
+ 
+// EMOM: un round ogni minuto (o ogni N minuti con E2MOM, E3MOM...) per il tempo scritto.
+ 
+function timerSpecialeDaTesto(testo: any): any {
+ 
+  const t = String(testo ?? '').toLowerCase().replace(/[\u2019\u02bc]/g, "'");
+ 
+  const e = t.match(/e(\d+)?mom\s*(?:x\s*)?(\d+(?:[.,]\d+)?)/);
+ 
+  if (e) {
+ 
+    const ogni = Math.max(1, parseInt(e[1] || '1', 10));
+ 
+    const minuti = parseFloat(e[2].replace(',', '.'));
+ 
+    return { tipo: 'emom', durata: ogni * 60, round: Math.max(1, Math.round(minuti / ogni)) };
+ 
+  }
+ 
+  const a = t.match(/amrap\s*(\d+(?:[.,]\d+)?)/);
+ 
+  if (a) return { tipo: 'amrap', durata: Math.max(60, Math.round(parseFloat(a[1].replace(',', '.')) * 60)) };
+ 
+  return null;
+ 
+}
+ 
 function parseRestSeconds(testo: any): number | null {
  
   if (testo === null || testo === undefined) return null;
@@ -15268,7 +15296,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       <>
  
-<QuattroRiquadri blk={blk} modifica onCambia={(campi: any) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campi)} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
+<QuattroRiquadri blk={blk} modifica onCambia={(campi: any) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campi)} onTimer={(sec: any) => { preparaAudio(); setTimerConfig(sec && typeof sec === 'object' ? sec : sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
 {(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
  
@@ -21100,7 +21128,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                   <div>
  
-<QuattroRiquadri blk={blk} onTimer={(sec: number | null) => { preparaAudio(); setTimerConfig(sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
+<QuattroRiquadri blk={blk} onTimer={(sec: any) => { preparaAudio(); setTimerConfig(sec && typeof sec === 'object' ? sec : sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
                                                     {(() => {
  
@@ -21701,7 +21729,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
             {onTimer && (
  
-              <button type="button" title="Avvia il recupero" onClick={() => onTimer(parseRestSeconds(blk?.rest))} style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              <button type="button" title="Avvia il recupero" onClick={() => onTimer(timerSpecialeDaTesto(blk?.rest) || timerSpecialeDaTesto(blk?.reps) || timerSpecialeDaTesto(blk?.load) || parseRestSeconds(blk?.rest))} style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
  
                 <Icona nome="timer" size={16} />
  
@@ -21726,6 +21754,10 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
   const val: React.CSSProperties = { overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' };
  
   const secRec = parseRestSeconds(blk?.rest);
+ 
+  // EMOM/AMRAP: lo leggo dal recupero, oppure dalle rep o dal carico se è scritto lì
+ 
+  const speciale = timerSpecialeDaTesto(blk?.rest) || timerSpecialeDaTesto(blk?.reps) || timerSpecialeDaTesto(blk?.load);
  
   return (
  
@@ -21757,7 +21789,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
       <div
  
-        onClick={onTimer ? () => onTimer(secRec) : undefined}
+        onClick={onTimer ? () => onTimer(speciale || secRec) : undefined}
  
         style={{ ...box, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', cursor: onTimer ? 'pointer' : 'default' }}
  
@@ -21771,7 +21803,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>
  
-            <Icona nome="timer" size={10} /> {secRec ? 'AVVIA TIMER' : 'IMPOSTA TIMER'}
+            <Icona nome="timer" size={10} /> {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? 'AVVIA TIMER' : 'IMPOSTA TIMER'}
  
           </span>
  
