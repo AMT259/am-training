@@ -5707,7 +5707,8 @@ function TrainingApp({ tema, impostaTema }: any) {
           console.error('Errore registrazione Service Worker:', error);
  
         });
-     }
+ 
+    }
  
   }, []);
  
@@ -11396,7 +11397,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return [...uguale, ...altri];
  
   };
-   // ---- COMPETITION DAY: calendario gare ----
+ 
+  // ---- COMPETITION DAY: calendario gare ----
  
   const fetchCompetitions = async (athleteId: string) => {
  
@@ -14718,13 +14720,13 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '16px 12px', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
+                          <div key={prog.id} style={{ marginBottom: '28px' }}>
  
                             <div
  
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
  
-                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+                              style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
  
                             >
  
@@ -14830,9 +14832,9 @@ return (
  
 <div style={{ marginBottom: '6px' }}>
  
-<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveGiorno]: !giornoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', borderBottom: giornoAperto ? 'none' : '1px solid var(--bd-e2e8f0)', cursor: 'pointer' }}>
+<div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveGiorno]: !giornoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.12)', borderBottom: giornoAperto ? 'none' : '1px solid rgba(255,255,255,0.12)', cursor: 'pointer' }}>
  
-<span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' }}>{activeWeekObj?.weekName} - {activeDayObj?.dayName}</span>
+<span style={{ fontWeight: 'bold', fontSize: '15px', color: '#f2f3f5' }}>{activeWeekObj?.weekName} - {activeDayObj?.dayName}</span>
  
 <span style={{ fontSize: '16px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{giornoAperto ? '\u25B2' : '\u25BC'}</span>
  
@@ -14864,7 +14866,7 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
                                 return (
  
-                                  <div key={bIdx} style={{ background: 'var(--bg-eef2f7)', border: '1px solid var(--bd-dbe3ec)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
 <div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
  
@@ -20332,7 +20334,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   return (
  
-                    <div key={prog.id} style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '16px 12px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '20px' }}>
+                    <div key={prog.id} style={{ marginBottom: '28px' }}>
  
                       {scaduto && (
  
@@ -20356,7 +20358,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       )}
  
-                      <div style={{ marginBottom: '12px' }}>
+                      <div style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '14px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '12px' }}>
  
                         <h4 style={{ overflowWrap: 'anywhere', color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
  
@@ -20660,9 +20662,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                               <div key={realDayIndex} style={{ marginBottom: '6px' }}>
  
-<div onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', borderBottom: isDayClosed ? '1px solid var(--bd-e2e8f0)' : 'none', cursor: 'pointer' }}>
+<div onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.12)', borderBottom: isDayClosed ? '1px solid rgba(255,255,255,0.12)' : 'none', cursor: 'pointer' }}>
  
-<span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' }}>{currentWeekObj.weekName} - {day.dayName}</span>
+<span style={{ fontWeight: 'bold', fontSize: '15px', color: '#f2f3f5' }}>{currentWeekObj.weekName} - {day.dayName}</span>
  
 <span style={{ fontSize: '16px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{isDayClosed ? '\u25BC' : '\u25B2'}</span>
  
@@ -20694,7 +20696,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                         return (
  
-                                          <div key={bIdx} style={{ background: 'var(--bg-eef2f7)', border: '1px solid var(--bd-dbe3ec)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
+                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
                                             <div style={{ marginBottom: '8px' }}>
  
