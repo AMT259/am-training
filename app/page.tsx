@@ -14702,7 +14702,7 @@ fetchAllAthleteResultsForCoach();
  
                     ) : (
  
-                      athletePersonalPrograms.map((prog: any) => {
+                      athletePersonalPrograms.map((prog: any, progIdx: number) => {
  
                         const weeks = normalizeProgramWeeks(prog);
  
@@ -14720,13 +14720,13 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ marginBottom: '28px' }}>
+                          <div key={prog.id} style={{ marginBottom: '28px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)', paddingTop: '22px' } : {}) }}>
  
                             <div
  
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
  
-                              style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '16px', border: '1px solid var(--bd-d8dde3)', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
  
                             >
  
@@ -20294,7 +20294,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               ) : (
  
-                athletePrograms.map((prog) => {
+                athletePrograms.map((prog, progIdx) => {
  
                   const weeks = normalizeProgramWeeks(prog);
  
@@ -20334,7 +20334,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   return (
  
-                    <div key={prog.id} style={{ marginBottom: '28px' }}>
+                    <div key={prog.id} style={{ marginBottom: '28px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)', paddingTop: '22px' } : {}) }}>
  
                       {scaduto && (
  
@@ -20358,7 +20358,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                       )}
  
-                      <div style={{ background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', padding: '14px', borderRadius: '16px', border: scaduto ? '2px solid #ef4444' : inScadenza ? '2px solid #f97316' : '1px solid var(--bd-d8dde3)', marginBottom: '12px' }}>
+                      <div style={{ marginBottom: '14px' }}>
  
                         <h4 style={{ overflowWrap: 'anywhere', color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '18px' }}>{prog.title}</h4>
  
@@ -20368,7 +20368,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                           return (
  
-                            <span style={{ display: 'block', fontSize: '11px', color: st.color, fontWeight: 'bold' }}>
+                            <span style={{ display: 'inline-block', fontSize: '11px', color: st.color, background: st.bg, padding: '3px 10px', borderRadius: '999px', fontWeight: 'bold' }}>
  
                               {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
  
