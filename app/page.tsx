@@ -1964,7 +1964,11 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
                 const colore = r.diff > 0 ? 'var(--fg-047857)' : r.diff < 0 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)';
  
-                const sfondo = r.diff > 0 ? 'var(--fg-ecfdf5)' : r.diff < 0 ? 'var(--fg-fef2f2)' : 'var(--fg-f8fafc)';
+                const sfondo = r.diff > 0 ? 'var(--bg-ecfdf5)' : r.diff < 0 ? 'var(--bg-fef2f2)' : 'var(--bg-f8fafc)';
+ 
+                  const schema = String(r.reps ?? '').trim();
+ 
+                  const etichettaRep = !schema || schema === '—' ? '' : r.unita === 'rip' ? schema : /^[\d\s+x×*\/-]+$/i.test(schema) ? `${schema} rip` : schema;
  
                 return (
  
@@ -1972,13 +1976,13 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
  
                     <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)' }}>
  
-                      <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
+                      {etichettaRep && <><strong>{etichettaRep}</strong> — </>}{r.primo} → {r.ultimo} {r.unita || 'kg'}
  
                     </span>
  
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: colore, whiteSpace: 'nowrap' }}>
  
-                      {r.diff > 0 ? '+' : ''}{r.diff} kg{r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}
+                      {r.diff === 0 ? 'Invariato' : `${r.diff > 0 ? '+' : ''}${r.diff} ${r.unita || 'kg'}${r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}`}
  
                     </span>
  
@@ -5146,7 +5150,9 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
     strokeLinejoin: 'round' as const,
  
-    style: { flexShrink: 0, ...style },
+    // inline-block: senza, il foglio di stile di base le mette su una riga a sé, sopra al testo
+ 
+    style: { display: 'inline-block', verticalAlign: '-2px', flexShrink: 0, ...style },
  
     'aria-hidden': true,
  
@@ -5878,6 +5884,12 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [needsAnamnesis, setNeedsAnamnesis] = useState(false);
  
+  // Finestra di modifica dell'anamnesi (atleta): si apre col pulsante e si chiude dopo il salvataggio
+ 
+  const [anamnesiInModifica, setAnamnesiInModifica] = useState(false);
+ 
+  const [anamnesiCopia, setAnamnesiCopia] = useState<any>(null);
+ 
   const [showSplash, setShowSplash] = useState(true);
  
   const [dailyQuote, setDailyQuote] = useState('');
@@ -5892,11 +5904,15 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [coachUltimaAttivita, setCoachUltimaAttivita] = useState<{ [id: string]: string }>({});
  
-  const [mostraAttivita, setMostraAttivita] = useState(true);
+  const [mostraAttivita, setMostraAttivita] = useState(false);
  
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
  
   const [historyCache, setHistoryCache] = useState<{ [key: string]: any[] }>({});
+ 
+  // Storico dei test e dei benchmark (tempi, ripetizioni massime, benchmark WOD) per i progressi
+ 
+  const [storicoTest, setStoricoTest] = useState<{ [athleteId: string]: any[] }>({});
  
   useEffect(() => {
  
@@ -6187,6 +6203,88 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     return [{ weekNumber: 1, weekName: 'Settimana 1', days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }];
+ 
+  };
+ 
+  // ---- PROGRAMMI CHE SI RIPETONO OGNI SETTIMANA ----
+ 
+  // Con "Ripeti ogni settimana" acceso, ogni 7 giorni dalla data di inizio la scheda riparte pulita.
+ 
+  // I risultati delle settimane passate restano dentro i risultati, in __cicli, e servono come riferimento.
+ 
+  const ripeteSettimana = (prog: any) => !!prog && !prog.trialStyle && !!prog.startDate && !!normalizeProgramWeeks(prog)[0]?.ripetiSettimana;
+ 
+  const cicloAttuale = (startDate: any) => {
+ 
+    const [a, m, g] = String(startDate || '').slice(0, 10).split('-').map(Number);
+ 
+    if (!a || !m || !g) return 0;
+ 
+    const oggi = new Date();
+ 
+    const t0 = Date.UTC(a, m - 1, g);
+ 
+    const t1 = Date.UTC(oggi.getFullYear(), oggi.getMonth(), oggi.getDate());
+ 
+    return Math.max(0, Math.floor((t1 - t0) / (7 * 86400000)));
+ 
+  };
+ 
+  // Se è cominciata una settimana nuova, sposta i risultati nell'archivio e restituisce i risultati nuovi (altrimenti null)
+ 
+  const ruotaCiclo = (prog: any, ris: any) => {
+ 
+    if (!ripeteSettimana(prog) || !ris) return null;
+ 
+    const c = cicloAttuale(prog.startDate);
+ 
+    const salvato = typeof ris.__ciclo === 'number' ? ris.__ciclo : null;
+ 
+    if (salvato !== null && salvato >= c) return null;
+ 
+    const blocco = (k: string) => /^\d+_\d+_\d+$/.test(k);
+ 
+    const chiavi = Object.keys(ris).filter(blocco);
+ 
+    if (salvato === null && (c === 0 || chiavi.length === 0)) return { ...ris, __ciclo: c };
+ 
+    const da = salvato === null ? c - 1 : salvato;
+ 
+    const archivio: any = { ...(ris.__cicli || {}) };
+ 
+    if (chiavi.length > 0) {
+ 
+      archivio[da] = { ...(archivio[da] || {}) };
+ 
+      chiavi.forEach((k) => { archivio[da][k] = ris[k]; });
+ 
+    }
+ 
+    const nuovo: any = { __ciclo: c, __cicli: archivio };
+ 
+    Object.keys(ris).forEach((k) => { if (!blocco(k) && k !== '__ciclo' && k !== '__cicli') nuovo[k] = ris[k]; });
+ 
+    return nuovo;
+ 
+  };
+ 
+  // Il risultato più recente di quell'esercizio nelle settimane passate
+ 
+  const settimanaScorsa = (ris: any, chiave: string) => {
+ 
+    const arch = ris?.__cicli || {};
+ 
+    const cicli = Object.keys(arch).map(Number).filter((n) => !isNaN(n)).sort((a, b) => b - a);
+ 
+    for (const c of cicli) {
+ 
+      const v = arch[c]?.[chiave];
+ 
+      if (v && String(v.score || '').trim()) return String(v.score).trim();
+ 
+    }
+ 
+    return '';
  
   };
  
@@ -8156,7 +8254,7 @@ const [notificationError, setNotificationError] = useState('');
  
       alert('Errore durante il salvataggio: ' + error.message);
  
-      return;
+      return false;
  
     }
  
@@ -8194,7 +8292,11 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    alert('Anamnesi salvata con successo!');
+    if (isCoachEditing) alert('Anamnesi salvata con successo!');
+ 
+    else avvisa('Anamnesi salvata');
+ 
+    return true;
  
   };
  
@@ -9068,7 +9170,11 @@ const [notificationError, setNotificationError] = useState('');
  
       const blk = settimane[wi]?.days?.[di]?.blocks?.[bi];
  
-      if (!blk || blk.type !== 'forza' || !blk.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
+      if (!blk || blk.type !== 'forza' || !blk.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg' && blk.scoreUnit !== 'rep')) return;
+ 
+      // Blocchi a ripetizioni: stessa tabella, segnati con "@rep " davanti allo schema
+ 
+      const conUnita = (x: any) => (blk.scoreUnit === 'rep' ? `@rep ${String(x ?? '').trim()}` : String(x ?? ''));
  
       const oggi = new Date();
  
@@ -9120,7 +9226,7 @@ const [notificationError, setNotificationError] = useState('');
  
           exercise: blk.name,
  
-          reps: String(r.reps ?? ''),
+          reps: conUnita(r.reps),
  
           load_kg: r.kg,
  
@@ -9141,6 +9247,108 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
+ 
+  // Quando si apre la scheda Progressi, carico lo storico dei test di quell'atleta
+ 
+  useEffect(() => {
+ 
+    if (role === 'athlete' && athleteProfileTab === 'progressi' && session?.user?.id) fetchStoricoTest(session.user.id);
+ 
+    if (role !== 'athlete' && coachAthleteDetailTab === 'progressi' && selectedCoachAthlete?.id) fetchStoricoTest(selectedCoachAthlete.id);
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [athleteProfileTab, coachAthleteDetailTab, selectedCoachAthlete?.id, session?.user?.id]);
+ 
+  // Settimana nuova nei programmi che si ripetono: la scheda riparte pulita (atleta)
+ 
+  useEffect(() => {
+ 
+    if (role !== 'athlete' || !session?.user?.id || !programLibrary.length) return;
+ 
+    const cambi: { [pid: string]: any } = {};
+ 
+    programLibrary.forEach((prog: any) => {
+ 
+      const nuovo = ruotaCiclo(prog, athleteResults[prog.id]);
+ 
+      if (nuovo) cambi[prog.id] = nuovo;
+ 
+    });
+ 
+    const ids = Object.keys(cambi);
+ 
+    if (ids.length === 0) return;
+ 
+    setAthleteResults((prev: any) => ({ ...prev, ...cambi }));
+ 
+    ids.forEach((pid) => {
+ 
+      supabase.from('program_results').upsert(
+ 
+        { program_id: pid, athlete_id: session.user.id, results: cambi[pid], updated_at: new Date().toISOString() },
+ 
+        { onConflict: 'program_id, athlete_id' }
+ 
+      ).then(() => {}, () => {});
+ 
+    });
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [programLibrary, athleteResults, role]);
+ 
+  // Stessa cosa lato coach, per vedere la settimana in corso di ogni atleta
+ 
+  useEffect(() => {
+ 
+    if (role !== 'coach' || !programLibrary.length) return;
+ 
+    const cambi: { [pid: string]: { [aid: string]: any } } = {};
+ 
+    programLibrary.forEach((prog: any) => {
+ 
+      const perAtleta = coachAllResults[prog.id] || {};
+ 
+      Object.keys(perAtleta).forEach((aid) => {
+ 
+        const nuovo = ruotaCiclo(prog, perAtleta[aid]);
+ 
+        if (nuovo) {
+ 
+          if (!cambi[prog.id]) cambi[prog.id] = {};
+ 
+          cambi[prog.id][aid] = nuovo;
+ 
+        }
+ 
+      });
+ 
+    });
+ 
+    const pids = Object.keys(cambi);
+ 
+    if (pids.length === 0) return;
+ 
+    setCoachAllResults((prev: any) => {
+ 
+      const copia = { ...prev };
+ 
+      pids.forEach((pid) => { copia[pid] = { ...(copia[pid] || {}), ...cambi[pid] }; });
+ 
+      return copia;
+ 
+    });
+ 
+    pids.forEach((pid) => Object.keys(cambi[pid]).forEach((aid) => {
+ 
+      supabase.from('program_results').update({ results: cambi[pid][aid] }).eq('program_id', pid).eq('athlete_id', aid).then(() => {}, () => {});
+ 
+    }));
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [programLibrary, coachAllResults, role]);
  
   // Nuovo record dell'atleta: avviso al coach
  
@@ -9178,7 +9386,13 @@ const [notificationError, setNotificationError] = useState('');
  
     // vecchio, e la seconda scrittura cancellava la prima.
  
-    const campi: { [k: string]: string } = typeof field === 'string' ? { [field]: value ?? '' } : field;
+    const oggiG = new Date();
+ 
+    const giornoOggi = `${oggiG.getFullYear()}-${String(oggiG.getMonth() + 1).padStart(2, '0')}-${String(oggiG.getDate()).padStart(2, '0')}`;
+ 
+    // "g" = giorno in cui è stato scritto il risultato: serve ad "Allenamento di oggi"
+ 
+    const campi: { [k: string]: string } = { ...(typeof field === 'string' ? { [field]: value ?? '' } : field), g: giornoOggi };
  
     if (athleteIdOverride) {
  
@@ -9192,7 +9406,11 @@ const [notificationError, setNotificationError] = useState('');
  
       const updatedBlockResults = { ...currentBlockResults, ...campi };
  
-      const updatedAthleteResults = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
+      const updatedAthleteResults: any = { ...currentAthleteResults, [blockKey]: updatedBlockResults };
+ 
+      const progCicloC = programLibrary.find((p: any) => p.id === programId);
+ 
+      if (ripeteSettimana(progCicloC) && typeof updatedAthleteResults.__ciclo !== 'number') updatedAthleteResults.__ciclo = cicloAttuale(progCicloC.startDate);
  
       const updatedProgResults = { ...currentProgResults, [athleteIdOverride]: updatedAthleteResults };
  
@@ -9228,7 +9446,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const updatedBlockResults = { ...currentBlockResults, ...campi };
  
-    const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
+    const updatedProgResults: any = { ...currentProgResults, [blockKey]: updatedBlockResults };
+ 
+    const progCiclo = programLibrary.find((p: any) => p.id === programId);
+ 
+    if (ripeteSettimana(progCiclo) && typeof updatedProgResults.__ciclo !== 'number') updatedProgResults.__ciclo = cicloAttuale(progCiclo.startDate);
  
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
  
@@ -9876,6 +10098,24 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const fetchStoricoTest = async (athleteId: string) => {
+ 
+    const { data } = await supabase
+ 
+      .from('athlete_max_history')
+ 
+      .select('exercise,reps,value,recorded_at')
+ 
+      .eq('athlete_id', athleteId)
+ 
+      .lt('reps', 0)
+ 
+      .order('recorded_at', { ascending: true });
+ 
+    setStoricoTest((prev) => ({ ...prev, [athleteId]: data || [] }));
+ 
+  };
+ 
   const fetchStoricoCarichi = async (athleteId: string) => {
  
     const { data } = await supabase
@@ -9986,7 +10226,9 @@ const [notificationError, setNotificationError] = useState('');
  
         const perc = primo > 0 ? Math.round((diff / primo) * 100) : 0;
  
-        righeEx.push({ reps, primo, ultimo, diff, perc, volte: serie.length });
+        const unita = reps.startsWith('@rep ') ? 'rip' : 'kg';
+ 
+        righeEx.push({ reps: unita === 'rip' ? reps.slice(5) : reps, unita, primo, ultimo, diff, perc, volte: serie.length });
  
       });
  
@@ -10303,6 +10545,7 @@ const [notificationError, setNotificationError] = useState('');
                     {blocchi.map((blk: any, bi: number) => {
  
                       const bReale = indiciBlocchi[bi];
+ 
                       const dato = suoi[`${wIdx}_${dIdx}_${bReale}`];
  
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
@@ -11281,7 +11524,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '9px' }}>
  
-          CRESCITA DEI CARICHI
+          CRESCITA DI CARICHI E RIPETIZIONI
  
         </span>
  
@@ -11383,7 +11626,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                   const colore = r.diff > 0 ? 'var(--fg-047857)' : r.diff < 0 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)';
  
-                  const sfondo = r.diff > 0 ? 'var(--fg-ecfdf5)' : r.diff < 0 ? 'var(--fg-fef2f2)' : 'var(--fg-f8fafc)';
+                  const sfondo = r.diff > 0 ? 'var(--bg-ecfdf5)' : r.diff < 0 ? 'var(--bg-fef2f2)' : 'var(--bg-f8fafc)';
+ 
+                  const schema = String(r.reps ?? '').trim();
+ 
+                  const etichettaRep = !schema || schema === '—' ? '' : r.unita === 'rip' ? schema : /^[\d\s+x×*\/-]+$/i.test(schema) ? `${schema} rip` : schema;
  
                   return (
  
@@ -11391,7 +11638,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                       <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)' }}>
  
-                        <strong>{r.reps} rip</strong> — {r.primo} → {r.ultimo} kg
+                        {etichettaRep && <><strong>{etichettaRep}</strong> — </>}{r.primo} → {r.ultimo} {r.unita || 'kg'}
  
                         <span style={{ color: 'var(--fg-94a3b8)' }}> · {r.volte} volte</span>
  
@@ -11399,7 +11646,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: colore, whiteSpace: 'nowrap' }}>
  
-                        {r.diff > 0 ? '+' : ''}{r.diff} kg{r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}
+                        {r.diff === 0 ? 'Invariato' : `${r.diff > 0 ? '+' : ''}${r.diff} ${r.unita || 'kg'}${r.perc !== 0 ? ` (${r.perc > 0 ? '+' : ''}${r.perc}%)` : ''}`}
  
                       </span>
  
@@ -11416,6 +11663,126 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
           </>
  
         )}
+ 
+        {athleteId && (() => {
+ 
+          // Test e benchmark: primo e ultimo risultato nel periodo. Nei tempi più basso è meglio.
+ 
+          const righeTest = (storicoTest[athleteId] || []).filter((r: any) => {
+ 
+            const g = String(r.recorded_at || '').slice(0, 10);
+ 
+            if (dal && g < dal) return false;
+ 
+            if (al && g > al) return false;
+ 
+            return true;
+ 
+          });
+ 
+          const gruppi: { [k: string]: any[] } = {};
+ 
+          righeTest.forEach((r: any) => {
+ 
+            const k = `${r.exercise}|${r.reps}`;
+ 
+            if (!gruppi[k]) gruppi[k] = [];
+ 
+            gruppi[k].push(r);
+ 
+          });
+ 
+          const voci = Object.keys(gruppi).map((k) => {
+ 
+            const serie = gruppi[k];
+ 
+            const primo = serie[0];
+ 
+            const ultimo = serie[serie.length - 1];
+ 
+            const reps = Number(primo.reps);
+ 
+            const bench = BENCHMARK_WODS.find((b: any) => String(b.name).toLowerCase() === String(primo.exercise).toLowerCase());
+ 
+            const tipo = reps === -1 || (reps === -3 && bench?.type === 'time') ? 'tempo' : reps === -3 && bench?.type === 'rounds' ? 'round' : reps === -2 ? 'rip' : 'kg';
+ 
+            const fmt = (v: number) => (tipo === 'tempo' ? secondsToTime(v) : tipo === 'round' ? numberToRounds(v) : tipo === 'rip' ? `${v} rip` : `${v} kg`);
+ 
+            const a = Number(primo.value);
+ 
+            const b = Number(ultimo.value);
+ 
+            const meglio = tipo === 'tempo' ? b < a : b > a;
+ 
+            const peggio = tipo === 'tempo' ? b > a : b < a;
+ 
+            let diffTesto = '';
+ 
+            if (serie.length > 1 && a !== b) {
+ 
+              const d = Math.abs(b - a);
+ 
+              diffTesto = tipo === 'tempo'
+ 
+                ? `${meglio ? '−' : '+'}${secondsToTime(d)}`
+ 
+                : tipo === 'round'
+ 
+                  ? (meglio ? 'Più round' : 'Meno round')
+ 
+                  : `${b > a ? '+' : '−'}${Math.round(d * 10) / 10} ${tipo === 'rip' ? 'rip' : 'kg'}`;
+ 
+            }
+ 
+            return { nome: primo.exercise, volte: serie.length, da: fmt(a), a: fmt(b), meglio, peggio, diffTesto };
+ 
+          }).sort((x, y) => Number(y.meglio) - Number(x.meglio) || String(x.nome).localeCompare(String(y.nome)));
+ 
+          if (voci.length === 0) return null;
+ 
+          return (
+ 
+            <div style={{ marginTop: '18px' }}>
+ 
+              <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '9px' }}>
+ 
+                TEST E BENCHMARK
+ 
+              </span>
+ 
+              {voci.map((v: any, i: number) => (
+ 
+                <div key={i} style={{ padding: '9px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '10px' }}>
+ 
+                    <span style={{ fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere', minWidth: 0 }}>{v.nome}</span>
+ 
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', whiteSpace: 'nowrap', color: v.volte < 2 ? 'var(--fg-64748b)' : v.meglio ? 'var(--fg-047857)' : v.peggio ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)' }}>
+ 
+                      {v.volte < 2 ? 'Primo risultato' : v.diffTesto || 'Invariato'}
+ 
+                    </span>
+ 
+                  </div>
+ 
+                  <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginTop: '2px' }}>
+ 
+                    {v.volte < 2 ? v.a : `${v.da} → ${v.a}`}
+ 
+                    <span style={{ color: 'var(--fg-94a3b8)' }}>{` · ${v.volte} ${v.volte === 1 ? 'volta' : 'volte'}`}</span>
+ 
+                  </span>
+ 
+                </div>
+ 
+              ))}
+ 
+            </div>
+ 
+          );
+ 
+        })()}
  
         {athleteId && (
  
@@ -11573,7 +11940,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             if (blk?.scoreUnit && blk.scoreUnit !== 'kg') continue;
  
-            const grezzo = risultati[`${wi}_${di}_${bi}`]?.score;
+            const grezzo = risultati[`${wi}_${di}_${bi}`]?.score || settimanaScorsa(risultati, `${wi}_${di}_${bi}`);
  
             const kg = caricoMigliore(grezzo);
  
@@ -12256,7 +12623,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   const moveDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
  
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
- 
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
     const days = updated[wIdx].days;
@@ -13563,6 +13929,12 @@ fetchAllAthleteResultsForCoach();
  
   // Primo giorno non ancora completato, nei programmi visibili e non scaduti
  
+  // Allenamento di oggi: riparte dall'ultimo giorno in cui l'atleta ha scritto qualcosa.
+ 
+  // Se quel giorno l'ha toccato oggi e non è finito, lo riprende; altrimenti va al primo giorno non fatto dopo.
+ 
+  // I giorni saltati più indietro non vengono riproposti.
+ 
   const trovaAllenamentoDiOggi = () => {
  
     for (const prog of athletePrograms) {
@@ -13571,25 +13943,55 @@ fetchAllAthleteResultsForCoach();
  
       if (scad !== null && scad > 0) continue;
  
+      const ris = athleteResults[prog.id] || {};
+ 
       const settimane = normalizeProgramWeeks(prog);
  
-      for (let wi = 0; wi < settimane.length; wi++) {
+      const giorni: { wi: number; di: number; week: any; day: any }[] = [];
  
-        const w = settimane[wi];
+      settimane.forEach((w: any, wi: number) => {
  
-        if (!w || w.hidden) continue;
+        if (!w || w.hidden) return;
  
-        const giorni = w.days || [];
+        (w.days || []).forEach((d: any, di: number) => {
  
-        for (let di = 0; di < giorni.length; di++) {
+          if (!d || d.hidden || !(d.blocks || []).length) return;
  
-          const d = giorni[di];
+          giorni.push({ wi, di, week: w, day: d });
  
-          if (!d || d.hidden || !(d.blocks || []).length) continue;
+        });
  
-          if (!giornoCompleto(athleteResults[prog.id] || {}, wi, di, d.blocks.length)) return { prog, wi, di, week: w, day: d };
+      });
  
-        }
+      if (giorni.length === 0) continue;
+ 
+      const iniziato = (g: any) => (g.day.blocks || []).some((_b: any, bi: number) => {
+ 
+        const r = ris[`${g.wi}_${g.di}_${bi}`];
+ 
+        return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done);
+ 
+      });
+ 
+      let ultimo = -1;
+ 
+      giorni.forEach((g, i) => { if (iniziato(g)) ultimo = i; });
+ 
+      const oggiD = new Date();
+ 
+      const oggiK = `${oggiD.getFullYear()}-${String(oggiD.getMonth() + 1).padStart(2, '0')}-${String(oggiD.getDate()).padStart(2, '0')}`;
+ 
+      // Il giorno lasciato a metà si riprende solo se ci ha lavorato oggi; se l'aveva iniziato prima, si va avanti
+ 
+      const toccatoOggi = (g: any) => (g.day.blocks || []).some((_b: any, bi: number) => ris[`${g.wi}_${g.di}_${bi}`]?.g === oggiK);
+ 
+      const partenza = ultimo < 0 ? 0 : toccatoOggi(giorni[ultimo]) ? ultimo : ultimo + 1;
+ 
+      for (let i = partenza; i < giorni.length; i++) {
+ 
+        const g = giorni[i];
+ 
+        if (!giornoCompleto(ris, g.wi, g.di, g.day.blocks.length)) return { prog, wi: g.wi, di: g.di, week: g.week, day: g.day };
  
       }
  
@@ -14704,6 +15106,7 @@ fetchAllAthleteResultsForCoach();
                 <div>
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
+ 
                   <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
@@ -15807,6 +16210,8 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                       </div>
  
                                     )}
+ 
+{(() => { const sc = settimanaScorsa(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -17117,6 +17522,28 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
               </div>
  
               )}
+ 
+              {!editingProgram.trialStyle && (
+ 
+                  <button type="button" onClick={() => { const u = JSON.parse(JSON.stringify(editingProgram.weeks || [])); if (!u[0]) return; u[0].ripetiSettimana = !u[0].ripetiSettimana; setEditingProgram({ ...editingProgram, weeks: u }); }} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', textAlign: 'left', padding: '12px 14px', marginBottom: '16px', borderRadius: '14px', border: !!editingProgram.weeks?.[0]?.ripetiSettimana ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: !!editingProgram.weeks?.[0]?.ripetiSettimana ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)', cursor: 'pointer' }}>
+ 
+                    <span style={{ minWidth: 0 }}>
+ 
+                      <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: !!editingProgram.weeks?.[0]?.ripetiSettimana ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>Ripeti ogni settimana</span>
+ 
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, marginTop: '2px' }}>Ogni 7 giorni dalla data di inizio la scheda riparte pulita, con i pesi della settimana prima come riferimento. Serve la data di inizio.</span>
+ 
+                    </span>
+ 
+                    <span style={{ width: '40px', height: '22px', borderRadius: '999px', background: !!editingProgram.weeks?.[0]?.ripetiSettimana ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)', position: 'relative', flexShrink: 0 }}>
+ 
+                      <span style={{ position: 'absolute', top: '3px', left: !!editingProgram.weeks?.[0]?.ripetiSettimana ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '999px', background: '#fff' }} />
+ 
+                    </span>
+ 
+                  </button>
+ 
+                )}
  
               <div style={{ marginBottom: '20px' }}>
  
@@ -18695,6 +19122,28 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                   </div>
  
                   )}
+ 
+                  {!programTrialStyle && (
+ 
+                  <button type="button" onClick={() => { const u = JSON.parse(JSON.stringify(programWeeks)); if (!u[0]) return; u[0].ripetiSettimana = !u[0].ripetiSettimana; setProgramWeeks(u); }} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', textAlign: 'left', padding: '12px 14px', marginBottom: '16px', borderRadius: '14px', border: !!programWeeks[0]?.ripetiSettimana ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: !!programWeeks[0]?.ripetiSettimana ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)', cursor: 'pointer' }}>
+ 
+                    <span style={{ minWidth: 0 }}>
+ 
+                      <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: !!programWeeks[0]?.ripetiSettimana ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>Ripeti ogni settimana</span>
+ 
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, marginTop: '2px' }}>Ogni 7 giorni dalla data di inizio la scheda riparte pulita, con i pesi della settimana prima come riferimento. Serve la data di inizio.</span>
+ 
+                    </span>
+ 
+                    <span style={{ width: '40px', height: '22px', borderRadius: '999px', background: !!programWeeks[0]?.ripetiSettimana ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)', position: 'relative', flexShrink: 0 }}>
+ 
+                      <span style={{ position: 'absolute', top: '3px', left: !!programWeeks[0]?.ripetiSettimana ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '999px', background: '#fff' }} />
+ 
+                    </span>
+ 
+                  </button>
+ 
+                )}
  
                   <div style={{ marginBottom: '16px' }}>
  
@@ -20676,6 +21125,82 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Anamnesi</h3>
  
+                  {anamnesiMancante ? (
+ 
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>Non l&apos;hai ancora compilata.</p>
+ 
+                  ) : (
+ 
+                    <>
+ 
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', borderRadius: '10px', padding: '11px 13px' }}>
+ 
+                        <span style={{ width: '24px', height: '24px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icona nome="spunta" size={14} /></span>
+ 
+                        <span style={{ fontSize: '13px', color: 'var(--fg-047857)', fontWeight: 'bold', lineHeight: 1.4 }}>
+ 
+                          Anamnesi salvata{anamnesiUpdatedAt ? ` · aggiornata il ${new Date(anamnesiUpdatedAt).toLocaleDateString('it-IT')}` : ''}
+ 
+                        </span>
+ 
+                      </div>
+ 
+                      {[
+ 
+                        ['Obiettivo', anamnesis.goal],
+ 
+                        ['Allenamenti settimanali', anamnesis.weekly_sessions],
+ 
+                        ['Durata singolo allenamento', anamnesis.session_duration],
+ 
+                        ['Attrezzatura disponibile', anamnesis.equipment],
+ 
+                        ['Problematiche fisiche o sistemiche', anamnesis.physical_issues],
+ 
+                      ].map(([etichetta, valore]: any) => (
+ 
+                        <div key={etichetta} style={{ padding: '10px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>{etichetta}</span>
+ 
+                          <span style={{ display: 'block', fontSize: '14px', color: 'var(--fg-000000)', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{String(valore ?? '').trim() || '\u2013'}</span>
+ 
+                        </div>
+ 
+                      ))}
+ 
+                    </>
+ 
+                  )}
+ 
+                  <button
+ 
+                    type="button"
+ 
+                    onClick={() => { setAnamnesiCopia({ ...anamnesis }); setAnamnesiInModifica(true); }}
+ 
+                    style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+ 
+                  >
+ 
+                    <Icona nome="modifica" size={15} /> {anamnesiMancante ? 'Compila anamnesi' : 'Modifica anamnesi'}
+ 
+                  </button>
+ 
+                  {anamnesiInModifica && (
+ 
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1700, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '20px 16px', boxSizing: 'border-box' }}>
+ 
+                      <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+ 
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+ 
+                          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{anamnesiMancante ? 'Compila anamnesi' : 'Modifica anamnesi'}</h3>
+ 
+                          <button type="button" onClick={() => { if (anamnesiCopia) setAnamnesis(anamnesiCopia); setAnamnesiInModifica(false); }} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Chiudi</button>
+ 
+                        </div>
+ 
                   <div>
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
@@ -20736,19 +21261,25 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   </div>
  
-                  <button
+                        <button
  
-                    disabled={anamnesisSaving}
+                          disabled={anamnesisSaving}
  
-                    onClick={() => saveAnamnesis(session.user.id, anamnesis, false)}
+                          onClick={async () => { const ok = await saveAnamnesis(session.user.id, anamnesis, false); if (ok) setAnamnesiInModifica(false); }}
  
-                    style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
+                          style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: anamnesisSaving ? 0.6 : 1 }}
  
-                  >
+                        >
  
-                    {anamnesisSaving ? 'Salvataggio...' : 'Salva Anamnesi'}
+                          {anamnesisSaving ? 'Salvataggio...' : 'Salva anamnesi'}
  
-                  </button>
+                        </button>
+ 
+                      </div>
+ 
+                    </div>
+ 
+                  )}
  
                 </div>
  
@@ -21142,9 +21673,9 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                                 <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
  
-                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: tipsTab === 'training' ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="bilanciere" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Allenamento</button>
+                                  <button onClick={() => setTipsTab('training')} style={{ flex: 1, minWidth: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'training' ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: tipsTab === 'training' ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="bilanciere" size={13} />Allenamento</button>
  
-                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : 'var(--bg-f1f5f9)', color: tipsTab === 'nutrition' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="foglia" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Nutrizione</button>
+                                  <button onClick={() => setTipsTab('nutrition')} style={{ flex: 1, minWidth: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '9px', borderRadius: '999px', border: 'none', background: tipsTab === 'nutrition' ? '#0284c7' : 'var(--bg-f1f5f9)', color: tipsTab === 'nutrition' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="foglia" size={13} />Nutrizione</button>
  
                                 </div>
  
@@ -21903,6 +22434,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                   </div>
  
                                                 )}
+ 
+{(() => { const sc = settimanaScorsa(athleteResults[prog.id], resultKey); return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
  
                                                 {blk.type !== 'warmup' && (
  
