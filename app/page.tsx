@@ -6206,6 +6206,38 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Unità del risultato di un blocco forza: 'kg', 'rip' oppure null (tempo, round, spunta: non entrano nei progressi).
+ 
+  // Con il tipo di score "Generico" la ricavo dal blocco: ripetizioni massime o esercizi a corpo libero = rip.
+ 
+  const unitaBlocco = (blk: any): 'kg' | 'rip' | null => {
+ 
+    if (!blk || blk.type !== 'forza' || !blk.name) return null;
+ 
+    const u = String(blk.scoreUnit || '');
+ 
+    if (u === 'kg') return 'kg';
+ 
+    if (u === 'rep') return 'rip';
+ 
+    if (u) return null;
+ 
+    const reps = String(blk.reps || '').toLowerCase();
+ 
+    const carico = String(blk.load || '').toLowerCase().trim();
+ 
+    if (/max|rep|amrap|ubk|%/.test(reps)) return 'rip';
+ 
+    if (carico && carico !== '/' && /\d|kg|rpe|rm|%/.test(carico)) return 'kg';
+ 
+    if (STRENGTH_EXERCISES.some((n) => sameName(n, blk.name))) return 'kg';
+ 
+    if (/bilanc|manubr|\bdb\b|\d+db|\bkb\b|kettlebell|squat|deadlift|stacco|press|panca|bench|clean|snatch|jerk|thruster|curl|lunge|affond|rematore|\brow\b|hip thrust|sled|slitta|carry|farmer/.test(String(blk.name).toLowerCase())) return 'kg';
+ 
+    return 'rip';
+ 
+  };
+ 
   // ---- PROGRAMMI CHE SI RIPETONO OGNI SETTIMANA ----
  
   // Con "Ripeti ogni settimana" acceso, ogni 7 giorni dalla data di inizio la scheda riparte pulita.
@@ -9170,11 +9202,13 @@ const [notificationError, setNotificationError] = useState('');
  
       const blk = settimane[wi]?.days?.[di]?.blocks?.[bi];
  
-      if (!blk || blk.type !== 'forza' || !blk.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg' && blk.scoreUnit !== 'rep')) return;
+      const unitaB = unitaBlocco(blk);
+ 
+      if (!blk || !unitaB) return;
  
       // Blocchi a ripetizioni: stessa tabella, segnati con "@rep " davanti allo schema
  
-      const conUnita = (x: any) => (blk.scoreUnit === 'rep' ? `@rep ${String(x ?? '').trim()}` : String(x ?? ''));
+      const conUnita = (x: any) => (unitaB === 'rip' ? `@rep ${String(x ?? '').trim()}` : String(x ?? ''));
  
       const oggi = new Date();
  
@@ -10164,7 +10198,31 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!righe || righe.length === 0) return null;
  
-    const utili = programId ? righe.filter((r: any) => r.program_id === programId) : righe;
+    const utiliGrezze = programId ? righe.filter((r: any) => r.program_id === programId) : righe;
+ 
+    // Le righe vecchie non sanno se erano kg o ripetizioni: lo chiedo al blocco del programma
+ 
+    const utili: any[] = [];
+ 
+    utiliGrezze.forEach((r: any) => {
+ 
+      const repsTesto = String(r.reps ?? '');
+ 
+      if (repsTesto.startsWith('@rep ') || !r.program_id || !r.block_key) { utili.push(r); return; }
+ 
+      const prog = programLibrary.find((p: any) => p.id === r.program_id);
+ 
+      if (!prog) { utili.push(r); return; }
+ 
+      const [wi, di, bi] = String(r.block_key).split('#')[0].split('_').map((n: string) => parseInt(n, 10));
+ 
+      const unitaR = unitaBlocco(normalizeProgramWeeks(prog)[wi]?.days?.[di]?.blocks?.[bi]);
+ 
+      if (unitaR === null) return;
+ 
+      utili.push(unitaR === 'rip' ? { ...r, reps: `@rep ${repsTesto.trim()}` } : r);
+ 
+    });
  
     if (utili.length === 0) return null;
  
@@ -10290,13 +10348,15 @@ const [notificationError, setNotificationError] = useState('');
  
         (giorno?.blocks || []).forEach((blk: any, bi: number) => {
  
-          if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
+          const unitaP = unitaBlocco(blk);
+ 
+          if (!unitaP) return;
  
           const kg = parseWeightValue(risultati[`${wi}_${di}_${bi}`]?.score);
  
           if (!kg) return;
  
-          const reps = String(blk.reps ?? '').trim();
+          const reps = unitaP === 'rip' ? `@rep ${String(blk.reps ?? '').trim()}` : String(blk.reps ?? '').trim();
  
           if (!reps) { scartati++; return; }
  
@@ -10336,7 +10396,9 @@ const [notificationError, setNotificationError] = useState('');
  
         const perc = primo > 0 ? Math.round((diff / primo) * 100) : 0;
  
-        righe.push({ reps, primo, ultimo, diff, perc, volte: serie.length });
+        const unita = reps.startsWith('@rep ') ? 'rip' : 'kg';
+ 
+        righe.push({ reps: unita === 'rip' ? reps.slice(5) : reps, unita, primo, ultimo, diff, perc, volte: serie.length });
  
       });
  
@@ -11246,7 +11308,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             (d?.blocks || []).forEach((blk: any, bi: number) => {
  
-              if (blk?.type !== 'forza' || !blk?.name || (blk?.scoreUnit && blk.scoreUnit !== 'kg')) return;
+              const unitaR = unitaBlocco(blk);
+ 
+              if (!unitaR) return;
  
               const kg = caricoMigliore(ris[`${wi}_${di}_${bi}`]?.score);
  
@@ -11270,7 +11334,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                 exercise: blk.name,
  
-                reps: String(blk.reps ?? ''),
+                reps: unitaR === 'rip' ? `@rep ${String(blk.reps ?? '').trim()}` : String(blk.reps ?? ''),
  
                 load_kg: kg,
  
@@ -11514,9 +11578,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           {perAtleta
  
-            ? 'Quanto hai fatto finora e come sono cresciuti i tuoi carichi.'
+            ? 'Quanto hai fatto finora e come sono cresciuti carichi, ripetizioni e test.'
  
-            : 'Quanto ha fatto finora e come sono cresciuti i suoi carichi.'}
+            : 'Quanto ha fatto finora e come sono cresciuti carichi, ripetizioni e test.'}
  
         </p>
  
@@ -11612,7 +11676,19 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             </div>
  
-            {dati.esercizi.map((ex: any, i: number) => (
+            {[
+ 
+              ['CARICHI', dati.esercizi.filter((ex: any) => ex.righe[0]?.unita !== 'rip')],
+ 
+              ['RIPETIZIONI', dati.esercizi.filter((ex: any) => ex.righe[0]?.unita === 'rip')],
+ 
+            ].map(([titolo, lista]: any) => (lista.length === 0 ? null : (
+ 
+              <div key={titolo} style={{ marginBottom: '14px' }}>
+ 
+                <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', margin: '4px 0 8px 0', paddingBottom: '5px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>{titolo}</span>
+ 
+                {lista.map((ex: any, i: number) => (
  
               <div key={i} style={{ marginBottom: '13px' }}>
  
@@ -11658,7 +11734,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               </div>
  
-            ))}
+                ))}
+ 
+              </div>
+ 
+            )))}
  
           </>
  
@@ -11938,7 +12018,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             if (!sameName(blk?.name, nomeEsercizio)) continue;
  
-            if (blk?.scoreUnit && blk.scoreUnit !== 'kg') continue;
+            if (unitaBlocco(blk) !== 'kg') continue;
  
             const grezzo = risultati[`${wi}_${di}_${bi}`]?.score || settimanaScorsa(risultati, `${wi}_${di}_${bi}`);
  
@@ -12623,6 +12703,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   const moveDayOrder = (wIdx: number, dayIdx: number, direction: 'left' | 'right') => {
  
     const newIndex = direction === 'left' ? dayIdx - 1 : dayIdx + 1;
+ 
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
     const days = updated[wIdx].days;
@@ -15594,8 +15675,7 @@ fetchAllAthleteResultsForCoach();
                               {activeWeekObj?.days?.map((day: any, idx: number) => {
  
 const wR = weeks.findIndex((w: any) => w.weekName === activeWeekName);
- 
-const tuttiBlocchi = day.blocks || [];
+ const tuttiBlocchi = day.blocks || [];
  
 const fattiG = tuttiBlocchi.filter((_b: any, bi: number) => {
  
