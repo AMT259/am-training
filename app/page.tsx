@@ -14354,7 +14354,7 @@ fetchAllAthleteResultsForCoach();
  
           {coachSubView === 'banner' ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
  
@@ -16422,7 +16422,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
           ) : editingProgram ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
@@ -16594,7 +16594,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
-              <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '16px' }}>
  
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
@@ -16820,7 +16820,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       return (
  
-                        <div key={actualDIdx} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--bd-e2e8f0)' }}>
+                        <div key={actualDIdx} style={{ padding: '12px 0 4px 0', marginBottom: '8px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -16912,7 +16912,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                             return (
  
-                              <div key={block.id || bIdx} style={{ background: 'var(--bg-ffffff)', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--bd-cbd5e1)' }}>
+                              <div key={block.id || bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
                                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
@@ -18008,7 +18008,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               ) : activeTab === 'create' ? (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
  
@@ -18162,7 +18162,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
-                  <div style={{ marginBottom: '16px', background: 'var(--bg-f1f5f9)', padding: '12px', borderRadius: '8px' }}>
+                  <div style={{ marginBottom: '16px' }}>
  
                     <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
@@ -18386,7 +18386,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                           return (
  
-                            <div key={actualDIdx} style={{ background: 'var(--bg-f8fafc)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--bd-e2e8f0)' }}>
+                            <div key={actualDIdx} style={{ padding: '12px 0 4px 0', marginBottom: '8px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -18476,7 +18476,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                 return (
  
-                                  <div key={block.id} style={{ background: 'var(--bg-ffffff)', padding: '12px', borderRadius: '8px', marginBottom: '12px', border: '1px solid var(--bd-cbd5e1)' }}>
+                                  <div key={block.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
                                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
  
