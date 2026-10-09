@@ -6226,13 +6226,23 @@ const [notificationError, setNotificationError] = useState('');
  
     const carico = String(blk.load || '').toLowerCase().trim();
  
-    if (/max|rep|amrap|ubk|%/.test(reps)) return 'rip';
- 
-    if (carico && carico !== '/' && /\d|kg|rpe|rm|%/.test(carico)) return 'kg';
+    // 1) esercizi con attrezzi o pesi: kg
  
     if (STRENGTH_EXERCISES.some((n) => sameName(n, blk.name))) return 'kg';
  
-    if (/bilanc|manubr|\bdb\b|\d+db|\bkb\b|kettlebell|squat|deadlift|stacco|press|panca|bench|clean|snatch|jerk|thruster|curl|lunge|affond|rematore|\brow\b|hip thrust|sled|slitta|carry|farmer/.test(String(blk.name).toLowerCase())) return 'kg';
+    if (/bilanc|manubr|\bdb\b|\d+db|\bkb\b|kettlebell|squat|deadlift|stacco|press|panca|bench|clean|snatch|jerk|thruster|curl|lunge|affond|rematore|\brow\b|hip thrust|sled|slitta|carry|farmer|zavorr|weighted/.test(String(blk.name).toLowerCase())) return 'kg';
+ 
+    // 2) ripetizioni massime: rip
+ 
+    if (/max|rep|amrap|ubk/.test(reps)) return 'rip';
+ 
+    // 3) un carico vero scritto nel blocco (kg o percentuale del massimale): kg. L'RPE da solo non basta,
+ 
+    //    perché si usa anche negli esercizi a corpo libero
+ 
+    if (/kg|rm|%/.test(carico)) return 'kg';
+ 
+    // 4) tutto il resto (ginnastica, corpo libero): rip
  
     return 'rip';
  
@@ -9503,7 +9513,6 @@ const [notificationError, setNotificationError] = useState('');
       const giornoF = progF ? normalizeProgramWeeks(progF)[wi]?.days?.[di] : null;
  
       const nB = (giornoF?.blocks || []).length;
- 
       if (giornoF && !giornoCompleto(currentProgResults, wi, di, nB) && giornoCompleto(updatedProgResults, wi, di, nB)) {
  
         setFestaGiorno({ giorno: giornoF.dayName || '' });
@@ -10212,11 +10221,13 @@ const [notificationError, setNotificationError] = useState('');
  
       const prog = programLibrary.find((p: any) => p.id === r.program_id);
  
-      if (!prog) { utili.push(r); return; }
- 
       const [wi, di, bi] = String(r.block_key).split('#')[0].split('_').map((n: string) => parseInt(n, 10));
  
-      const unitaR = unitaBlocco(normalizeProgramWeeks(prog)[wi]?.days?.[di]?.blocks?.[bi]);
+      const blkR = prog ? normalizeProgramWeeks(prog)[wi]?.days?.[di]?.blocks?.[bi] : null;
+ 
+      // se il blocco non c'è più (programma cancellato o spostato) decido dal nome dell'esercizio
+ 
+      const unitaR = unitaBlocco(blkR && sameName(blkR.name, r.exercise) ? blkR : { type: 'forza', name: r.exercise, reps: repsTesto });
  
       if (unitaR === null) return;
  
@@ -15675,7 +15686,8 @@ fetchAllAthleteResultsForCoach();
                               {activeWeekObj?.days?.map((day: any, idx: number) => {
  
 const wR = weeks.findIndex((w: any) => w.weekName === activeWeekName);
- const tuttiBlocchi = day.blocks || [];
+ 
+const tuttiBlocchi = day.blocks || [];
  
 const fattiG = tuttiBlocchi.filter((_b: any, bi: number) => {
  
@@ -21660,8 +21672,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                           const st = getProgramDateStatus(prog.startDate, prog.endDate);
  
                           return (
- 
-                            <span style={{ display: 'inline-block', fontSize: '11px', color: st.color, background: st.bg, padding: '3px 10px', borderRadius: '999px', fontWeight: 'bold' }}>
+                           <span style={{ display: 'inline-block', fontSize: '11px', color: st.color, background: st.bg, padding: '3px 10px', borderRadius: '999px', fontWeight: 'bold' }}>
  
                               {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
  
