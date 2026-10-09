@@ -3956,17 +3956,21 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   if (!scelta) {
  
-    // Scelta del timer: sei riquadri su due colonne, tutto in una schermata senza scorrere
+    // Scelta del timer: elenco verticale compatto, tutto in una schermata senza scorrere
  
     const opzione = (titolo: string, descrizione: string, icona: string, onClick: () => void) => (
  
-      <button onClick={onClick} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', textAlign: 'left', padding: '11px 12px', borderRadius: '14px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', color: 'var(--fg-10b981)', cursor: 'pointer' }}>
+      <button onClick={onClick} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '11px', textAlign: 'left', padding: '9px 14px', borderRadius: '999px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', color: 'var(--fg-10b981)', cursor: 'pointer' }}>
  
         <Icona nome={icona} size={20} />
  
-        <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
  
-        <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-a1a1aa)', lineHeight: 1.3 }}>{descrizione}</span>
+          <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
+ 
+          <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a1a1aa)', marginTop: '1px', lineHeight: 1.3 }}>{descrizione}</span>
+ 
+        </span>
  
       </button>
  
@@ -3984,7 +3988,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
 <SceltaSuono />
  
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
  
           {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', 'timer', () => setScelta({ tipo: 'libero' }))}
  
@@ -14550,7 +14554,7 @@ fetchAllAthleteResultsForCoach();
  
               {selectedCoachAthlete ? (
  
-                <div style={coachAthleteDetailTab === 'personal' ? {} : { background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+                <div style={coachAthleteDetailTab === 'personal' ? {} : { background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
@@ -15596,7 +15600,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <div>
  
-                    <div style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '16px' }}>
+                    <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginBottom: '16px' }}>
  
                       <span style={{ fontSize: '13px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}><Icona nome="bilanciere" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Esercizi tracciati nei massimali</span>
  
@@ -15726,7 +15730,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       return (
  
-                        <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                        <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', marginBottom: '8px' }}>{exName}</div>
  
@@ -15798,7 +15802,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}><Icona nome="timer" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Metcon PR</h4>
  
-                  <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
+                  <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
                     <span style={{ fontSize: '12px', color: 'var(--fg-475569)', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Metcon PR</span>
  
@@ -15826,7 +15830,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     {metconPRNames.map((exName) => (
  
-                      <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                      <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
@@ -15876,7 +15880,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <h4 style={{ fontSize: '15px', margin: '0 0 8px 0', color: 'var(--fg-10b981)' }}><Icona nome="persona" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gymnastics PR</h4>
  
-                  <div style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
+                  <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginBottom: '14px' }}>
  
                     <span style={{ fontSize: '12px', color: 'var(--fg-475569)', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>Gestisci l&apos;elenco dei Gymnastics PR</span>
  
@@ -15904,7 +15908,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                     {gymPRNames.map((exName) => (
  
-                      <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                      <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
@@ -15964,7 +15968,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                       return (
  
-                        <div key={b.name} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
+                        <div key={b.name} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
@@ -16106,7 +16110,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         ))}
  
-                        <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginTop: '4px' }}>
+                        <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginTop: '4px' }}>
  
                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
  
@@ -16248,7 +16252,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               ) : (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'var(--fg-10b981)' }}>Seleziona un Atleta</h3>
  
@@ -19644,7 +19648,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
           {activeTab === 'profile' ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
@@ -19792,7 +19796,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                 {maxExerciseNames.map((exName) => (
  
-                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                  <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                     <div style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
  
@@ -19852,7 +19856,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                 {metconPRNames.map((exName) => (
  
-                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                  <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
@@ -19908,7 +19912,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                 {gymPRNames.map((exName) => (
  
-                  <div key={exName} style={{ background: 'var(--bg-f8fafc)', padding: '12px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }}>
+                  <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
@@ -19974,7 +19978,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   return (
  
-                    <div key={b.name} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
+                    <div key={b.name} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
  
@@ -20184,7 +20188,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   </div>
  
-                  <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}><Icona nome="chiave" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Cambia password</span>
  
@@ -20226,7 +20230,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   </div>
  
-                  <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                     <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}><Icona nome="scarica" size={13} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Scarica i tuoi dati</span>
  
