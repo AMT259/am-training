@@ -1556,7 +1556,7 @@ function SceltaSuono() {
  
   const voce = (v: string, titolo: string, sotto: string) => (
  
-    <button type="button" onClick={() => imposta(v)} style={{ flex: 1, minWidth: 0, textAlign: 'left', padding: '10px', borderRadius: '10px', cursor: 'pointer', border: m === v ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: m === v ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', color: 'var(--fg-000000)' }}>
+    <button type="button" onClick={() => imposta(v)} style={{ flex: 1, minWidth: 0, textAlign: 'left', padding: '8px 10px', borderRadius: '10px', cursor: 'pointer', border: m === v ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-cbd5e1)', background: m === v ? 'var(--bg-ecfdf5)' : 'var(--bg-f8fafc)', color: 'var(--fg-000000)' }}>
  
       <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 'bold' }}>{titolo}</span>
  
@@ -1568,9 +1568,9 @@ function SceltaSuono() {
  
   return (
  
-    <div style={{ marginBottom: '14px' }}>
+    <div style={{ marginBottom: '10px' }}>
  
-      <div style={{ fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>Suono dei bip</div>
+      <div style={{ fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '5px' }}>Suono dei bip</div>
  
       <div style={{ display: 'flex', gap: '8px' }}>
  
@@ -3956,19 +3956,17 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
   if (!scelta) {
  
+    // Scelta del timer: sei riquadri su due colonne, tutto in una schermata senza scorrere
+ 
     const opzione = (titolo: string, descrizione: string, icona: string, onClick: () => void) => (
  
-      <button onClick={onClick} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '999px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', cursor: 'pointer', marginBottom: '9px' }}>
+      <button onClick={onClick} style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', textAlign: 'left', padding: '11px 12px', borderRadius: '14px', border: '1px solid var(--bd-3a3a40)', background: 'var(--bg-26262a)', color: 'var(--fg-10b981)', cursor: 'pointer' }}>
  
-<Icona nome={icona} size={24} />
+        <Icona nome={icona} size={20} />
  
-        <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
  
-          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: '#fff' }}>{titolo}</span>
- 
-          <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-a1a1aa)', marginTop: '2px' }}>{descrizione}</span>
- 
-        </span>
+        <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-a1a1aa)', lineHeight: 1.3 }}>{descrizione}</span>
  
       </button>
  
@@ -3978,51 +3976,57 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
       <div style={scatola}>
  
-        <div style={{ width: '100%', maxWidth: '380px', maxHeight: '85vh', overflowY: 'auto' }}>
+        <div style={{ width: '100%', maxWidth: '380px', maxHeight: '92vh', overflowY: 'auto' }}>
  
-          <h3 style={{ color: 'var(--fg-10b981)', margin: '0 0 4px 0', fontSize: '19px' }}>Scegli il timer</h3>
+          <h3 style={{ color: 'var(--fg-10b981)', margin: '0 0 2px 0', fontSize: '18px' }}>Scegli il timer</h3>
  
-          <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '12px', margin: '0 0 16px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
+          <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '11.5px', margin: '0 0 10px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
  
 <SceltaSuono />
  
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+ 
           {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', 'timer', () => setScelta({ tipo: 'libero' }))}
  
-          {opzione('Intervalli', 'Lavoro e recupero, per il numero di round che vuoi', 'ripeti', () => setScelta({ tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound, daImpostare: true }))}
+          {opzione('Intervalli', 'Lavoro e recupero a round', 'ripeti', () => setScelta({ tipo: 'intervalli', lavoro: cfgLavoro, riposo: cfgRiposo, round: cfgRound, daImpostare: true }))}
  
-          {opzione('Rest 1:1', 'Recuperi quanto ci hai messo a fare il round', 'bilancia', () => setScelta({ tipo: 'unoauno', round: cfgRound, daImpostare: true }))}
+          {opzione('Rest 1:1', 'Recuperi quanto hai lavorato', 'bilancia', () => setScelta({ tipo: 'unoauno', round: cfgRound, daImpostare: true }))}
  
-          {opzione('EMOM', 'Un blocco a inizio di ogni minuto', 'clessidra', () => setScelta({ tipo: 'emom', durata: cfgEmomDurata, round: cfgRound, daImpostare: true }))}
+          {opzione('EMOM', 'Un round a inizio di ogni minuto', 'clessidra', () => setScelta({ tipo: 'emom', durata: cfgEmomDurata, round: cfgRound, daImpostare: true }))}
  
-          {opzione('AMRAP', 'Conto alla rovescia unico: più round possibili nel tempo', 'ripeti', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
+          {opzione('AMRAP', 'Più round possibili nel tempo', 'ripeti', () => setScelta({ tipo: 'amrap', durata: cfgAmrapDurata, daImpostare: true }))}
  
-          {opzione('Tabata', '20 secondi di lavoro, 10 di recupero, 8 round', 'fiamma', () => setScelta({ tipo: 'tabata' }))}
+          {opzione('Tabata', '20" lavoro, 10" recupero, 8 round', 'fiamma', () => setScelta({ tipo: 'tabata' }))}
  
-          <button
+          </div>
  
-            onClick={() => setNascosto(true)}
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
  
-            style={{
+            <button
  
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+              onClick={() => setNascosto(true)}
  
-              margin: '18px auto 0 auto', padding: '9px 18px',
+              style={{
  
-              borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
+                flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
  
-              background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
+                padding: '11px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
-              fontSize: '12.5px', fontWeight: 'bold', cursor: 'pointer',
+                background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
  
-            }}
+                fontSize: '13px', fontWeight: 'bold', cursor: 'pointer',
  
-          >
+              }}
  
-            <Icona nome="occhio" size={14} /> Vedi la scheda
+            >
  
-          </button>
+              <Icona nome="occhio" size={14} /> Vedi la scheda
  
-          <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), width: '100%', boxSizing: 'border-box', marginTop: '8px' }}>Chiudi</button>
+            </button>
+ 
+            <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), flex: 1, minWidth: 0, boxSizing: 'border-box' }}>Chiudi</button>
+ 
+          </div>
  
         </div>
  
