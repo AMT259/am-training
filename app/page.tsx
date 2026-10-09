@@ -14720,7 +14720,7 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ marginBottom: '28px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)', paddingTop: '22px' } : {}) }}>
+                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                             <div
  
@@ -20334,7 +20334,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   return (
  
-                    <div key={prog.id} style={{ marginBottom: '28px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)', paddingTop: '22px' } : {}) }}>
+                    <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                       {scaduto && (
  
