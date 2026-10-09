@@ -5884,6 +5884,16 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [prBadge, setPrBadge] = useState<{ exercise: string; headline: string; subtitle: string } | null>(null);
  
+  // Festa quando l'atleta completa tutti gli esercizi di un giorno
+ 
+  const [festaGiorno, setFestaGiorno] = useState<{ giorno: string } | null>(null);
+ 
+  // Coach: ultima volta che ogni atleta ha salvato un risultato
+ 
+  const [coachUltimaAttivita, setCoachUltimaAttivita] = useState<{ [id: string]: string }>({});
+ 
+  const [mostraAttivita, setMostraAttivita] = useState(true);
+ 
   const [openHistoryKey, setOpenHistoryKey] = useState<string | null>(null);
  
   const [historyCache, setHistoryCache] = useState<{ [key: string]: any[] }>({});
@@ -6044,6 +6054,10 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [trialStartedAt, setTrialStartedAt] = useState<string | null>(null);
  
+  // Giorni di prova in più concessi dal coach
+ 
+  const [trialExtraDays, setTrialExtraDays] = useState(0);
+ 
   const [coachSubs, setCoachSubs] = useState<{ [athleteId: string]: string }>({});
  
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
@@ -6053,6 +6067,24 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [messaggioIniziale, setMessaggioIniziale] = useState('');
  
   const [messaggioAttivo, setMessaggioAttivo] = useState(true);
+ 
+  // Promemoria di fine prova (li manda il controllo automatico di mezzanotte)
+ 
+  const PROMEMORIA_PROVA_PREDEFINITI = {
+ 
+    prima: 'Domani finisce la tua settimana di prova. Vuoi continuare ad allenarti con il coach? Apri l\'app per scoprire come.',
+ 
+    dopo2: 'La tua settimana di prova è finita: com\'è andata? Continua il tuo percorso da dove l\'hai lasciato.',
+ 
+    dopo7: 'Ultimo promemoria: il coach è pronto a ripartire con te. Apri l\'app per continuare il percorso.',
+ 
+    coach: 'La prova di {nome} è finita ieri: ha completato {fatti} allenamenti su {totali}. Contattalo.',
+ 
+  };
+ 
+  const [promemoriaProva, setPromemoriaProva] = useState<{ [k: string]: string }>(PROMEMORIA_PROVA_PREDEFINITI);
+ 
+  const [promemoriaProvaSalvando, setPromemoriaProvaSalvando] = useState(false);
  
   const [messaggioInizialeSalvando, setMessaggioInizialeSalvando] = useState(false);
  
@@ -6758,6 +6790,8 @@ const [notificationError, setNotificationError] = useState('');
  
         fetchTrialCta();
  
+        fetchPromemoriaProva();
+ 
       } else {
  
         fetchAthleteResults();
@@ -7136,15 +7170,23 @@ const [notificationError, setNotificationError] = useState('');
  
       const map: { [key: string]: any } = {};
  
+      const ultima: { [id: string]: string } = {};
+ 
       data.forEach((item: any) => {
  
         if (!map[item.program_id]) map[item.program_id] = {};
  
         map[item.program_id][item.athlete_id] = item.results;
  
+        const quando = item.updated_at || '';
+ 
+        if (quando && (!ultima[item.athlete_id] || quando > ultima[item.athlete_id])) ultima[item.athlete_id] = quando;
+ 
       });
  
       setCoachAllResults(map);
+ 
+      setCoachUltimaAttivita(ultima);
  
     }
  
@@ -7452,6 +7494,20 @@ const [notificationError, setNotificationError] = useState('');
  
     setTrialStartedAt(data?.created_at || null);
  
+    // Proroga della prova: letta a parte, così se la colonna non c'è ancora il resto funziona lo stesso
+ 
+    try {
+ 
+      const { data: extra, error: errExtra } = await supabase.from('profiles').select('trial_extra_days').eq('id', userId).maybeSingle();
+ 
+      if (!errExtra) setTrialExtraDays(parseInt(String((extra as any)?.trial_extra_days ?? 0), 10) || 0);
+ 
+    } catch (e) {
+ 
+      // colonna assente: nessuna proroga
+ 
+    }
+ 
   };
  
   const fetchAllSubscriptionsForCoach = async () => {
@@ -7592,6 +7648,50 @@ const [notificationError, setNotificationError] = useState('');
  
   // Solo il coach può cambiare lo stile: la scadenza resta legata all'iscrizione
  
+  // Prolunga (o riporta a sette giorni) la prova di un atleta
+ 
+  const prolungaProva = async (atleta: any, nuoviGiorniExtra: number) => {
+ 
+    const extra = Math.max(0, nuoviGiorniExtra);
+ 
+    const prima = parseInt(String(atleta?.trial_extra_days ?? 0), 10) || 0;
+ 
+    const { error } = await supabase.from('profiles').update({ trial_extra_days: extra }).eq('id', atleta.id);
+ 
+    if (error) {
+ 
+      alert('Errore: ' + error.message + '\n\nSe dice che la colonna trial_extra_days non esiste, va prima aggiunta su Supabase (vedi istruzioni).');
+ 
+      return;
+ 
+    }
+ 
+    if (selectedCoachAthlete?.id === atleta.id) setSelectedCoachAthlete({ ...selectedCoachAthlete, trial_extra_days: extra });
+ 
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === atleta.id ? { ...a, trial_extra_days: extra } : a)));
+ 
+    if (extra > prima && atleta.created_at) {
+ 
+      const fine = new Date(new Date(atleta.created_at).getTime() + (7 + extra) * 86400000);
+ 
+      const fineTesto = fine.toLocaleDateString('it-IT');
+ 
+      fetch('/api/notify-user', {
+ 
+        method: 'POST',
+ 
+        headers: { 'Content-Type': 'application/json' },
+ 
+        body: JSON.stringify({ user_id: atleta.id, type: `trial_ext_${extra}`, title: 'Prova prolungata', message: `Il coach ha prolungato la tua settimana di prova fino al ${fineTesto}. Buon allenamento!` }),
+ 
+      }).catch((err) => console.error('Errore notifica proroga:', err));
+ 
+    }
+ 
+    avvisa(extra > prima ? 'Prova prolungata' : 'Proroga aggiornata');
+ 
+  };
+ 
   const setAthleteTrialStyle = async (athleteId: string, stile: string) => {
  
     const nuovo = stile || null;
@@ -7659,6 +7759,32 @@ const [notificationError, setNotificationError] = useState('');
     if (error) { alert('Errore: ' + error.message); return; }
  
     setTrialChoice(stile);
+ 
+  };
+ 
+  const fetchPromemoriaProva = async () => {
+ 
+    const { data } = await supabase.from('settings').select('value').eq('key', 'trial_reminders').maybeSingle();
+ 
+    if (data?.value) setPromemoriaProva({ ...PROMEMORIA_PROVA_PREDEFINITI, ...data.value });
+ 
+  };
+ 
+  const salvaPromemoriaProva = async () => {
+ 
+    setPromemoriaProvaSalvando(true);
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'trial_reminders', value: promemoriaProva, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    setPromemoriaProvaSalvando(false);
+ 
+    alert(error ? 'Errore: ' + error.message : 'Promemoria salvati!');
  
   };
  
@@ -9016,6 +9142,34 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Nuovo record dell'atleta: avviso al coach
+ 
+  useEffect(() => {
+ 
+    if (!prBadge || role !== 'athlete' || !session?.user) return;
+ 
+    fetch('/api/notify-coach', {
+ 
+      method: 'POST',
+ 
+      headers: { 'Content-Type': 'application/json' },
+ 
+      body: JSON.stringify({
+ 
+        type: 'pr',
+ 
+        title: 'Nuovo record',
+ 
+        message: `${personalData.full_name || session.user.email}: ${prBadge.exercise} — ${prBadge.headline}`,
+ 
+      }),
+ 
+    }).catch((err) => console.error('Errore notifica record:', err));
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [prBadge]);
+ 
   const handleResultChange = async (programId: string, blockKey: string, field: string | { [k: string]: string }, value?: string, athleteIdOverride?: string) => {
  
     // un solo punto di verita': o un campo singolo, o piu' campi insieme. Scriverli
@@ -9077,6 +9231,34 @@ const [notificationError, setNotificationError] = useState('');
     const updatedProgResults = { ...currentProgResults, [blockKey]: updatedBlockResults };
  
     setAthleteResults({ ...athleteResults, [programId]: updatedProgResults });
+ 
+    // Se con questo risultato il giorno diventa completo, festeggiamo
+ 
+    try {
+ 
+      const [wS, dS] = blockKey.split('_');
+ 
+      const wi = parseInt(wS, 10);
+ 
+      const di = parseInt(dS, 10);
+ 
+      const progF = programLibrary.find((p: any) => p.id === programId);
+ 
+      const giornoF = progF ? normalizeProgramWeeks(progF)[wi]?.days?.[di] : null;
+ 
+      const nB = (giornoF?.blocks || []).length;
+ 
+      if (giornoF && !giornoCompleto(currentProgResults, wi, di, nB) && giornoCompleto(updatedProgResults, wi, di, nB)) {
+ 
+        setFestaGiorno({ giorno: giornoF.dayName || '' });
+ 
+      }
+ 
+    } catch (e) {
+ 
+      // la festa è un extra: se qualcosa non torna, il risultato è comunque salvato
+ 
+    }
  
     await supabase.from('program_results').upsert(
  
@@ -10121,7 +10303,6 @@ const [notificationError, setNotificationError] = useState('');
                     {blocchi.map((blk: any, bi: number) => {
  
                       const bReale = indiciBlocchi[bi];
- 
                       const dato = suoi[`${wIdx}_${dIdx}_${bReale}`];
  
                       const compilato = !!(dato && (String(dato.score || '').trim() || String(dato.notes || '').trim() || dato.done));
@@ -13366,7 +13547,7 @@ fetchAllAthleteResultsForCoach();
  
   const trialEndDate = trialStartedAt
  
-    ? new Date(new Date(trialStartedAt).getTime() + DURATA_PROVA_GIORNI * 86400000)
+    ? new Date(new Date(trialStartedAt).getTime() + (DURATA_PROVA_GIORNI + trialExtraDays) * 86400000)
  
     : null;
  
@@ -13379,6 +13560,78 @@ fetchAllAthleteResultsForCoach();
   const provaAttiva = subscriptionStatus === 'prova' && !!trialEndDate && Date.now() < trialEndDate.getTime();
  
   const provaScaduta = subscriptionStatus === 'prova' && !!trialChoice && !provaAttiva;
+ 
+  // Primo giorno non ancora completato, nei programmi visibili e non scaduti
+ 
+  const trovaAllenamentoDiOggi = () => {
+ 
+    for (const prog of athletePrograms) {
+ 
+      const scad = giorniDallaScadenza(prog.endDate);
+ 
+      if (scad !== null && scad > 0) continue;
+ 
+      const settimane = normalizeProgramWeeks(prog);
+ 
+      for (let wi = 0; wi < settimane.length; wi++) {
+ 
+        const w = settimane[wi];
+ 
+        if (!w || w.hidden) continue;
+ 
+        const giorni = w.days || [];
+ 
+        for (let di = 0; di < giorni.length; di++) {
+ 
+          const d = giorni[di];
+ 
+          if (!d || d.hidden || !(d.blocks || []).length) continue;
+ 
+          if (!giornoCompleto(athleteResults[prog.id] || {}, wi, di, d.blocks.length)) return { prog, wi, di, week: w, day: d };
+ 
+        }
+ 
+      }
+ 
+    }
+ 
+    return null;
+ 
+  };
+ 
+  const vaiAllenamentoDiOggi = () => {
+ 
+    const t = trovaAllenamentoDiOggi();
+ 
+    if (!t) {
+ 
+      avvisa('Hai completato tutti gli allenamenti!');
+ 
+      return;
+ 
+    }
+ 
+    setSelectedWeeksByProgram((prev) => ({ ...prev, [t.prog.id]: t.week.weekName }));
+ 
+    setSelectedDaysByProgram((prev) => ({ ...prev, [t.prog.id]: t.day.dayName }));
+ 
+    setCollapsedProgramDays((prev) => ({ ...prev, [`${t.prog.id}_w_${t.wi}_d_${t.di}`]: false }));
+ 
+    setTimeout(() => {
+ 
+      try {
+ 
+        document.getElementById(`oggi-${t.prog.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+ 
+      } catch (e) {
+ 
+        // niente
+ 
+      }
+ 
+    }, 150);
+ 
+  };
  
   const athletePrograms = programLibrary.filter((prog) => {
  
@@ -13769,6 +14022,38 @@ fetchAllAthleteResultsForCoach();
           } : undefined}
  
         />
+ 
+      )}
+ 
+      {prBadge && <Festa key={`pr_${prBadge.exercise}_${prBadge.headline}`} />}
+ 
+      {festaGiorno && !prBadge && (
+ 
+        <div onClick={() => setFestaGiorno(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 1800 }}>
+ 
+          <Festa />
+ 
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '16px', padding: '28px 22px', maxWidth: '380px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
+ 
+            <div style={{ marginBottom: '8px' }}><Icona nome="trofeo" size={40} /></div>
+ 
+            <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.9, marginBottom: '10px', fontWeight: 'bold' }}>Allenamento completato</div>
+ 
+            <p style={{ fontSize: '19px', lineHeight: 1.4, margin: '0 0 20px 0', fontWeight: 'bold' }}>
+ 
+              {festaGiorno.giorno ? `${festaGiorno.giorno} fatto!` : 'Giornata fatta!'} Grande lavoro.
+ 
+            </p>
+ 
+            <button onClick={() => setFestaGiorno(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
+ 
+              Grande!
+ 
+            </button>
+ 
+          </div>
+ 
+        </div>
  
       )}
  
@@ -14419,7 +14704,6 @@ fetchAllAthleteResultsForCoach();
                 <div>
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
- 
                   <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
@@ -14483,6 +14767,104 @@ fetchAllAthleteResultsForCoach();
                 <button type="button" onClick={salvaMessaggioIniziale} disabled={messaggioInizialeSalvando} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: messaggioInizialeSalvando ? 0.6 : 1 }}>
  
                   {messaggioInizialeSalvando ? 'Salvataggio...' : 'Salva messaggio'}
+ 
+                </button>
+ 
+              </div>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="campana" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Promemoria fine prova</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  Partono da soli a mezzanotte a chi è ancora in prova e si fermano appena lo metti attivo. Se lasci un testo vuoto, quel promemoria non parte.
+ 
+                </p>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>All&apos;atleta, 1 giorno prima della fine</label>
+ 
+                  <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Titolo: La tua prova sta per finire</span>
+ 
+                  <textarea
+ 
+                    rows={3}
+ 
+                    value={promemoriaProva.prima || ''}
+ 
+                    onChange={(e) => setPromemoriaProva({ ...promemoriaProva, prima: e.target.value })}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+                  />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>All&apos;atleta, 2 giorni dopo la fine</label>
+ 
+                  <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Titolo: Com&apos;è andata la prova?</span>
+ 
+                  <textarea
+ 
+                    rows={3}
+ 
+                    value={promemoriaProva.dopo2 || ''}
+ 
+                    onChange={(e) => setPromemoriaProva({ ...promemoriaProva, dopo2: e.target.value })}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+                  />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>All&apos;atleta, 7 giorni dopo la fine (ultimo)</label>
+ 
+                  <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Puoi aggiungere un&apos;offerta, es. -10% sul primo mese</span>
+ 
+                  <textarea
+ 
+                    rows={3}
+ 
+                    value={promemoriaProva.dopo7 || ''}
+ 
+                    onChange={(e) => setPromemoriaProva({ ...promemoriaProva, dopo7: e.target.value })}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+                  />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>A te, il giorno dopo la fine</label>
+ 
+                  <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>{'{nome}'}, {'{fatti}'} e {'{totali}'} diventano il nome e gli allenamenti fatti nella prova</span>
+ 
+                  <textarea
+ 
+                    rows={3}
+ 
+                    value={promemoriaProva.coach || ''}
+ 
+                    onChange={(e) => setPromemoriaProva({ ...promemoriaProva, coach: e.target.value })}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+                  />
+ 
+                </div>
+ 
+                <button type="button" onClick={salvaPromemoriaProva} disabled={promemoriaProvaSalvando} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: promemoriaProvaSalvando ? 0.6 : 1 }}>
+ 
+                  {promemoriaProvaSalvando ? 'Salvataggio...' : 'Salva promemoria'}
  
                 </button>
  
@@ -16142,6 +16524,98 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                         </div>
  
+                        {(() => {
+ 
+                          const extra = parseInt(String(selectedCoachAthlete.trial_extra_days ?? 0), 10) || 0;
+ 
+                          const inizio = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at).getTime() : null;
+ 
+                          const fine = inizio ? new Date(inizio + (7 + extra) * 86400000) : null;
+ 
+                          const finita = fine ? Date.now() >= fine.getTime() : false;
+ 
+                          const isoLocale = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+ 
+                          const base = inizio ? new Date(inizio + 7 * 86400000) : null;
+ 
+                          const baseISO = base ? isoLocale(base) : '';
+ 
+                          const fineISO = fine ? isoLocale(fine) : '';
+ 
+                          // Dalla data scelta ricavo i giorni di proroga rispetto ai 7 giorni normali
+ 
+                          const scegliData = (v: string) => {
+ 
+                            if (!v || !baseISO) return;
+ 
+                            const [a1, m1, g1] = baseISO.split('-').map(Number);
+ 
+                            const [a2, m2, g2] = v.split('-').map(Number);
+ 
+                            const giorni = Math.round((Date.UTC(a2, m2 - 1, g2) - Date.UTC(a1, m1 - 1, g1)) / 86400000);
+ 
+                            if (giorni === extra) return;
+ 
+                            prolungaProva(selectedCoachAthlete, Math.max(0, giorni));
+ 
+                          };
+ 
+                          const pulsante = (testo: string, onClick: () => void, rosso?: boolean) => (
+ 
+                            <button type="button" onClick={onClick} style={{ flex: '1 1 auto', minWidth: 0, padding: '10px 12px', borderRadius: '999px', border: rosso ? '1px solid var(--bd-fecaca)' : '1px solid var(--bd-10b981)', background: rosso ? 'var(--bg-fee2e2)' : 'var(--bg-ecfdf5)', color: rosso ? 'var(--fg-b91c1c)' : 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{testo}</button>
+ 
+                          );
+ 
+                          return (
+ 
+                            <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Prolunga la prova</span>
+ 
+                              <span style={{ fontSize: '12px', color: 'var(--fg-334155)', display: 'block', marginBottom: '8px', lineHeight: 1.45 }}>
+ 
+                                {fine ? `${finita ? 'Finita il' : 'Finisce il'} ${fine.toLocaleDateString('it-IT')}` : 'Data di iscrizione non disponibile'}
+ 
+                                {extra > 0 ? ` (7 giorni + ${extra} di proroga)` : ' (7 giorni)'}
+ 
+                              </span>
+ 
+                              <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Nuova data di fine</label>
+ 
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+ 
+                                <input
+ 
+                                  type="date"
+ 
+                                  value={fineISO}
+ 
+                                  min={baseISO}
+ 
+                                  disabled={!baseISO}
+ 
+                                  onChange={(e) => scegliData(e.target.value)}
+ 
+                                  style={{ flex: '1 1 160px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', background: 'var(--bg-ffffff)' }}
+ 
+                                />
+ 
+                                {extra > 0 && pulsante('Togli proroga', () => prolungaProva(selectedCoachAthlete, 0), true)}
+ 
+                              </div>
+ 
+                              <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, display: 'block', marginTop: '6px' }}>
+ 
+                                Scegli il giorno in cui deve finire la prova (non prima dei 7 giorni normali). Vale finché è &quot;In prova&quot;: se la prova era già finita, le schede di prova tornano visibili fino alla nuova data. All&apos;atleta arriva una notifica.
+ 
+                              </span>
+ 
+                            </div>
+ 
+                          );
+ 
+                        })()}
+ 
                       </div>
  
                     );
@@ -16253,6 +16727,140 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
               ) : (
  
                 <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+ 
+                  {(() => {
+ 
+                    // Chi si sta allenando: ultimo risultato salvato e giorni completati nei programmi in corso
+ 
+                    const righe = athletes.map((a: any) => {
+ 
+                      const progs = programLibrary.filter((p: any) => {
+ 
+                        if (p.isDeleted || p.trialStyle || p.visibility === 'none') return false;
+ 
+                        if (!(p.assignedAthleteIds || []).includes(a.id)) return false;
+ 
+                        const scad = giorniDallaScadenza(p.endDate);
+ 
+                        return !(scad !== null && scad > 0);
+ 
+                      });
+ 
+                      let fatti = 0;
+ 
+                      let totali = 0;
+ 
+                      progs.forEach((p: any) => {
+ 
+                        const ris = coachAllResults[p.id]?.[a.id] || {};
+ 
+                        normalizeProgramWeeks(p).forEach((w: any, wi: number) => {
+ 
+                          if (!w || w.hidden) return;
+ 
+                          (w.days || []).forEach((d: any, di: number) => {
+ 
+                            if (!d || d.hidden || !(d.blocks || []).length) return;
+ 
+                            totali++;
+ 
+                            if (giornoCompleto(ris, wi, di, d.blocks.length)) fatti++;
+ 
+                          });
+ 
+                        });
+ 
+                      });
+ 
+                      const ultima = coachUltimaAttivita[a.id];
+ 
+                      const giorni = ultima ? Math.max(0, Math.floor((Date.now() - new Date(ultima).getTime()) / 86400000)) : null;
+ 
+                      return { a, nProg: progs.length, fatti, totali, giorni };
+ 
+                    }).filter((r: any) => r.nProg > 0)
+ 
+                      .sort((x: any, y: any) => (y.giorni ?? 9999) - (x.giorni ?? 9999));
+ 
+                    if (righe.length === 0) return null;
+ 
+                    return (
+ 
+                      <div style={{ marginBottom: '22px', paddingBottom: '18px', borderBottom: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                        <div onClick={() => setMostraAttivita(!mostraAttivita)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: mostraAttivita ? '10px' : 0 }}>
+ 
+                          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Chi si sta allenando</h3>
+ 
+                          <span style={{ fontSize: '16px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{mostraAttivita ? '\u25B2' : '\u25BC'}</span>
+ 
+                        </div>
+ 
+                        {mostraAttivita && (
+ 
+                          <>
+ 
+                            <p style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', margin: '0 0 8px 0', lineHeight: 1.45 }}>
+ 
+                              Atleti con un programma in corso, dal meno attivo. L&apos;ultima attività è l&apos;ultimo risultato salvato.
+ 
+                            </p>
+ 
+                            {righe.map(({ a, fatti, totali, giorni }: any) => {
+ 
+                              const stato = giorni === null || giorni > 7
+ 
+                                ? { bg: 'var(--bg-fee2e2)', fg: 'var(--fg-b91c1c)' }
+ 
+                                : giorni > 3
+ 
+                                  ? { bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }
+ 
+                                  : { bg: 'var(--bg-d1fae5)', fg: 'var(--fg-047857)' };
+ 
+                              const quando = giorni === null ? 'Mai' : giorni === 0 ? 'Oggi' : giorni === 1 ? 'Ieri' : `${giorni} giorni fa`;
+ 
+                              const perc = totali > 0 ? Math.round((fatti / totali) * 100) : 0;
+ 
+                              return (
+ 
+                                <div key={a.id} onClick={() => setSelectedCoachAthlete(a)} style={{ padding: '10px 0', borderTop: '1px solid var(--bd-e2e8f0)', cursor: 'pointer' }}>
+ 
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+ 
+                                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere', minWidth: 0 }}>{a.full_name || a.email}</span>
+ 
+                                    <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', background: stato.bg, color: stato.fg }}>{quando}</span>
+ 
+                                  </div>
+ 
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+ 
+                                    <span style={{ flex: 1, height: '6px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', overflow: 'hidden' }}>
+ 
+                                      <span style={{ display: 'block', height: '100%', width: `${perc}%`, background: 'var(--bg-10b981)', borderRadius: '999px' }} />
+ 
+                                    </span>
+ 
+                                    <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', whiteSpace: 'nowrap' }}>{`${fatti}/${totali} giorni`}</span>
+ 
+                                  </div>
+ 
+                                </div>
+ 
+                              );
+ 
+                            })}
+ 
+                          </>
+ 
+                        )}
+ 
+                      </div>
+ 
+                    );
+ 
+                  })()}
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'var(--fg-10b981)' }}>Seleziona un Atleta</h3>
  
@@ -20280,6 +20888,44 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
  
+              {(() => {
+ 
+                const oggi = athletePrograms.length > 0 ? trovaAllenamentoDiOggi() : null;
+ 
+                if (!oggi) return null;
+ 
+                return (
+ 
+                  <button
+ 
+                    onClick={vaiAllenamentoDiOggi}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '13px 18px', marginBottom: '18px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', boxShadow: '0 4px 14px rgba(var(--acc-rgb), 0.35)' }}
+ 
+                  >
+ 
+                    <Icona nome="play" size={20} />
+ 
+                    <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                      <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold' }}>Allenamento di oggi</span>
+ 
+                      <span style={{ display: 'block', fontSize: '11.5px', opacity: 0.85, overflowWrap: 'anywhere' }}>
+ 
+                        {athletePrograms.length > 1 ? `${oggi.prog.title} · ` : ''}{oggi.week.weekName} · {oggi.day.dayName}
+ 
+                      </span>
+ 
+                    </span>
+ 
+                    <Icona nome="destra" size={18} />
+ 
+                  </button>
+ 
+                );
+ 
+              })()}
+ 
               {athletePrograms.length === 0 ? (
  
                 <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '36px 24px', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', textAlign: 'center' }}>
@@ -20696,7 +21342,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                             return (
  
-                              <div key={realDayIndex} style={{ marginBottom: '6px' }}>
+                              <div key={realDayIndex} id={`oggi-${prog.id}`} style={{ marginBottom: '6px' }}>
  
 <div onClick={() => toggleProgramDayCollapse(dayCollapseKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.12)', borderBottom: isDayClosed ? '1px solid rgba(255,255,255,0.12)' : 'none', cursor: 'pointer' }}>
  
@@ -21818,6 +22464,122 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
         )}
  
       </div>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// Un giorno è completo quando ogni esercizio ha un risultato, una nota o la spunta
+ 
+function giornoCompleto(ris: any, wi: number, di: number, n: number) {
+ 
+  if (!n) return false;
+ 
+  for (let bi = 0; bi < n; bi++) {
+ 
+    const r = ris?.[`${wi}_${di}_${bi}`];
+ 
+    if (!(r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done))) return false;
+ 
+  }
+ 
+  return true;
+ 
+}
+ 
+// Coriandoli e fuochi d'artificio per circa due secondi, solo CSS
+ 
+const COLORI_FESTA = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#a855f7', '#facc15', '#ffffff'];
+ 
+function Festa() {
+ 
+  const [visibile, setVisibile] = useState(true);
+ 
+  useEffect(() => {
+ 
+    const t = setTimeout(() => setVisibile(false), 2600);
+ 
+    return () => clearTimeout(t);
+ 
+  }, []);
+ 
+  const [pezzi] = useState(() =>
+ 
+    Array.from({ length: 70 }, (_v, i) => ({
+ 
+      left: Math.random() * 100,
+ 
+      ritardo: Math.random() * 0.5,
+ 
+      durata: 1.4 + Math.random() * 0.9,
+ 
+      colore: COLORI_FESTA[i % COLORI_FESTA.length],
+ 
+      giro: Math.random() * 720 - 360,
+ 
+      larg: 6 + Math.random() * 6,
+ 
+      deriva: Math.random() * 80 - 40,
+ 
+    }))
+ 
+  );
+ 
+  const scoppi = [
+ 
+    { x: 20, y: 22, r: 0 },
+ 
+    { x: 78, y: 18, r: 0.35 },
+ 
+    { x: 50, y: 34, r: 0.7 },
+ 
+    { x: 28, y: 52, r: 1.0 },
+ 
+    { x: 74, y: 48, r: 1.25 },
+ 
+  ];
+ 
+  if (!visibile) return null;
+ 
+  return (
+ 
+    <div aria-hidden="true" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none', zIndex: 2100, overflow: 'hidden' }}>
+ 
+      <style>{'@keyframes amtCade{0%{transform:translate3d(0,-10vh,0) rotate(0deg)}100%{transform:translate3d(var(--dx),110vh,0) rotate(var(--rot))}}@keyframes amtScoppio{0%{transform:rotate(var(--a)) translateY(0) scale(1);opacity:1}100%{transform:rotate(var(--a)) translateY(-95px) scale(.4);opacity:0}}'}</style>
+ 
+      {pezzi.map((p, i) => (
+ 
+        <span
+ 
+          key={i}
+ 
+          style={{ position: 'absolute', top: 0, left: `${p.left}%`, width: `${p.larg}px`, height: `${p.larg * 0.45}px`, background: p.colore, borderRadius: '2px', transform: 'translate3d(0,-10vh,0)', animation: `amtCade ${p.durata}s ${p.ritardo}s cubic-bezier(.25,.6,.4,1) forwards`, ['--dx' as any]: `${p.deriva}px`, ['--rot' as any]: `${p.giro}deg` } as React.CSSProperties}
+ 
+        />
+ 
+      ))}
+ 
+      {scoppi.map((sc, i) => (
+ 
+        <div key={`f${i}`} style={{ position: 'absolute', left: `${sc.x}%`, top: `${sc.y}%` }}>
+ 
+          {Array.from({ length: 14 }, (_v, k) => (
+ 
+            <span
+ 
+              key={k}
+ 
+              style={{ position: 'absolute', width: '4px', height: '11px', borderRadius: '2px', background: COLORI_FESTA[(i + k) % COLORI_FESTA.length], opacity: 0, transformOrigin: '2px 0', animation: `amtScoppio .9s ${sc.r}s ease-out forwards`, ['--a' as any]: `${k * (360 / 14)}deg` } as React.CSSProperties}
+ 
+            />
+ 
+          ))}
+ 
+        </div>
+ 
+      ))}
  
     </div>
  
