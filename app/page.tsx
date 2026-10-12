@@ -4055,6 +4055,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
                 padding: '11px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
                 background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
+ 
                 fontSize: '13px', fontWeight: 'bold', cursor: 'pointer',
  
               }}
@@ -6552,6 +6553,7 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Modifica rapida di un blocco dalla scheda del coach: cambia il programma e lo salva subito.
+ 
   const salvaBloccoRapido = async (progId: string, nomeSettimana: string, nomeGiorno: string, bIdx: number, campi: { [k: string]: any }) => {
  
     const prog = programLibrary.find((p: any) => p.id === progId);
@@ -7182,7 +7184,9 @@ const [notificationError, setNotificationError] = useState('');
  
     const { data } = await supabase.from('profiles').select('*').eq('role', 'athlete');
  
-    if (data) setAthletes(data);
+    // Atleti sempre in ordine alfabetico, in tutte le liste
+ 
+    if (data) setAthletes([...data].sort((a: any, b: any) => String(a.full_name || a.email || '').localeCompare(String(b.full_name || b.email || ''), 'it', { sensitivity: 'base' })));
  
   };
  
@@ -11325,7 +11329,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             if (blocchi.length === 0) return;
  
             sedute++;
-             let quanti = 0;
+ 
+            let quanti = 0;
  
             blocchi.forEach((b: any, bi: number) => {
  
@@ -13072,7 +13077,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
         return;
  
       }
- 
       setNewExName('');
  
       setNewExVideo('');
@@ -13206,6 +13210,7 @@ setProgramWeeks(updated);
       training_tips: programTrainingTips || null,
  
       nutrition_tips: programNutritionTips || null,
+ 
       tips_updated_at: (programTrainingTips || programNutritionTips) ? new Date().toISOString() : null,
  
       weeks: programWeeks,
@@ -14307,6 +14312,26 @@ fetchAllAthleteResultsForCoach();
     if (prog.trialStyle) return false;   // le prove non sono assegnate a nessuno
  
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
+ 
+  }).sort((a: any, b: any) => {
+ 
+    // Ordine: prima i programmi in corso, poi gli scaduti, in fondo le prove; dentro ogni gruppo A-Z
+ 
+    const gruppo = (p: any) => {
+ 
+      if (p.trialStyle) return 2;
+ 
+      const g = giorniDallaScadenza(p.endDate);
+ 
+      return g !== null && g > 0 ? 1 : 0;
+ 
+    };
+ 
+    const d = gruppo(a) - gruppo(b);
+ 
+    if (d !== 0) return d;
+ 
+    return String(a.title || '').localeCompare(String(b.title || ''), 'it', { sensitivity: 'base', numeric: true });
  
   });
  
@@ -16502,32 +16527,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         ))}
  
-                                        {blk.type !== 'superserie' && (
- 
-                                        <button
- 
-                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
- 
-                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
- 
-                                        >
- 
-                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
- 
-                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
- 
-                                          </span>
- 
-                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
- 
-                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
- 
-                                          </span>
- 
-                                        </button>
- 
-                                        )}
- 
                                         {(() => {
  
                                           const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
@@ -16587,6 +16586,32 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                           );
  
                                         })()}
+ 
+                                        {blk.type !== 'superserie' && (
+ 
+                                        <button
+ 
+                                          onClick={() => handleResultChange(prog.id, resultKey, 'done', coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '' : 'si', selectedCoachAthlete.id)}
+ 
+                                          style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+ 
+                                        >
+ 
+                                          <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
+ 
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
+ 
+                                          </span>
+ 
+                                          <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
+ 
+                                            {coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
+ 
+                                          </span>
+ 
+                                        </button>
+ 
+                                        )}
  
                                         {blk.notes && (
  
@@ -22768,34 +22793,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     ))}
  
-                                                    {blk.type !== 'superserie' && (
- 
-                                                    <button
- 
-                                                      onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
- 
-                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
- 
-                                                    >
- 
-                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
- 
-                                                        {athleteResults[prog.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
- 
-                                                      </span>
- 
-                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
- 
-                                                        {athleteResults[prog.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
- 
-                                                      </span>
- 
-                                                    </button>
- 
-                                                    )}
- 
-{blk.type === 'warmup' && (<CampoNote valore={athleteResults[prog.id]?.[resultKey]?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} />)}
- 
                                                     {(() => {
  
                                                       const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
@@ -22855,6 +22852,34 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                       );
  
                                                     })()}
+ 
+                                                    {blk.type !== 'superserie' && (
+ 
+                                                    <button
+ 
+                                                      onClick={() => handleResultChange(prog.id, resultKey, 'done', athleteResults[prog.id]?.[resultKey]?.done ? '' : 'si')}
+ 
+                                                      style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '9px', padding: '10px', borderRadius: '999px', cursor: 'pointer', marginTop: '10px', border: athleteResults[prog.id]?.[resultKey]?.done ? '2px solid var(--bd-10b981)' : '1px solid var(--bd-10b981)', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)' }}
+ 
+                                                    >
+ 
+                                                      <span style={{ width: '20px', height: '20px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#101214', background: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--bg-10b981)' : 'var(--bg-cbd5e1)' }}>
+ 
+                                                        {athleteResults[prog.id]?.[resultKey]?.done && <Icona nome="spunta" size={13} />}
+ 
+                                                      </span>
+ 
+                                                      <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: athleteResults[prog.id]?.[resultKey]?.done ? 'var(--fg-047857)' : 'var(--fg-334155)' }}>
+ 
+                                                        {athleteResults[prog.id]?.[resultKey]?.done ? 'Completato' : 'Segna come fatto'}
+ 
+                                                      </span>
+ 
+                                                    </button>
+ 
+                                                    )}
+ 
+{blk.type === 'warmup' && (<CampoNote valore={athleteResults[prog.id]?.[resultKey]?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} />)}
  
                                                     {blk.notes && (
  
