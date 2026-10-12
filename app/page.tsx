@@ -6208,7 +6208,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal'>('anagrafici');
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal' | null>(null);
  
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
@@ -21146,25 +21146,139 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
             <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+              {athleteProfileTab === null ? (() => {
  
-                <button onClick={() => setAthleteProfileTab('anagrafici')} style={{ ...pillola(athleteProfileTab === 'anagrafici', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Dati Anagrafici</button>
+                // Profilo dell'atleta: elenco delle sezioni, ognuna si apre a tutta pagina
  
-                <button onClick={() => setAthleteProfileTab('anamnesi')} style={{ ...pillola(athleteProfileTab === 'anamnesi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Anamnesi</button>
+                const anamnesiDaRinnovare = anamnesiMancante || (!!anamnesiUpdatedAt && periodiDa4Mesi(anamnesiUpdatedAt) >= 1);
  
-                <button onClick={() => setAthleteProfileTab('privacy')} style={{ ...pillola(athleteProfileTab === 'privacy', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}>Privacy</button>
+                const prossimaGara = (competitions || [])
  
-              </div>
+                  .map((g: any) => giorniAlla(g.event_date))
  
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  .filter((n: any) => n !== null && n >= 0)
  
-                <button onClick={() => setAthleteProfileTab('maxes')} style={{ ...pillola(athleteProfileTab === 'maxes', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="bilanciere" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Massimali</button>
+                  .sort((x: any, y: any) => x - y)[0];
  
-                <button onClick={() => setAthleteProfileTab('gare')} style={{ ...pillola(athleteProfileTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gare</button>
+                const statoAbb = subscriptionStatus === 'attivo'
  
-                <button onClick={() => setAthleteProfileTab('progressi')} style={{ ...pillola(athleteProfileTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto' }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
+                  ? { t: 'Abbonamento attivo', bg: 'var(--bg-dcfce7)', fg: 'var(--fg-166534)' }
  
-              </div>
+                  : subscriptionStatus === 'scaduto'
+ 
+                    ? { t: 'Abbonamento scaduto', bg: 'var(--bg-fee2e2)', fg: 'var(--fg-991b1b)' }
+ 
+                    : { t: 'In prova', bg: 'var(--bg-fef9c3)', fg: 'var(--fg-854d0e)' };
+ 
+                const voce = (key: any, icona: string, titolo: string, avviso?: { t: string; bg: string; fg: string } | null) => (
+ 
+                  <button
+ 
+                    key={key}
+ 
+                    onClick={() => { setAthleteProfileTab(key); window.scrollTo(0, 0); }}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 14px', background: 'none', border: 'none', borderTop: '1px solid var(--bd-e2e8f0)', cursor: 'pointer', textAlign: 'left' }}
+ 
+                  >
+ 
+                    <span style={{ width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-ecfdf5)', color: 'var(--fg-10b981)' }}>
+ 
+                      <Icona nome={icona} size={17} />
+ 
+                    </span>
+ 
+                    <span style={{ flex: 1, minWidth: 0, fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{titolo}</span>
+ 
+                    {avviso && <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '999px', background: avviso.bg, color: avviso.fg, whiteSpace: 'nowrap' }}>{avviso.t}</span>}
+ 
+                    <Icona nome="destra" size={16} style={{ color: 'var(--fg-94a3b8)' }} />
+ 
+                  </button>
+ 
+                );
+ 
+                const gruppo = (titolo: string, voci: any[]) => (
+ 
+                  <div style={{ marginBottom: '18px' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', margin: '0 0 6px 4px' }}>{titolo}</span>
+ 
+                    <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', overflow: 'hidden' }}>
+ 
+                      <div style={{ marginTop: '-1px' }}>{voci}</div>
+ 
+                    </div>
+ 
+                  </div>
+ 
+                );
+ 
+                return (
+ 
+                  <>
+ 
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+ 
+                      <span style={{ width: '48px', height: '48px', borderRadius: '999px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontSize: '17px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+ 
+                        {(() => { const parole = String(personalData.full_name || session.user.email || '?').trim().split(/\s+/).filter(Boolean); return ((parole[0]?.charAt(0) || '?') + (parole.length > 1 ? parole[parole.length - 1].charAt(0) : '')).toUpperCase(); })()}
+ 
+                      </span>
+ 
+                      <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                        <span style={{ display: 'block', fontSize: '17px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{personalData.full_name || session.user.email}</span>
+ 
+                        <span style={{ display: 'inline-block', marginTop: '4px', fontSize: '11px', fontWeight: 'bold', padding: '2px 9px', borderRadius: '999px', background: statoAbb.bg, color: statoAbb.fg }}>{statoAbb.t}</span>
+ 
+                      </span>
+ 
+                    </div>
+ 
+                    {gruppo('IL MIO ALLENAMENTO', [
+ 
+                      voce('maxes', 'bilanciere', 'Massimali'),
+ 
+                      voce('progressi', 'razzo', 'Percorso'),
+ 
+                      voce('gare', 'bersaglio', 'Gare', prossimaGara !== undefined
+ 
+                        ? { t: prossimaGara === 0 ? 'Oggi!' : prossimaGara === 1 ? 'Domani' : `tra ${prossimaGara} giorni`, bg: prossimaGara <= 7 ? 'var(--bg-fee2e2)' : 'var(--bg-ecfdf5)', fg: prossimaGara <= 7 ? 'var(--fg-b91c1c)' : 'var(--fg-047857)' }
+ 
+                        : null),
+ 
+                    ])}
+ 
+                    {gruppo('I MIEI DATI', [
+ 
+                      voce('anagrafici', 'utente', 'Dati anagrafici'),
+ 
+                      voce('anamnesi', 'appunti', 'Anamnesi', anamnesiDaRinnovare ? { t: anamnesiMancante ? 'Da compilare' : 'Da rinnovare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' } : null),
+ 
+                      voce('privacy', 'lucchetto', 'Privacy e account'),
+ 
+                    ])}
+ 
+                  </>
+ 
+                );
+ 
+              })() : (
+ 
+                <button
+ 
+                  onClick={() => { setAthleteProfileTab(null); window.scrollTo(0, 0); }}
+ 
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+ 
+                >
+ 
+                  <Icona nome="sinistra" size={14} /> Profilo
+ 
+                </button>
+ 
+              )}
  
               {athleteProfileTab === 'anagrafici' && (
  
@@ -23111,6 +23225,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                 } else {
  
                   setActiveTab(item.key as any);
+ 
+                  if (item.key === 'profile') setAthleteProfileTab(null);
  
                 }
  
