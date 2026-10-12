@@ -9513,6 +9513,7 @@ const [notificationError, setNotificationError] = useState('');
       const giornoF = progF ? normalizeProgramWeeks(progF)[wi]?.days?.[di] : null;
  
       const nB = (giornoF?.blocks || []).length;
+ 
       if (giornoF && !giornoCompleto(currentProgResults, wi, di, nB) && giornoCompleto(updatedProgResults, wi, di, nB)) {
  
         setFestaGiorno({ giorno: giornoF.dayName || '' });
@@ -13227,7 +13228,15 @@ setProgramWeeks(updated);
  
       visibility: 'none',
  
-      weeks: prog.weeks || normalizeProgramWeeks(prog)
+      weeks: prog.weeks || normalizeProgramWeeks(prog),
+ 
+      // anche i consigli del coach (allenamento e nutrizione) passano nella copia
+ 
+      training_tips: prog.trainingTips || null,
+ 
+      nutrition_tips: prog.nutritionTips || null,
+ 
+      tips_updated_at: (prog.trainingTips || prog.nutritionTips) ? new Date().toISOString() : null
  
     };
  
@@ -14163,13 +14172,9 @@ fetchAllAthleteResultsForCoach();
  
     if (subscriptionStatus === 'scaduto') return false;
  
-    // In prova: solo le schede espressamente assegnate dal coach
+    // In prova: solo la scheda di prova (gestita sopra), nessun altro programma
  
-    if (subscriptionStatus === 'prova') {
- 
-      return prog.visibility !== 'none' && prog.assignedAthleteIds?.includes(session?.user?.id);
- 
-    }
+    if (subscriptionStatus === 'prova') return false;
  
     if (prog.visibility === 'none') return false;            // bozza: solo il coach
  
@@ -21672,7 +21677,8 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                           const st = getProgramDateStatus(prog.startDate, prog.endDate);
  
                           return (
-                           <span style={{ display: 'inline-block', fontSize: '11px', color: st.color, background: st.bg, padding: '3px 10px', borderRadius: '999px', fontWeight: 'bold' }}>
+ 
+                            <span style={{ display: 'inline-block', fontSize: '11px', color: st.color, background: st.bg, padding: '3px 10px', borderRadius: '999px', fontWeight: 'bold' }}>
  
                               {st.icon} {formatDateToIT(prog.startDate)} → {formatDateToIT(prog.endDate)}{st.label ? ` · ${st.label}` : ''}
  
