@@ -422,6 +422,34 @@ function parseLocalDate(s: any): Date | null {
  
 // Giorni trascorsi dalla scadenza. Negativo o zero se non è ancora scaduto.
  
+// Ordine dei programmi: (bozze, solo per il coach) → in corso → scaduti → prove; dentro ogni gruppo A-Z
+ 
+function ordinaProgrammi(lista: any[], bozzeInAlto?: boolean): any[] {
+ 
+  const gruppo = (p: any) => {
+ 
+    if (p.trialStyle) return 3;
+ 
+    if (bozzeInAlto && p.visibility === 'none') return 0;
+ 
+    const g = giorniDallaScadenza(p.endDate);
+ 
+    return g !== null && g > 0 ? 2 : 1;
+ 
+  };
+ 
+  return [...lista].sort((a: any, b: any) => {
+ 
+    const d = gruppo(a) - gruppo(b);
+ 
+    if (d !== 0) return d;
+ 
+    return String(a.title || '').localeCompare(String(b.title || ''), 'it', { sensitivity: 'base', numeric: true });
+ 
+  });
+ 
+}
+ 
 function giorniDallaScadenza(endDate: any): number | null {
  
   const end = parseLocalDate(endDate);
@@ -9747,8 +9775,7 @@ const [notificationError, setNotificationError] = useState('');
       if (!giorno) return;
  
       const copia = { ...senzaOrigine(originale), id: Date.now() + Math.floor(Math.random() * 100000) };
- 
-      if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
+       if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
  
       if (wi === wIdx && di === dIdx) giorno.blocks.splice(bIdx + 1, 0, copia);
  
@@ -13077,6 +13104,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
         return;
  
       }
+ 
       setNewExName('');
  
       setNewExVideo('');
@@ -14271,6 +14299,8 @@ fetchAllAthleteResultsForCoach();
  
   });
  
+  const athleteProgramsOrdinati = ordinaProgrammi(athletePrograms);
+ 
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
  
     if (libraryView === 'cestino') {
@@ -14313,27 +14343,9 @@ fetchAllAthleteResultsForCoach();
  
     return prog.assignedAthleteIds?.includes(libraryFilterAthlete);
  
-  }).sort((a: any, b: any) => {
- 
-    // Ordine: prima i programmi in corso, poi gli scaduti, in fondo le prove; dentro ogni gruppo A-Z
- 
-    const gruppo = (p: any) => {
- 
-      if (p.trialStyle) return 2;
- 
-      const g = giorniDallaScadenza(p.endDate);
- 
-      return g !== null && g > 0 ? 1 : 0;
- 
-    };
- 
-    const d = gruppo(a) - gruppo(b);
- 
-    if (d !== 0) return d;
- 
-    return String(a.title || '').localeCompare(String(b.title || ''), 'it', { sensitivity: 'base', numeric: true });
- 
   });
+ 
+  const programmiOrdinati = ordinaProgrammi(filteredLibraryPrograms, true);
  
   const attivi = programLibrary.filter((p: any) => !p.isDeleted);
  
@@ -16115,8 +16127,7 @@ fetchAllAthleteResultsForCoach();
  
                       </div>
  
-                    );
- 
+                    ); 
                   })()}
  
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
@@ -16127,11 +16138,11 @@ fetchAllAthleteResultsForCoach();
  
                 const selAthlete = athletes.find((a: any) => a.id === selectedCoachAthlete.id);
  
-                const athletePersonalPrograms = programLibrary.filter(
+                const athletePersonalPrograms = ordinaProgrammi(programLibrary.filter(
  
                   (p: any) => !p.isDeleted && p.assignedAthleteIds?.includes(selectedCoachAthlete.id)
  
-                );
+                ));
  
                 return (
  
@@ -16171,15 +16182,37 @@ fetchAllAthleteResultsForCoach();
  
                               onClick={() => setPersonalExpandedProgramId(personalExpandedProgramId === prog.id ? null : prog.id)}
  
-                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id ? '12px' : '0' }}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: personalExpandedProgramId === prog.id && !(prog.startDate || prog.endDate) ? '12px' : '0' }}
  
                             >
  
-                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: 'var(--fg-10b981)', fontSize: '18px' }}>{prog.title}</h4>
+                              <h4 style={{ overflowWrap: 'anywhere', margin: 0, color: 'var(--fg-10b981)', fontSize: '18px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', minWidth: 0 }}>
+ 
+                                <span style={{ minWidth: 0 }}>{prog.title}</span>
+ 
+                                {(() => { const g = prog.trialStyle ? null : giorniDallaScadenza(prog.endDate); return g !== null && g > 0 ? <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', background: 'var(--bg-fee2e2)', color: 'var(--fg-b91c1c)' }}>Scaduta</span> : null; })()}
+ 
+                              </h4>
  
                               <span style={{ fontSize: '18px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{personalExpandedProgramId === prog.id ? '▲' : '▼'}</span>
  
                             </div>
+ 
+                            {(prog.startDate || prog.endDate) && (
+ 
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--fg-94a3b8)', marginTop: '4px', marginBottom: personalExpandedProgramId === prog.id ? '12px' : 0 }}>
+ 
+                                <Icona nome="calendario" size={13} />
+ 
+                                {prog.startDate && prog.endDate
+ 
+                                  ? `Dal ${formatDateToIT(prog.startDate)} al ${formatDateToIT(prog.endDate)}`
+ 
+                                  : prog.startDate ? `Dal ${formatDateToIT(prog.startDate)}` : `Fino al ${formatDateToIT(prog.endDate)}`}
+ 
+                              </span>
+ 
+                            )}
  
                             {personalExpandedProgramId === prog.id && (
  
@@ -20891,7 +20924,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   ) : (
  
-                    filteredLibraryPrograms.map((prog) => {
+                    programmiOrdinati.map((prog: any) => {
  
                       const assignedList = athletes.filter((a) => prog.assignedAthleteIds?.includes(a.id));
  
@@ -22175,7 +22208,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
               ) : (
  
-                athletePrograms.map((prog, progIdx) => {
+                athleteProgramsOrdinati.map((prog: any, progIdx: number) => {
  
                   const weeks = normalizeProgramWeeks(prog);
  
