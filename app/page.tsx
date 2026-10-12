@@ -4055,7 +4055,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
                 padding: '11px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
                 background: 'rgba(255,255,255,0.07)', color: 'var(--fg-d4d4d8)',
- 
                 fontSize: '13px', fontWeight: 'bold', cursor: 'pointer',
  
               }}
@@ -5926,6 +5925,10 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [anamnesiInModifica, setAnamnesiInModifica] = useState(false);
  
+  const [anagraficiInModifica, setAnagraficiInModifica] = useState(false);
+ 
+  const [anagraficiCopia, setAnagraficiCopia] = useState<any>(null);
+ 
   const [anamnesiCopia, setAnamnesiCopia] = useState<any>(null);
  
   const [showSplash, setShowSplash] = useState(true);
@@ -6549,7 +6552,6 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Modifica rapida di un blocco dalla scheda del coach: cambia il programma e lo salva subito.
- 
   const salvaBloccoRapido = async (progId: string, nomeSettimana: string, nomeGiorno: string, bIdx: number, campi: { [k: string]: any }) => {
  
     const prog = programLibrary.find((p: any) => p.id === progId);
@@ -8142,11 +8144,37 @@ const [notificationError, setNotificationError] = useState('');
  
     const cambiaCategoria = isMinorenne(dataPrecedente) !== isMinorenne(data.birth_date);
  
+    // L'atleta deve compilare tutto: se manca anche un solo campo non si salva
+ 
+    if (!isCoachEditing) {
+ 
+      const mancanti: string[] = [];
+ 
+      if (!String(data.full_name || '').trim()) mancanti.push('Nome e cognome');
+ 
+      if (!String(data.birth_date || '').trim()) mancanti.push('Data di nascita');
+ 
+      if (data.gender !== 'm' && data.gender !== 'f') mancanti.push('Sesso');
+ 
+      if (!(parseFloat(String(data.weight || '').replace(',', '.')) > 0)) mancanti.push('Peso');
+ 
+      if (!(parseFloat(String(data.height || '').replace(',', '.')) > 0)) mancanti.push('Altezza');
+ 
+      if (mancanti.length > 0) {
+ 
+        alert('Compila tutti i campi prima di salvare. Mancano: ' + mancanti.join(', ') + '.');
+ 
+        return false;
+ 
+      }
+ 
+    }
+ 
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
  
       alert('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
  
-      return;
+      return false;
  
     }
  
@@ -8174,7 +8202,7 @@ const [notificationError, setNotificationError] = useState('');
  
       alert('Errore durante il salvataggio: ' + error.message);
  
-      return;
+      return false;
  
     }
  
@@ -8212,17 +8240,19 @@ const [notificationError, setNotificationError] = useState('');
  
         alert('Dati salvati. La data di nascita inserita richiede un\'informativa privacy diversa: ti chiediamo di rileggerla e accettarla.');
  
-        return;
+        return true;
  
       }
  
       alert('Dati salvati. La nuova data di nascita richiede un\'informativa privacy diversa: al prossimo accesso all\'atleta verrà chiesto di rileggerla e accettarla.');
  
-      return;
+      return true;
  
     }
  
     alert('Dati anagrafici salvati con successo!');
+ 
+    return true;
  
   };
  
@@ -11295,8 +11325,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             if (blocchi.length === 0) return;
  
             sedute++;
- 
-            let quanti = 0;
+             let quanti = 0;
  
             blocchi.forEach((b: any, bi: number) => {
  
@@ -13177,7 +13206,6 @@ setProgramWeeks(updated);
       training_tips: programTrainingTips || null,
  
       nutrition_tips: programNutritionTips || null,
- 
       tips_updated_at: (programTrainingTips || programNutritionTips) ? new Date().toISOString() : null,
  
       weeks: programWeeks,
@@ -21270,11 +21298,11 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                   onClick={() => { setAthleteProfileTab(null); window.scrollTo(0, 0); }}
  
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
  
                 >
  
-                  <Icona nome="sinistra" size={14} /> Profilo
+                  <Icona nome="sinistra" size={14} /> Indietro
  
                 </button>
  
@@ -21285,6 +21313,62 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
                   <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Dati Anagrafici</h3>
+ 
+                  {[
+ 
+                    ['Nome e cognome', personalData.full_name],
+ 
+                    ['Email', session.user.email],
+ 
+                    ['Data di nascita', personalData.birth_date ? formatDateToIT(personalData.birth_date) : ''],
+ 
+                    ...(isMinorenne(personalData.birth_date) ? [['Genitore o tutore', personalData.guardian_name]] : []),
+ 
+                    ['Sesso', personalData.gender === 'm' ? 'Maschio' : personalData.gender === 'f' ? 'Femmina' : ''],
+ 
+                    ['Peso', personalData.weight ? `${personalData.weight} kg` : ''],
+ 
+                    ['Altezza', personalData.height ? `${personalData.height} cm` : ''],
+ 
+                  ].map(([etichetta, valore]: any) => (
+ 
+                    <div key={etichetta} style={{ padding: '10px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>{etichetta}</span>
+ 
+                      <span style={{ display: 'block', fontSize: '14px', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{String(valore ?? '').trim() || '–'}</span>
+ 
+                    </div>
+ 
+                  ))}
+ 
+                  <button
+ 
+                    type="button"
+ 
+                    onClick={() => { setAnagraficiCopia({ ...personalData }); setAnagraficiInModifica(true); }}
+ 
+                    style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+ 
+                  >
+ 
+                    <Icona nome="modifica" size={15} /> Modifica dati anagrafici
+ 
+                  </button>
+ 
+                  {anagraficiInModifica && (
+ 
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1700, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '20px 16px', boxSizing: 'border-box' }}>
+ 
+                      <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+ 
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+ 
+                          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica dati anagrafici</h3>
+ 
+                          <button type="button" onClick={() => { if (anagraficiCopia) setPersonalData(anagraficiCopia); setAnagraficiInModifica(false); }} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>Annulla</button>
+ 
+                        </div>
  
                   <div>
  
@@ -21362,7 +21446,7 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                     disabled={personalDataSaving}
  
-                    onClick={() => savePersonalData(session.user.id, personalData, false)}
+                    onClick={async () => { const ok = await savePersonalData(session.user.id, personalData, false); if (ok) setAnagraficiInModifica(false); }}
  
                     style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: personalDataSaving ? 0.6 : 1 }}
  
@@ -21371,6 +21455,12 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
                     {personalDataSaving ? 'Salvataggio...' : 'Salva Dati Anagrafici'}
  
                   </button>
+ 
+                      </div>
+ 
+                    </div>
+ 
+                  )}
  
                 </div>
  
