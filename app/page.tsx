@@ -21152,13 +21152,13 @@ progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any,
  
                 const anamnesiDaRinnovare = anamnesiMancante || (!!anamnesiUpdatedAt && periodiDa4Mesi(anamnesiUpdatedAt) >= 1);
  
-                const prossimaGara = (competitions || [])
+                const prossimaGara: number | undefined = ((competitions || [])
  
                   .map((g: any) => giorniAlla(g.event_date))
  
-                  .filter((n: any) => n !== null && n >= 0)
+                  .filter((n: any) => n !== null && n >= 0) as number[])
  
-                  .sort((x: any, y: any) => x - y)[0];
+                  .sort((x: number, y: number) => x - y)[0];
  
                 const statoAbb = subscriptionStatus === 'attivo'
  
