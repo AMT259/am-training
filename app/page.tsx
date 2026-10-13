@@ -6560,9 +6560,15 @@ const [notificationError, setNotificationError] = useState('');
  
     if (role === 'athlete') {
  
+      // Di riserva: se l'avviso del coach non è arrivato, lo crea l'app all'apertura.
+ 
+      // Solo per programmi che l'atleta vede davvero (niente bozze, solo abbonamento attivo).
+ 
+      if (subscriptionStatus !== 'attivo') return;
+ 
       const assignedPrograms = programLibrary.filter(
  
-        (prog) => prog.assignedAthleteIds?.includes(session.user.id)
+        (prog) => prog.assignedAthleteIds?.includes(session.user.id) && prog.visibility !== 'none' && !prog.trialStyle && !prog.isDeleted
  
       );
  
@@ -7222,13 +7228,13 @@ const [notificationError, setNotificationError] = useState('');
  
   useEffect(() => {
  
-    if (session && programLibrary.length > 0) {
+    if (session && ruoloCaricato && programLibrary.length > 0) {
  
       syncProgramNotifications();
  
     }
  
-  }, [session, role, programLibrary]);
+  }, [session, role, ruoloCaricato, programLibrary, subscriptionStatus]);
  
   useEffect(() => {
  
@@ -11397,6 +11403,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                               &ldquo;{dato.notes}&rdquo;
  
                             </p>
+ 
                           )}
  
                         </div>
@@ -13323,6 +13330,44 @@ setProgramWeeks(updated);
  
 };
  
+  // Avviso "Nuovo programma assegnato" mandato dal coach: arriva anche ad app chiusa (push).
+ 
+  // Solo agli atleti attivi che il programma lo vedono adesso e prima non lo vedevano.
+ 
+  const avvisaNuoviAssegnati = (progId: any, titolo: string, inizio: string, prima: any, dopo: any) => {
+ 
+    if (!progId || dopo.trial || dopo.visibility === 'none') return;
+ 
+    const giaLoVedevano: string[] = prima && prima.visibility !== 'none' && !prima.trial ? (prima.ids || []) : [];
+ 
+    const nuovi = (dopo.ids || []).filter((id: string) => !giaLoVedevano.includes(id) && (coachSubs[id] || 'prova') === 'attivo');
+ 
+    nuovi.forEach((id: string) => {
+ 
+      fetch('/api/notify-user', {
+ 
+        method: 'POST',
+ 
+        headers: { 'Content-Type': 'application/json' },
+ 
+        body: JSON.stringify({
+ 
+          user_id: id,
+ 
+          type: `program_assigned_${progId}`,
+ 
+          title: 'Nuovo programma assegnato',
+ 
+          message: `Ti è stato assegnato il programma "${titolo}"${inizio ? `, dal ${formatDateToIT(inizio)}` : ''}.`,
+ 
+        }),
+ 
+      }).catch((err) => console.error('Errore notifica assegnazione:', err));
+ 
+    });
+ 
+  };
+ 
   const saveProgramToLibrary = async () => {
  
     if (!programTitle) {
@@ -13361,13 +13406,15 @@ setProgramWeeks(updated);
  
     };
  
-    const { error } = await supabase.from('programs').insert([newProgram]);
+    const { data: creato, error } = await supabase.from('programs').insert([newProgram]).select('id').single();
  
     if (error) {
  
       alert('Errore durante il salvataggio: ' + error.message);
  
     } else {
+ 
+      avvisaNuoviAssegnati(creato?.id, newProgram.title, newProgram.start_date || '', null, { visibility: newProgram.visibility, ids: newProgram.assigned_athlete_ids, trial: !!newProgram.trial_style });
  
       setSaveMessage('Programma salvato con successo!');
  
@@ -13409,7 +13456,8 @@ setProgramWeeks(updated);
  
         : (selectedAthleteIds || []).length;
  
-      avvisa( 
+      avvisa(
+ 
         quanti > 0
  
           ? `Programma creato e assegnato a ${quanti} ${quanti === 1 ? 'atleta' : 'atleti'}`
@@ -13424,11 +13472,11 @@ setProgramWeeks(updated);
  
   const duplicateProgram = async (prog: any) => {
  
-    // La copia nasce come bozza e senza date: prima la adatti, poi decidi
+    // La copia è identica all'originale (atleti assegnati compresi) tranne le date,
  
-    // a chi assegnarla. Assegnarla subito significherebbe mandare agli atleti
+    // che si azzerano. Nasce come bozza: gli atleti la vedono solo quando la rendi
  
-    // un programma identico a quello che hanno già.
+    // visibile con l'occhio, così non si ritrovano due programmi uguali.
  
     const duplicatedProgram = {
  
@@ -13438,7 +13486,7 @@ setProgramWeeks(updated);
  
       end_date: null,
  
-      assigned_athlete_ids: [],
+      assigned_athlete_ids: prog.assignedAthleteIds || [],
  
       visibility: 'none',
  
@@ -13608,6 +13656,20 @@ fetchAllAthleteResultsForCoach();
  
 }
  
+      avvisaNuoviAssegnati(
+ 
+        editingProgram.id,
+ 
+        editingProgram.title,
+ 
+        editingProgram.startDate || '',
+ 
+        originale ? { visibility: originale.visibility, ids: originale.assignedAthleteIds || [], trial: !!originale.trialStyle } : null,
+ 
+        { visibility: editingProgram.trialStyle ? 'none' : (editingProgram.visibility || 'selected'), ids: editingProgram.assignedAthleteIds || [], trial: !!editingProgram.trialStyle }
+ 
+      );
+ 
       avvisa('Programma aggiornato');
  
       setEditingProgram(null);
@@ -13653,6 +13715,8 @@ fetchAllAthleteResultsForCoach();
       return;
  
     }
+ 
+    avvisaNuoviAssegnati(prog.id, prog.title, prog.startDate || '', { visibility: prog.visibility, ids: prog.assignedAthleteIds || [], trial: !!prog.trialStyle }, { visibility: next, ids: prog.assignedAthleteIds || [], trial: !!prog.trialStyle });
  
     fetchProgramLibrary();
  
@@ -21196,51 +21260,73 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                               ) : (
  
-                                <>
+                                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${prog.trialStyle ? 3 : 5}, minmax(0, 1fr))`, gap: '6px', width: '100%' }}>
  
-                                  {!prog.trialStyle && (
+                                  {(() => {
  
-                                    <button
+                                    // Azioni del programma: stessa forma per tutte, colore diverso per ognuna
  
-                                      onClick={() => setRisultatiAperti({ progId: prog.id })}
+                                    const tasto = (key: string, icona: string, testo: string, bg: string, fg: string, onClick: () => void, title?: string) => (
  
-                                      style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', color: 'var(--fg-047857)', borderRadius: '999px', padding: '7px 12px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                                      <button
  
-                                    >
+                                        key={key}
  
-                                      <Icona nome="grafico" size={12} /> Risultati
+                                        onClick={onClick}
  
-                                    </button>
+                                        title={title || testo}
  
-                                  )}
+                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minWidth: 0, padding: '9px 2px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.07)', background: bg, color: fg, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', lineHeight: 1.1 }}
  
-                                  {!prog.trialStyle && <button onClick={() => toggleProgramVisibility(prog)} title={prog.visibility === 'none' ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'} style={{ background: prog.visibility === 'none' ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', border: prog.visibility === 'none' ? '1px solid var(--bd-fcd34d)' : '1px solid var(--bd-d4d4d8)', color: prog.visibility === 'none' ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>{prog.visibility === 'none' ? 'Mostra' : 'Nascondi'}</button>}
+                                      >
  
-                                  <button onClick={() => duplicateProgram(prog)} style={{ background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)', color: 'var(--fg-047857)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Duplica</button>
+                                        <Icona nome={icona} size={16} />
  
-                                  <button onClick={() => {
+                                        <span style={{ maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{testo}</span>
  
-                                    const progToEdit = JSON.parse(JSON.stringify(prog));
+                                      </button>
  
-                                    progToEdit.weeks = normalizeProgramWeeks(progToEdit);
+                                    );
  
-progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any, di: number) => (g.blocks || []).forEach((b: any, bi: number) => { b.__o = `${wi}_${di}_${bi}`; })));
+                                    const apriModifica = () => {
  
-                                    setEditingProgram(progToEdit);
+                                      const progToEdit = JSON.parse(JSON.stringify(prog));
  
-                                    if (progToEdit.weeks.length > 0) {
+                                      progToEdit.weeks = normalizeProgramWeeks(progToEdit);
  
-                                      setSelectedWeekView(progToEdit.weeks[0].weekName);
+                                      progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any, di: number) => (g.blocks || []).forEach((b: any, bi: number) => { b.__o = `${wi}_${di}_${bi}`; })));
  
-                                      if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
+                                      setEditingProgram(progToEdit);
  
-                                    }
+                                      if (progToEdit.weeks.length > 0) {
  
-                                  }} style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', color: 'var(--fg-1d4ed8)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Modifica</button>
+                                        setSelectedWeekView(progToEdit.weeks[0].weekName);
  
-                                  <button onClick={() => deleteProgram(prog.id)} style={{ background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Elimina</button>
+                                        if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
  
-                                </>
+                                      }
+ 
+                                    };
+ 
+                                    const bozza = prog.visibility === 'none';
+ 
+                                    return [
+ 
+                                      !prog.trialStyle && tasto('ris', 'grafico', 'Risultati', 'var(--bg-e0f2fe)', 'var(--fg-075985)', () => setRisultatiAperti({ progId: prog.id })),
+ 
+                                      !prog.trialStyle && tasto('vis', bozza ? 'occhio' : 'occhio-barrato', bozza ? 'Mostra' : 'Nascondi', bozza ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', bozza ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', () => toggleProgramVisibility(prog), bozza ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'),
+ 
+                                      tasto('dup', 'duplica', 'Duplica', 'var(--bg-ecfdf5)', 'var(--fg-047857)', () => duplicateProgram(prog)),
+ 
+                                      tasto('mod', 'modifica', 'Modifica', 'var(--bg-eff6ff)', 'var(--fg-1d4ed8)', apriModifica),
+ 
+                                      tasto('del', 'cestino', 'Elimina', 'var(--bg-fef2f2)', 'var(--fg-b91c1c)', () => deleteProgram(prog.id)),
+ 
+                                    ];
+ 
+                                  })()}
+ 
+                                </div>
  
                               )}
  
