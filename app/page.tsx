@@ -21284,7 +21284,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                         title={title || testo}
  
-                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minWidth: 0, padding: '9px 2px', borderRadius: '10px', border: bordo || '1px solid rgba(0,0,0,0.07)', background: bg, color: fg, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', lineHeight: 1.1 }}
+                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minWidth: 0, padding: '9px 2px', borderRadius: '10px', border: `1px solid ${bordo || fg}`, background: bg, color: fg, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', lineHeight: 1.1 }}
  
                                       >
  
@@ -21322,7 +21322,9 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       !prog.trialStyle && tasto('ris', 'grafico', 'Risultati', 'var(--bg-e0f2fe)', 'var(--fg-075985)', () => setRisultatiAperti({ progId: prog.id })),
  
-                                      !prog.trialStyle && tasto('vis', bozza ? 'occhio' : 'occhio-barrato', bozza ? 'Mostra' : 'Nascondi', bozza ? 'var(--bg-fef3c7)' : 'var(--bg-fff7ed)', bozza ? 'var(--fg-92400e)' : 'var(--fg-ea580c)', () => toggleProgramVisibility(prog), bozza ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti', bozza ? '2px solid #d97706' : '2px solid #f97316'),
+                                      // Mostra: pieno arancione senza contorno. Nascondi: trasparente con contorno arancione.
+ 
+                                      !prog.trialStyle && tasto('vis', bozza ? 'occhio' : 'occhio-barrato', bozza ? 'Mostra' : 'Nascondi', bozza ? '#f97316' : 'transparent', bozza ? '#ffffff' : '#ea580c', () => toggleProgramVisibility(prog), bozza ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti', bozza ? '#f97316' : '#f97316'),
  
                                       tasto('dup', 'duplica', 'Duplica', 'var(--bg-ecfdf5)', 'var(--fg-047857)', () => duplicateProgram(prog)),
  
