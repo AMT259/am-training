@@ -6132,7 +6132,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [coachSubView, setCoachSubView] = useState<'home' | 'programs' | 'athletes' | 'banner'>('home');
  
-  const [homeAperti, setHomeAperti] = useState<{ [k: string]: boolean }>({ gare: true, accessi: true });
+  const [homeAperti, setHomeAperti] = useState<{ [k: string]: boolean }>({ gare: true });
  
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
  
@@ -8003,8 +8003,7 @@ const [notificationError, setNotificationError] = useState('');
       const fineTesto = fine.toLocaleDateString('it-IT');
  
       fetch('/api/notify-user', {
- 
-        method: 'POST',
+         method: 'POST',
  
         headers: { 'Content-Type': 'application/json' },
  
@@ -15859,6 +15858,7 @@ fetchAllAthleteResultsForCoach();
                     )), 'Atleti ancora "In prova". Quando acquistano mettili Attivi, se non acquistano mettili Scaduti.')}
  
                     {sezione('compleanni', 'regalo', 'Compleanni', compleanni.length, compleanni.map(({ a, mancano, anni }: any) => riga(
+ 
                       `c${a.id}`,
  
                       () => apriAtleta(a, 'anagrafici'),
@@ -24070,4 +24070,4 @@ export default function Page() {
  
 }
  
- 
+ S
