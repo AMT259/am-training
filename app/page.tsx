@@ -8003,7 +8003,8 @@ const [notificationError, setNotificationError] = useState('');
       const fineTesto = fine.toLocaleDateString('it-IT');
  
       fetch('/api/notify-user', {
-         method: 'POST',
+ 
+        method: 'POST',
  
         headers: { 'Content-Type': 'application/json' },
  
@@ -11396,7 +11397,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
                               &ldquo;{dato.notes}&rdquo;
  
                             </p>
- 
                           )}
  
                         </div>
@@ -13409,8 +13409,7 @@ setProgramWeeks(updated);
  
         : (selectedAthleteIds || []).length;
  
-      avvisa(
- 
+      avvisa( 
         quanti > 0
  
           ? `Programma creato e assegnato a ${quanti} ${quanti === 1 ? 'atleta' : 'atleti'}`
@@ -24070,4 +24069,4 @@ export default function Page() {
  
 }
  
- S
+ 
