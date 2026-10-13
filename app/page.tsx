@@ -10132,6 +10132,20 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // "La settimana scorsa" non si ripete se il riquadro "L'ultima volta aveva usato" mostra già gli stessi carichi
+ 
+  const giaNelUltimoCarico = (sc: string, blk: any, maxes: any, usati: any[] | null) => {
+ 
+    if (!blk || blk.type !== 'forza' || !usati || usati.length === 0) return false;
+ 
+    if (computeLoadHint(blk.load, blk.reps, trovaMaxes(maxes, blk.name))) return false;
+ 
+    const numeri = (t: any) => (String(t || '').match(/\d+(?:[.,]\d+)?/g) || []).join('/');
+ 
+    return numeri(sc) !== '' && numeri(mostraCarico(usati[0])).endsWith(numeri(sc));
+ 
+  };
+ 
   // Il menu delle tre sezioni si aggancia in alto quando si scorre oltre,
  
   // cosi' non serve risalire tutta la pagina per cambiare sezione
@@ -11516,8 +11530,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                                 blk.reps && `${blk.reps} rip`,
  
-                                blk.load && String(blk.load),
- 
+                                blk.load && String(blk.load), 
                                 blk.rest && `rec. ${blk.rest}`,
  
                               ].filter(Boolean).join('  \u00b7  ')}
@@ -13591,8 +13604,7 @@ setProgramWeeks(updated);
       setTimeout(() => setSaveMessage(''), 3000);
  
       setProgramTitle('');
- 
-      setProgramStartDate('');
+       setProgramStartDate('');
  
       setProgramEndDate('');
  
@@ -15482,7 +15494,8 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
-                </div> 
+                </div>
+ 
                 {notificationError && (
  
                   <div style={{ padding: '10px 14px', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontSize: '11px', borderBottom: '1px solid var(--bd-fecaca)', lineHeight: 1.4 }}>
@@ -17235,33 +17248,17 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         return (
  
-                                          <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
  
-                                            <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-64748b)', marginBottom: '2px' }}>
+                                            <Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} />
  
-                                              {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVA USATO' : 'CARICHI GIÀ USATI'}
+                                            <span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>
+ 
+                                              {usati.length === 1 ? 'L\u2019ultima volta' : 'Carichi gi\u00e0 usati'}: <strong>{usati[0].reps ? `${usati[0].reps} rip. \u2192 ` : ''}{mostraCarico(usati[0])}</strong>
+ 
+                                              {usati.length > 1 && (<span style={{ fontSize: '11px', opacity: 0.8 }}>{' \u00b7 ' + usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' \u00b7 ')}</span>)}
  
                                             </span>
- 
-                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '7px', flexWrap: 'wrap' }}>
- 
-                                              <span style={{ fontSize: '13px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? 'var(--fg-047857)' : 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
- 
-                                              </span>
- 
-                                              {usati.length > 1 && (
- 
-                                                <span style={{ fontSize: '10px', color: 'var(--fg-94a3b8)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                  {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
- 
-                                                </span>
- 
-                                              )}
- 
-                                            </div>
  
                                           </div>
  
@@ -17327,7 +17324,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
-{(() => { const sc = settimanaScorsa(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
+{(() => { const sc = settimanaScorsa(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); if (sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps))) return null; return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -23529,33 +23526,17 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       return (
  
-                                                        <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
  
-                                                          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>
+                                                          <Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} />
  
-                                                            {usati.length === 1 ? 'L\u2019ULTIMA VOLTA AVEVI USATO' : 'CARICHI CHE HAI GIÀ USATO'}
+                                                          <span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>
+ 
+                                                            {usati.length === 1 ? 'L\u2019ultima volta' : 'Carichi gi\u00e0 usati'}: <strong>{usati[0].reps ? `${usati[0].reps} rip. \u2192 ` : ''}{mostraCarico(usati[0])}</strong>
+ 
+                                                            {usati.length > 1 && (<span style={{ fontSize: '11px', opacity: 0.8 }}>{' \u00b7 ' + usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' \u00b7 ')}</span>)}
  
                                                           </span>
- 
-                                                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '9px', flexWrap: 'wrap' }}>
- 
-                                                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: String(usati[0].reps ?? '') === String(blk.reps ?? '') ? 'var(--fg-047857)' : 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                              {usati[0].reps ? `${usati[0].reps} rip. → ` : ''}{mostraCarico(usati[0])}
- 
-                                                            </span>
- 
-                                                            {usati.length > 1 && (
- 
-                                                              <span style={{ fontSize: '11px', color: 'var(--fg-94a3b8)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                                {usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' · ')}
- 
-                                                              </span>
- 
-                                                            )}
- 
-                                                          </div>
  
                                                         </div>
  
@@ -23621,7 +23602,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 )}
  
-{(() => { const sc = settimanaScorsa(athleteResults[prog.id], resultKey); return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
+{(() => { const sc = settimanaScorsa(athleteResults[prog.id], resultKey); if (sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps))) return null; return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
  
                                                 {blk.type !== 'warmup' && (
  
