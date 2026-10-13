@@ -5824,6 +5824,20 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [role, setRole] = useState<'coach' | 'athlete'>('athlete');
  
+  // Finché non si sa se è coach o atleta resta la schermata di caricamento:
+ 
+  // prima per un attimo compariva la vista atleta anche al coach
+ 
+  const [ruoloCaricato, setRuoloCaricato] = useState(false);
+ 
+  // Atleti con l'app aperta in questo momento (solo per il coach)
+ 
+  const [atletiOnline, setAtletiOnline] = useState<string[]>([]);
+ 
+  // Ultima volta visti online durante questa sessione del coach (si somma a last_seen_at del profilo)
+ 
+  const [vistiOra, setVistiOra] = useState<{ [id: string]: number }>({});
+ 
   const [loading, setLoading] = useState(true);
  
   const [email, setEmail] = useState('');
@@ -6118,7 +6132,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [coachSubView, setCoachSubView] = useState<'home' | 'programs' | 'athletes' | 'banner'>('home');
  
-  const [homeAperti, setHomeAperti] = useState<{ [k: string]: boolean }>({ gare: true });
+  const [homeAperti, setHomeAperti] = useState<{ [k: string]: boolean }>({ gare: true, accessi: true });
  
   const [personalSelectedAthleteId, setPersonalSelectedAthleteId] = useState('');
  
@@ -6964,9 +6978,91 @@ const [notificationError, setNotificationError] = useState('');
  
   }, []);
  
+  // Presenza online: l'atleta segnala che ha l'app aperta, il coach vede chi c'è
+ 
   useEffect(() => {
  
-    if (session) {
+    if (!session?.user?.id || !ruoloCaricato) return;
+ 
+    const canale = supabase.channel('presenza-online', { config: { presence: { key: session.user.id } } });
+ 
+    canale.on('presence', { event: 'sync' }, () => {
+ 
+      if (role !== 'coach') return;
+ 
+      const adesso = Object.keys(canale.presenceState()).filter((id) => id !== session.user.id);
+ 
+      setAtletiOnline((prima: string[]) => {
+ 
+        // chi era online e non lo è più: segno l'ora in cui è uscito
+ 
+        const usciti = prima.filter((id) => !adesso.includes(id));
+ 
+        if (usciti.length > 0) {
+ 
+          const ora = Date.now();
+ 
+          setVistiOra((v) => { const n = { ...v }; usciti.forEach((id) => { n[id] = ora; }); return n; });
+ 
+        }
+ 
+        return adesso;
+ 
+      });
+ 
+    });
+ 
+    canale.subscribe(async (stato: string) => {
+ 
+      if (stato === 'SUBSCRIBED' && role !== 'coach') {
+ 
+        await canale.track({ da: new Date().toISOString() });
+ 
+      }
+ 
+    });
+ 
+    return () => { supabase.removeChannel(canale); };
+ 
+  }, [session?.user?.id, role, ruoloCaricato]);
+ 
+  // L'atleta salva l'ultima volta che ha avuto l'app aperta (per il "visto ... fa" del coach)
+ 
+  useEffect(() => {
+ 
+    if (!session?.user?.id || !ruoloCaricato || role === 'coach') return;
+ 
+    const segna = () => {
+ 
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+ 
+      supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', session.user.id)
+ 
+        .then(({ error }) => { if (error) console.warn('last_seen_at non salvato:', error.message); });
+ 
+    };
+ 
+    const alCambio = () => {
+ 
+      // anche quando chiude o mette in pausa l'app: è l'ultimo momento in cui c'era
+ 
+      supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', session.user.id).then(() => {});
+ 
+    };
+ 
+    segna();
+ 
+    const t = setInterval(segna, 60000);
+ 
+    document.addEventListener('visibilitychange', alCambio);
+ 
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', alCambio); };
+ 
+  }, [session?.user?.id, role, ruoloCaricato]);
+ 
+  useEffect(() => {
+ 
+    if (session && ruoloCaricato) {
  
       fetchProgramLibrary();
  
@@ -7122,7 +7218,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-  }, [session, role]);
+  }, [session, role, ruoloCaricato]);
  
   useEffect(() => {
  
@@ -7202,9 +7298,27 @@ const [notificationError, setNotificationError] = useState('');
  
   const fetchUserProfile = async (userId: string) => {
  
-    const { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
+    try {
  
-    if (data) setRole(data.role);
+      let { data } = await supabase.from('profiles').select('role').eq('id', userId).single();
+ 
+      if (!data) {
+ 
+        // un secondo tentativo se la rete era lenta all'apertura
+ 
+        await new Promise((r) => setTimeout(r, 800));
+ 
+        ({ data } = await supabase.from('profiles').select('role').eq('id', userId).single());
+ 
+      }
+ 
+      if (data) setRole(data.role);
+ 
+    } finally {
+ 
+      setRuoloCaricato(true);
+ 
+    }
  
   };
  
@@ -9775,7 +9889,8 @@ const [notificationError, setNotificationError] = useState('');
       if (!giorno) return;
  
       const copia = { ...senzaOrigine(originale), id: Date.now() + Math.floor(Math.random() * 100000) };
-       if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
+ 
+      if (!Array.isArray(giorno.blocks)) giorno.blocks = [];
  
       if (wi === wIdx && di === dIdx) giorno.blocks.splice(bIdx + 1, 0, copia);
  
@@ -13657,7 +13772,7 @@ fetchAllAthleteResultsForCoach();
  
   }
  
-  if (showSplash || loading) {
+  if (showSplash || loading || (session && !ruoloCaricato)) {
  
     return (
  
@@ -15571,7 +15686,39 @@ fetchAllAthleteResultsForCoach();
  
                 };
  
-                const vuota = gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + compleanni.length + anamnesi.length === 0;
+                // Accessi: chi è online e da quanto tempo non entra chi non lo è
+ 
+                const ultimoAccesso = (a: any) => Math.max(a.last_seen_at ? new Date(a.last_seen_at).getTime() || 0 : 0, vistiOra[a.id] || 0);
+ 
+                const accessi = athletes
+ 
+                  .map((a: any) => ({ a, on: atletiOnline.includes(a.id), t: ultimoAccesso(a) }))
+ 
+                  .sort((x: any, y: any) => (x.on === y.on ? y.t - x.t : x.on ? -1 : 1));
+ 
+                const quandoVisto = (t: number) => {
+ 
+                  if (!t) return 'Mai';
+ 
+                  const min = Math.max(0, Math.floor((Date.now() - t) / 60000));
+ 
+                  if (min < 1) return 'Adesso';
+ 
+                  if (min < 60) return `${min} min fa`;
+ 
+                  const ore = Math.floor(min / 60);
+ 
+                  if (ore < 24) return `${ore} ${ore === 1 ? 'ora' : 'ore'} fa`;
+ 
+                  const gg = Math.floor(ore / 24);
+ 
+                  return gg === 1 ? 'Ieri' : `${gg} giorni fa`;
+ 
+                };
+ 
+                const quantiOnline = accessi.filter((x: any) => x.on).length;
+ 
+                const vuota = accessi.length + gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + compleanni.length + anamnesi.length === 0;
  
                 return (
  
@@ -15595,6 +15742,34 @@ fetchAllAthleteResultsForCoach();
  
                     )))}
  
+                    {sezione('accessi', 'utenti', quantiOnline > 0 ? `Accessi \u00b7 ${quantiOnline} online` : 'Accessi', accessi.length, accessi.map(({ a, on, t }: any) => {
+ 
+                      const giorni = t ? (Date.now() - t) / 86400000 : null;
+ 
+                      return riga(
+ 
+                        `x${a.id}`,
+ 
+                        () => apriAtleta(a, 'personal'),
+ 
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><span style={{ width: '9px', height: '9px', borderRadius: '50%', background: on ? '#22c55e' : 'var(--bg-cbd5e1)', boxShadow: on ? '0 0 0 3px rgba(34,197,94,0.2)' : 'none', flexShrink: 0 }} />{nome(a)}</span>,
+ 
+                        on
+ 
+                          ? etichetta('Online', verde)
+ 
+                          : etichetta(quandoVisto(t), giorni === null || giorni > 7 ? rosso : giorni > 3 ? giallo : grigio),
+ 
+                        (coachSubs[a.id] || 'prova') !== 'attivo'
+ 
+                          ? <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-94a3b8)', marginTop: '3px' }}>{(coachSubs[a.id] || 'prova') === 'scaduto' ? 'Abbonamento scaduto' : 'In prova'}</span>
+ 
+                          : null
+ 
+                      );
+ 
+                    }), 'Online in alto, poi dal più recente. Per chi non è online: da quanto tempo non apre l\u2019app.')}
+ 
                     {sezione('allenamenti', 'bilanciere', 'Chi si sta allenando', allenamenti.length, allenamenti.map(({ a, fatti, totali, giorni }: any) => {
  
                       const stato = giorni === null || giorni > 7 ? rosso : giorni > 3 ? giallo : verde;
@@ -15609,7 +15784,11 @@ fetchAllAthleteResultsForCoach();
  
                         () => apriAtleta(a, 'personal'),
  
-                        nome(a),
+                        atletiOnline.includes(a.id)
+ 
+                          ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><span title="Online adesso" style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.2)', flexShrink: 0 }} />{nome(a)}</span>
+ 
+                          : nome(a),
  
                         etichetta(quando, stato),
  
@@ -15627,7 +15806,7 @@ fetchAllAthleteResultsForCoach();
  
                       );
  
-                    }), 'Atleti con un programma in corso, dal meno attivo. L’ultima attività è l’ultimo risultato salvato.')}
+                    }), 'Atleti con un programma in corso, dal meno attivo. L’ultima attività è l’ultimo risultato salvato. Il pallino verde indica chi ha l’app aperta adesso.')}
  
                     {sezione('scadenze', 'calendario', 'Programmi in scadenza', inScadenza.length, inScadenza.map(({ p, g }: any) => {
  
@@ -15680,7 +15859,6 @@ fetchAllAthleteResultsForCoach();
                     )), 'Atleti ancora "In prova". Quando acquistano mettili Attivi, se non acquistano mettili Scaduti.')}
  
                     {sezione('compleanni', 'regalo', 'Compleanni', compleanni.length, compleanni.map(({ a, mancano, anni }: any) => riga(
- 
                       `c${a.id}`,
  
                       () => apriAtleta(a, 'anagrafici'),
@@ -16127,7 +16305,8 @@ fetchAllAthleteResultsForCoach();
  
                       </div>
  
-                    ); 
+                    );
+ 
                   })()}
  
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
@@ -17975,6 +18154,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                             })()}
  
                             <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-000000)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.full_name || a.email}</span>
+ 
+                            {atletiOnline.includes(a.id) && <span style={{ flexShrink: 0, fontSize: '10.5px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', background: 'var(--bg-d1fae5)', color: 'var(--fg-047857)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}><span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e' }} />online</span>}
  
                           </span>
  
