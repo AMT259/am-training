@@ -6468,6 +6468,124 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Tocca una notifica: la segna letta e porta dove serve (programma, anamnesi, gare, atleta)
+ 
+  const apriDaNotifica = (n: any) => {
+ 
+    if (!n.is_read) markNotificationAsRead(n.id);
+ 
+    const t = String(n.notification_type || '');
+ 
+    const uuid = '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})';
+ 
+    const vai = (fatto: boolean) => { if (fatto) { setShowNotifications(false); window.scrollTo(0, 0); } };
+ 
+    if (role === 'coach') {
+ 
+      const apriAtletaDa = (id: string | undefined, tab: any) => {
+ 
+        const a = athletes.find((x: any) => x.id === id);
+ 
+        if (!a) return false;
+ 
+        setSelectedCoachAthlete(a);
+ 
+        setCoachAthleteDetailTab(tab);
+ 
+        setCoachSubView('athletes');
+ 
+        return true;
+ 
+      };
+ 
+      let m = t.match(new RegExp('^prog_expiring_' + uuid));
+ 
+      if (m) {
+ 
+        const prog = programLibrary.find((p: any) => p.id === m![1]);
+ 
+        if (prog) {
+ 
+          const progToEdit = JSON.parse(JSON.stringify(prog));
+ 
+          progToEdit.weeks = normalizeProgramWeeks(progToEdit);
+ 
+          progToEdit.weeks.forEach((w: any, wi: number) => (w.days || []).forEach((g: any, di: number) => (g.blocks || []).forEach((b: any, bi: number) => { b.__o = `${wi}_${di}_${bi}`; })));
+ 
+          setEditingProgram(progToEdit);
+ 
+          if (progToEdit.weeks.length > 0) {
+ 
+            setSelectedWeekView(progToEdit.weeks[0].weekName);
+ 
+            if (progToEdit.weeks[0].days?.length > 0) setSelectedDayView(progToEdit.weeks[0].days[0].dayName);
+ 
+          }
+ 
+          setCoachSubView('programs');
+ 
+          return vai(true);
+ 
+        }
+ 
+        return;
+ 
+      }
+ 
+      m = t.match(new RegExp('^trial_rem_' + uuid));
+ 
+      if (m) return vai(apriAtletaDa(m[1], 'abbonamento'));
+ 
+      m = t.match(new RegExp('^birthday_coach_' + uuid));
+ 
+      if (m) return vai(apriAtletaDa(m[1], 'anagrafici'));
+ 
+      m = t.match(new RegExp('^comp_' + uuid));
+ 
+      if (m) {
+ 
+        const idGara = m[1];
+ 
+        const atletaId = Object.keys(coachCompetitions).find((k) => (coachCompetitions[k] || []).some((g: any) => g.id === idGara));
+ 
+        return vai(apriAtletaDa(atletaId, 'gare'));
+ 
+      }
+ 
+      return;
+ 
+    }
+ 
+    // Atleta
+ 
+    if (t.startsWith('program_assigned_') || t.startsWith('prog_expiring_')) {
+ 
+      setActiveTab('create');
+ 
+      setShowNotifications(false);
+ 
+      const id = n.program_id || (t.match(new RegExp(uuid)) || [])[1];
+ 
+      setTimeout(() => {
+ 
+        const el = id ? document.getElementById(`programma-${id}`) : null;
+ 
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); else window.scrollTo(0, 0);
+ 
+      }, 150);
+ 
+      return;
+ 
+    }
+ 
+    if (t.startsWith('anamnesi_reminder')) { setActiveTab('profile'); setAthleteProfileTab('anamnesi'); return vai(true); }
+ 
+    if (t.startsWith('comp_')) { setActiveTab('profile'); setAthleteProfileTab('gare'); return vai(true); }
+ 
+    if (t.startsWith('sub_') || t.startsWith('trial_')) { setActiveTab('create'); return vai(true); }
+ 
+  };
+ 
   const createNotificationIfMissing = async (
  
   title: string,
@@ -8937,8 +9055,7 @@ const [notificationError, setNotificationError] = useState('');
     const w = parseWeightValue(value);
  
     if (w) {
- 
-      const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
+       const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
  
       await recordMaxHistory(aid, exercise, reps, w, 'manuale');
  
@@ -15348,7 +15465,7 @@ fetchAllAthleteResultsForCoach();
  
   key={notification.id}
  
-  onClick={() => !notification.is_read && markNotificationAsRead(notification.id)}
+  onClick={() => apriDaNotifica(notification)}
  
   style={{
  
@@ -15358,7 +15475,7 @@ fetchAllAthleteResultsForCoach();
  
     background: notification.is_read ? 'var(--bg-ffffff)' : 'var(--bg-ecfdf5)',
  
-    cursor: notification.is_read ? 'default' : 'pointer',
+    cursor: 'pointer',
  
     position: 'relative',
  
@@ -16576,8 +16693,7 @@ return (
  
                               <p style={{ color: 'var(--fg-64748b)', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
  
-                            ) : (
- 
+                            ) : ( 
                               activeDayObj.blocks.map((blk: any, bIdx: number) => {
  
 const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}|${bIdx}`;
@@ -22524,7 +22640,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   return (
  
-                    <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                       {scaduto && (
  
