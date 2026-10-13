@@ -7318,7 +7318,15 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
-      if (data) setRole(data.role);
+      if (data) {
+ 
+        setRole(data.role);
+ 
+        // Il coach entra in Programmi sull'elenco dei programmi, non su Crea
+ 
+        if (data.role === 'coach') setActiveTab('library');
+ 
+      }
  
     } finally {
  
@@ -21266,7 +21274,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                     // Azioni del programma: stessa forma per tutte, colore diverso per ognuna
  
-                                    const tasto = (key: string, icona: string, testo: string, bg: string, fg: string, onClick: () => void, title?: string) => (
+                                    const tasto = (key: string, icona: string, testo: string, bg: string, fg: string, onClick: () => void, title?: string, bordo?: string) => (
  
                                       <button
  
@@ -21276,7 +21284,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                         title={title || testo}
  
-                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minWidth: 0, padding: '9px 2px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.07)', background: bg, color: fg, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', lineHeight: 1.1 }}
+                                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px', minWidth: 0, padding: '9px 2px', borderRadius: '10px', border: bordo || '1px solid rgba(0,0,0,0.07)', background: bg, color: fg, cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', lineHeight: 1.1 }}
  
                                       >
  
@@ -21314,7 +21322,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                       !prog.trialStyle && tasto('ris', 'grafico', 'Risultati', 'var(--bg-e0f2fe)', 'var(--fg-075985)', () => setRisultatiAperti({ progId: prog.id })),
  
-                                      !prog.trialStyle && tasto('vis', bozza ? 'occhio' : 'occhio-barrato', bozza ? 'Mostra' : 'Nascondi', bozza ? 'var(--bg-fef3c7)' : 'var(--bg-f4f4f5)', bozza ? 'var(--fg-92400e)' : 'var(--fg-3f3f46)', () => toggleProgramVisibility(prog), bozza ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti'),
+                                      !prog.trialStyle && tasto('vis', bozza ? 'occhio' : 'occhio-barrato', bozza ? 'Mostra' : 'Nascondi', bozza ? 'var(--bg-fef3c7)' : 'var(--bg-fff7ed)', bozza ? 'var(--fg-92400e)' : 'var(--fg-ea580c)', () => toggleProgramVisibility(prog), bozza ? 'Rendi visibile agli atleti' : 'Nascondi agli atleti', bozza ? '2px solid #d97706' : '2px solid #f97316'),
  
                                       tasto('dup', 'duplica', 'Duplica', 'var(--bg-ecfdf5)', 'var(--fg-047857)', () => duplicateProgram(prog)),
  
@@ -23632,7 +23640,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   setCoachSubView(item.key as any);
  
-                  if (item.key === 'programs') setEditingProgram(null);
+                  if (item.key === 'programs') { setEditingProgram(null); setActiveTab('library'); }
  
                   if (item.key === 'athletes') setSelectedCoachAthlete(null);
  
