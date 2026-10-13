@@ -6266,6 +6266,12 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [showNotifications, setShowNotifications] = useState(false);
  
+  // Link che si apre toccando il logo in alto (lo imposti dall'area Banner)
+ 
+  const [linkLogo, setLinkLogo] = useState<string>(SITO_NEGOZIO);
+ 
+  const [linkLogoBozza, setLinkLogoBozza] = useState<string>('');
+ 
 const [notificationError, setNotificationError] = useState('');
  
   const [libraryView, setLibraryView] = useState<'programmi' | 'cestino'>('programmi');
@@ -7193,6 +7199,8 @@ const [notificationError, setNotificationError] = useState('');
       fetchExerciseLibrary();
  
       fetchBanner();
+ 
+      fetchLinkLogo();
  
       fetchMessaggioIniziale();
  
@@ -8286,6 +8294,42 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const fetchLinkLogo = async () => {
+ 
+    const { data } = await supabase.from('settings').select('value').eq('key', 'logo_link').maybeSingle();
+ 
+    const url = String(data?.value?.url || '').trim();
+ 
+    setLinkLogo(url || SITO_NEGOZIO);
+ 
+    setLinkLogoBozza(url || SITO_NEGOZIO);
+ 
+  };
+ 
+  const salvaLinkLogo = async () => {
+ 
+    let url = linkLogoBozza.trim();
+ 
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'logo_link', value: { url }, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setLinkLogo(url || SITO_NEGOZIO);
+ 
+    setLinkLogoBozza(url || SITO_NEGOZIO);
+ 
+    avvisa('Link del logo salvato');
+ 
+  };
+ 
   const fetchTrialCta = async () => {
  
     const { data } = await supabase.from('settings').select('value').eq('key', 'trial_cta').maybeSingle();
@@ -9055,7 +9099,8 @@ const [notificationError, setNotificationError] = useState('');
     const w = parseWeightValue(value);
  
     if (w) {
-       const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
+ 
+      const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
  
       await recordMaxHistory(aid, exercise, reps, w, 'manuale');
  
@@ -15123,7 +15168,7 @@ fetchAllAthleteResultsForCoach();
  
           <a
  
-            href={SITO_NEGOZIO}
+            href={linkLogo || SITO_NEGOZIO}
  
             target="_blank"
  
@@ -15437,8 +15482,7 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
-                </div>
- 
+                </div> 
                 {notificationError && (
  
                   <div style={{ padding: '10px 14px', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontSize: '11px', borderBottom: '1px solid var(--bd-fecaca)', lineHeight: 1.4 }}>
@@ -16333,6 +16377,52 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Link del logo</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  La pagina che si apre quando un atleta tocca il logo AMT in alto. Vale per tutti, subito.
+ 
+                </p>
+ 
+                <input
+ 
+                  type="url"
+ 
+                  placeholder="https://tuosito.com"
+ 
+                  value={linkLogoBozza}
+ 
+                  onChange={(e) => setLinkLogoBozza(e.target.value)}
+ 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box', marginBottom: '10px' }}
+ 
+                />
+ 
+                <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                  <button type="button" onClick={salvaLinkLogo} style={{ flex: 1, minWidth: 0, padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+ 
+                    Salva link
+ 
+                  </button>
+ 
+                  {linkLogo && (
+ 
+                    <a href={linkLogo} target="_blank" rel="noopener noreferrer" style={{ padding: '12px 16px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', textDecoration: 'none' }}>
+ 
+                      Prova
+ 
+                    </a>
+ 
+                  )}
+ 
+                </div>
+ 
+              </div>
+ 
             </div>
  
           ) : coachSubView === 'athletes' ? (
@@ -16693,7 +16783,8 @@ return (
  
                               <p style={{ color: 'var(--fg-64748b)', fontSize: '13px', textAlign: 'center', padding: '16px' }}>Nessun esercizio in questo giorno.</p>
  
-                            ) : ( 
+                            ) : (
+ 
                               activeDayObj.blocks.map((blk: any, bIdx: number) => {
  
 const chiaveRapida = `${prog.id}|${activeWeekObj?.weekName}|${activeDayObj?.dayName}|${bIdx}`;
