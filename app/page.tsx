@@ -11530,7 +11530,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                                 blk.reps && `${blk.reps} rip`,
  
-                                blk.load && String(blk.load), 
+                                blk.load && String(blk.load),
+ 
                                 blk.rest && `rec. ${blk.rest}`,
  
                               ].filter(Boolean).join('  \u00b7  ')}
@@ -12779,6 +12780,14 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     }
  
+    if (!(parseFloat(String(signupWeight).replace(',', '.')) > 0) || !(parseFloat(String(signupHeight).replace(',', '.')) > 0)) {
+ 
+      setAuthError('Inserisci peso e altezza: servono al coach per impostare il programma.');
+ 
+      return;
+ 
+    }
+ 
     if (isMinorenne(signupBirthDate) && !signupGuardian.trim()) {
  
       setAuthError('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
@@ -12797,7 +12806,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setAuthLoading(true);
  
-    const { error } = await supabase.auth.signUp({
+    const { data: registrato, error } = await supabase.auth.signUp({
  
       email,
  
@@ -12845,7 +12854,23 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       setIsRegistering(false);
  
-      fetch('/api/notify-coach', {
+      // Se la stessa email si registra di nuovo (per esempio perché non trova la mail di conferma)
+ 
+      // Supabase rimanda solo la conferma: non è un utente nuovo e il coach non va riavvisato.
+ 
+      const u: any = registrato?.user;
+ 
+      const creato = u?.created_at ? new Date(u.created_at).getTime() : 0;
+ 
+      const inviata = u?.confirmation_sent_at ? new Date(u.confirmation_sent_at).getTime() : 0;
+ 
+      const utenteNuovo = !!u
+ 
+        && !(Array.isArray(u.identities) && u.identities.length === 0)
+ 
+        && (!inviata || !creato || Math.abs(inviata - creato) < 15000);
+ 
+      if (utenteNuovo) fetch('/api/notify-coach', {
  
         method: 'POST',
  
@@ -13604,7 +13629,8 @@ setProgramWeeks(updated);
       setTimeout(() => setSaveMessage(''), 3000);
  
       setProgramTitle('');
-       setProgramStartDate('');
+ 
+      setProgramStartDate('');
  
       setProgramEndDate('');
  
@@ -14264,9 +14290,9 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ display: 'flex', gap: '12px' }}>
  
-                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
-                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
               </div>
  
