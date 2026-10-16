@@ -10146,6 +10146,110 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Barra in basso sempre attaccata al fondo dello schermo. Su iPhone, tornando
+ 
+  // nell'app da un'altra o dopo la tastiera, Safari a volte la lascia spostata:
+ 
+  // la riallineo a ogni ritorno e a ogni cambio di dimensione dello schermo.
+ 
+  useEffect(() => {
+ 
+    if (typeof window === 'undefined') return;
+ 
+    const sistema = () => {
+ 
+      const barra = document.getElementById('barra-sotto');
+ 
+      if (!barra) return;
+ 
+      const vv: any = (window as any).visualViewport;
+ 
+      const scarto = vv ? Math.round(window.innerHeight - vv.height - vv.offsetTop) : 0;
+ 
+      // tastiera aperta: la barra si nasconde invece di salire sopra la tastiera
+ 
+      if (scarto > 120) { barra.style.visibility = 'hidden'; return; }
+ 
+      barra.style.visibility = 'visible';
+ 
+      barra.style.transform = `translate3d(0, ${scarto > 0 ? -scarto : 0}px, 0)`;
+ 
+    };
+ 
+    const ridisegna = () => {
+ 
+      const barra = document.getElementById('barra-sotto');
+ 
+      if (barra) {
+ 
+        // forzo Safari a ricalcolare la posizione della barra
+ 
+        barra.style.display = 'none';
+ 
+        void barra.offsetHeight;
+ 
+        barra.style.display = 'flex';
+ 
+      }
+ 
+      window.scrollTo(window.scrollX, window.scrollY);
+ 
+      sistema();
+ 
+    };
+ 
+    const alRitorno = () => {
+ 
+      if (document.visibilityState !== 'visible') return;
+ 
+      ridisegna();
+ 
+      setTimeout(ridisegna, 150);
+ 
+      setTimeout(ridisegna, 500);
+ 
+    };
+ 
+    const vv: any = (window as any).visualViewport;
+ 
+    sistema();
+ 
+    document.addEventListener('visibilitychange', alRitorno);
+ 
+    window.addEventListener('pageshow', alRitorno);
+ 
+    window.addEventListener('focus', alRitorno);
+ 
+    window.addEventListener('orientationchange', alRitorno);
+ 
+    window.addEventListener('resize', sistema);
+ 
+    const dopoTastiera = () => setTimeout(sistema, 100);
+ 
+    document.addEventListener('focusout', dopoTastiera);
+ 
+    if (vv) { vv.addEventListener('resize', sistema); vv.addEventListener('scroll', sistema); }
+ 
+    return () => {
+ 
+      document.removeEventListener('visibilitychange', alRitorno);
+ 
+      window.removeEventListener('pageshow', alRitorno);
+ 
+      window.removeEventListener('focus', alRitorno);
+ 
+      window.removeEventListener('orientationchange', alRitorno);
+ 
+      window.removeEventListener('resize', sistema);
+ 
+      document.removeEventListener('focusout', dopoTastiera);
+ 
+      if (vv) { vv.removeEventListener('resize', sistema); vv.removeEventListener('scroll', sistema); }
+ 
+    };
+ 
+  }, []);
+ 
   // Il menu delle tre sezioni si aggancia in alto quando si scorre oltre,
  
   // cosi' non serve risalire tutta la pagina per cambiare sezione
@@ -23790,7 +23894,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
       )}
  
-      <div style={{
+      <div id="barra-sotto" style={{
  
         position: 'fixed',
  
