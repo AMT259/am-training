@@ -1130,29 +1130,71 @@ function parseWeightValue(s: any): number | null {
  
 }
  
-// Stima il massimale su 1 ripetizione partendo dai massimali inseriti (formula di Epley)
+// Percentuale del massimale su 1 ripetizione per fare N ripetizioni a cedimento (RPE 10).
+ 
+// Fino a 12 ripetizioni è la tabella RPE; oltre prosegue con la formula di Epley.
+ 
+// Accetta anche valori con la virgola (es. 5,5 ripetizioni "effettive") e interpola.
+ 
+function percentualeMassima(n: number): number {
+ 
+  const tab = RPE_TABLE['10'];
+ 
+  if (n <= 1) return 100;
+ 
+  if (n <= 12) {
+ 
+    const sotto = Math.floor(n);
+ 
+    const sopra = Math.ceil(n);
+ 
+    if (sotto === sopra) return tab[sotto - 1];
+ 
+    return tab[sotto - 1] + (tab[sopra - 1] - tab[sotto - 1]) * (n - sotto);
+ 
+  }
+ 
+  return tab[11] * (1 + 12 / 30) / (1 + n / 30);
+ 
+}
+ 
+// Massimali inseriti per l'esercizio: { ripetizioni: kg }
+ 
+function massimaliNoti(exMaxes: any): { r: number; w: number }[] {
+ 
+  if (!exMaxes) return [];
+ 
+  return Object.keys(exMaxes)
+ 
+    .map((k) => ({ r: parseInt(k, 10), w: parseWeightValue(exMaxes[k]) }))
+ 
+    .filter((x) => x.r >= 1 && x.r <= 30 && x.w) as { r: number; w: number }[];
+ 
+}
+ 
+// Carico che si riesce a sollevare per N ripetizioni a cedimento, partendo dal massimale
+ 
+// inserito con il numero di ripetizioni più vicino (il più attendibile per quella fascia).
+ 
+function caricoPerRipetizioni(exMaxes: any, n: number): number | null {
+ 
+  const noti = massimaliNoti(exMaxes);
+ 
+  if (noti.length === 0 || !(n > 0)) return null;
+ 
+  noti.sort((x, y) => (Math.abs(x.r - n) - Math.abs(y.r - n)) || (x.r - y.r));
+ 
+  const base = noti[0];
+ 
+  return base.w * percentualeMassima(n) / percentualeMassima(base.r);
+ 
+}
+ 
+// Massimale su 1 ripetizione (reale se inserito, altrimenti stimato)
  
 function estimate1RM(exMaxes: any): number | null {
  
-  if (!exMaxes) return null;
- 
-  const direct = parseWeightValue(exMaxes[1]);
- 
-  if (direct) return direct;
- 
-  const candidates: number[] = [];
- 
-  [3, 5, 10].forEach((r) => {
- 
-    const w = parseWeightValue(exMaxes[r]);
- 
-    if (w) candidates.push(w * (1 + r / 30));
- 
-  });
- 
-  if (candidates.length === 0) return null;
- 
-  return candidates.reduce((a, b) => a + b, 0) / candidates.length;
+  return caricoPerRipetizioni(exMaxes, 1);
  
 }
  
@@ -1186,61 +1228,77 @@ function trovaMaxes(tuttiMaxes: any, nomeEsercizio: any): any {
  
 }
  
-// Legge il campo "carico" e calcola il peso consigliato in kg
+// Legge il campo "carico" e calcola il peso consigliato in kg.
+ 
+// Ripetizioni: "5", "10/8/6/4" (un peso per serie), "8-10" (fascia).
+ 
+// Carico: "80%", "80% 5RM", "70/75/80%", "RPE 8", "@8", "7/8 RPE", "RPE 7-8".
+ 
+// Con l'RPE conta quante ripetizioni restano "in riserva": 4 ripetizioni a RPE 8 sono
+ 
+// come 6 a cedimento, quindi il peso è quello del 6RM (un po' meno del 5RM).
  
 function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
  
-  if (!loadText) return null;
+  if (!loadText || massimaliNoti(exMaxes).length === 0) return null;
  
   const txt = String(loadText).trim();
  
-  const reps = parseWeightValue(repsText) || 1;
+  const repsGrezze = String(repsText ?? '').trim();
  
-  const oneRM = estimate1RM(exMaxes);
+  // Elenco delle ripetizioni per serie; una fascia "8-10" vale come due estremi
  
-  const hasDirect1RM = exMaxes && parseWeightValue(exMaxes[1]);
+  const fascia = repsGrezze.match(/^(\d+)\s*[-\u2013]\s*(\d+)$/);
  
-  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%"
+  const elencoReps: number[] = fascia
  
-  const pctMatch = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*)?(\d+)?\s*RM/i) || txt.match(/(\d+(?:[.,]\d+)?)\s*%/);
+    ? [parseInt(fascia[1], 10), parseInt(fascia[2], 10)]
  
-  if (pctMatch) {
+    : (repsGrezze.match(/\d+/g) || []).map((x) => parseInt(x, 10)).filter((x) => x > 0);
  
-    const pct = parseFloat(pctMatch[1].replace(',', '.'));
+  if (elencoReps.length === 0) elencoReps.push(1);
  
-    const baseReps = pctMatch[2] ? parseInt(pctMatch[2]) : 1;
+  const scrivi = (kgs: (number | null)[]) => {
  
-    let base: number | null = null;
+    const validi = kgs.filter((k): k is number => k !== null && isFinite(k) && k > 0).map(roundLoad);
  
-    if (baseReps === 1) {
+    if (validi.length === 0) return null;
  
-      base = oneRM;
+    if (fascia) validi.sort((x, y) => x - y);
  
-    } else {
+    const unici = validi.filter((k, i) => i === 0 || k !== validi[i - 1]);
  
-      base = parseWeightValue(exMaxes?.[baseReps]);
+    const sep = fascia ? ' \u2013 ' : ' / ';
  
-      if (!base && oneRM) {
+    return `\u2248 ${unici.map((k) => String(k).replace('.', ',')).join(sep)} kg`;
  
-        // se manca quel massimale, lo ricavo dal 1RM stimato
+  };
  
-        base = oneRM / (1 + baseReps / 30);
+  // Caso 1: percentuale, es. "80% 1RM", "80%5RM", "80%", "70/75/80%"
  
-      }
+  const pctRM = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*|del\s*)?(\d+)\s*RM/i);
  
-    }
+  if (pctRM || /%/.test(txt)) {
+ 
+    const baseReps = pctRM ? parseInt(pctRM[2], 10) : 1;
+ 
+    const base = caricoPerRipetizioni(exMaxes, baseReps);
  
     if (!base) return null;
  
-    const kg = roundLoad((base * pct) / 100);
+    const percentuali = pctRM
  
-    return `≈ ${kg} kg`;
+      ? [parseFloat(pctRM[1].replace(',', '.'))]
+ 
+      : (txt.split('%')[0].match(/\d+(?:[.,]\d+)?/g) || []).map((x) => parseFloat(x.replace(',', '.'))).filter((x) => x > 0 && x <= 120);
+ 
+    if (percentuali.length === 0) return null;
+ 
+    return scrivi(percentuali.map((p) => (base * p) / 100));
  
   }
  
-  // Caso 2: RPE scritto in qualsiasi modo — "RPE 8", "8 RPE", "@8",
- 
-  // e anche gli intervalli "7/8 rpe" o "RPE 7-8" (in tal caso vale la media)
+  // Caso 2: RPE scritto in qualsiasi modo; su un intervallo vale la via di mezzo ("7/8" = 7,5)
  
   const rpeMatch =
  
@@ -1252,31 +1310,17 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
     txt.match(/(\d{1,2}(?:[.,]5)?)\s*RPE/i);
  
-  if (rpeMatch && oneRM) {
+  if (rpeMatch) {
  
     const primo = parseFloat(rpeMatch[1].replace(',', '.'));
  
     const secondo = rpeMatch[2] ? parseFloat(rpeMatch[2].replace(',', '.')) : null;
  
-    // Su un intervallo prendo la via di mezzo: "7/8" diventa 7,5
+    const rpe = Math.min(10, Math.max(5, secondo !== null ? (primo + secondo) / 2 : primo));
  
-    const scelto = secondo !== null ? (primo + secondo) / 2 : primo;
+    const inRiserva = 10 - rpe;
  
-    const rpeVal = Math.min(10, Math.max(6, scelto));
- 
-    const key = (Math.round(rpeVal * 2) / 2).toString();
- 
-    const row = RPE_TABLE[key];
- 
-    if (!row) return null;
- 
-    const idx = Math.min(12, Math.max(1, Math.round(reps))) - 1;
- 
-    const pct = row[idx];
- 
-    const kg = roundLoad((oneRM * pct) / 100);
- 
-    return `≈ ${kg} kg`;
+    return scrivi(elencoReps.map((r) => caricoPerRipetizioni(exMaxes, r + inRiserva)));
  
   }
  
@@ -1296,27 +1340,9 @@ function stimaRM(exMaxes: any, reps: number): { kg: number; reale: boolean } | n
  
   if (diretto) return { kg: diretto, reale: true };
  
-  // Cerco il massimale inserito con il numero di ripetizioni più vicino
+  const kg = caricoPerRipetizioni(exMaxes, reps);
  
-  const noti = [1, 3, 5, 10]
- 
-    .map((r) => ({ r, w: parseWeightValue(exMaxes[r]) }))
- 
-    .filter((x) => x.w) as { r: number; w: number }[];
- 
-  if (noti.length === 0) return null;
- 
-  noti.sort((a, b) => Math.abs(a.r - reps) - Math.abs(b.r - reps));
- 
-  const base = noti[0];
- 
-  // Epley: porto il massimale noto a 1RM, poi lo riporto alle ripetizioni volute
- 
-  const oneRM = base.w * (1 + base.r / 30);
- 
-  const kg = oneRM / (1 + reps / 30);
- 
-  return { kg: roundLoad(kg), reale: false };
+  return kg ? { kg: roundLoad(kg), reale: false } : null;
  
 }
  
@@ -6259,6 +6285,20 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
+ 
+  // Pulsante "salva" sempre a portata: fotografia del programma all'apertura per capire se ci sono modifiche
+ 
+  const fotoProgrammaRef = React.useRef<string>('');
+ 
+  const [salvataggioRapido, setSalvataggioRapido] = useState(false);
+ 
+  useEffect(() => {
+ 
+    fotoProgrammaRef.current = editingProgram ? JSON.stringify(editingProgram) : '';
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [editingProgram?.id]);
  
   const [saveMessage, setSaveMessage] = useState('');
  
@@ -23893,6 +23933,78 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
         </div>
  
       )}
+ 
+      {role === 'coach' && coachSubView === 'programs' && (editingProgram || activeTab === 'create') && (() => {
+ 
+        // Salva sempre a portata di pollice mentre crei o modifichi un programma
+ 
+        const modifiche = editingProgram
+ 
+          ? JSON.stringify(editingProgram) !== fotoProgrammaRef.current
+ 
+          : !!String(programTitle || '').trim();
+ 
+        const salva = async () => {
+ 
+          if (salvataggioRapido) return;
+ 
+          setSalvataggioRapido(true);
+ 
+          try {
+ 
+            if (editingProgram) await saveEditedProgram(); else await saveProgramToLibrary();
+ 
+          } finally {
+ 
+            setSalvataggioRapido(false);
+ 
+          }
+ 
+        };
+ 
+        return (
+ 
+          <button
+ 
+            onClick={salva}
+ 
+            disabled={salvataggioRapido}
+ 
+            title={editingProgram ? 'Salva modifiche' : 'Salva programma'}
+ 
+            aria-label={editingProgram ? 'Salva modifiche' : 'Salva programma'}
+ 
+            style={{
+ 
+              position: 'fixed', right: '16px', bottom: 'calc(84px + env(safe-area-inset-bottom, 0px))',
+ 
+              width: '52px', height: '52px', borderRadius: '999px', border: 'none', zIndex: 490,
+ 
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+ 
+              background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)',
+ 
+              color: 'var(--onacc)', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.45)',
+ 
+              opacity: salvataggioRapido ? 0.6 : 1,
+ 
+            }}
+ 
+          >
+ 
+            <Icona nome="spunta" size={24} />
+ 
+            {modifiche && !salvataggioRapido && (
+ 
+              <span style={{ position: 'absolute', top: '2px', right: '2px', width: '12px', height: '12px', borderRadius: '50%', background: '#f97316', border: '2px solid var(--bg-18181b)' }} />
+ 
+            )}
+ 
+          </button>
+ 
+        );
+ 
+      })()}
  
       <div id="barra-sotto" style={{
  
