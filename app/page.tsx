@@ -6292,6 +6292,36 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [salvataggioRapido, setSalvataggioRapido] = useState(false);
  
+  // Quando il pulsante Salva in fondo è sullo schermo, la spunta galleggiante sparisce
+ 
+  const [salvaFondoVisibile, setSalvaFondoVisibile] = useState(false);
+ 
+  useEffect(() => {
+ 
+    const controlla = () => {
+ 
+      const el = document.getElementById('salva-programma-fondo');
+ 
+      if (!el) { setSalvaFondoVisibile(false); return; }
+ 
+      const r = el.getBoundingClientRect();
+ 
+      setSalvaFondoVisibile(r.top < window.innerHeight - 70 && r.bottom > 0);
+ 
+    };
+ 
+    controlla();
+ 
+    const t = setTimeout(controlla, 300);
+ 
+    window.addEventListener('scroll', controlla, { passive: true });
+ 
+    window.addEventListener('resize', controlla);
+ 
+    return () => { clearTimeout(t); window.removeEventListener('scroll', controlla); window.removeEventListener('resize', controlla); };
+ 
+  });
+ 
   useEffect(() => {
  
     fotoProgrammaRef.current = editingProgram ? JSON.stringify(editingProgram) : '';
@@ -19832,7 +19862,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
               </div>
  
-              <button onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
+              <button id="salva-programma-fondo" onClick={saveEditedProgram} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px', marginTop: '10px' }}>Salva Modifiche</button>
  
             </div>
  
@@ -21386,7 +21416,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   </div>
  
-                  <button onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
+                  <button id="salva-programma-fondo" onClick={saveProgramToLibrary} style={{ width: '100%', boxSizing: 'border-box', padding: '14px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>Salva Programma</button>
  
                 </div>
  
@@ -23934,7 +23964,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
       )}
  
-      {role === 'coach' && coachSubView === 'programs' && (editingProgram || activeTab === 'create') && (() => {
+      {role === 'coach' && coachSubView === 'programs' && (editingProgram || activeTab === 'create') && !salvaFondoVisibile && (() => {
  
         // Salva sempre a portata di pollice mentre crei o modifichi un programma
  
