@@ -3020,7 +3020,8 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   if (nascosto) {
  
-    return ( 
+    return (
+ 
       <button
  
         onClick={() => setNascosto(false)}
@@ -7112,6 +7113,7 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
+ 
   useEffect(() => {
  
     const t = (session?.user?.user_metadata as any)?.tema;
@@ -12602,9 +12604,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       ? righe
  
-      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
- 
-    const nelPeriodo = fonte.filter((r: any) => {
+      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);    const nelPeriodo = fonte.filter((r: any) => {
  
       const g = String(r.day);
  
@@ -14550,7 +14550,8 @@ const settimaneSalvate = senzaOrigine(editingProgram.weeks || []);
  
         training_tips: editingProgram.trainingTips || null,
  
-        nutrition_tips: editingProgram.nutritionTips || null, 
+        nutrition_tips: editingProgram.nutritionTips || null,
+ 
         tips_updated_at: consigliCambiati ? new Date().toISOString() : (editingProgram.tipsUpdatedAt || null),
  
         weeks: settimaneSalvate,
@@ -18210,8 +18211,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                                         <div>
  
                                           <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Score / Carico</label>
- 
-                                          {(() => {
+                                           {(() => {
  
                                             const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
  
@@ -22537,7 +22537,9 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               </p>
  
-              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>                Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
+              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>
+ 
+                Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
  
               </p>
  
