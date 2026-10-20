@@ -12604,7 +12604,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       ? righe
  
-      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);    const nelPeriodo = fonte.filter((r: any) => {
+      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
+ 
+    const nelPeriodo = fonte.filter((r: any) => {
  
       const g = String(r.day);
  
@@ -14926,8 +14928,7 @@ fetchAllAthleteResultsForCoach();
  
             </p>
  
-          </div>
- 
+          </div> 
         ) : (
  
         <>
@@ -18211,7 +18212,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                                         <div>
  
                                           <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>Score / Carico</label>
-                                           {(() => {
+ 
+                                          {(() => {
  
                                             const bench = BENCHMARK_WODS.find((b: any) => b.name === blk.name);
  
@@ -22523,7 +22525,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
           )}
  
-          {provaScaduta && subscriptionStatus !== 'scaduto' && (
+          {provaScaduta && (
  
             <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
  
