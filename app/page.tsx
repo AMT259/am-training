@@ -6404,6 +6404,12 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [vascaNuoto, setVascaNuoto] = useState<'25' | '50'>('25');
  
+  const [stileNuoto, setStileNuoto] = useState<string>('Stile libero');
+ 
+  // Stato abbonamento: si cambia solo dopo aver toccato "Modifica"
+ 
+  const [abbInModifica, setAbbInModifica] = useState(false);
+ 
   // Il nuoto lo vede solo chi è abilitato dal coach (colonna profiles.nuoto)
  
   const [nuotoAbilitato, setNuotoAbilitato] = useState(false);
@@ -6471,6 +6477,8 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [showExerciseManager, setShowExerciseManager] = useState(false);
  
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
+ 
+  useEffect(() => { setAbbInModifica(false); }, [selectedCoachAthlete?.id]);
  
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
  
@@ -8494,7 +8502,8 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a))); 
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a)));
+ 
     const { error } = await supabase.from('profiles').update({ trial_choice: nuovo }).eq('id', athleteId);
  
     if (error) {
@@ -9693,7 +9702,21 @@ const [notificationError, setNotificationError] = useState('');
  
         </div>
  
-        {NUOTO_GARE.map((g) => {
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+ 
+          {NUOTO_GARE.map((g) => (
+ 
+            <button key={g.stile} onClick={() => setStileNuoto(g.stile)} style={{ flex: '1 1 auto', padding: '7px 11px', borderRadius: '999px', border: stileNuoto === g.stile ? '1.5px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)', background: stileNuoto === g.stile ? 'var(--bg-ecfdf5)' : 'var(--bg-ffffff)', color: stileNuoto === g.stile ? 'var(--fg-047857)' : 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+ 
+              {g.stile}
+ 
+            </button>
+ 
+          ))}
+ 
+        </div>
+ 
+        {NUOTO_GARE.filter((g) => g.stile === stileNuoto).map((g) => {
  
           const distanze = g.distanze.filter((d) => vascaNuoto === '25' || !(g.solo25 || []).includes(d));
  
@@ -12584,7 +12607,6 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     }
  
     const bottone = (k: string, etichetta: string) => (
- 
       <button
  
         key={k}
@@ -18687,13 +18709,47 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                         </p>
  
-                        {opzioni.map((o) => (
+                        {!abbInModifica && (() => {
+ 
+                          const o = opzioni.find((x) => x.k === stato) || opzioni[1];
+ 
+                          return (
+ 
+                            <>
+ 
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', borderRadius: '10px', background: o.bg, border: `2px solid ${o.bd}` }}>
+ 
+                                <span style={{ width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, background: o.bd, color: '#fff', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{'\u2713'}</span>
+ 
+                                <span style={{ flex: 1 }}>
+ 
+                                  <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: o.fg }}>{o.t}</span>
+ 
+                                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{o.d}</span>
+ 
+                                </span>
+ 
+                              </div>
+ 
+                              <button type="button" onClick={() => setAbbInModifica(true)} style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+ 
+                                <Icona nome="modifica" size={15} /> Modifica abbonamento
+ 
+                              </button>
+ 
+                            </>
+ 
+                          );
+ 
+                        })()}
+ 
+                        {abbInModifica && opzioni.map((o) => (
  
                           <button
  
                             key={o.k}
  
-                            onClick={() => setAthleteSubscription(selectedCoachAthlete.id, o.k)}
+                            onClick={() => { if (o.k !== stato) setAthleteSubscription(selectedCoachAthlete.id, o.k); }}
  
                             style={{
  
@@ -18735,31 +18791,39 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                         ))}
  
-                        <button
+                        {!abbInModifica && (() => {
  
-                          type="button"
+                          const extra = parseInt(String(selectedCoachAthlete.trial_extra_days ?? 0), 10) || 0;
  
-                          onClick={() => setAthleteNuoto(selectedCoachAthlete.id, !selectedCoachAthlete.nuoto)}
+                          const inizio = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at).getTime() : null;
  
-                          style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', cursor: 'pointer', background: 'var(--bg-ffffff)', border: selectedCoachAthlete.nuoto ? '2px solid #0284c7' : '1px solid var(--bd-e2e8f0)' }}
+                          const fine = inizio ? new Date(inizio + (7 + extra) * 86400000) : null;
  
-                        >
+                          const tc = selectedCoachAthlete.trial_choice;
  
-                          <span style={{ width: '40px', height: '22px', borderRadius: '999px', flexShrink: 0, position: 'relative', background: selectedCoachAthlete.nuoto ? '#0284c7' : 'var(--bg-cbd5e1)' }}>
+                          const stile = tc === 'pesi' ? 'Sala Pesi' : tc === 'hybrid' ? 'Hybrid' : tc === 'cross' ? 'Cross Training' : 'Non ancora scelta';
  
-                            <span style={{ position: 'absolute', top: '3px', left: selectedCoachAthlete.nuoto ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff' }} />
+                          return (
  
-                          </span>
+                            <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-                          <span style={{ flex: 1 }}>
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Settimana di prova</span>
  
-                            <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-334155)' }}>Nuoto</span>
+                              <span style={{ fontSize: '13px', color: 'var(--fg-334155)', display: 'block', lineHeight: 1.45 }}>
  
-                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{selectedCoachAthlete.nuoto ? 'Vede e inserisce i suoi tempi di nuoto nei Massimali' : 'Spento: la sezione Nuoto non gli compare'}</span>
+                                {stile}{fine ? ` \u00b7 ${Date.now() >= fine.getTime() ? 'finita il' : 'finisce il'} ${fine.toLocaleDateString('it-IT')}` : ''}{extra > 0 ? ` (+${extra} giorni di proroga)` : ''}
  
-                          </span>
+                              </span>
  
-                        </button>
+                            </div>
+ 
+                          );
+ 
+                        })()}
+ 
+                        {abbInModifica && (
+ 
+                          <>
  
                         <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginTop: '4px' }}>
  
@@ -18884,6 +18948,42 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                           );
  
                         })()}
+ 
+                        <button type="button" onClick={() => setAbbInModifica(false)} style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+ 
+                          Fatto
+ 
+                        </button>
+ 
+                          </>
+ 
+                        )}
+ 
+                        <button
+ 
+                          type="button"
+ 
+                          onClick={() => setAthleteNuoto(selectedCoachAthlete.id, !selectedCoachAthlete.nuoto)}
+ 
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', cursor: 'pointer', background: 'var(--bg-ffffff)', border: selectedCoachAthlete.nuoto ? '2px solid #0284c7' : '1px solid var(--bd-e2e8f0)' }}
+ 
+                        >
+ 
+                          <span style={{ width: '40px', height: '22px', borderRadius: '999px', flexShrink: 0, position: 'relative', background: selectedCoachAthlete.nuoto ? '#0284c7' : 'var(--bg-cbd5e1)' }}>
+ 
+                            <span style={{ position: 'absolute', top: '3px', left: selectedCoachAthlete.nuoto ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff' }} />
+ 
+                          </span>
+ 
+                          <span style={{ flex: 1 }}>
+ 
+                            <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-334155)' }}>Nuoto</span>
+ 
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{selectedCoachAthlete.nuoto ? 'Vede e inserisce i suoi tempi di nuoto nei Massimali' : 'Spento: la sezione Nuoto non gli compare'}</span>
+ 
+                          </span>
+ 
+                        </button>
  
                       </div>
  
@@ -19588,7 +19688,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                       if (pos < 0) return null;
  
                       const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
-                       return (
+ 
+                      return (
  
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
  
