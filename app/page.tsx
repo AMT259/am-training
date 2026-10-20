@@ -6408,7 +6408,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   // Stato abbonamento: si cambia solo dopo aver toccato "Modifica"
  
-  const [abbInModifica, setAbbInModifica] = useState(false);
+  const [bozzaAbb, setBozzaAbb] = useState<{ stato: string; trial: string; extra: number } | null>(null);
  
   // Il nuoto lo vede solo chi è abilitato dal coach (colonna profiles.nuoto)
  
@@ -6478,7 +6478,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [selectedCoachAthlete, setSelectedCoachAthlete] = useState<any | null>(null);
  
-  useEffect(() => { setAbbInModifica(false); }, [selectedCoachAthlete?.id]);
+  useEffect(() => { setBozzaAbb(null); }, [selectedCoachAthlete?.id]);
  
   const [selectedWeekView, setSelectedWeekView] = useState('Settimana 1');
  
@@ -11765,7 +11765,6 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                               {blk.notes && (
- 
                                 <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
  
                                   {blk.notes}
@@ -12607,6 +12606,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     }
  
     const bottone = (k: string, etichetta: string) => (
+ 
       <button
  
         key={k}
@@ -18697,161 +18697,65 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                     ];
  
+                    const attuale = opzioni.find((x) => x.k === stato) || opzioni[1];
+ 
+                    const extraAttuale = parseInt(String(selectedCoachAthlete.trial_extra_days ?? 0), 10) || 0;
+ 
+                    const inizioMs = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at).getTime() : null;
+ 
+                    const isoLocale = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+ 
+                    const baseISO = inizioMs ? isoLocale(new Date(inizioMs + 7 * 86400000)) : '';
+ 
+                    const fineDaExtra = (ex: number) => (inizioMs ? isoLocale(new Date(inizioMs + (7 + ex) * 86400000)) : '');
+ 
+                    const extraDaFine = (v: string) => {
+ 
+                      if (!v || !baseISO) return 0;
+ 
+                      const [a1, m1, g1] = baseISO.split('-').map(Number);
+ 
+                      const [a2, m2, g2] = v.split('-').map(Number);
+ 
+                      return Math.max(0, Math.round((Date.UTC(a2, m2 - 1, g2) - Date.UTC(a1, m1 - 1, g1)) / 86400000));
+ 
+                    };
+ 
+                    const apri = () => setBozzaAbb({ stato, trial: selectedCoachAthlete.trial_choice || '', extra: extraAttuale });
+ 
+                    const b = bozzaAbb;
+ 
+                    const cambiato = !!b && (b.stato !== stato || b.trial !== (selectedCoachAthlete.trial_choice || '') || b.extra !== extraAttuale);
+ 
+                    const salva = async () => {
+ 
+                      if (!b) return;
+ 
+                      if (b.stato !== stato) await setAthleteSubscription(selectedCoachAthlete.id, b.stato);
+ 
+                      if (b.trial !== (selectedCoachAthlete.trial_choice || '')) await setAthleteTrialStyle(selectedCoachAthlete.id, b.trial);
+ 
+                      if (b.extra !== extraAttuale) await prolungaProva(selectedCoachAthlete, b.extra);
+ 
+                      setBozzaAbb(null);
+ 
+                    };
+ 
                     return (
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
  
                         <h4 style={{ fontSize: '15px', margin: 0, color: 'var(--fg-10b981)' }}>Stato abbonamento</h4>
  
-                        <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: 0, lineHeight: 1.45 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', borderRadius: '10px', background: attuale.bg, border: `2px solid ${attuale.bd}` }}>
  
-                          Chi si registra parte automaticamente &quot;In prova&quot;. Cambia lo stato quando acquista o quando l&apos;abbonamento finisce.
+                          <span style={{ width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, background: attuale.bd, color: '#fff', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{'\u2713'}</span>
  
-                        </p>
+                          <span style={{ flex: 1 }}>
  
-                        {!abbInModifica && (() => {
+                            <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: attuale.fg }}>{attuale.t}</span>
  
-                          const o = opzioni.find((x) => x.k === stato) || opzioni[1];
- 
-                          return (
- 
-                            <>
- 
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px', borderRadius: '10px', background: o.bg, border: `2px solid ${o.bd}` }}>
- 
-                                <span style={{ width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, background: o.bd, color: '#fff', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{'\u2713'}</span>
- 
-                                <span style={{ flex: 1 }}>
- 
-                                  <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: o.fg }}>{o.t}</span>
- 
-                                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{o.d}</span>
- 
-                                </span>
- 
-                              </div>
- 
-                              <button type="button" onClick={() => setAbbInModifica(true)} style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
- 
-                                <Icona nome="modifica" size={15} /> Modifica abbonamento
- 
-                              </button>
- 
-                            </>
- 
-                          );
- 
-                        })()}
- 
-                        {abbInModifica && opzioni.map((o) => (
- 
-                          <button
- 
-                            key={o.k}
- 
-                            onClick={() => { if (o.k !== stato) setAthleteSubscription(selectedCoachAthlete.id, o.k); }}
- 
-                            style={{
- 
-                              display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left',
- 
-                              padding: '14px', borderRadius: '10px', cursor: 'pointer',
- 
-                              background: stato === o.k ? o.bg : 'var(--bg-ffffff)',
- 
-                              border: stato === o.k ? `2px solid ${o.bd}` : '1px solid var(--bd-e2e8f0)',
- 
-                            }}
- 
-                          >
- 
-                            <span style={{
- 
-                              width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
- 
-                              border: `2px solid ${stato === o.k ? o.bd : 'var(--bd-cbd5e1)'}`,
- 
-                              background: stato === o.k ? o.bd : 'transparent',
- 
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
- 
-                              color: '#fff', fontSize: '12px', fontWeight: 'bold',
- 
-                            }}>{stato === o.k ? '\u2713' : ''}</span>
- 
-                            <span style={{ flex: 1 }}>
- 
-                              <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: stato === o.k ? o.fg : 'var(--fg-334155)' }}>{o.t}</span>
- 
-                              <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{o.d}</span>
- 
-                            </span>
- 
-                          </button>
- 
-                        ))}
- 
-                        {!abbInModifica && (() => {
- 
-                          const extra = parseInt(String(selectedCoachAthlete.trial_extra_days ?? 0), 10) || 0;
- 
-                          const inizio = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at).getTime() : null;
- 
-                          const fine = inizio ? new Date(inizio + (7 + extra) * 86400000) : null;
- 
-                          const tc = selectedCoachAthlete.trial_choice;
- 
-                          const stile = tc === 'pesi' ? 'Sala Pesi' : tc === 'hybrid' ? 'Hybrid' : tc === 'cross' ? 'Cross Training' : 'Non ancora scelta';
- 
-                          return (
- 
-                            <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Settimana di prova</span>
- 
-                              <span style={{ fontSize: '13px', color: 'var(--fg-334155)', display: 'block', lineHeight: 1.45 }}>
- 
-                                {stile}{fine ? ` \u00b7 ${Date.now() >= fine.getTime() ? 'finita il' : 'finisce il'} ${fine.toLocaleDateString('it-IT')}` : ''}{extra > 0 ? ` (+${extra} giorni di proroga)` : ''}
- 
-                              </span>
- 
-                            </div>
- 
-                          );
- 
-                        })()}
- 
-                        {abbInModifica && (
- 
-                          <>
- 
-                        <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginTop: '4px' }}>
- 
-                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Settimana di prova</span>
- 
-                          <select
- 
-                            value={selectedCoachAthlete.trial_choice || ''}
- 
-                            onChange={(e) => setAthleteTrialStyle(selectedCoachAthlete.id, e.target.value)}
- 
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '6px' }}
- 
-                          >
- 
-                            <option value="">Non ancora scelta</option>
- 
-                            <option value="pesi">Sala Pesi</option>
- 
-                            <option value="hybrid">Hybrid</option>
- 
-                            <option value="cross">Cross Training</option>
- 
-                          </select>
- 
-                          <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, display: 'block' }}>
- 
-                            Solo tu puoi cambiare lo stile: l'atleta lo sceglie una volta sola. La scadenza resta di sette giorni dall'iscrizione e non riparte.
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{attuale.d}</span>
  
                           </span>
  
@@ -18861,87 +18765,43 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                           const extra = parseInt(String(selectedCoachAthlete.trial_extra_days ?? 0), 10) || 0;
  
-                          const inizio = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at).getTime() : null;
+                          const inizio = selectedCoachAthlete.created_at ? new Date(selectedCoachAthlete.created_at) : null;
  
-                          const fine = inizio ? new Date(inizio + (7 + extra) * 86400000) : null;
+                          const fine = inizio ? new Date(inizio.getTime() + (7 + extra) * 86400000) : null;
  
-                          const finita = fine ? Date.now() >= fine.getTime() : false;
+                          const tc = selectedCoachAthlete.trial_choice;
  
-                          const isoLocale = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                          const stile = tc === 'pesi' ? 'Sala Pesi' : tc === 'hybrid' ? 'Hybrid' : tc === 'cross' ? 'Cross Training' : 'Stile non ancora scelto';
  
-                          const base = inizio ? new Date(inizio + 7 * 86400000) : null;
+                          const restano = fine ? Math.ceil((fine.getTime() - Date.now()) / 86400000) : null;
  
-                          const baseISO = base ? isoLocale(base) : '';
+                          const etich = restano === null ? null
  
-                          const fineISO = fine ? isoLocale(fine) : '';
+                            : restano <= 0 ? { t: `Prova finita il ${fine!.toLocaleDateString('it-IT')}`, bg: 'var(--bg-fee2e2)', fg: 'var(--fg-b91c1c)' }
  
-                          // Dalla data scelta ricavo i giorni di proroga rispetto ai 7 giorni normali
+                            : restano === 1 ? { t: 'Finisce domani', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }
  
-                          const scegliData = (v: string) => {
+                            : restano <= 2 ? { t: `Finisce tra ${restano} giorni`, bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }
  
-                            if (!v || !baseISO) return;
- 
-                            const [a1, m1, g1] = baseISO.split('-').map(Number);
- 
-                            const [a2, m2, g2] = v.split('-').map(Number);
- 
-                            const giorni = Math.round((Date.UTC(a2, m2 - 1, g2) - Date.UTC(a1, m1 - 1, g1)) / 86400000);
- 
-                            if (giorni === extra) return;
- 
-                            prolungaProva(selectedCoachAthlete, Math.max(0, giorni));
- 
-                          };
- 
-                          const pulsante = (testo: string, onClick: () => void, rosso?: boolean) => (
- 
-                            <button type="button" onClick={onClick} style={{ flex: '1 1 auto', minWidth: 0, padding: '10px 12px', borderRadius: '999px', border: rosso ? '1px solid var(--bd-fecaca)' : '1px solid var(--bd-10b981)', background: rosso ? 'var(--bg-fee2e2)' : 'var(--bg-ecfdf5)', color: rosso ? 'var(--fg-b91c1c)' : 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{testo}</button>
- 
-                          );
+                            : { t: `In corso: mancano ${restano} giorni`, bg: 'var(--bg-dcfce7)', fg: 'var(--fg-166534)' };
  
                           return (
  
-                            <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+                            <div style={{ padding: '12px 13px', borderRadius: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Prolunga la prova</span>
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '5px' }}>Settimana di prova · {stile}</span>
  
-                              <span style={{ fontSize: '12px', color: 'var(--fg-334155)', display: 'block', marginBottom: '8px', lineHeight: 1.45 }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: 'var(--fg-334155)', fontWeight: 'bold' }}>
  
-                                {fine ? `${finita ? 'Finita il' : 'Finisce il'} ${fine.toLocaleDateString('it-IT')}` : 'Data di iscrizione non disponibile'}
+                                <Icona nome="calendario" size={14} />
  
-                                {extra > 0 ? ` (7 giorni + ${extra} di proroga)` : ' (7 giorni)'}
- 
-                              </span>
- 
-                              <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Nuova data di fine</label>
- 
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
- 
-                                <input
- 
-                                  type="date"
- 
-                                  value={fineISO}
- 
-                                  min={baseISO}
- 
-                                  disabled={!baseISO}
- 
-                                  onChange={(e) => scegliData(e.target.value)}
- 
-                                  style={{ flex: '1 1 160px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', background: 'var(--bg-ffffff)' }}
- 
-                                />
- 
-                                {extra > 0 && pulsante('Togli proroga', () => prolungaProva(selectedCoachAthlete, 0), true)}
- 
-                              </div>
- 
-                              <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', lineHeight: 1.4, display: 'block', marginTop: '6px' }}>
- 
-                                Scegli il giorno in cui deve finire la prova (non prima dei 7 giorni normali). Vale finché è &quot;In prova&quot;: se la prova era già finita, le schede di prova tornano visibili fino alla nuova data. All&apos;atleta arriva una notifica.
+                                {inizio && fine ? `Dal ${inizio.toLocaleDateString('it-IT')} al ${fine.toLocaleDateString('it-IT')}` : 'Data di iscrizione non disponibile'}
  
                               </span>
+ 
+                              {extra > 0 && <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '3px' }}>{`7 giorni + ${extra} di proroga`}</span>}
+ 
+                              {etich && <span style={{ display: 'inline-block', marginTop: '7px', fontSize: '11.5px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', background: etich.bg, color: etich.fg }}>{etich.t}</span>}
  
                             </div>
  
@@ -18949,15 +18809,11 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                         })()}
  
-                        <button type="button" onClick={() => setAbbInModifica(false)} style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                        <button type="button" onClick={apri} style={{ padding: '12px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
  
-                          Fatto
+                          <Icona nome="modifica" size={15} /> Modifica abbonamento
  
                         </button>
- 
-                          </>
- 
-                        )}
  
                         <button
  
@@ -18984,6 +18840,100 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                           </span>
  
                         </button>
+ 
+                        {b && (
+ 
+                          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1700, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '20px 16px', boxSizing: 'border-box' }}>
+ 
+                            <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+ 
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+ 
+                                <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica abbonamento</h3>
+ 
+                                <button type="button" onClick={() => setBozzaAbb(null)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>Annulla</button>
+ 
+                              </div>
+ 
+                              <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)' }}>Stato</span>
+ 
+                              {opzioni.map((o) => (
+ 
+                                <button
+ 
+                                  key={o.k}
+ 
+                                  type="button"
+ 
+                                  onClick={() => setBozzaAbb({ ...b, stato: o.k })}
+ 
+                                  style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '13px', borderRadius: '10px', cursor: 'pointer', background: b.stato === o.k ? o.bg : 'var(--bg-ffffff)', border: b.stato === o.k ? `2px solid ${o.bd}` : '1px solid var(--bd-e2e8f0)' }}
+ 
+                                >
+ 
+                                  <span style={{ width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, border: `2px solid ${b.stato === o.k ? o.bd : 'var(--bd-cbd5e1)'}`, background: b.stato === o.k ? o.bd : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}>{b.stato === o.k ? '\u2713' : ''}</span>
+ 
+                                  <span style={{ flex: 1 }}>
+ 
+                                    <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: b.stato === o.k ? o.fg : 'var(--fg-334155)' }}>{o.t}</span>
+ 
+                                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{o.d}</span>
+ 
+                                  </span>
+ 
+                                </button>
+ 
+                              ))}
+ 
+                              <div style={{ paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Stile della settimana di prova</span>
+ 
+                                <select value={b.trial} onChange={(e) => setBozzaAbb({ ...b, trial: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}>
+ 
+                                  <option value="">Non ancora scelta</option>
+ 
+                                  <option value="pesi">Sala Pesi</option>
+ 
+                                  <option value="hybrid">Hybrid</option>
+ 
+                                  <option value="cross">Cross Training</option>
+ 
+                                </select>
+ 
+                              </div>
+ 
+                              <div style={{ paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Fine della prova</span>
+ 
+                                <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>{b.extra > 0 ? `7 giorni + ${b.extra} di proroga` : '7 giorni (nessuna proroga)'}</span>
+ 
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+ 
+                                  <input type="date" value={fineDaExtra(b.extra)} min={baseISO} disabled={!baseISO} onChange={(e) => setBozzaAbb({ ...b, extra: extraDaFine(e.target.value) })} style={{ flex: '1 1 160px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }} />
+ 
+                                  {b.extra > 0 && (
+ 
+                                    <button type="button" onClick={() => setBozzaAbb({ ...b, extra: 0 })} style={{ padding: '10px 12px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Togli proroga</button>
+ 
+                                  )}
+ 
+                                </div>
+ 
+                              </div>
+ 
+                              <button type="button" onClick={salva} disabled={!cambiato} style={{ marginTop: '4px', padding: '13px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', border: 'none', cursor: cambiato ? 'pointer' : 'default', fontSize: '14px', opacity: cambiato ? 1 : 0.5 }}>
+ 
+                                Salva modifiche
+ 
+                              </button>
+ 
+                            </div>
+ 
+                          </div>
+ 
+                        )}
  
                       </div>
  
@@ -19209,8 +19159,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                           <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        </div>
- 
+                        </div> 
                         <div>
  
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
