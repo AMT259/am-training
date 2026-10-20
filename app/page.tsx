@@ -94,6 +94,118 @@ function secondsToTime(sec: number): string {
  
 }
  
+// ---- NUOTO: tempi delle distanze standard, vasca da 25 e da 50 ----
+ 
+const NUOTO_GARE: { stile: string; distanze: number[]; solo25?: number[] }[] = [
+ 
+  { stile: 'Stile libero', distanze: [50, 100, 200, 400, 800, 1500] },
+ 
+  { stile: 'Dorso', distanze: [50, 100, 200] },
+ 
+  { stile: 'Rana', distanze: [50, 100, 200] },
+ 
+  { stile: 'Farfalla', distanze: [50, 100, 200] },
+ 
+  { stile: 'Misti', distanze: [100, 200, 400], solo25: [100] },
+ 
+];
+ 
+const chiaveNuoto = (vasca: string, distanza: number, stile: string) => `Nuoto vasca ${vasca} \u00b7 ${distanza} m ${stile}`;
+ 
+// "1:05,32" / "1:05.32" / "65,32" / "0:28,4" -> secondi con i centesimi
+ 
+function nuotoSecondi(txt: any): number | null {
+ 
+  if (txt === null || txt === undefined) return null;
+ 
+  const t = String(txt).trim();
+ 
+  if (!t) return null;
+ 
+  const m = t.match(/^(?:(\d+):)?(\d+)(?:[.,](\d{1,2}))?$/);
+ 
+  if (!m) return null;
+ 
+  const min = m[1] ? parseInt(m[1], 10) : 0;
+ 
+  const sec = parseInt(m[2], 10);
+ 
+  const cent = m[3] ? parseInt(m[3].padEnd(2, '0'), 10) : 0;
+ 
+  const tot = min * 60 + sec + cent / 100;
+ 
+  return tot > 0 ? Math.round(tot * 100) / 100 : null;
+ 
+}
+ 
+function nuotoTesto(sec: number): string {
+ 
+  const tot = Math.round(Math.abs(sec) * 100);
+ 
+  const min = Math.floor(tot / 6000);
+ 
+  const s = Math.floor((tot % 6000) / 100);
+ 
+  const c = tot % 100;
+ 
+  return `${min}:${String(s).padStart(2, '0')},${String(c).padStart(2, '0')}`;
+ 
+}
+ 
+// Tre caselle: minuti : secondi , centesimi. Salva quando si esce dal gruppo.
+ 
+function TempoNuoto({ value, onChange, onCommit }: { value: string; onChange: (v: string) => void; onCommit: (v: string) => void }) {
+ 
+  const m0 = String(value || '').match(/^(\d*):?(\d*)[.,]?(\d*)$/);
+ 
+  const min = m0 ? m0[1] : '';
+ 
+  const sec = m0 ? m0[2] : '';
+ 
+  const cen = m0 ? m0[3] : '';
+ 
+  const box: React.CSSProperties = { width: '46px', padding: '6px 2px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '13px', textAlign: 'center' };
+ 
+  const sep: React.CSSProperties = { fontWeight: 'bold', color: 'var(--fg-64748b)' };
+ 
+  const componi = (a: string, b: string, c: string) => `${a}:${b},${c}`;
+ 
+  const fine = (e: any) => {
+ 
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+ 
+    if (!min && !sec && !cen) { onChange(''); onCommit(''); return; }
+ 
+    const finale = `${parseInt(min || '0', 10)}:${String(parseInt(sec || '0', 10)).padStart(2, '0')},${String(parseInt((cen || '0').slice(0, 2).padEnd(2, '0'), 10)).padStart(2, '0')}`;
+ 
+    onChange(finale);
+ 
+    onCommit(finale);
+ 
+  };
+ 
+  const solo = (v: string, max: number) => v.replace(/[^0-9]/g, '').slice(0, max);
+ 
+  return (
+ 
+    <div onBlur={fine} style={{ display: 'flex', gap: '3px', alignItems: 'center', flexShrink: 0 }}>
+ 
+      <input type="text" inputMode="numeric" placeholder="min" value={min} onChange={(e) => onChange(componi(solo(e.target.value, 2), sec, cen))} style={box} />
+ 
+      <span style={sep}>:</span>
+ 
+      <input type="text" inputMode="numeric" placeholder="sec" value={sec} onChange={(e) => onChange(componi(min, solo(e.target.value, 2), cen))} style={box} />
+ 
+      <span style={sep}>,</span>
+ 
+      <input type="text" inputMode="numeric" placeholder="cent" value={cen} onChange={(e) => onChange(componi(min, sec, solo(e.target.value, 2)))} style={box} />
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 // Elenco storico di riferimento: gli esercizi dei massimali ora arrivano dalla Libreria Esercizi
  
 const STRENGTH_EXERCISES = [
@@ -274,7 +386,7 @@ function SimpleHistoryChart({ points, lowerIsBetter, unit, onDelete }: { points:
  
   if (points.length === 0) return <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '8px 0 0 0' }}>Nessuno storico ancora.</p>;
  
-  const fmt = (v: number) => (unit === 'tempo' ? secondsToTime(v) : unit === 'round' ? `${numberToRounds(v)} round` : `${v} rep`);
+  const fmt = (v: number) => (unit === 'nuoto' ? nuotoTesto(v) : unit === 'tempo' ? secondsToTime(v) : unit === 'round' ? `${numberToRounds(v)} round` : `${v} rep`);
  
   const vals = points.map((p: any) => Number(p.value));
  
@@ -2138,9 +2250,27 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
 // sia dal coach, cosi' le due viste non possono piu' divergere.
  
-function RiepilogoScore({ punteggio, note }: { punteggio: string; note: string }) {
+// Somma delle ripetizioni di più serie ("10 / 12 / 8" -> 30). Null se non sono solo numeri interi.
+ 
+function totaleRipetizioni(testo: string): { totale: number; n: number } | null {
+ 
+  const pezzi = String(testo || '').split('/').map((x) => x.trim()).filter(Boolean);
+ 
+  if (pezzi.length < 2 || !pezzi.every((x) => /^\d+$/.test(x))) return null;
+ 
+  return { totale: pezzi.reduce((a, x) => a + parseInt(x, 10), 0), n: pezzi.length };
+ 
+}
+ 
+function RiepilogoScore({ punteggio, note, rip, items }: { punteggio: string; note: string; rip?: boolean; items?: any[] }) {
  
   if (!punteggio && !note) return null;
+ 
+  // Score a ripetizioni su più serie: totale in grande, le singole serie sotto (come i tempi del timer)
+ 
+  const totRip = rip ? totaleRipetizioni(punteggio) : null;
+ 
+  const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep');
  
   // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
  
@@ -2170,7 +2300,13 @@ return (
  
 <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 'bold', color: 'var(--fg-64748b)', overflowWrap: 'anywhere' }}>{m[1]}:</span>
  
-<span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)', overflowWrap: 'anywhere' }}>{m[2]}</span>
+{(() => { const t = ripDi(m[1]) ? totaleRipetizioni(m[2]) : null; return t ? (<>
+ 
+<span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{`Totale ${t.totale} rip`}</span>
+ 
+<span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '1px', overflowWrap: 'anywhere' }}>{m[2]}</span>
+ 
+</>) : (<span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)', overflowWrap: 'anywhere' }}>{m[2]}</span>); })()}
  
 </div>
  
@@ -2180,7 +2316,17 @@ return (
  
 </div>
  
-) : parti ? (
+) : totRip ? (
+ 
+        <>
+ 
+          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{`Totale ${totRip.totale} rip`}</span>
+ 
+          <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{`${punteggio} \u00b7 ${totRip.n} serie`}</span>
+ 
+        </>
+ 
+      ) : parti ? (
  
         <>
  
@@ -6254,7 +6400,13 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi' | 'personal'>('anagrafici');
  
-  const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
+  const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench' | 'nuoto'>('strength');
+ 
+  const [vascaNuoto, setVascaNuoto] = useState<'25' | '50'>('25');
+ 
+  // Il nuoto lo vede solo chi è abilitato dal coach (colonna profiles.nuoto)
+ 
+  const [nuotoAbilitato, setNuotoAbilitato] = useState(false);
  
   const [newMaxExerciseName, setNewMaxExerciseName] = useState('');
  
@@ -6370,7 +6522,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal' | null>(null);
  
-  const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench'>('strength');
+  const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench' | 'nuoto'>('strength');
  
   const [editingProgram, setEditingProgram] = useState<any | null>(null);
  
@@ -8118,6 +8270,20 @@ const [notificationError, setNotificationError] = useState('');
  
     setTrialStartedAt(data?.created_at || null);
  
+    // Nuoto abilitato dal coach: letto a parte, se la colonna non c'è ancora resta spento
+ 
+    try {
+ 
+      const { data: nu, error: errNu } = await supabase.from('profiles').select('nuoto').eq('id', userId).maybeSingle();
+ 
+      setNuotoAbilitato(!errNu && !!(nu as any)?.nuoto);
+ 
+    } catch (e) {
+ 
+      setNuotoAbilitato(false);
+ 
+    }
+ 
     // Proroga della prova: letta a parte, così se la colonna non c'è ancora il resto funziona lo stesso
  
     try {
@@ -8328,8 +8494,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a)));
- 
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, trial_choice: nuovo } : a))); 
     const { error } = await supabase.from('profiles').update({ trial_choice: nuovo }).eq('id', athleteId);
  
     if (error) {
@@ -9427,6 +9592,170 @@ const [notificationError, setNotificationError] = useState('');
       }
  
     }
+ 
+  };
+ 
+  // Salva un tempo di nuoto: record se è più basso del precedente
+ 
+  const salvaTempoNuoto = async (chiave: string, raw: string, athleteId?: string) => {
+ 
+    const aid = athleteId || session.user.id;
+ 
+    const cur = getMaxesOf(aid);
+ 
+    const updatedAll = { ...cur, [chiave]: { ...(cur[chiave] || {}), time: raw } };
+ 
+    setMaxesOf(aid, updatedAll);
+ 
+    await supabase.from('athlete_maxes').upsert(
+ 
+      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'athlete_id' }
+ 
+    );
+ 
+    const sec = nuotoSecondi(raw);
+ 
+    const prima = nuotoSecondi(getSavedOf(aid)[chiave]?.time);
+ 
+    setSavedOf(aid, updatedAll);
+ 
+    if (!sec) return;
+ 
+    await recordMaxHistory(aid, chiave, -4, sec, 'nuoto');
+ 
+    if (prima === null || sec < prima) {
+ 
+      setPrBadge({
+ 
+        exercise: chiave,
+ 
+        headline: nuotoTesto(sec),
+ 
+        subtitle: prima === null ? 'Primo tempo registrato!' : `Tempo migliorato di ${nuotoTesto(prima - sec)}!`,
+ 
+      });
+ 
+    }
+ 
+  };
+ 
+  const setAthleteNuoto = async (athleteId: string, attivo: boolean) => {
+ 
+    const { error } = await supabase.from('profiles').update({ nuoto: attivo }).eq('id', athleteId);
+ 
+    if (error) {
+ 
+      alert('Errore: ' + error.message + '\n\nSe dice che la colonna "nuoto" non esiste, va prima aggiunta su Supabase (vedi istruzioni).');
+ 
+      return;
+ 
+    }
+ 
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === athleteId ? { ...a, nuoto: attivo } : a)));
+ 
+    if (selectedCoachAthlete?.id === athleteId) setSelectedCoachAthlete({ ...selectedCoachAthlete, nuoto: attivo });
+ 
+    avvisa(attivo ? 'Nuoto attivato' : 'Nuoto disattivato');
+ 
+  };
+ 
+  // Pannello dei tempi di nuoto (atleta o coach)
+ 
+  const pannelloNuoto = (aid: string, perCoach: boolean) => {
+ 
+    const mx = (perCoach ? coachAthleteMaxes[aid] : athleteMaxes) || {};
+ 
+    return (
+ 
+      <div>
+ 
+        <h4 style={{ fontSize: '15px', margin: '0 0 6px 0', color: 'var(--fg-10b981)' }}><Icona nome="timer" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Nuoto</h4>
+ 
+        <p style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+ 
+          Tempo come minuti : secondi , centesimi (es. 1 : 05 , 32). Il record è il tempo più basso.
+ 
+        </p>
+ 
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+ 
+          {(['25', '50'] as const).map((v) => (
+ 
+            <button key={v} onClick={() => setVascaNuoto(v)} style={{ flex: 1, padding: '9px', borderRadius: '999px', border: 'none', background: vascaNuoto === v ? '#0284c7' : 'var(--bg-f1f5f9)', color: vascaNuoto === v ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer' }}>
+ 
+              {`Vasca ${v} m`}
+ 
+            </button>
+ 
+          ))}
+ 
+        </div>
+ 
+        {NUOTO_GARE.map((g) => {
+ 
+          const distanze = g.distanze.filter((d) => vascaNuoto === '25' || !(g.solo25 || []).includes(d));
+ 
+          return (
+ 
+            <div key={g.stile} style={{ marginBottom: '14px' }}>
+ 
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', marginBottom: '4px' }}>{g.stile.toUpperCase()}</span>
+ 
+              {distanze.map((d) => {
+ 
+                const chiave = chiaveNuoto(vascaNuoto, d, g.stile);
+ 
+                const hk = `${aid}|${chiave}`;
+ 
+                return (
+ 
+                  <div key={chiave} style={{ padding: '9px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+ 
+                      <span style={{ flex: 1, minWidth: 0, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{`${d} m`}</span>
+ 
+                      <TempoNuoto
+ 
+                        value={mx?.[chiave]?.time || ''}
+ 
+                        onChange={(v: string) => handleSpecialMaxTyping(chiave, 'tempo', v, aid)}
+ 
+                        onCommit={(v: string) => salvaTempoNuoto(chiave, v, aid)}
+ 
+                      />
+ 
+                    </div>
+ 
+                    <button onClick={() => toggleMaxHistory(aid, chiave)} style={{ background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: '4px 0 0 0' }}>
+ 
+                      {openHistoryKey === hk ? '\u25b2 Chiudi storico' : '\u25bc Apri storico'}
+ 
+                    </button>
+ 
+                    {openHistoryKey === hk && (
+ 
+                      <SimpleHistoryChart points={historyCache[hk]} lowerIsBetter unit="nuoto" onDelete={(id) => deleteHistoryPoint(id, hk)} />
+ 
+                    )}
+ 
+                  </div>
+ 
+                );
+ 
+              })}
+ 
+            </div>
+ 
+          );
+ 
+        })}
+ 
+      </div>
+ 
+    );
  
   };
  
@@ -12502,17 +12831,19 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             const bench = BENCHMARK_WODS.find((b: any) => String(b.name).toLowerCase() === String(primo.exercise).toLowerCase());
  
-            const tipo = reps === -1 || (reps === -3 && bench?.type === 'time') ? 'tempo' : reps === -3 && bench?.type === 'rounds' ? 'round' : reps === -2 ? 'rip' : 'kg';
+            const tipo = reps === -4 ? 'nuoto' : reps === -1 || (reps === -3 && bench?.type === 'time') ? 'tempo' : reps === -3 && bench?.type === 'rounds' ? 'round' : reps === -2 ? 'rip' : 'kg';
  
-            const fmt = (v: number) => (tipo === 'tempo' ? secondsToTime(v) : tipo === 'round' ? numberToRounds(v) : tipo === 'rip' ? `${v} rip` : `${v} kg`);
+            const fmt = (v: number) => (tipo === 'nuoto' ? nuotoTesto(v) : tipo === 'tempo' ? secondsToTime(v) : tipo === 'round' ? numberToRounds(v) : tipo === 'rip' ? `${v} rip` : `${v} kg`);
  
             const a = Number(primo.value);
  
             const b = Number(ultimo.value);
  
-            const meglio = tipo === 'tempo' ? b < a : b > a;
+            const piuBassoMeglio = tipo === 'tempo' || tipo === 'nuoto';
  
-            const peggio = tipo === 'tempo' ? b > a : b < a;
+            const meglio = piuBassoMeglio ? b < a : b > a;
+ 
+            const peggio = piuBassoMeglio ? b > a : b < a;
  
             let diffTesto = '';
  
@@ -12520,7 +12851,11 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               const d = Math.abs(b - a);
  
-              diffTesto = tipo === 'tempo'
+              diffTesto = tipo === 'nuoto'
+ 
+                ? `${meglio ? '−' : '+'}${nuotoTesto(d)}`
+ 
+                : tipo === 'tempo'
  
                 ? `${meglio ? '−' : '+'}${secondsToTime(d)}`
  
@@ -17746,6 +18081,10 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
+rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
+ 
+items={blk.type === 'superserie' ? blk.items : undefined}
+ 
                                               />
  
 {blk.type === 'superserie' && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
@@ -17875,6 +18214,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                     <button onClick={() => setCoachMaxSubTab('gym')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'gym' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'gym' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Gymnastics PR</button>
  
                   <button onClick={() => setCoachMaxSubTab('bench')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Benchmark</button>
+ 
+                  {selectedCoachAthlete?.nuoto && <button onClick={() => setCoachMaxSubTab('nuoto')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: coachMaxSubTab === 'nuoto' ? '#0284c7' : 'var(--bg-f1f5f9)', color: coachMaxSubTab === 'nuoto' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Nuoto</button>}
  
                   </div>
  
@@ -18234,6 +18575,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   )}
  
+                  {coachMaxSubTab === 'nuoto' && selectedCoachAthlete?.nuoto && pannelloNuoto(selectedCoachAthlete.id, true)}
+ 
                   {coachMaxSubTab === 'bench' && (
  
                   <div>
@@ -18391,6 +18734,32 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                           </button>
  
                         ))}
+ 
+                        <button
+ 
+                          type="button"
+ 
+                          onClick={() => setAthleteNuoto(selectedCoachAthlete.id, !selectedCoachAthlete.nuoto)}
+ 
+                          style={{ display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', borderRadius: '10px', cursor: 'pointer', background: 'var(--bg-ffffff)', border: selectedCoachAthlete.nuoto ? '2px solid #0284c7' : '1px solid var(--bd-e2e8f0)' }}
+ 
+                        >
+ 
+                          <span style={{ width: '40px', height: '22px', borderRadius: '999px', flexShrink: 0, position: 'relative', background: selectedCoachAthlete.nuoto ? '#0284c7' : 'var(--bg-cbd5e1)' }}>
+ 
+                            <span style={{ position: 'absolute', top: '3px', left: selectedCoachAthlete.nuoto ? '21px' : '3px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff' }} />
+ 
+                          </span>
+ 
+                          <span style={{ flex: 1 }}>
+ 
+                            <span style={{ display: 'block', fontWeight: 'bold', fontSize: '14px', color: 'var(--fg-334155)' }}>Nuoto</span>
+ 
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{selectedCoachAthlete.nuoto ? 'Vede e inserisce i suoi tempi di nuoto nei Massimali' : 'Spento: la sezione Nuoto non gli compare'}</span>
+ 
+                          </span>
+ 
+                        </button>
  
                         <div style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)', marginTop: '4px' }}>
  
@@ -19219,8 +19588,7 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
                       if (pos < 0) return null;
  
                       const azione: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '999px', padding: '6px 11px', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', cursor: 'pointer' };
- 
-                      return (
+                       return (
  
                         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
  
@@ -22384,6 +22752,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                   <button onClick={() => setAthleteMaxSubTab('bench')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'bench' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'bench' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Benchmark</button>
  
+                  {nuotoAbilitato && <button onClick={() => setAthleteMaxSubTab('nuoto')} style={{ flex: '1 1 auto', padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '999px', border: 'none', background: athleteMaxSubTab === 'nuoto' ? '#0284c7' : 'var(--bg-f1f5f9)', color: athleteMaxSubTab === 'nuoto' ? '#fff' : 'var(--fg-334155)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Nuoto</button>}
+ 
               </div>
  
               {athleteMaxSubTab === 'strength' && (
@@ -22557,6 +22927,8 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
               </>
  
               )}
+ 
+              {athleteMaxSubTab === 'nuoto' && nuotoAbilitato && pannelloNuoto(session.user.id, false)}
  
               {athleteMaxSubTab === 'bench' && (
  
@@ -24007,6 +24379,10 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                           punteggio={String(dato?.score || '').trim()}
  
 note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
+ 
+rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
+ 
+items={blk.type === 'superserie' ? blk.items : undefined}
  
                                                         />
  
