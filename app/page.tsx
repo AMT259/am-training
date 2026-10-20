@@ -3020,8 +3020,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   if (nascosto) {
  
-    return (
- 
+    return ( 
       <button
  
         onClick={() => setNascosto(false)}
@@ -6434,6 +6433,10 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [trialCta, setTrialCta] = useState<{ text: string; link_url: string }>({ text: '', link_url: '' });
  
+  // Invito per chi ha l'abbonamento scaduto (diverso da quello di fine prova)
+ 
+  const [scadutoCta, setScadutoCta] = useState<{ title: string; text: string; link_url: string; button: string }>({ title: '', text: '', link_url: '', button: '' });
+ 
   // Messaggio della finestra iniziale: lo scrive il coach nell'area Banner
  
   const [messaggioIniziale, setMessaggioIniziale] = useState('');
@@ -7109,7 +7112,6 @@ const [notificationError, setNotificationError] = useState('');
     }
  
   };
- 
   useEffect(() => {
  
     const t = (session?.user?.user_metadata as any)?.tema;
@@ -7546,6 +7548,8 @@ const [notificationError, setNotificationError] = useState('');
  
         fetchTrialCta();
  
+        fetchScadutoCta();
+ 
         fetchPromemoriaProva();
  
       } else {
@@ -7565,6 +7569,8 @@ const [notificationError, setNotificationError] = useState('');
         fetchStoricoCarichi(session.user.id);
  
         fetchTrialCta();
+ 
+        fetchScadutoCta();
  
       }
  
@@ -8667,6 +8673,28 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('settings').select('value').eq('key', 'trial_cta').maybeSingle();
  
     if (data?.value) setTrialCta(data.value);
+ 
+  };
+ 
+  const fetchScadutoCta = async () => {
+ 
+    const { data } = await supabase.from('settings').select('value').eq('key', 'expired_cta').maybeSingle();
+ 
+    if (data?.value) setScadutoCta({ title: '', text: '', link_url: '', button: '', ...data.value });
+ 
+  };
+ 
+  const saveScadutoCta = async () => {
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'expired_cta', value: scadutoCta, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    alert(error ? 'Errore: ' + error.message : 'Invito salvato!');
  
   };
  
@@ -11765,6 +11793,7 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                               {blk.notes && (
+ 
                                 <p style={{ overflowWrap: 'anywhere', margin: '0 0 6px 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
  
                                   {blk.notes}
@@ -14521,8 +14550,7 @@ const settimaneSalvate = senzaOrigine(editingProgram.weeks || []);
  
         training_tips: editingProgram.trainingTips || null,
  
-        nutrition_tips: editingProgram.nutritionTips || null,
- 
+        nutrition_tips: editingProgram.nutritionTips || null, 
         tips_updated_at: consigliCambiati ? new Date().toISOString() : (editingProgram.tipsUpdatedAt || null),
  
         weeks: settimaneSalvate,
@@ -17073,11 +17101,11 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
-                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito ad abbonarsi</h4>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito a fine prova</h4>
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
-                  Compare solo agli atleti con abbonamento scaduto, al posto delle schede. Chi è attivo non lo vede mai.
+                  Compare agli atleti che hanno finito la settimana di prova e non sono ancora abbonati.
  
                 </p>
  
@@ -17124,6 +17152,56 @@ fetchAllAthleteResultsForCoach();
                 <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito
+ 
+                </button>
+ 
+              </div>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito abbonamento scaduto</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  Compare solo agli atleti con abbonamento &quot;Scaduto&quot;, al posto delle schede. Se lasci un campo vuoto si usa il testo predefinito.
+ 
+                </p>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Titolo</label>
+ 
+                  <input type="text" placeholder="Il tuo abbonamento è scaduto" value={scadutoCta.title} onChange={(e) => setScadutoCta({ ...scadutoCta, title: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Messaggio</label>
+ 
+                  <textarea rows={4} placeholder={'Rinnova il tuo percorso per tornare ad allenarti con le tue schede personalizzate.'} value={scadutoCta.text} onChange={(e) => setScadutoCta({ ...scadutoCta, text: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '10px' }}>
+ 
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link per rinnovare</label>
+ 
+                  <input type="url" placeholder="Se vuoto usa il link dell'invito a fine prova" value={scadutoCta.link_url} onChange={(e) => setScadutoCta({ ...scadutoCta, link_url: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+ 
+                </div>
+ 
+                <div style={{ marginBottom: '12px' }}>
+ 
+                  <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Testo del pulsante</label>
+ 
+                  <input type="text" placeholder="Rinnova l&apos;abbonamento" value={scadutoCta.button} onChange={(e) => setScadutoCta({ ...scadutoCta, button: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+ 
+                </div>
+ 
+                <button type="button" onClick={saveScadutoCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+ 
+                  Salva invito scaduto
  
                 </button>
  
@@ -19159,7 +19237,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                           <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        </div> 
+                        </div>
+ 
                         <div>
  
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
@@ -22444,13 +22523,13 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
           )}
  
-          {(subscriptionStatus === 'scaduto' || provaScaduta) && (
+          {provaScaduta && subscriptionStatus !== 'scaduto' && (
  
             <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 3px 14px rgba(0,0,0,0.32)' }}>
  
               <div style={{ fontSize: '30px', marginBottom: '8px' }}><Icona nome="bilanciere" size={30} style={{ marginRight: '6px', verticalAlign: '-2px' }} /></div>
  
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{provaScaduta ? 'La tua settimana di prova è finita' : 'Vuoi continuare ad allenarti con noi?'}</h3>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>La tua settimana di prova è finita</h3>
  
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
  
@@ -22458,9 +22537,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               </p>
  
-              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>
- 
-                Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
+              <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>                Quella che hai provato è una scheda standard, uguale per tutti. Il percorso vero è un altro: viene costruito su di te, sui tuoi obiettivi, sul tempo che hai e su eventuali problematiche fisiche — e viene aggiornato man mano che progredisci.
  
               </p>
  
@@ -22479,6 +22556,44 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                 >
  
                   Scopri le programmazioni
+ 
+                </a>
+ 
+              )}
+ 
+            </div>
+ 
+          )}
+ 
+          {subscriptionStatus === 'scaduto' && (
+ 
+            <div style={{ background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', borderRadius: '14px', padding: '24px 20px', marginBottom: '20px', textAlign: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.35)' }}>
+ 
+              <div style={{ fontSize: '30px', marginBottom: '8px' }}><Icona nome="bilanciere" size={30} style={{ verticalAlign: '-2px' }} /></div>
+ 
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>{scadutoCta.title || 'Il tuo abbonamento è scaduto'}</h3>
+ 
+              <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
+ 
+                {scadutoCta.text || 'Rinnova il tuo percorso per tornare ad allenarti con le tue schede personalizzate.'}
+ 
+              </p>
+ 
+              {(scadutoCta.link_url || trialCta.link_url) && (
+ 
+                <a
+ 
+                  href={scadutoCta.link_url || trialCta.link_url}
+ 
+                  target="_blank"
+ 
+                  rel="noopener noreferrer"
+ 
+                  style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
+ 
+                >
+ 
+                  {scadutoCta.button || 'Rinnova l\u2019abbonamento'}
  
                 </a>
  
