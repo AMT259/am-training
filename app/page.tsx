@@ -5218,6 +5218,70 @@ const SITO_NEGOZIO = 'https://a-m-training.sumupstore.com/prodotti';
  
 // su tutti i telefoni, a differenza delle emoji
  
+// Numero del blocco con menù a tendina: tocchi il numero e scegli la posizione in cui spostarlo.
+ 
+// Il select è invisibile sopra al numero, così si apre la ruota di selezione nativa del telefono.
+ 
+function NumeroBlocco({ indice, blocchi, onSposta }: { indice: number; blocchi: any[]; onSposta: (a: number) => void }) {
+ 
+  const tot = (blocchi || []).length;
+ 
+  const etichetta = (b: any) => {
+ 
+    const nome = String(b?.name || '').trim();
+ 
+    if (nome) return nome;
+ 
+    const t = b?.type || 'forza';
+ 
+    return t === 'warmup' ? 'Warm up' : t === 'superserie' ? 'Superserie' : t === 'wod' ? 'WOD' : t === 'test' ? 'Test' : 'Forza';
+ 
+  };
+ 
+  return (
+ 
+    <span
+ 
+      title={`Blocco ${indice + 1} di ${tot}: tocca per spostarlo`}
+ 
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minWidth: '26px', height: '26px', padding: '0 6px 0 8px', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0, cursor: tot > 1 ? 'pointer' : 'default' }}
+ 
+    >
+ 
+      {indice + 1}
+ 
+      {tot > 1 && <Icona nome="giu" size={10} />}
+ 
+      {tot > 1 && (
+ 
+        <select
+ 
+          value={indice}
+ 
+          onChange={(e) => { const a = parseInt(e.target.value, 10); if (!isNaN(a) && a !== indice) onSposta(a); }}
+ 
+          aria-label="Sposta il blocco in un'altra posizione"
+ 
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', fontSize: '16px' }}
+ 
+        >
+ 
+          {(blocchi || []).map((b: any, i: number) => (
+ 
+            <option key={i} value={i}>{`${i + 1} \u00b7 ${i === indice ? '(qui) ' : ''}${etichetta(b)}`}</option>
+ 
+          ))}
+ 
+        </select>
+ 
+      )}
+ 
+    </span>
+ 
+  );
+ 
+}
+ 
 function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?: React.CSSProperties }) {
  
   const comuni = {
@@ -13184,6 +13248,28 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
+  // Tocco sul blocco nell'editor: da chiuso si apre toccando ovunque, da aperto si chiude
+ 
+  // toccando la riga in alto. Pulsanti, menù e campi di testo continuano a fare il loro lavoro.
+ 
+  const toccoBlocco = (e: any, blockKey: string, chiuso: boolean) => {
+ 
+    const t = e.target as HTMLElement;
+ 
+    if (!t || t.closest('button, select, input, textarea, a, label, option, [contenteditable="true"]')) return;
+ 
+    for (let el: HTMLElement | null = t; el && el !== e.currentTarget; el = el.parentElement) {
+ 
+      if (window.getComputedStyle(el).position === 'fixed') return;   // finestre aperte sopra la pagina
+ 
+    }
+ 
+    if (!chiuso && !t.closest('[data-testa-blocco]')) return;
+ 
+    toggleBlockCollapse(blockKey);
+ 
+  };
+ 
   const toggleBlockCollapse = (blockKey: string) => {
  
     setCollapsedBlocks(prev => {
@@ -13507,6 +13593,30 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     updated[wIdx].days[dayIndex].blocks = blocks;
  
     setProgramWeeks(updated);
+ 
+  };
+ 
+  // Sposta un blocco direttamente in una posizione (menù sul numero del blocco)
+ 
+  const spostaBloccoA = (contesto: 'edit' | 'free', wIdx: number, dayIndex: number, da: number, a: number) => {
+ 
+    if (contesto === 'edit' && !editingProgram) return;
+ 
+    const updated = JSON.parse(JSON.stringify(contesto === 'edit' ? editingProgram : programWeeks));
+ 
+    const settimane = contesto === 'edit' ? updated.weeks : updated;
+ 
+    const blocks = [...(settimane?.[wIdx]?.days?.[dayIndex]?.blocks || [])];
+ 
+    if (da < 0 || da >= blocks.length || a < 0 || a >= blocks.length || da === a) return;
+ 
+    const [spostato] = blocks.splice(da, 1);
+ 
+    blocks.splice(a, 0, spostato);
+ 
+    settimane[wIdx].days[dayIndex].blocks = blocks;
+ 
+    if (contesto === 'edit') setEditingProgram(updated); else setProgramWeeks(updated);
  
   };
  
@@ -19164,21 +19274,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                             return (
  
-                              <div key={block.id || bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
+                              <div key={block.id || bIdx} onClick={(e: any) => toccoBlocco(e, blockKey, isClosed)} style={{ cursor: isClosed ? 'pointer' : undefined,  background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
-                                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
+                                <div data-testa-blocco="1" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px', cursor: 'pointer' }}>
  
-                                  <span
- 
-                                    title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
- 
-                                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
- 
-                                  >
- 
-                                    {bIdx + 1}
- 
-                                  </span>
+                                  <NumeroBlocco indice={bIdx} blocchi={day.blocks || []} onSposta={(a: number) => spostaBloccoA('edit', actualWIdx, actualDIdx, bIdx, a)} />
  
                                   <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
  
@@ -20750,21 +20850,11 @@ note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
  
                                 return (
  
-                                  <div key={block.id} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
+                                  <div key={block.id} onClick={(e: any) => toccoBlocco(e, blockKey, isClosed)} style={{ cursor: isClosed ? 'pointer' : undefined,  background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
  
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
+                                    <div data-testa-blocco="1" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px', cursor: 'pointer' }}>
  
-                                      <span
- 
-                                        title={`Blocco ${bIdx + 1} di ${(day.blocks || []).length}`}
- 
-                                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '26px', height: '26px', padding: '0 7px', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0 }}
- 
-                                      >
- 
-                                        {bIdx + 1}
- 
-                                      </span>
+                                      <NumeroBlocco indice={bIdx} blocchi={day.blocks || []} onSposta={(a: number) => spostaBloccoA('free', actualWIdx, actualDIdx, bIdx, a)} />
  
                                       <div style={{ position: 'relative', flex: '1 1 140px', minWidth: 0 }}>
  
