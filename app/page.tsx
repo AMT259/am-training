@@ -3094,6 +3094,127 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
 }
  
+// Area personal: modifica di un blocco di forza in una finestra, con Annulla e Salva.
+ 
+// Le modifiche restano in bozza finché non premi Salva.
+ 
+function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
+ 
+  const CAMPI = ['sets', 'reps', 'load', 'loadSerie', 'rest', 'restSerie', 'notes'];
+ 
+  const [bozza, setBozza] = useState<any>(() => JSON.parse(JSON.stringify(blk || {})));
+ 
+  const ultima = React.useRef<any>(bozza);
+ 
+  const aggiorna = (campi: any) => {
+ 
+    const nuova = { ...ultima.current, ...campi };
+ 
+    ultima.current = nuova;
+ 
+    setBozza(nuova);
+ 
+  };
+ 
+  const diverso = (b: any) => CAMPI.some((k) => JSON.stringify(b?.[k] ?? null) !== JSON.stringify(blk?.[k] ?? null));
+ 
+  const cambiato = diverso(bozza);
+ 
+  return (
+ 
+    <div
+ 
+      onClick={onClose}
+ 
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.78)', zIndex: 4500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }}
+ 
+    >
+ 
+      <div
+ 
+        onClick={(e: any) => e.stopPropagation()}
+ 
+        style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '420px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+ 
+      >
+ 
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+ 
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>MODIFICA ESERCIZIO</span>
+ 
+          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>{blk?.name || 'Esercizio'}</span>
+ 
+          {nAtleti > 1 && (
+ 
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginTop: '5px' }}>{`Programma assegnato a ${nAtleti} atleti: la modifica vale per tutti.`}</span>
+ 
+          )}
+ 
+        </div>
+ 
+        <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
+ 
+          <QuattroRiquadri blk={bozza} modifica onCambia={(campi: any) => aggiorna(campi)} />
+ 
+          <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0', fontWeight: 'bold' }}>NOTE</label>
+ 
+          <textarea
+ 
+            rows={3}
+ 
+            value={bozza.notes || ''}
+ 
+            onChange={(e: any) => aggiorna({ notes: e.target.value })}
+ 
+            style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }}
+ 
+          />
+ 
+        </div>
+ 
+        <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+          <button type="button" onClick={onClose} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+            Annulla
+ 
+          </button>
+ 
+          <button
+ 
+            type="button"
+ 
+            onClick={() => {
+ 
+              const b = ultima.current;
+ 
+              if (!diverso(b)) { onClose(); return; }
+ 
+              const campi: any = {};
+ 
+              CAMPI.forEach((k) => { campi[k] = b[k] ?? null; });
+ 
+              onSalva(campi);
+ 
+            }}
+ 
+            style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: cambiato ? 'pointer' : 'default', opacity: cambiato ? 1 : 0.5 }}
+ 
+          >
+ 
+            Salva
+ 
+          </button>
+ 
+        </div>
+ 
+      </div>
+ 
+    </div>
+   );
+ 
+}
+ 
 function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
   const serie = serieDaBlocco(blk);
@@ -6262,6 +6383,10 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [scoreAperto, setScoreAperto] = useState<any>(null);
  
+  // Area personal: blocco di forza aperto nella finestra "Modifica esercizio"
+ 
+  const [bloccoInModifica, setBloccoInModifica] = useState<any>(null);
+ 
   const [messaggio, setMessaggio] = useState<string | null>(null);
  
   const [dupBlock, setDupBlock] = useState<any>(null);
@@ -7899,7 +8024,8 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('settings').select('*').eq('key', 'app_banner').single();
  
     if (data && data.value) {
-       setBannerData(data.value);
+ 
+      setBannerData(data.value);
  
     }
  
@@ -12211,8 +12337,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         <button
  
-                          key={d.dayName}
- 
+                          key={d.dayName} 
                           onClick={() => setProgrGiorno((p) => ({ ...p, [prog.id]: d.dayName }))}
  
                           style={{ ...pillola(sel, 'var(--fg-10b981)', 'piccolo') }}
@@ -15771,6 +15896,30 @@ fetchAllAthleteResultsForCoach();
  
       )}
  
+      {bloccoInModifica && (
+ 
+        <FinestraModificaBlocco
+ 
+          blk={bloccoInModifica.blk}
+ 
+          nAtleti={bloccoInModifica.nAtleti}
+ 
+          onClose={() => setBloccoInModifica(null)}
+ 
+          onSalva={async (campi: any) => {
+ 
+            const b = bloccoInModifica;
+ 
+            setBloccoInModifica(null);
+ 
+            await salvaBloccoRapido(b.progId, b.settimana, b.giorno, b.bIdx, campi);
+ 
+          }}
+ 
+        />
+ 
+      )}
+ 
       {scoreAperto && (
  
         comeSuperserie(scoreAperto.blk?.type) ? (
@@ -16494,7 +16643,8 @@ fetchAllAthleteResultsForCoach();
                     </div>
  
                   ))
-                 )}
+ 
+                )}
  
               </div>
  
@@ -17380,9 +17530,7 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
-                  <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
- 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Dati anagrafici</button>
  
@@ -18178,9 +18326,25 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       <>
  
-<QuattroRiquadri blk={blk} modifica onCambia={(campi: any) => salvaBloccoRapido(prog.id, activeWeekObj?.weekName, activeDayObj?.dayName, bIdx, campi)} onTimer={(sec: any) => { preparaAudio(); setTimerConfig(sec && typeof sec === 'object' ? sec : sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
+<QuattroRiquadri blk={blk} onTimer={(sec: any) => { preparaAudio(); setTimerConfig(sec && typeof sec === 'object' ? sec : sec ? { tipo: 'recupero', secondi: sec } : { tipo: 'recupero', secondi: 90, daImpostare: true }); }} />
  
-{(prog.assignedAthleteIds || []).length > 1 && (<span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-a16207)', marginBottom: '8px' }}>{`Questo programma è assegnato a ${(prog.assignedAthleteIds || []).length} atleti: la modifica vale per tutti.`}</span>)}
+<div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: '2px' }}>
+ 
+  <button
+ 
+    type="button"
+ 
+    onClick={() => setBloccoInModifica({ progId: prog.id, settimana: activeWeekObj?.weekName, giorno: activeDayObj?.dayName, bIdx, blk, nAtleti: (prog.assignedAthleteIds || []).length })}
+ 
+    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}
+ 
+  >
+ 
+    <Icona nome="modifica" size={13} /> Modifica esercizio
+ 
+  </button>
+ 
+</div>
  
                                       {(() => {
  
