@@ -1928,7 +1928,9 @@ function costruisciFasi(cfg: any): any[] {
  
     for (let r = 1; r <= cfg.round; r++) {
  
-      fasi.push({ nome: `Minuto ${r}`, secondi: cfg.durata, colore: 'var(--fg-10b981)', round: r });
+      // "Minuto" solo se ogni giro dura un minuto; con altri tempi (Every 30", 1'30...) è un "Round"
+ 
+      fasi.push({ nome: cfg.durata === 60 ? `Minuto ${r}` : `Round ${r}`, secondi: cfg.durata, colore: 'var(--fg-10b981)', round: r });
  
     }
  
@@ -2420,13 +2422,45 @@ function comeSuperserie(t: any) {
  
 function datiEmom(blk: any) {
  
-  const ogni = Math.max(1, parseInt(String(blk?.emomOgni ?? ''), 10) || 1);
+  // ogni quanto si cambia esercizio: minuti + secondi (vuoto = 1 minuto)
+ 
+  const m = parseInt(String(blk?.emomOgni ?? ''), 10) || 0;
+ 
+  const sc = parseInt(String(blk?.emomOgniSec ?? ''), 10) || 0;
+ 
+  const ogniSec = m * 60 + sc > 0 ? m * 60 + sc : 60;
  
   const round = Math.max(1, parseInt(String(blk?.rounds ?? ''), 10) || 1);
  
   const esercizi = Math.max(1, (blk?.items || []).filter((it: any) => it && (it.name || it.value)).length);
  
-  return { ogni, round, esercizi, minuti: ogni * round * esercizi };
+  return { ogniSec, round, esercizi, totSec: ogniSec * round * esercizi };
+ 
+}
+ 
+// Scritta del blocco: "EMOM 12'" solo se si cambia ogni minuto, altrimenti "EVERY 30\" x 24 RND"
+ 
+function scrittaEmom(blk: any): string {
+ 
+  const e = datiEmom(blk);
+ 
+  if (e.ogniSec === 60) return `EMOM ${tempoEmom(e.totSec)}`;
+ 
+  return `EVERY ${tempoEmom(e.ogniSec)} x ${e.round * e.esercizi} RND`;
+ 
+}
+ 
+// 90 -> 1'30   60 -> 1'   45 -> 45"
+ 
+function tempoEmom(sec: number): string {
+ 
+  const m = Math.floor(sec / 60);
+ 
+  const r = sec % 60;
+ 
+  if (m === 0) return `${r}"`;
+ 
+  return r ? `${m}'${String(r).padStart(2, '0')}` : `${m}'`;
  
 }
  
@@ -7308,7 +7342,8 @@ const [notificationError, setNotificationError] = useState('');
  
     setNotificationError(error.message);
  
-    return; 
+    return;
+ 
   }
  
   setNotifications(prev =>
@@ -7864,8 +7899,7 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('settings').select('*').eq('key', 'app_banner').single();
  
     if (data && data.value) {
- 
-      setBannerData(data.value);
+       setBannerData(data.value);
  
     }
  
@@ -9676,6 +9710,7 @@ const [notificationError, setNotificationError] = useState('');
           exercise: name,
  
           headline: type === 'time' ? secondsToTime(numeric) : type === 'rounds' ? `${numberToRounds(numeric)} round` : `${numeric} ripetizioni`,
+ 
           subtitle: prima === null
  
             ? 'Primo risultato registrato su questo benchmark!'
@@ -10965,6 +11000,18 @@ const [notificationError, setNotificationError] = useState('');
     if (dest < 0 || dest >= copia.length) return;
  
     [copia[i], copia[dest]] = [copia[dest], copia[i]];
+ 
+    aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
+ 
+  };
+ 
+  // Clona l'esercizio con tutti i suoi dati e lo mette subito sotto
+ 
+  const duplicaWarmItem = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, attuali: any[], i: number) => {
+ 
+    const copia = [...(attuali || [])];
+ 
+    copia.splice(i + 1, 0, JSON.parse(JSON.stringify(copia[i] || {})));
  
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
  
@@ -16447,8 +16494,7 @@ fetchAllAthleteResultsForCoach();
                     </div>
  
                   ))
- 
-                )}
+                 )}
  
               </div>
  
@@ -17756,7 +17802,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           <span style={{ display: 'inline-block', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
-                                            {(() => { const e = datiEmom(blk); return `EMOM ${e.minuti}'` + (e.ogni > 1 ? ` \u00b7 ogni ${e.ogni}'` : '') + (e.round > 1 ? ` \u00b7 ${e.round} round` : ''); })()}
+                                            {(() => { const e = datiEmom(blk); return scrittaEmom(blk) + (e.ogniSec === 60 && e.round > 1 ? ` \u00b7 ${e.round} round` : '') + (e.ogniSec !== 60 ? ` \u00b7 ${tempoEmom(e.totSec)}` : ''); })()}
  
                                           </span>
  
@@ -17848,7 +17894,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               {(() => {
  
-                                                const sec = tempoDaValore(it.value);
+                                                const sec = blk.type === 'emom' ? 0 : tempoDaValore(it.value);
  
                                                 if (!sec) return null;
  
@@ -17932,13 +17978,13 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               <button
  
-                                                onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogni * 60, round: e.round * e.esercizi }); }}
+                                                onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogniSec, round: e.round * e.esercizi }); }}
  
                                                 style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
  
                                               >
  
-                                                <Icona nome="timer" size={14} /> {`AVVIA EMOM ${e.minuti}'`}
+                                                <Icona nome="timer" size={14} /> {`AVVIA ${scrittaEmom(blk)}`}
  
                                               </button>
  
@@ -19564,7 +19610,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     : v === 'none' || (v === 'selected' && prev === 'all')
  
-                      ? [] 
+                      ? []
+ 
                       : (editingProgram.assignedAthleteIds || []);
  
                   setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
@@ -20241,11 +20288,47 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                           <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
-                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni (minuti)</label>
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni</label>
  
-                                            <input type="text" inputMode="numeric" placeholder="1" value={block.emomOgni || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                            <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`Durata: ${datiEmom(block).minuti}' (round x esercizi x ogni)`}</span>
+                                                <input
+ 
+                                                  type="text"
+ 
+                                                  inputMode="numeric"
+ 
+                                                  placeholder="1"
+ 
+                                                  value={block.emomOgni ?? ''}
+ 
+                                                  onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                  style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                />
+ 
+                                              <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
+ 
+                                                <input
+ 
+                                                  type="text"
+ 
+                                                  inputMode="numeric"
+ 
+                                                  placeholder="00"
+ 
+                                                  value={block.emomOgniSec ?? ''}
+ 
+                                                  onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'emomOgniSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                  style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                />
+ 
+                                            </div>
+ 
+                                            <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`min : sec \u00b7 ${scrittaEmom(block)} \u00b7 ${tempoEmom(datiEmom(block).totSec)}`}</span>
  
                                           </div>
  
@@ -20380,6 +20463,16 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                               />
  
                                               <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
+ 
+                                              {comeSuperserie(block.type) && (
+ 
+                                              <button type="button" title="Clona l'esercizio" onClick={() => duplicaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
+ 
+                                                <Icona nome="duplica" size={14} />
+ 
+                                              </button>
+ 
+                                              )}
  
                                               <button type="button" onClick={() => spostaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -21807,11 +21900,47 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
-                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni (minuti)</label>
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni</label>
  
-                                                <input type="text" inputMode="numeric" placeholder="1" value={block.emomOgni || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                                <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`Durata: ${datiEmom(block).minuti}' (round x esercizi x ogni)`}</span>
+                                                    <input
+ 
+                                                      type="text"
+ 
+                                                      inputMode="numeric"
+ 
+                                                      placeholder="1"
+ 
+                                                      value={block.emomOgni ?? ''}
+ 
+                                                      onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                      style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                    />
+ 
+                                                  <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
+ 
+                                                    <input
+ 
+                                                      type="text"
+ 
+                                                      inputMode="numeric"
+ 
+                                                      placeholder="00"
+ 
+                                                      value={block.emomOgniSec ?? ''}
+ 
+                                                      onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'emomOgniSec', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
+ 
+                                                      style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '9px 4px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }}
+ 
+                                                    />
+ 
+                                                </div>
+ 
+                                                <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`min : sec \u00b7 ${scrittaEmom(block)} \u00b7 ${tempoEmom(datiEmom(block).totSec)}`}</span>
  
                                               </div>
  
@@ -21946,6 +22075,16 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                                   />
  
                                                   <span style={{ display: 'flex', gap: '7px', alignItems: 'center', flexShrink: 0 }}>
+ 
+                                                  {comeSuperserie(block.type) && (
+ 
+                                                  <button type="button" title="Clona l'esercizio" onClick={() => duplicaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i)} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
+ 
+                                                    <Icona nome="duplica" size={14} />
+ 
+                                                  </button>
+ 
+                                                  )}
  
                                                   <button type="button" onClick={() => spostaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'su')} style={{ background: 'var(--bg-f1f5f9)', border: 'none', borderRadius: '999px', padding: '9px 10px', color: 'var(--fg-475569)', cursor: 'pointer', flexShrink: 0 }}>
  
@@ -24237,7 +24376,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       <span style={{ display: 'inline-block', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
-                                                        {(() => { const e = datiEmom(blk); return `EMOM ${e.minuti}'` + (e.ogni > 1 ? ` \u00b7 ogni ${e.ogni}'` : '') + (e.round > 1 ? ` \u00b7 ${e.round} round` : ''); })()}
+                                                        {(() => { const e = datiEmom(blk); return scrittaEmom(blk) + (e.ogniSec === 60 && e.round > 1 ? ` \u00b7 ${e.round} round` : '') + (e.ogniSec !== 60 ? ` \u00b7 ${tempoEmom(e.totSec)}` : ''); })()}
  
                                                       </span>
  
@@ -24329,7 +24468,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           {(() => {
  
-                                                            const sec = tempoDaValore(it.value);
+                                                            const sec = blk.type === 'emom' ? 0 : tempoDaValore(it.value);
  
                                                             if (!sec) return null;
  
@@ -24413,13 +24552,13 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           <button
  
-                                                            onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogni * 60, round: e.round * e.esercizi }); }}
+                                                            onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogniSec, round: e.round * e.esercizi }); }}
  
                                                             style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
  
                                                           >
  
-                                                            <Icona nome="timer" size={14} /> {`AVVIA EMOM ${e.minuti}'`}
+                                                            <Icona nome="timer" size={14} /> {`AVVIA ${scrittaEmom(blk)}`}
  
                                                           </button>
  
@@ -25318,10 +25457,6 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const righe = righeSerie(blk);
  
-  // Recuperi diversi per serie: il pulsante del timer passa da un set al successivo
- 
-  const [setTimer, setSetTimer] = useState(0);
- 
   const salva = (nuove: RigaSerie[]) => onCambia && onCambia(campiDaRighe(nuove));
  
   const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => salva(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
@@ -25348,7 +25483,11 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   if (modifica) {
  
-    const colonne = '30px minmax(0, 0.8fr) minmax(0, 1.3fr) minmax(0, 1fr) 26px';
+    // larghezze in proporzione al testo più lungo di ogni colonna, così "8 dx + 8 sx" si legge tutto
+ 
+    const pesoM = (k: 'reps' | 'load' | 'rest', base: number) => Math.min(16, Math.max(base, ...righe.map((r) => String(r[k] || '').length + 1)));
+ 
+    const colonne = `30px minmax(0, ${pesoM('reps', 4)}fr) minmax(0, ${pesoM('load', 6)}fr) minmax(0, ${pesoM('rest', 5)}fr) 26px`;
  
     const cella: React.CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box', textAlign: 'center', padding: '8px 4px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '14px', fontWeight: 'bold' };
  
@@ -25432,21 +25571,23 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const haRest = v.some((r) => r.rest);
  
+  const recDiversi = new Set(v.map((r) => r.rest)).size > 1;
+ 
   // Ogni colonna è larga in proporzione al testo più lungo, così "8 dx + 8 sx" non va a capo
  
   const peso = (k: 'reps' | 'load' | 'rest', base: number) => Math.min(16, Math.max(base, ...v.map((r) => String(r[k] || '').length)));
  
-  const colonne = ['30px', haReps ? `minmax(0, ${peso('reps', 4)}fr)` : '', haLoad ? `minmax(0, ${peso('load', 6)}fr)` : '', haRest ? `minmax(0, ${peso('rest', 5)}fr)` : ''].filter(Boolean).join(' ');
+  const colonne = ['30px', haReps ? `minmax(0, ${peso('reps', 4)}fr)` : '', haLoad ? `minmax(0, ${peso('load', 6)}fr)` : '', haRest ? `minmax(0, ${peso('rest', 5) + (onTimer && recDiversi ? 2 : 0)}fr)` : ''].filter(Boolean).join(' ');
  
   const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, lineHeight: 1.3, textAlign: 'center' };
  
-  const recDiversi = new Set(v.map((r) => r.rest)).size > 1;
- 
-  const iTimer = recDiversi ? Math.min(setTimer, v.length - 1) : -1;
- 
   // Un solo pulsante del timer sotto le serie (non su ogni riga)
  
-  const primoRec = (recDiversi ? v[Math.min(setTimer, v.length - 1)]?.rest : (v.find((r) => r.rest) || v[0])?.rest) || '';
+  const primoRec = (v.find((r) => r.rest) || v[0])?.rest || '';
+ 
+  // Recuperi diversi per serie: il recupero di ogni set diventa una pillola cliccabile (come "rec." nelle superserie)
+ 
+  const timerPerSet = !!onTimer && recDiversi && !speciale;
  
   const secRec = parseRestSeconds(primoRec);
  
@@ -25468,7 +25609,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
       {v.map((r, i) => (
  
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)', background: onTimer && i === iTimer ? 'var(--bg-ecfdf5)' : 'transparent', borderRadius: onTimer && i === iTimer ? '8px' : 0 }}>
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
           <NumeroSerie indice={i} tot={v.length} />
  
@@ -25476,13 +25617,35 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           {haLoad && <span style={testo}>{r.load || '–'}</span>}
  
-          {haRest && <span style={testo}>{r.rest || '–'}</span>}
+          {haRest && (timerPerSet && parseRestSeconds(r.rest) ? (
+ 
+            <span style={{ display: 'flex', justifyContent: 'center', minWidth: 0 }}>
+ 
+              <button
+ 
+                type="button"
+ 
+                onClick={() => onTimer(parseRestSeconds(r.rest))}
+ 
+                title="Avvia questo recupero"
+ 
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', maxWidth: '100%', boxSizing: 'border-box', minHeight: '26px', padding: '3px 9px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+ 
+              >
+ 
+                <Icona nome="timer" size={12} /> {r.rest}
+ 
+              </button>
+ 
+            </span>
+ 
+          ) : <span style={testo}>{r.rest || '–'}</span>)}
  
         </div>
  
       ))}
  
-      {onTimer && (
+      {onTimer && !timerPerSet && (
  
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
  
@@ -25490,7 +25653,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           type="button"
  
-          onClick={() => { onTimer(speciale || secRec); if (recDiversi) setSetTimer((x) => (x + 1 >= v.length ? 0 : x + 1)); }}
+          onClick={() => onTimer(speciale || secRec)}
  
           style={{ boxSizing: 'border-box', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
  
@@ -25498,7 +25661,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           <Icona nome="timer" size={13} />
  
-          {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? (recDiversi ? `RECUPERO SET ${iTimer + 1} \u00b7 ${primoRec}` : `AVVIA RECUPERO \u00b7 ${primoRec}`) : 'IMPOSTA TIMER'}
+          {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? `AVVIA RECUPERO \u00b7 ${primoRec}` : 'IMPOSTA TIMER'}
  
         </button>
  
