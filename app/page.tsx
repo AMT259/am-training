@@ -1344,11 +1344,9 @@ function trovaMaxes(tuttiMaxes: any, nomeEsercizio: any): any {
  
 // Ripetizioni: "5", "10/8/6/4" (un peso per serie), "8-10" (fascia).
  
-// Carico: "80%", "80% 5RM", "70/75/80%", "RPE 8", "@8", "7/8 RPE", "RPE 7-8".
+// Carico: "80%", "80% 5RM", "70/75/80%".
  
-// Con l'RPE conta quante ripetizioni restano "in riserva": 4 ripetizioni a RPE 8 sono
- 
-// come 6 a cedimento, quindi il peso è quello del 6RM (un po' meno del 5RM).
+// Solo con le percentuali: con l'RPE non calcola niente.
  
 function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
  
@@ -1410,33 +1408,53 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
   }
  
-  // Caso 2: RPE scritto in qualsiasi modo; su un intervallo vale la via di mezzo ("7/8" = 7,5)
- 
-  const rpeMatch =
- 
-    txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)\s*[/\-\u2013]\s*(\d{1,2}(?:[.,]5)?)/i) ||
- 
-    txt.match(/(\d{1,2}(?:[.,]5)?)\s*[/\-\u2013]\s*(\d{1,2}(?:[.,]5)?)\s*RPE/i) ||
- 
-    txt.match(/(?:RPE|@)\s*(\d{1,2}(?:[.,]5)?)/i) ||
- 
-    txt.match(/(\d{1,2}(?:[.,]5)?)\s*RPE/i);
- 
-  if (rpeMatch) {
- 
-    const primo = parseFloat(rpeMatch[1].replace(',', '.'));
- 
-    const secondo = rpeMatch[2] ? parseFloat(rpeMatch[2].replace(',', '.')) : null;
- 
-    const rpe = Math.min(10, Math.max(5, secondo !== null ? (primo + secondo) / 2 : primo));
- 
-    const inRiserva = 10 - rpe;
- 
-    return scrivi(elencoReps.map((r) => caricoPerRipetizioni(exMaxes, r + inRiserva)));
- 
-  }
+  // Con l'RPE nessun peso calcolato: il carico lo sceglie l'atleta in base alle sensazioni
  
   return null;
+ 
+}
+ 
+// Testo del riquadro con le percentuali: "Il tuo 75% del 1RM" e su quale massimale è calcolato
+ 
+function dettaglioPercentuale(loadText: any, exMaxes: any, tuo: boolean): { titolo: string; base: string } | null {
+ 
+  const txt = String(loadText ?? '').trim();
+ 
+  if (!/%/.test(txt)) return null;
+ 
+  const pctRM = txt.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:di\s*|del\s*)?(\d+)\s*RM/i);
+ 
+  const baseReps = pctRM ? parseInt(pctRM[2], 10) : 1;
+ 
+  const percentuali = pctRM
+ 
+    ? [pctRM[1]]
+ 
+    : (txt.split('%')[0].match(/\d+(?:[.,]\d+)?/g) || []);
+ 
+  if (percentuali.length === 0) return null;
+ 
+  const base = caricoPerRipetizioni(exMaxes, baseReps);
+ 
+  if (!base) return null;
+ 
+  const reale = parseWeightValue(exMaxes?.[baseReps]);
+ 
+  const noti = massimaliNoti(exMaxes).sort((x, y) => (Math.abs(x.r - baseReps) - Math.abs(y.r - baseReps)) || (x.r - y.r));
+ 
+  const kg = (v: number) => String(Math.round(v * 10) / 10).replace('.', ',');
+ 
+  return {
+ 
+    titolo: `${tuo ? 'Il tuo' : 'Il suo'} ${percentuali.join('/')}% del ${baseReps}RM`,
+ 
+    base: reale
+ 
+      ? `${baseReps}RM: ${kg(reale)} kg`
+ 
+      : `${baseReps}RM stimato dal ${noti[0]?.r}RM: ${kg(roundLoad(base))} kg`,
+ 
+  };
  
 }
  
@@ -6142,6 +6160,8 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [cercaEsercizi, setCercaEsercizi] = useState('');
  
+  const [cercaMassimali, setCercaMassimali] = useState('');
+ 
   const [progressiAperti, setProgressiAperti] = useState<any>(null);
  
   const [storicoCarichi, setStoricoCarichi] = useState<any[]>([]);
@@ -10716,8 +10736,6 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!blk || blk.type !== 'forza' || !usati || usati.length === 0) return false;
  
-    if (computeLoadHint(blk.load, blk.reps, trovaMaxes(maxes, blk.name))) return false;
- 
     const numeri = (t: any) => (String(t || '').match(/\d+(?:[.,]\d+)?/g) || []).join('/');
  
     return numeri(sc) !== '' && numeri(mostraCarico(usati[0])).endsWith(numeri(sc));
@@ -14928,7 +14946,8 @@ fetchAllAthleteResultsForCoach();
  
             </p>
  
-          </div> 
+          </div>
+ 
         ) : (
  
         <>
@@ -18043,29 +18062,35 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       {(() => {
  
-                                        const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], blk.name));
+                                        const exM = trovaMaxes(coachAthleteMaxes[selectedCoachAthlete.id], blk.name);
  
-                                        if (hint) {
+                                        const hint = computeLoadHint(blk.load, blk.reps, exM);
  
-                                          return (
+                                        const det = hint ? dettaglioPercentuale(blk.load, exM, false) : null;
+ 
+                                        const riquadroPeso = hint ? (
  
                                             <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
  
-                                              <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-1e40af)' }}>PESO CONSIGLIATO IN BASE AI SUOI RM</span>
+                                              <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-1e40af)' }}>PESO DA USARE</span>
  
-                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{hint}</span>
+                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{det ? `${det.titolo} \u00e8 ${hint.replace('\u2248 ', '')}` : hint}</span>
+ 
+                                              {det && <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '1px' }}>{det.base}</span>}
  
                                             </div>
  
-                                          );
- 
-                                        }
+                                        ) : null;
  
                                         const usati = ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps);
  
-                                        if (!usati || usati.length === 0) return null;
+                                        if (!usati || usati.length === 0) return riquadroPeso;
  
                                         return (
+ 
+                                          <>
+ 
+                                          {riquadroPeso}
  
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
  
@@ -18080,6 +18105,8 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                             </span>
  
                                           </div>
+ 
+                                          </>
  
                                         );
  
@@ -22925,6 +22952,38 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               </div>
  
+              {athleteMaxSubTab !== 'nuoto' && (
+ 
+                <div style={{ position: 'relative', marginBottom: '12px' }}>
+ 
+                  <input
+ 
+                    type="text"
+ 
+                    placeholder="Cerca un esercizio..."
+ 
+                    value={cercaMassimali}
+ 
+                    onChange={(e: any) => setCercaMassimali(e.target.value)}
+ 
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '11px 34px 11px 12px', borderRadius: '10px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}
+ 
+                  />
+ 
+                  {cercaMassimali && (
+ 
+                    <button onClick={() => setCercaMassimali('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--fg-94a3b8)', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+ 
+                      <Icona nome="chiudi" size={15} />
+ 
+                    </button>
+ 
+                  )}
+ 
+                </div>
+ 
+              )}
+ 
               {athleteMaxSubTab === 'strength' && (
  
               <>
@@ -22933,7 +22992,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
  
-                {maxExerciseNames.map((exName) => (
+                {maxExerciseNames.filter((n) => contiene(n, cercaMassimali)).map((exName) => (
  
                   <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -22993,7 +23052,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
-                {metconPRNames.map((exName) => (
+                {metconPRNames.filter((n) => contiene(n, cercaMassimali)).map((exName) => (
  
                   <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -23049,7 +23108,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
-                {gymPRNames.map((exName) => (
+                {gymPRNames.filter((n) => contiene(n, cercaMassimali)).map((exName) => (
  
                   <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -23109,7 +23168,7 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
  
-                {BENCHMARK_WODS.map((b) => {
+                {BENCHMARK_WODS.filter((b) => contiene(b.name, cercaMassimali)).map((b) => {
  
                   const lvl = benchLevel[b.name] || (athleteMaxes[b.name]?.level as any) || 'rx';
  
@@ -24403,31 +24462,37 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     {(() => {
  
-                                                      const hint = computeLoadHint(blk.load, blk.reps, trovaMaxes(athleteMaxes, blk.name));
+                                                      const exM = trovaMaxes(athleteMaxes, blk.name);
  
-                                                      if (hint) {
+                                                      const hint = computeLoadHint(blk.load, blk.reps, exM);
  
-                                                        return (
+                                                      const det = hint ? dettaglioPercentuale(blk.load, exM, true) : null;
+ 
+                                                      const riquadroPeso = hint ? (
  
                                                           <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
  
-                                                            <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-1e40af)', marginBottom: '2px' }}>PESO CONSIGLIATO IN BASE AI TUOI RM</span>
+                                                            <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-1e40af)', marginBottom: '2px' }}>PESO DA USARE</span>
  
-                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{hint}</span>
+                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{det ? `${det.titolo} \u00e8 ${hint.replace('\u2248 ', '')}` : hint}</span>
+ 
+                                                            {det && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{det.base}</span>}
  
                                                           </div>
  
-                                                        );
+                                                      ) : null;
  
-                                                      }
- 
-                                                      // Nessun massimale per questo esercizio: mostro l'ultimo carico che ha usato
+                                                      // Carichi usati l'ultima volta: sempre, anche sotto il peso da usare
  
                                                       const usati = ultimoCaricoUsato(blk.name, blk.reps);
  
-                                                      if (!usati || usati.length === 0) return null;
+                                                      if (!usati || usati.length === 0) return riquadroPeso;
  
                                                       return (
+ 
+                                                        <>
+ 
+                                                        {riquadroPeso}
  
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
  
@@ -24442,6 +24507,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                           </span>
  
                                                         </div>
+ 
+                                                        </>
  
                                                       );
  
