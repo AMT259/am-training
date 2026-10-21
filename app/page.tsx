@@ -2398,13 +2398,35 @@ return (
  
 function haElenco(t: any) {
  
-  return t === 'warmup' || t === 'superserie';
+  return t === 'warmup' || t === 'superserie' || t === 'emom';
  
 }
  
 function nomeElenco(t: any) {
  
-  return t === 'superserie' ? 'Superserie' : 'Warm up';
+  return t === 'superserie' ? 'Superserie' : t === 'emom' ? 'EMOM' : 'Warm up';
+ 
+}
+ 
+// EMOM: funziona come la superserie (score per esercizio e per round) ma senza recuperi.
+ 
+// Ogni esercizio occupa un minuto (o ogni N minuti): durata = round x esercizi x ogni.
+ 
+function comeSuperserie(t: any) {
+ 
+  return t === 'superserie' || t === 'emom';
+ 
+}
+ 
+function datiEmom(blk: any) {
+ 
+  const ogni = Math.max(1, parseInt(String(blk?.emomOgni ?? ''), 10) || 1);
+ 
+  const round = Math.max(1, parseInt(String(blk?.rounds ?? ''), 10) || 1);
+ 
+  const esercizi = Math.max(1, (blk?.items || []).filter((it: any) => it && (it.name || it.value)).length);
+ 
+  return { ogni, round, esercizi, minuti: ogni * round * esercizi };
  
 }
  
@@ -5418,7 +5440,7 @@ function NumeroBlocco({ indice, blocchi, onSposta }: { indice: number; blocchi: 
  
     const t = b?.type || 'forza';
  
-    return t === 'warmup' ? 'Warm up' : t === 'superserie' ? 'Superserie' : t === 'wod' ? 'WOD' : t === 'test' ? 'Test' : 'Forza';
+    return t === 'warmup' ? 'Warm up' : t === 'superserie' ? 'Superserie' : t === 'emom' ? 'EMOM' : t === 'wod' ? 'WOD' : t === 'test' ? 'Test' : 'Forza';
  
   };
  
@@ -7965,7 +7987,8 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
  
     if (data) setExerciseLibrary(data);
-   };
+ 
+  };
  
   const fetchAthleteResults = async () => {
  
@@ -9015,7 +9038,8 @@ const [notificationError, setNotificationError] = useState('');
  
     const { data } = await supabase.from('athlete_anamnesis').select('*').eq('athlete_id', athleteId).maybeSingle();
  
-    if (data) { 
+    if (data) {
+ 
       setAnamnesiUpdatedAt(data.updated_at || data.created_at || null);
  
       setAnamnesiMancante(false);
@@ -10968,7 +10992,9 @@ const [notificationError, setNotificationError] = useState('');
  
       blocco.type = tipo;
  
-      if (haElenco(tipo) && (!blocco.name || !String(blocco.name).trim())) {
+      const nomeDiPrima = String(blocco.name || '').trim();
+ 
+      if (haElenco(tipo) && (!nomeDiPrima || (haElenco(precedente) && nomeDiPrima === nomeElenco(precedente)))) {
  
         blocco.name = nomeElenco(tipo);
  
@@ -10986,7 +11012,7 @@ const [notificationError, setNotificationError] = useState('');
  
       } else if (precedente && precedente !== 'forza') {
  
-        blocco.sets = 4;
+        blocco.sets = 3;
  
         blocco.reps = '10';
  
@@ -12188,8 +12214,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                     })}
  
-                  </div>
- 
+                  </div> 
                   {blocchi.length === 0 ? (
  
                     <p style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun esercizio in questo giorno.</p>
@@ -15463,8 +15488,7 @@ fetchAllAthleteResultsForCoach();
     };
  
   });
- 
-  const athleteProgramsOrdinati = ordinaProgrammi(athletePrograms);
+   const athleteProgramsOrdinati = ordinaProgrammi(athletePrograms);
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
  
@@ -15702,7 +15726,7 @@ fetchAllAthleteResultsForCoach();
  
       {scoreAperto && (
  
-        scoreAperto.blk?.type === 'superserie' ? (
+        comeSuperserie(scoreAperto.blk?.type) ? (
  
           <FinestraSuperserie
  
@@ -17728,7 +17752,17 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                       <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}>
  
-                                        {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
+                                        {blk.type === 'emom' && (
+ 
+                                          <span style={{ display: 'inline-block', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+ 
+                                            {(() => { const e = datiEmom(blk); return `EMOM ${e.minuti}'` + (e.ogni > 1 ? ` \u00b7 ogni ${e.ogni}'` : '') + (e.round > 1 ? ` \u00b7 ${e.round} round` : ''); })()}
+ 
+                                          </span>
+ 
+                                        )}
+ 
+                                        {blk.type !== 'emom' && (parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
                                           <span style={{ display: 'inline-block', background: '#c2410c', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
@@ -17751,6 +17785,8 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
                                             <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
+ 
+                                              {blk.type === 'emom' && (blk.items || []).length > 1 && (<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', height: '22px', padding: '0 6px', boxSizing: 'border-box', borderRadius: '999px', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', marginRight: '7px', verticalAlign: '1px' }}>{i + 1}</span>)}
  
                                               {it.name}
  
@@ -17852,7 +17888,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                   <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                  {String(it.rest || '').trim() ? (secRecEx ? (
+                                                  {blk.type !== 'emom' && String(it.rest || '').trim() ? (secRecEx ? (
  
                                                     <button
  
@@ -17887,6 +17923,28 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                         ))}
  
                                         {(() => {
+ 
+                                          if (blk.type === 'emom') {
+ 
+                                            const e = datiEmom(blk);
+ 
+                                            return (
+ 
+                                              <button
+ 
+                                                onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogni * 60, round: e.round * e.esercizi }); }}
+ 
+                                                style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+ 
+                                              >
+ 
+                                                <Icona nome="timer" size={14} /> {`AVVIA EMOM ${e.minuti}'`}
+ 
+                                              </button>
+ 
+                                            );
+ 
+                                          }
  
                                           const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
  
@@ -17946,7 +18004,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                         })()}
  
-                                        {blk.type !== 'superserie' && (
+                                        {!comeSuperserie(blk.type) && (
  
                                         <button
  
@@ -18226,15 +18284,15 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                 punteggio={String(dato?.score || '').trim()}
  
-note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
+note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
 rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
  
-items={blk.type === 'superserie' ? blk.items : undefined}
+items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               />
  
-{blk.type === 'superserie' && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
+{comeSuperserie(blk.type) && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
  
                                               </>
  
@@ -19918,13 +19976,15 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                         : block.type === 'superserie' ? '#c2410c'
  
+                                        : block.type === 'emom' ? '#0e7490'
+ 
                                           : block.type === 'wod' ? '#2563eb'
  
                                           : block.type === 'test' ? '#7c3aed'
  
                                           : 'var(--bg-10b981)',
  
-                                        color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
+                                        color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' || block.type === 'emom' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
  
                                       }}
  
@@ -19933,6 +19993,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                                       <option value="warmup">WARM UP</option>
  
                                       <option value="superserie">SUPERSERIE</option>
+ 
+                                      <option value="emom">EMOM</option>
  
                                       <option value="forza">FORZA</option>
  
@@ -20176,6 +20238,20 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                           </div>
  
+                                          {block.type === 'emom' ? (
+ 
+                                          <div style={{ flex: '1 1 120px', minWidth: 0 }}>
+ 
+                                            <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni (minuti)</label>
+ 
+                                            <input type="text" inputMode="numeric" placeholder="1" value={block.emomOgni || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+ 
+                                            <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`Durata: ${datiEmom(block).minuti}' (round x esercizi x ogni)`}</span>
+ 
+                                          </div>
+ 
+                                          ) : (
+ 
                                           <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
@@ -20222,9 +20298,11 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                           </div>
  
+                                          )}
+ 
                                         </div>
  
-                                        {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
+                                        {comeSuperserie(block.type) && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
  
                                         {(block.items || []).map((it: any, i: number) => (
  
@@ -20260,6 +20338,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                               />
  
+                                              {block.type !== 'emom' && (
+ 
                                               <input
  
                                                 type="text"
@@ -20276,9 +20356,11 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                               />
  
+                                              )}
+ 
                                             </div>
  
-                                            {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
+                                            {comeSuperserie(block.type) && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
@@ -21494,13 +21576,15 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                             : block.type === 'superserie' ? '#c2410c'
  
+                                        : block.type === 'emom' ? '#0e7490'
+ 
                                               : block.type === 'wod' ? '#2563eb'
  
                                               : block.type === 'test' ? '#7c3aed'
  
                                               : 'var(--bg-10b981)',
  
-                                            color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
+                                            color: block.type === 'warmup' ? '#101214' : block.type === 'superserie' || block.type === 'emom' ? '#ffffff' : block.type === 'wod' ? '#ffffff' : block.type === 'test' ? '#ffffff' : 'var(--onacc)',
  
                                           }}
  
@@ -21509,6 +21593,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
                                           <option value="warmup">WARM UP</option>
  
                                           <option value="superserie">SUPERSERIE</option>
+ 
+                                      <option value="emom">EMOM</option>
  
                                           <option value="forza">FORZA</option>
  
@@ -21718,6 +21804,20 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                               </div>
  
+                                              {block.type === 'emom' ? (
+ 
+                                              <div style={{ flex: '1 1 120px', minWidth: 0 }}>
+ 
+                                                <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Ogni (minuti)</label>
+ 
+                                                <input type="text" inputMode="numeric" placeholder="1" value={block.emomOgni || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'emomOgni', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+ 
+                                                <span style={{ display: 'block', fontSize: '9.5px', color: 'var(--fg-94a3b8)', marginTop: '2px' }}>{`Durata: ${datiEmom(block).minuti}' (round x esercizi x ogni)`}</span>
+ 
+                                              </div>
+ 
+                                              ) : (
+ 
                                               <div style={{ flex: '1 1 120px', minWidth: 0 }}>
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Rest tra i round</label>
@@ -21764,9 +21864,11 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                               </div>
  
+                                              )}
+ 
                                             </div>
  
-                                        {block.type === 'superserie' && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
+                                        {comeSuperserie(block.type) && <SelettoreModoSuperserie valore={block.scoreUnit} onChange={(v: string) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />}
  
                                             {(block.items || []).map((it: any, i: number) => (
  
@@ -21802,6 +21904,8 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                                   />
  
+                                                  {block.type !== 'emom' && (
+ 
                                                   <input
  
                                                     type="text"
@@ -21818,9 +21922,11 @@ items={blk.type === 'superserie' ? blk.items : undefined}
  
                                                   />
  
+                                                  )}
+ 
                                                 </div>
  
-                                            {block.type === 'superserie' && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
+                                            {comeSuperserie(block.type) && block.scoreUnit !== 'spunta' && <SelettoreScoreItem valore={it.scoreUnit} onChange={(v: string) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'scoreUnit', v)} />}
  
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
@@ -24128,7 +24234,17 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                   <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}>
  
-                                                    {(parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
+                                                    {blk.type === 'emom' && (
+ 
+                                                      <span style={{ display: 'inline-block', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
+ 
+                                                        {(() => { const e = datiEmom(blk); return `EMOM ${e.minuti}'` + (e.ogni > 1 ? ` \u00b7 ogni ${e.ogni}'` : '') + (e.round > 1 ? ` \u00b7 ${e.round} round` : ''); })()}
+ 
+                                                      </span>
+ 
+                                                    )}
+ 
+                                                    {blk.type !== 'emom' && (parseInt(String(blk.rounds || ''), 10) || 1) > 1 && (
  
                                                       <span style={{ display: 'inline-block', background: '#c2410c', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
  
@@ -24151,6 +24267,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
                                                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0, gridColumn: '1 / -1' }}>
+ 
+                                                          {blk.type === 'emom' && (blk.items || []).length > 1 && (<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', height: '22px', padding: '0 6px', boxSizing: 'border-box', borderRadius: '999px', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', marginRight: '7px', verticalAlign: '1px' }}>{i + 1}</span>)}
  
                                                           {it.name}
  
@@ -24252,7 +24370,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                               <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                              {String(it.rest || '').trim() ? (secRecEx ? (
+                                                              {blk.type !== 'emom' && String(it.rest || '').trim() ? (secRecEx ? (
  
                                                                 <button
  
@@ -24287,6 +24405,28 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                     ))}
  
                                                     {(() => {
+ 
+                                                      if (blk.type === 'emom') {
+ 
+                                                        const e = datiEmom(blk);
+ 
+                                                        return (
+ 
+                                                          <button
+ 
+                                                            onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogni * 60, round: e.round * e.esercizi }); }}
+ 
+                                                            style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+ 
+                                                          >
+ 
+                                                            <Icona nome="timer" size={14} /> {`AVVIA EMOM ${e.minuti}'`}
+ 
+                                                          </button>
+ 
+                                                        );
+ 
+                                                      }
  
                                                       const mm = parseInt(String(blk.warmRestMin ?? ''), 10) || 0;
  
@@ -24346,7 +24486,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                     })()}
  
-                                                    {blk.type !== 'superserie' && (
+                                                    {!comeSuperserie(blk.type) && (
  
                                                     <button
  
@@ -24632,17 +24772,17 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           punteggio={String(dato?.score || '').trim()}
  
-note={blk.type === 'superserie' ? '' : String(dato?.notes || '').trim()}
+note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
 rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
  
-items={blk.type === 'superserie' ? blk.items : undefined}
+items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                         />
  
                                                         )}
  
-{blk.type === 'superserie' && blk.scoreUnit !== 'spunta' && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} />)}
+{comeSuperserie(blk.type) && blk.scoreUnit !== 'spunta' && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} />)}
  
                                                           {blk.scoreUnit === 'spunta' && (<><SpuntaFatta fatto={!!dato?.done} onChange={(v: string) => handleResultChange(prog.id, resultKey, 'done', v)} /><CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v)} /></>)}
  
@@ -25129,7 +25269,7 @@ function NumeroSerie({ indice, tot, onSposta }: { indice: number; tot: number; o
  
       title={sposta ? `Set ${indice + 1} di ${tot}: tocca per spostarlo` : `Set ${indice + 1}`}
  
-      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minWidth: '26px', height: '26px', padding: sposta ? '0 5px 0 7px' : '0 7px', boxSizing: 'border-box', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0, cursor: sposta ? 'pointer' : 'default', justifySelf: 'start' }}
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minWidth: '26px', height: '26px', padding: sposta ? '0 5px 0 7px' : '0 7px', boxSizing: 'border-box', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0, cursor: sposta ? 'pointer' : 'default', justifySelf: 'center' }}
  
     >
  
@@ -25179,6 +25319,10 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const righe = righeSerie(blk);
  
+  // Recuperi diversi per serie: il pulsante del timer passa da un set al successivo
+ 
+  const [setTimer, setSetTimer] = useState(0);
+ 
   const salva = (nuove: RigaSerie[]) => onCambia && onCambia(campiDaRighe(nuove));
  
   const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => salva(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
@@ -25215,11 +25359,11 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
         <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', paddingBottom: '4px' }}>
  
-          <span />
+          <span style={{ ...intest, textAlign: 'center' }}>SET</span>
  
           <span style={{ ...intest, textAlign: 'center' }}>REP</span>
  
-          <span style={{ ...intest, textAlign: 'center' }}>RPE O %</span>
+          <span style={{ ...intest, textAlign: 'center' }}>CARICO</span>
  
           <span style={{ ...intest, textAlign: 'center' }}>RECUPERO</span>
  
@@ -25291,13 +25435,21 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   // Un solo pulsante del timer sotto le serie (non su ogni riga)
  
-  const primoRec = (v.find((r) => r.rest) || v[0])?.rest || '';
+  const primoRec = (recDiversi ? v[Math.min(setTimer, v.length - 1)]?.rest : (v.find((r) => r.rest) || v[0])?.rest) || '';
  
   const secRec = parseRestSeconds(primoRec);
  
-  const colonne = ['30px', haReps ? 'minmax(0, 0.8fr)' : '', haLoad ? 'minmax(0, 1.3fr)' : '', haRest ? 'minmax(0, 1fr)' : ''].filter(Boolean).join(' ');
+  // Ogni colonna è larga in proporzione al testo più lungo, così "8 dx + 8 sx" non va a capo
  
-  const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere', minWidth: 0, lineHeight: 1.3, textAlign: 'center' };
+  const peso = (k: 'reps' | 'load' | 'rest', base: number) => Math.min(16, Math.max(base, ...v.map((r) => String(r[k] || '').length)));
+ 
+  const colonne = ['30px', haReps ? `minmax(0, ${peso('reps', 4)}fr)` : '', haLoad ? `minmax(0, ${peso('load', 6)}fr)` : '', haRest ? `minmax(0, ${peso('rest', 5)}fr)` : ''].filter(Boolean).join(' ');
+ 
+  const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, lineHeight: 1.3, textAlign: 'center' };
+ 
+  const recDiversi = new Set(v.map((r) => r.rest)).size > 1;
+ 
+  const iTimer = recDiversi ? Math.min(setTimer, v.length - 1) : -1;
  
   return (
  
@@ -25305,11 +25457,11 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
       <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', paddingBottom: '4px' }}>
  
-        <span />
+        <span style={{ ...intest, textAlign: 'center' }}>SET</span>
  
         {haReps && <span style={{ ...intest, textAlign: 'center' }}>REP</span>}
  
-        {haLoad && <span style={{ ...intest, textAlign: 'center' }}>RPE O %</span>}
+        {haLoad && <span style={{ ...intest, textAlign: 'center' }}>CARICO</span>}
  
         {haRest && <span style={{ ...intest, textAlign: 'center' }}>RECUPERO</span>}
  
@@ -25317,7 +25469,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
       {v.map((r, i) => (
  
-        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)', background: onTimer && i === iTimer ? 'var(--bg-ecfdf5)' : 'transparent', borderRadius: onTimer && i === iTimer ? '8px' : 0 }}>
  
           <NumeroSerie indice={i} tot={v.length} />
  
@@ -25333,21 +25485,25 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
       {onTimer && (
  
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+ 
         <button
  
           type="button"
  
-          onClick={() => onTimer(speciale || secRec)}
+          onClick={() => { onTimer(speciale || secRec); if (recDiversi) setSetTimer((x) => (x + 1 >= v.length ? 0 : x + 1)); }}
  
-          style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+          style={{ boxSizing: 'border-box', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
  
         >
  
-          <Icona nome="timer" size={14} />
+          <Icona nome="timer" size={13} />
  
-          {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? `AVVIA RECUPERO · ${primoRec}` : 'IMPOSTA TIMER'}
+          {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? (recDiversi ? `RECUPERO SET ${iTimer + 1} \u00b7 ${primoRec}` : `AVVIA RECUPERO \u00b7 ${primoRec}`) : 'IMPOSTA TIMER'}
  
         </button>
+ 
+        </div>
  
       )}
  
@@ -25376,6 +25532,16 @@ function CampoSerie({ valore, onSalva, stile }: any) {
       value={t}
  
       onChange={(e: any) => setT(e.target.value)}
+ 
+      onFocus={(e: any) => {
+ 
+        // seleziona tutto il testo appena tocchi la casella (su iPhone serve farlo un attimo dopo)
+ 
+        const el = e.target as HTMLInputElement;
+ 
+        setTimeout(() => { try { el.setSelectionRange(0, el.value.length); } catch (err) { el.select(); } }, 0);
+ 
+      }}
  
       onBlur={() => {
  
