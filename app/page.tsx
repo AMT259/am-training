@@ -7308,8 +7308,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setNotificationError(error.message);
  
-    return;
- 
+    return; 
   }
  
   setNotifications(prev =>
@@ -9677,7 +9676,6 @@ const [notificationError, setNotificationError] = useState('');
           exercise: name,
  
           headline: type === 'time' ? secondsToTime(numeric) : type === 'rounds' ? `${numberToRounds(numeric)} round` : `${numeric} ripetizioni`,
- 
           subtitle: prima === null
  
             ? 'Primo risultato registrato su questo benchmark!'
@@ -12214,7 +12212,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                     })}
  
-                  </div> 
+                  </div>
+ 
                   {blocchi.length === 0 ? (
  
                     <p style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', margin: 0 }}>Nessun esercizio in questo giorno.</p>
@@ -15488,7 +15487,8 @@ fetchAllAthleteResultsForCoach();
     };
  
   });
-   const athleteProgramsOrdinati = ordinaProgrammi(athletePrograms);
+ 
+  const athleteProgramsOrdinati = ordinaProgrammi(athletePrograms);
  
   const filteredLibraryPrograms = programLibrary.filter((prog) => {
  
@@ -19564,8 +19564,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     : v === 'none' || (v === 'selected' && prev === 'all')
  
-                      ? []
- 
+                      ? [] 
                       : (editingProgram.assignedAthleteIds || []);
  
                   setEditingProgram({ ...editingProgram, visibility: v, assignedAthleteIds: ids });
@@ -25433,12 +25432,6 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const haRest = v.some((r) => r.rest);
  
-  // Un solo pulsante del timer sotto le serie (non su ogni riga)
- 
-  const primoRec = (recDiversi ? v[Math.min(setTimer, v.length - 1)]?.rest : (v.find((r) => r.rest) || v[0])?.rest) || '';
- 
-  const secRec = parseRestSeconds(primoRec);
- 
   // Ogni colonna è larga in proporzione al testo più lungo, così "8 dx + 8 sx" non va a capo
  
   const peso = (k: 'reps' | 'load' | 'rest', base: number) => Math.min(16, Math.max(base, ...v.map((r) => String(r[k] || '').length)));
@@ -25450,6 +25443,12 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
   const recDiversi = new Set(v.map((r) => r.rest)).size > 1;
  
   const iTimer = recDiversi ? Math.min(setTimer, v.length - 1) : -1;
+ 
+  // Un solo pulsante del timer sotto le serie (non su ogni riga)
+ 
+  const primoRec = (recDiversi ? v[Math.min(setTimer, v.length - 1)]?.rest : (v.find((r) => r.rest) || v[0])?.rest) || '';
+ 
+  const secRec = parseRestSeconds(primoRec);
  
   return (
  
