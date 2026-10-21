@@ -1348,6 +1348,26 @@ function trovaMaxes(tuttiMaxes: any, nomeEsercizio: any): any {
  
 // Solo con le percentuali: con l'RPE non calcola niente.
  
+// Percentuali scritte nel carico: "70/75/80%" oppure una per serie "70%/75%/80%"
+ 
+function elencoPercentuali(txt: string): string[] {
+ 
+  const t = String(txt ?? '');
+ 
+  if (/^\s*[\d.,\s/]+%/.test(t) && !/%\s*\/\s*\d/.test(t)) return t.split('%')[0].match(/\d+(?:[.,]\d+)?/g) || [];
+ 
+  const trovate: string[] = [];
+ 
+  const re = /(\d+(?:[.,]\d+)?)\s*%/g;
+ 
+  let m: RegExpExecArray | null;
+ 
+  while ((m = re.exec(t)) !== null) trovate.push(m[1]);
+ 
+  return trovate;
+ 
+}
+ 
 function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
  
   if (!loadText || massimaliNoti(exMaxes).length === 0) return null;
@@ -1400,7 +1420,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
       ? [parseFloat(pctRM[1].replace(',', '.'))]
  
-      : (txt.split('%')[0].match(/\d+(?:[.,]\d+)?/g) || []).map((x) => parseFloat(x.replace(',', '.'))).filter((x) => x > 0 && x <= 120);
+      : elencoPercentuali(txt).map((x) => parseFloat(x.replace(',', '.'))).filter((x) => x > 0 && x <= 120);
  
     if (percentuali.length === 0) return null;
  
@@ -1430,7 +1450,7 @@ function dettaglioPercentuale(loadText: any, exMaxes: any, tuo: boolean): { tito
  
     ? [pctRM[1]]
  
-    : (txt.split('%')[0].match(/\d+(?:[.,]\d+)?/g) || []);
+    : elencoPercentuali(txt);
  
   if (percentuali.length === 0) return null;
  
@@ -7945,8 +7965,7 @@ const [notificationError, setNotificationError] = useState('');
     const { data } = await supabase.from('exercises_library').select('*').order('name', { ascending: true });
  
     if (data) setExerciseLibrary(data);
- 
-  };
+   };
  
   const fetchAthleteResults = async () => {
  
@@ -8996,8 +9015,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const { data } = await supabase.from('athlete_anamnesis').select('*').eq('athlete_id', athleteId).maybeSingle();
  
-    if (data) {
- 
+    if (data) { 
       setAnamnesiUpdatedAt(data.updated_at || data.created_at || null);
  
       setAnamnesiMancante(false);
@@ -14262,7 +14280,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     updated[wIdx].days[dayIndex].blocks.push({
  
-      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 3, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
  
     });
  
@@ -14506,7 +14524,7 @@ setEditingProgram(updated);
  
     updated.weeks[wIdx].days[dayIndex].blocks.push({
  
-      id: Date.now(), name: '', type: 'forza', sets: 4, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
+      id: Date.now(), name: '', type: 'forza', sets: 3, reps: '10', load: '70%', rest: '90 sec', notes: '', wodNotes: '', videoUrl: ''
  
     });
  
@@ -25035,7 +25053,11 @@ function righeSerie(blk: any): RigaSerie[] {
  
   const loadP = parti(blk?.load);
  
-  const load = loadT === '/' ? Array(n).fill('') : loadP.length === n && n > 1 && numerico(loadP) ? loadP : Array(n).fill(loadT);
+  const load = Array.isArray(blk?.loadSerie) && blk.loadSerie.length === n
+ 
+    ? blk.loadSerie.map((x: any) => testo(x))
+ 
+    : loadT === '/' ? Array(n).fill('') : loadP.length === n && n > 1 && numerico(loadP) ? loadP : Array(n).fill(loadT);
  
   const rest = Array.isArray(blk?.restSerie) && blk.restSerie.length === n ? blk.restSerie.map((x: any) => testo(x)) : Array(n).fill(testo(blk?.rest));
  
@@ -25049,7 +25071,7 @@ function campiDaRighe(righe: RigaSerie[]) {
  
   const unisci = (k: 'reps' | 'load' | 'rest') => (uguali(k) ? righe[0][k] : righe.map((r) => r[k]).join('/'));
  
-  return { sets: String(righe.length), reps: unisci('reps'), load: unisci('load'), rest: righe[0].rest, restSerie: uguali('rest') ? null : righe.map((r) => r.rest) };
+  return { sets: String(righe.length), reps: unisci('reps'), load: unisci('load'), loadSerie: uguali('load') ? null : righe.map((r) => r.load), rest: righe[0].rest, restSerie: uguali('rest') ? null : righe.map((r) => r.rest) };
  
 }
  
@@ -25095,53 +25117,159 @@ function CellaSerie({ valore, onSalva, placeholder, etichetta, centro }: any) {
  
 }
  
-// Forza: quattro riquadri (set, ripetizioni, recupero, carico/RPE). Vista: compatti, il recupero avvia il timer.
+// Numero della serie: tocca per spostarla in un'altra posizione (come il numero dei blocchi)
  
-// Modifica: gli stessi riquadri con il campo da scrivere; ogni modifica riscrive solo i campi di quel blocco.
+function NumeroSerie({ indice, tot, onSposta }: { indice: number; tot: number; onSposta?: (a: number) => void }) {
+ 
+  const sposta = !!onSposta && tot > 1;
+ 
+  return (
+ 
+    <span
+ 
+      title={sposta ? `Set ${indice + 1} di ${tot}: tocca per spostarlo` : `Set ${indice + 1}`}
+ 
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '2px', minWidth: '26px', height: '26px', padding: sposta ? '0 5px 0 7px' : '0 7px', boxSizing: 'border-box', borderRadius: '999px', background: 'var(--bg-1f2937)', color: '#fff', fontSize: '11.5px', fontWeight: 'bold', flexShrink: 0, cursor: sposta ? 'pointer' : 'default', justifySelf: 'start' }}
+ 
+    >
+ 
+      {indice + 1}
+ 
+      {sposta && <Icona nome="giu" size={9} />}
+ 
+      {sposta && (
+ 
+        <select
+ 
+          value={indice}
+ 
+          onChange={(e) => { const a = parseInt(e.target.value, 10); if (!isNaN(a) && a !== indice) onSposta!(a); }}
+ 
+          aria-label="Sposta la serie in un'altra posizione"
+ 
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', fontSize: '16px' }}
+ 
+        >
+ 
+          {Array.from({ length: tot }, (_v, i) => (
+ 
+            <option key={i} value={i}>{`Set ${i + 1}${i === indice ? ' (qui)' : ''}`}</option>
+ 
+          ))}
+ 
+        </select>
+ 
+      )}
+ 
+    </span>
+ 
+  );
+ 
+}
+ 
+// Forza: una riga per serie con REP, RPE o %, RECUPERO e il numero del set a fianco.
+ 
+// Vista (atleta): righe in sola lettura, il recupero avvia il timer.
+ 
+// Modifica (solo coach): campi da scrivere, numero per spostare la serie, aggiungi / elimina serie.
+ 
+// I dati restano negli stessi campi di prima (set, rep, carico, recupero).
  
 function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
-  const testoCampo = (v: any) => String(v ?? '').trim();
+  const righe = righeSerie(blk);
  
-  const pulito = (v: any) => (testoCampo(v) === '/' ? '' : testoCampo(v));
+  const salva = (nuove: RigaSerie[]) => onCambia && onCambia(campiDaRighe(nuove));
  
-  const recupero = Array.isArray(blk?.restSerie) && blk.restSerie.length > 0 ? blk.restSerie.map((x: any) => testoCampo(x)).join(' / ') : testoCampo(blk?.rest);
+  const aggiorna = (i: number, k: 'reps' | 'load' | 'rest', v: string) => salva(righe.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
  
-  const griglia: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px', marginBottom: '8px' };
+  const sposta = (da: number, a: number) => {
+ 
+    const nuove = [...righe];
+ 
+    const [x] = nuove.splice(da, 1);
+ 
+    nuove.splice(a, 0, x);
+ 
+    salva(nuove);
+ 
+  };
+ 
+  // EMOM/AMRAP: lo leggo dal recupero, oppure dalle rep o dal carico se è scritto lì
+ 
+  const speciale = timerSpecialeDaTesto(blk?.rest) || timerSpecialeDaTesto(blk?.reps) || timerSpecialeDaTesto(blk?.load);
+ 
+  const avviaTimer = (r: RigaSerie) => onTimer && onTimer(speciale || parseRestSeconds(r.rest));
+ 
+  const intest: React.CSSProperties = { fontSize: '10px', color: 'var(--fg-64748b)', fontWeight: 'bold', letterSpacing: '0.3px', minWidth: 0 };
  
   if (modifica) {
  
+    const colonne = '30px minmax(0, 0.8fr) minmax(0, 1.3fr) minmax(0, 1fr) 26px';
+ 
+    const cella: React.CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box', textAlign: 'center', padding: '8px 4px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '14px', fontWeight: 'bold' };
+ 
     return (
  
-      <div style={{ marginBottom: '2px' }}>
+      <div style={{ marginBottom: '8px' }}>
  
-        <div style={griglia}>
+        <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', paddingBottom: '4px' }}>
  
-          <CellaSerie etichetta="SET" centro valore={blk?.sets} onSalva={(v: string) => onCambia({ sets: v })} />
+          <span />
  
-          <CellaSerie etichetta="REP" centro valore={blk?.reps} onSalva={(v: string) => onCambia({ reps: v })} />
+          <span style={{ ...intest, textAlign: 'center' }}>REP</span>
  
-          <CellaSerie etichetta="CARICO / RPE" centro valore={blk?.load} onSalva={(v: string) => onCambia({ load: v })} />
+          <span style={{ ...intest, textAlign: 'center' }}>RPE O %</span>
  
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '6px', minWidth: 0 }}>
+          <span style={{ ...intest, textAlign: 'center' }}>RECUPERO</span>
  
-            <div style={{ flex: 1, minWidth: 0 }}>
+          <span />
  
-              <CellaSerie etichetta="RECUPERO" centro valore={recupero} onSalva={(v: string) => onCambia({ rest: v, restSerie: null })} />
+        </div>
  
-            </div>
+        {righe.map((r, i) => (
  
-            {onTimer && (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '4px 0' }}>
  
-              <button type="button" title="Avvia il recupero" onClick={() => onTimer(timerSpecialeDaTesto(blk?.rest) || timerSpecialeDaTesto(blk?.reps) || timerSpecialeDaTesto(blk?.load) || parseRestSeconds(blk?.rest))} style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+            <NumeroSerie indice={i} tot={righe.length} onSposta={(a: number) => sposta(i, a)} />
  
-                <Icona nome="timer" size={16} />
+            <CampoSerie valore={r.reps} stile={cella} onSalva={(v: string) => aggiorna(i, 'reps', v)} />
+ 
+            <CampoSerie valore={r.load} stile={cella} onSalva={(v: string) => aggiorna(i, 'load', v)} />
+ 
+            <CampoSerie valore={r.rest} stile={cella} onSalva={(v: string) => aggiorna(i, 'rest', v)} />
+ 
+            {righe.length > 1 ? (
+ 
+              <button type="button" title="Elimina la serie" onClick={() => salva(righe.filter((_x, j) => j !== i))} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #f87171', borderRadius: '999px', width: '26px', height: '26px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+                <Icona nome="chiudi" size={12} />
  
               </button>
  
-            )}
+            ) : <span />}
  
           </div>
+ 
+        ))}
+ 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+ 
+          <button type="button" onClick={() => salva([...righe, { ...righe[righe.length - 1] }])} style={{ flex: 1, boxSizing: 'border-box', padding: '8px 12px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+ 
+            <Icona nome="piu" size={13} /> Aggiungi serie
+ 
+          </button>
+ 
+          {onTimer && (
+ 
+            <button type="button" title="Avvia il recupero" onClick={() => avviaTimer(righe[0])} style={{ flexShrink: 0, width: '36px', height: '36px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+ 
+              <Icona nome="timer" size={15} />
+ 
+            </button>
+ 
+          )}
  
         </div>
  
@@ -25151,71 +25279,117 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   }
  
-  const box: React.CSSProperties = { background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '6px 8px', textAlign: 'center', minWidth: 0 };
+  const vuoto = (x: string) => !x || x.trim() === '/';
  
-  const et: React.CSSProperties = { display: 'block', fontSize: '10px', color: 'var(--fg-64748b)' };
+  const v = righe.map((r) => ({ reps: vuoto(r.reps) ? '' : r.reps, load: vuoto(r.load) ? '' : r.load, rest: vuoto(r.rest) ? '' : r.rest }));
  
-  const val: React.CSSProperties = { overflowWrap: 'anywhere', fontWeight: 'bold', fontSize: '15px', color: 'var(--fg-000000)' };
+  const haReps = v.some((r) => r.reps);
  
-  const secRec = parseRestSeconds(blk?.rest);
+  const haLoad = v.some((r) => r.load);
  
-  // EMOM/AMRAP: lo leggo dal recupero, oppure dalle rep o dal carico se è scritto lì
+  const haRest = v.some((r) => r.rest);
  
-  const speciale = timerSpecialeDaTesto(blk?.rest) || timerSpecialeDaTesto(blk?.reps) || timerSpecialeDaTesto(blk?.load);
+  // Un solo pulsante del timer sotto le serie (non su ogni riga)
+ 
+  const primoRec = (v.find((r) => r.rest) || v[0])?.rest || '';
+ 
+  const secRec = parseRestSeconds(primoRec);
+ 
+  const colonne = ['30px', haReps ? 'minmax(0, 0.8fr)' : '', haLoad ? 'minmax(0, 1.3fr)' : '', haRest ? 'minmax(0, 1fr)' : ''].filter(Boolean).join(' ');
+ 
+  const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere', minWidth: 0, lineHeight: 1.3, textAlign: 'center' };
  
   return (
  
-    <div style={griglia}>
+    <div style={{ marginBottom: '8px' }}>
  
-      <div style={box}>
+      <div style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', paddingBottom: '4px' }}>
  
-        <span style={et}>SET</span>
+        <span />
  
-        <span style={val}>{pulito(blk?.sets) || '\u2013'}</span>
+        {haReps && <span style={{ ...intest, textAlign: 'center' }}>REP</span>}
  
-      </div>
+        {haLoad && <span style={{ ...intest, textAlign: 'center' }}>RPE O %</span>}
  
-      <div style={box}>
- 
-        <span style={et}>REP</span>
- 
-        <span style={val}>{pulito(blk?.reps) || '\u2013'}</span>
+        {haRest && <span style={{ ...intest, textAlign: 'center' }}>RECUPERO</span>}
  
       </div>
  
-      <div style={box}>
+      {v.map((r, i) => (
  
-        <span style={et}>CARICO / RPE</span>
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: colonne, columnGap: '6px', alignItems: 'center', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-        <span style={val}>{pulito(blk?.load) || '\u2013'}</span>
+          <NumeroSerie indice={i} tot={v.length} />
  
-      </div>
+          {haReps && <span style={testo}>{r.reps || '–'}</span>}
  
-      <div
+          {haLoad && <span style={testo}>{r.load || '–'}</span>}
  
-        onClick={onTimer ? () => onTimer(speciale || secRec) : undefined}
+          {haRest && <span style={testo}>{r.rest || '–'}</span>}
  
-        style={{ ...box, background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-6ee7b7)', cursor: onTimer ? 'pointer' : 'default' }}
+        </div>
  
-      >
+      ))}
  
-        <span style={et}>RECUPERO</span>
+      {onTimer && (
  
-        <span style={val}>{pulito(recupero) || '\u2013'}</span>
+        <button
  
-        {onTimer && (
+          type="button"
  
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', fontSize: '9px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>
+          onClick={() => onTimer(speciale || secRec)}
  
-            <Icona nome="timer" size={10} /> {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? 'AVVIA TIMER' : 'IMPOSTA TIMER'}
+          style={{ width: '100%', boxSizing: 'border-box', marginTop: '6px', padding: '9px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
  
-          </span>
+        >
  
-        )}
+          <Icona nome="timer" size={14} />
  
-      </div>
+          {speciale ? `AVVIA ${speciale.tipo === 'emom' ? 'EMOM' : 'AMRAP'}` : secRec ? `AVVIA RECUPERO · ${primoRec}` : 'IMPOSTA TIMER'}
+ 
+        </button>
+ 
+      )}
  
     </div>
+ 
+  );
+ 
+}
+ 
+// Campo di una serie: salva quando esci dal campo
+ 
+function CampoSerie({ valore, onSalva, stile }: any) {
+ 
+  const [t, setT] = useState(String(valore ?? ''));
+ 
+  useEffect(() => {
+ 
+    setT(String(valore ?? ''));
+ 
+  }, [valore]);
+ 
+  return (
+ 
+    <input
+ 
+      value={t}
+ 
+      onChange={(e: any) => setT(e.target.value)}
+ 
+      onBlur={() => {
+ 
+        if (t !== String(valore ?? '')) onSalva(t);
+ 
+      }}
+ 
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+ 
+      enterKeyHint="done"
+ 
+      style={stile}
+ 
+    />
  
   );
  
