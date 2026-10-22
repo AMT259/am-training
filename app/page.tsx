@@ -1730,7 +1730,9 @@ function leggiModalitaSuono(): string {
  
   try {
  
-    return window.localStorage.getItem('amt_suono') === 'musica' ? 'musica' : 'sempre';
+    // la scelta è stata tolta dal timer: i bip si sentono sempre
+ 
+    return 'sempre';
  
   } catch (e) {
  
@@ -2302,15 +2304,39 @@ function totaleRipetizioni(testo: string): { totale: number; n: number } | null 
  
 }
  
-function RiepilogoScore({ punteggio, note, rip, items }: { punteggio: string; note: string; rip?: boolean; items?: any[] }) {
+// Tempi su più round ("1:45 / 2:00 / 1:50"): totale sommato. Niente totale per kg e round+rep.
+ 
+function totaleTempi(testo: string): { totale: string; n: number } | null {
+ 
+  const pezzi = String(testo || '').split('/').map((x) => x.trim()).filter(Boolean);
+ 
+  if (pezzi.length < 2 || !pezzi.every((x) => /^\d+:\d{1,2}(:\d{1,2})?$/.test(x))) return null;
+ 
+  const sec = pezzi.reduce((a, x) => a + (timeToSeconds(x) || 0), 0);
+ 
+  const h = Math.floor(sec / 3600);
+ 
+  const resto = sec - h * 3600;
+ 
+  return { totale: h > 0 ? `${h}:${secondsToTime(resto).padStart(5, '0')}` : secondsToTime(sec), n: pezzi.length };
+ 
+}
+ 
+function RiepilogoScore({ punteggio, note, rip, tempo, items }: { punteggio: string; note: string; rip?: boolean; tempo?: boolean; items?: any[] }) {
  
   if (!punteggio && !note) return null;
  
-  // Score a ripetizioni su più serie: totale in grande, le singole serie sotto (come i tempi del timer)
+  // Score a ripetizioni (o a tempo) su più serie: totale in grande, le singole serie sotto (come i tempi del timer)
  
-  const totRip = rip ? totaleRipetizioni(punteggio) : null;
+  const totRipNum = rip ? totaleRipetizioni(punteggio) : null;
+ 
+  const totTempo = !totRipNum && tempo ? totaleTempi(punteggio) : null;
+ 
+  const totRip = totRipNum ? { testo: `Totale ${totRipNum.totale} rip`, n: totRipNum.n } : totTempo ? { testo: `Totale ${totTempo.totale}`, n: totTempo.n } : null;
  
   const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep');
+ 
+  const tempoDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'tempo');
  
   // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
  
@@ -2340,9 +2366,9 @@ return (
  
 <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 'bold', color: 'var(--fg-64748b)', overflowWrap: 'anywhere' }}>{m[1]}:</span>
  
-{(() => { const t = ripDi(m[1]) ? totaleRipetizioni(m[2]) : null; return t ? (<>
+{(() => { const tr = ripDi(m[1]) ? totaleRipetizioni(m[2]) : null; const tt = !tr && tempoDi(m[1]) ? totaleTempi(m[2]) : null; const t = tr ? `Totale ${tr.totale} rip` : tt ? `Totale ${tt.totale}` : ''; return t ? (<>
  
-<span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{`Totale ${t.totale} rip`}</span>
+<span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{t}</span>
  
 <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '1px', overflowWrap: 'anywhere' }}>{m[2]}</span>
  
@@ -2360,9 +2386,9 @@ return (
  
         <>
  
-          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{`Totale ${totRip.totale} rip`}</span>
+          <span style={{ display: 'block', fontSize: '19px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{totRip.testo}</span>
  
-          <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{`${punteggio} \u00b7 ${totRip.n} serie`}</span>
+          <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{`${punteggio} \u00b7 ${totRip.n} ${totTempo ? 'round' : 'serie'}`}</span>
  
         </>
  
@@ -4472,8 +4498,6 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
           <p style={{ color: 'var(--fg-a1a1aa)', fontSize: '11.5px', margin: '0 0 10px 0' }}>Ogni timer parte dopo dieci secondi di preparazione.</p>
  
-<SceltaSuono />
- 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
  
           {opzione('Tempo libero', 'Cronometro che sale, lo fermi tu', 'timer', () => setScelta({ tipo: 'libero' }))}
@@ -4490,7 +4514,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
           </div>
  
-          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
  
             <button
  
@@ -4498,7 +4522,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
               style={{
  
-                flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+                width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
  
                 padding: '11px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.18)',
  
@@ -4514,7 +4538,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             </button>
  
-            <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), flex: 1, minWidth: 0, boxSizing: 'border-box' }}>Chiudi</button>
+            <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), width: '100%', boxSizing: 'border-box' }}>Chiudi</button>
  
           </div>
  
@@ -19194,6 +19218,8 @@ note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
 rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
  
+tempo={blk.scoreUnit === 'tempo'}
+ 
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               />
@@ -25765,6 +25791,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
 note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
 rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
+ 
+tempo={blk.scoreUnit === 'tempo'}
  
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
