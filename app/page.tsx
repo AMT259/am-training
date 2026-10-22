@@ -1939,8 +1939,7 @@ function costruisciFasi(cfg: any): any[] {
   }
  
   if (cfg.tipo === 'amrap') {
- 
-    return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
+     return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
  
   }
  
@@ -3098,6 +3097,38 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
 // Le modifiche restano in bozza finché non premi Salva.
  
+// Messaggi motivazionali dopo il salvataggio di un massimale o di una gara,
+ 
+// per chi ha l'abbonamento scaduto o ha finito la prova. Si modificano dal Banner.
+ 
+type MessaggioMotivazionale = { title: string; text: string };
+ 
+const MOTIVAZIONI_PREDEFINITE: { scaduto: MessaggioMotivazionale[]; prova: MessaggioMotivazionale[]; bottoneScaduto: string; bottoneProva: string } = {
+ 
+  scaduto: [
+ 
+    { title: 'Questo è solo l\u2019inizio 💪', text: 'Hai appena dimostrato di cosa sei capace. Con un programma su misura il prossimo record arriva prima.' },
+ 
+    { title: 'Non fermarti adesso', text: 'I risultati arrivano con la continuità. Rinnova e torniamo a costruire insieme il tuo prossimo traguardo.' },
+ 
+    { title: 'Il prossimo PR ti aspetta', text: 'Ogni record è un punto di partenza. Con il coaching giusto lo superi più in fretta.' },
+ 
+  ],
+ 
+  prova: [
+ 
+    { title: 'Hai visto di cosa sei capace?', text: 'Questo è quello che succede in pochi giorni. Immagina con un percorso completo.' },
+ 
+    { title: 'Questo è solo l\u2019assaggio', text: 'Il bello viene adesso: un programma costruito su di te, settimana dopo settimana.' },
+ 
+  ],
+ 
+  bottoneScaduto: 'Rinnova l\u2019abbonamento',
+ 
+  bottoneProva: 'Inizia il tuo programma',
+ 
+};
+ 
 function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
   const CAMPI = ['sets', 'reps', 'load', 'loadSerie', 'rest', 'restSerie', 'notes'];
@@ -3211,7 +3242,8 @@ function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
       </div>
  
     </div>
-   );
+ 
+  );
  
 }
  
@@ -6815,6 +6847,34 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [linkLogoBozza, setLinkLogoBozza] = useState<string>('');
  
+  // Banner: ogni sezione si modifica solo dopo "Modifica", con Annulla e Salva
+ 
+  const [sezioneBanner, setSezioneBanner] = useState<string | null>(null);
+ 
+  const fotoSezioneBanner = React.useRef<any>(null);
+ 
+  // Messaggi motivazionali (dal Banner) e quello da mostrare adesso
+ 
+  const [motivazioni, setMotivazioni] = useState<any>(MOTIVAZIONI_PREDEFINITE);
+ 
+  const [motivazioneAperta, setMotivazioneAperta] = useState<{ title: string; text: string; button: string; link: string } | null>(null);
+ 
+  // Massimale aperto nella finestra di modifica (area atleta)
+ 
+  const [maxInModifica, setMaxInModifica] = useState<any>(null);
+ 
+  const bozzaMaxRef = React.useRef<any>({});
+ 
+  const apriMaxInModifica = (dati: any) => { bozzaMaxRef.current = { ...dati.bozza }; setMaxInModifica(dati); };
+ 
+  const aggiornaBozzaMax = (campi: any) => {
+ 
+    bozzaMaxRef.current = { ...bozzaMaxRef.current, ...campi };
+ 
+    setMaxInModifica((m: any) => (m ? { ...m, bozza: bozzaMaxRef.current } : m));
+ 
+  };
+ 
 const [notificationError, setNotificationError] = useState('');
  
   const [libraryView, setLibraryView] = useState<'programmi' | 'cestino'>('programmi');
@@ -7775,6 +7835,8 @@ const [notificationError, setNotificationError] = useState('');
  
         fetchPromemoriaProva();
  
+        fetchMotivazioni();
+ 
       } else {
  
         fetchAthleteResults();
@@ -7794,6 +7856,8 @@ const [notificationError, setNotificationError] = useState('');
         fetchTrialCta();
  
         fetchScadutoCta();
+ 
+        fetchMotivazioni();
  
       }
  
@@ -8921,6 +8985,102 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const fetchMotivazioni = async () => {
+ 
+    const { data } = await supabase.from('settings').select('value').eq('key', 'motivational_msgs').maybeSingle();
+ 
+    if (data?.value) setMotivazioni({ ...MOTIVAZIONI_PREDEFINITE, ...data.value });
+ 
+  };
+ 
+  const saveMotivazioni = async () => {
+ 
+    const pulisci = (l: any[]) => (l || []).filter((m: any) => String(m?.title || '').trim() || String(m?.text || '').trim());
+ 
+    const valore = { ...motivazioni, scaduto: pulisci(motivazioni.scaduto), prova: pulisci(motivazioni.prova) };
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'motivational_msgs', value: valore, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    if (!error) setMotivazioni(valore);
+ 
+    alert(error ? 'Errore: ' + error.message : 'Messaggi salvati!');
+ 
+  };
+ 
+  // Apre una sezione del Banner in modifica e ne tiene una copia per "Annulla"
+ 
+  const statoSezioneBanner = (k: string): any => (
+ 
+    k === 'banner' ? { bannerData }
+ 
+    : k === 'messaggio' ? { messaggioAttivo, messaggioIniziale }
+ 
+    : k === 'promemoria' ? { promemoriaProva }
+ 
+    : k === 'invitoProva' ? { trialCta }
+ 
+    : k === 'invitoScaduto' ? { scadutoCta }
+ 
+    : k === 'motivazioni' ? { motivazioni }
+ 
+    : { linkLogoBozza }
+ 
+  );
+ 
+  const ripristinaSezioneBanner = (k: string, f: any) => {
+ 
+    if (!f) return;
+ 
+    if (k === 'banner') { setBannerData(f.bannerData); setBannerImageFile(null); }
+ 
+    else if (k === 'messaggio') { setMessaggioAttivo(f.messaggioAttivo); setMessaggioIniziale(f.messaggioIniziale); }
+ 
+    else if (k === 'promemoria') setPromemoriaProva(f.promemoriaProva);
+ 
+    else if (k === 'invitoProva') setTrialCta(f.trialCta);
+ 
+    else if (k === 'invitoScaduto') setScadutoCta(f.scadutoCta);
+ 
+    else if (k === 'motivazioni') setMotivazioni(f.motivazioni);
+ 
+    else if (k === 'logo') setLinkLogoBozza(f.linkLogoBozza);
+ 
+  };
+ 
+  const apriSezioneBanner = (k: string) => {
+ 
+    if (sezioneBanner && sezioneBanner !== k) ripristinaSezioneBanner(sezioneBanner, fotoSezioneBanner.current);
+ 
+    fotoSezioneBanner.current = JSON.parse(JSON.stringify(statoSezioneBanner(k)));
+ 
+    setSezioneBanner(k);
+ 
+  };
+ 
+  const annullaSezioneBanner = () => {
+ 
+    if (sezioneBanner) ripristinaSezioneBanner(sezioneBanner, fotoSezioneBanner.current);
+ 
+    fotoSezioneBanner.current = null;
+ 
+    setSezioneBanner(null);
+ 
+  };
+ 
+  const chiudiSezioneBanner = () => {
+ 
+    fotoSezioneBanner.current = null;
+ 
+    setSezioneBanner(null);
+ 
+  };
+ 
   const saveTrialCta = async () => {
  
     const { error } = await supabase.from('settings').upsert(
@@ -9711,6 +9871,70 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Salva insieme tutti gli RM modificati di un esercizio (finestra "Modifica")
+ 
+  const salvaForzaEsercizio = async (exercise: string, nuovi: { [reps: string]: string }) => {
+ 
+    const aid = session.user.id;
+ 
+    const cur = getMaxesOf(aid);
+ 
+    const updatedAll = { ...cur, [exercise]: { ...(cur[exercise] || {}), ...nuovi } };
+ 
+    setMaxesOf(aid, updatedAll);
+ 
+    const { error } = await supabase.from('athlete_maxes').upsert(
+ 
+      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'athlete_id' }
+ 
+    );
+ 
+    if (error) { alert('Errore: ' + error.message); return false; }
+ 
+    let record: any = null;
+ 
+    for (const r of Object.keys(nuovi)) {
+ 
+      const reps = parseInt(r, 10);
+ 
+      const w = parseWeightValue(nuovi[r]);
+ 
+      if (!w) continue;
+ 
+      const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
+ 
+      await recordMaxHistory(aid, exercise, reps, w, 'manuale');
+ 
+      if (!record && (prima === null || w > prima)) {
+ 
+        record = {
+ 
+          exercise,
+ 
+          headline: `${w} kg × ${reps}`,
+ 
+          subtitle: prima !== null
+ 
+            ? `Superato il ${reps}RM precedente di ${Math.round((w - prima) * 10) / 10} kg!`
+ 
+            : `Primo ${reps}RM registrato su questo esercizio!`,
+ 
+        };
+ 
+      }
+ 
+    }
+ 
+    setSavedOf(aid, updatedAll);
+ 
+    if (record) setPrBadge(record);
+ 
+    return true;
+ 
+  };
+ 
   // ---- METCON E GINNASTICA ----
  
   const handleSpecialMaxTyping = (exercise: string, kind: 'tempo' | 'rep', raw: string, athleteId?: string) => {
@@ -9991,6 +10215,8 @@ const [notificationError, setNotificationError] = useState('');
  
                       <span style={{ flex: 1, minWidth: 0, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{`${d} m`}</span>
  
+                      {perCoach ? (
+ 
                       <TempoNuoto
  
                         value={mx?.[chiave]?.time || ''}
@@ -10000,6 +10226,22 @@ const [notificationError, setNotificationError] = useState('');
                         onCommit={(v: string) => salvaTempoNuoto(chiave, v, aid)}
  
                       />
+ 
+                      ) : (
+ 
+                        <>
+ 
+                          <span style={{ display: 'block', minWidth: '70px', padding: '6px 8px', boxSizing: 'border-box', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '6px' }}>{mx?.[chiave]?.time || '\u2013'}</span>
+ 
+                          <button type="button" onClick={() => apriMaxInModifica({ tipo: 'nuoto', nome: chiave, etichetta: `${g.stile} ${d} m \u00b7 vasca ${vascaNuoto} m`, bozza: { valore: String(mx?.[chiave]?.time || '') } })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
+ 
+                            <Icona nome="modifica" size={12} /> Modifica
+ 
+                          </button>
+ 
+                        </>
+ 
+                      )}
  
                     </div>
  
@@ -12337,7 +12579,8 @@ const [notificationError, setNotificationError] = useState('');
  
                         <button
  
-                          key={d.dayName} 
+                          key={d.dayName}
+ 
                           onClick={() => setProgrGiorno((p) => ({ ...p, [prog.id]: d.dayName }))}
  
                           style={{ ...pillola(sel, 'var(--fg-10b981)', 'piccolo') }}
@@ -13480,7 +13723,13 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     if (isCoach) fetchAllCompetitionsForCoach();
  
-    else fetchCompetitions(athleteId);
+    else {
+ 
+      fetchCompetitions(athleteId);
+ 
+      mostraMotivazione();
+ 
+    }
  
   };
  
@@ -15490,6 +15739,36 @@ fetchAllAthleteResultsForCoach();
  
   const provaScaduta = subscriptionStatus === 'prova' && !!trialChoice && !provaAttiva;
  
+  // Dopo un massimale o una gara salvati: a chi ha l'abbonamento scaduto o la prova finita
+ 
+  // un messaggio motivazionale (scelto a caso) con il pulsante per abbonarsi
+ 
+  function mostraMotivazione() {
+ 
+    if (role !== 'athlete') return;
+ 
+    const gruppo = subscriptionStatus === 'scaduto' ? 'scaduto' : provaScaduta ? 'prova' : null;
+ 
+    if (!gruppo) return;
+ 
+    const elenco = ((motivazioni?.[gruppo] || []) as any[]).filter((m: any) => String(m?.title || '').trim() || String(m?.text || '').trim());
+ 
+    const lista = elenco.length > 0 ? elenco : (MOTIVAZIONI_PREDEFINITE as any)[gruppo];
+ 
+    const m = lista[Math.floor(Math.random() * lista.length)];
+ 
+    const link = gruppo === 'scaduto' ? (scadutoCta.link_url || trialCta.link_url) : trialCta.link_url;
+ 
+    const button = gruppo === 'scaduto'
+ 
+      ? (motivazioni?.bottoneScaduto || MOTIVAZIONI_PREDEFINITE.bottoneScaduto)
+ 
+      : (motivazioni?.bottoneProva || MOTIVAZIONI_PREDEFINITE.bottoneProva);
+ 
+    setMotivazioneAperta({ title: m.title || '', text: m.text || '', button, link: link || '' });
+ 
+  }
+ 
   // Primo giorno non ancora completato, nei programmi visibili e non scaduti
  
   // Allenamento di oggi: riparte dall'ultimo giorno in cui l'atleta ha scritto qualcosa.
@@ -16067,6 +16346,232 @@ fetchAllAthleteResultsForCoach();
             <button onClick={() => setPrBadge(null)} style={{ padding: '12px 28px', borderRadius: '999px', background: 'var(--bg-ffffff)', color: '#d97706', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '15px' }}>
  
               Grande! 
+ 
+            </button>
+ 
+          </div>
+ 
+        </div>
+ 
+      )}
+ 
+      {maxInModifica && (() => {
+ 
+        const m = maxInModifica;
+ 
+        const b = m.bozza || {};
+ 
+        const campo: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold', fontSize: '15px' };
+ 
+        const chiudi = () => setMaxInModifica(null);
+ 
+        const salva = async () => {
+ 
+          const bz = bozzaMaxRef.current || {};
+ 
+          let cambiato = false;
+ 
+          if (m.tipo === 'strength') {
+ 
+            const nuovi: { [k: string]: string } = {};
+ 
+            REP_SCHEMES.forEach((r) => {
+ 
+              const v = String(bz[String(r)] ?? '').trim();
+ 
+              if (v !== String(athleteMaxes[m.nome]?.[r] || '').trim()) nuovi[String(r)] = v;
+ 
+            });
+ 
+            if (Object.keys(nuovi).length > 0) { cambiato = true; const ok = await salvaForzaEsercizio(m.nome, nuovi); if (!ok) return; }
+ 
+          } else if (m.tipo === 'metcon' || m.tipo === 'gym') {
+ 
+            const v = String(bz.valore ?? '').trim();
+ 
+            const prima = String((m.tipo === 'metcon' ? athleteMaxes[m.nome]?.time : athleteMaxes[m.nome]?.reps) || '').trim();
+ 
+            if (v !== prima) { cambiato = true; await handleSpecialMaxChange(m.nome, m.tipo === 'metcon' ? 'tempo' : 'rep', v); }
+ 
+          } else if (m.tipo === 'bench') {
+ 
+            const v = String(bz.valore ?? '').trim();
+ 
+            const lv = bz.level || 'rx';
+ 
+            if (v !== String(athleteMaxes[m.nome]?.result || '').trim() || lv !== (athleteMaxes[m.nome]?.level || 'rx')) {
+ 
+              cambiato = true;
+ 
+              setBenchLevel({ ...benchLevel, [m.nome]: lv });
+ 
+              await handleBenchSave(m.nome, v, lv, m.bench?.type);
+ 
+            }
+ 
+          } else if (m.tipo === 'nuoto') {
+ 
+            const v = String(bz.valore ?? '').trim();
+ 
+            if (v !== String(athleteMaxes[m.nome]?.time || '').trim()) { cambiato = true; await salvaTempoNuoto(m.nome, v); }
+ 
+          }
+ 
+          setMaxInModifica(null);
+ 
+          if (cambiato) mostraMotivazione();
+ 
+        };
+ 
+        return (
+ 
+          <div onClick={chiudi} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.78)', zIndex: 4500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }}>
+ 
+            <div onClick={(e: any) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '380px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+ 
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>MODIFICA MASSIMALE</span>
+ 
+                <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px', overflowWrap: 'anywhere' }}>{m.etichetta || m.nome}</span>
+ 
+              </div>
+ 
+              <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
+ 
+                {m.tipo === 'strength' && (
+ 
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+ 
+                    {REP_SCHEMES.map((r) => (
+ 
+                      <label key={r} style={{ display: 'block', minWidth: 0 }}>
+ 
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>{`${r} RM (kg)`}</span>
+ 
+                        <input type="text" inputMode="decimal" placeholder="kg" value={b[String(r)] ?? ''} onChange={(e) => aggiornaBozzaMax({ [String(r)]: e.target.value })} style={campo} />
+ 
+                      </label>
+ 
+                    ))}
+ 
+                  </div>
+ 
+                )}
+ 
+                {m.tipo === 'metcon' && (
+ 
+                  <label style={{ display: 'block' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>Tempo (mm:ss)</span>
+ 
+                    <input type="text" placeholder="mm:ss" value={b.valore ?? ''} onChange={(e) => aggiornaBozzaMax({ valore: e.target.value })} style={campo} />
+ 
+                  </label>
+ 
+                )}
+ 
+                {m.tipo === 'gym' && (
+ 
+                  <label style={{ display: 'block' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>Ripetizioni unbroken</span>
+ 
+                    <input type="number" min="0" inputMode="numeric" placeholder="rep" value={b.valore ?? ''} onChange={(e) => aggiornaBozzaMax({ valore: e.target.value })} style={campo} />
+ 
+                  </label>
+ 
+                )}
+ 
+                {m.tipo === 'bench' && (
+ 
+                  <div>
+ 
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
+ 
+                      {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
+ 
+                        <button key={k} type="button" onClick={() => aggiornaBozzaMax({ level: k })} style={{ flex: 1, padding: '8px', borderRadius: '999px', border: 'none', background: (b.level || 'rx') === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: (b.level || 'rx') === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{label}</button>
+ 
+                      ))}
+ 
+                    </div>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '5px' }}>{m.bench?.type === 'time' ? 'Tempo (mm:ss)' : m.bench?.type === 'rounds' ? 'Round + rep' : 'Ripetizioni'}</span>
+ 
+                    <ScoreInput mode={m.bench?.type} value={b.valore ?? ''} onChange={(v: string) => aggiornaBozzaMax({ valore: v })} onCommit={() => {}} />
+ 
+                  </div>
+ 
+                )}
+ 
+                {m.tipo === 'nuoto' && (
+ 
+                  <div>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '5px' }}>Tempo (min : sec , centesimi)</span>
+ 
+                    <TempoNuoto value={b.valore ?? ''} onChange={(v: string) => aggiornaBozzaMax({ valore: v })} onCommit={() => {}} />
+ 
+                  </div>
+ 
+                )}
+ 
+              </div>
+ 
+              <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                <button type="button" onClick={chiudi} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
+ 
+                <button type="button" onClick={salva} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Salva</button>
+ 
+              </div>
+ 
+            </div>
+ 
+          </div>
+ 
+        );
+ 
+      })()}
+ 
+      {motivazioneAperta && !prBadge && (
+ 
+        <div onClick={() => setMotivazioneAperta(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', zIndex: 4600 }}>
+ 
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '26px 22px', maxWidth: '360px', width: '100%', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.5)', border: '1px solid var(--bd-10b981)' }}>
+ 
+            <div style={{ marginBottom: '10px', color: 'var(--fg-10b981)' }}><Icona nome="razzo" size={34} /></div>
+ 
+            {motivazioneAperta.title && <h3 style={{ margin: '0 0 10px 0', fontSize: '19px', color: 'var(--fg-10b981)', lineHeight: 1.3 }}>{motivazioneAperta.title}</h3>}
+ 
+            {motivazioneAperta.text && <p style={{ fontSize: '14px', lineHeight: 1.5, margin: '0 0 20px 0', color: 'var(--fg-334155)', whiteSpace: 'pre-line' }}>{motivazioneAperta.text}</p>}
+ 
+            {motivazioneAperta.link && (
+ 
+              <a
+ 
+                href={motivazioneAperta.link}
+ 
+                target="_blank"
+ 
+                rel="noopener noreferrer"
+ 
+                onClick={() => setMotivazioneAperta(null)}
+ 
+                style={{ display: 'block', boxSizing: 'border-box', width: '100%', padding: '12px', borderRadius: '999px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', textDecoration: 'none', marginBottom: '8px' }}
+ 
+              >
+ 
+                {motivazioneAperta.button}
+ 
+              </a>
+ 
+            )}
+ 
+            <button onClick={() => setMotivazioneAperta(null)} style={{ width: '100%', padding: '11px', borderRadius: '999px', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', border: '1px solid var(--bd-cbd5e1)', cursor: 'pointer', fontSize: '13px' }}>
+ 
+              Più tardi
  
             </button>
  
@@ -17166,7 +17671,9 @@ fetchAllAthleteResultsForCoach();
  
               <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
  
-              <form onSubmit={saveBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <form onSubmit={async (e) => { await saveBanner(e); chiudiSezioneBanner(); }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+ 
+                <fieldset disabled={sezioneBanner !== 'banner'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
                 <div>
  
@@ -17196,11 +17703,27 @@ fetchAllAthleteResultsForCoach();
  
                 </div>
  
-                <button type="submit" disabled={bannerSaving} style={{ padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
+                </fieldset>
+ 
+                {sezioneBanner === 'banner' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="submit" disabled={bannerSaving} style={{ flex: 1, minWidth: 0, padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', marginTop: '10px' }}>
  
                   {bannerSaving ? 'Salvataggio in corso...' : 'Salva Banner'}
  
                 </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('banner')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
  
               </form>
  
@@ -17213,6 +17736,8 @@ fetchAllAthleteResultsForCoach();
                   Compare una volta al giorno all&apos;apertura dell&apos;app, sotto il tuo logo. Se lo lasci vuoto o lo spegni, non compare.
  
                 </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'messaggio'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
                 <button
  
@@ -17252,11 +17777,27 @@ fetchAllAthleteResultsForCoach();
  
                 />
  
-                <button type="button" onClick={salvaMessaggioIniziale} disabled={messaggioInizialeSalvando} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: messaggioInizialeSalvando ? 0.6 : 1 }}>
+                </fieldset>
+ 
+                {sezioneBanner === 'messaggio' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await salvaMessaggioIniziale(); chiudiSezioneBanner(); }} disabled={messaggioInizialeSalvando} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: messaggioInizialeSalvando ? 0.6 : 1 }}>
  
                   {messaggioInizialeSalvando ? 'Salvataggio...' : 'Salva messaggio'}
  
                 </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('messaggio')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
  
               </div>
  
@@ -17269,6 +17810,8 @@ fetchAllAthleteResultsForCoach();
                   Partono da soli a mezzanotte a chi è ancora in prova e si fermano appena lo metti attivo. Se lasci un testo vuoto, quel promemoria non parte.
  
                 </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'promemoria'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
                 <div style={{ marginBottom: '10px' }}>
  
@@ -17350,11 +17893,27 @@ fetchAllAthleteResultsForCoach();
  
                 </div>
  
-                <button type="button" onClick={salvaPromemoriaProva} disabled={promemoriaProvaSalvando} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: promemoriaProvaSalvando ? 0.6 : 1 }}>
+                </fieldset>
+ 
+                {sezioneBanner === 'promemoria' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await salvaPromemoriaProva(); chiudiSezioneBanner(); }} disabled={promemoriaProvaSalvando} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', opacity: promemoriaProvaSalvando ? 0.6 : 1 }}>
  
                   {promemoriaProvaSalvando ? 'Salvataggio...' : 'Salva promemoria'}
  
                 </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('promemoria')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
  
               </div>
  
@@ -17367,6 +17926,8 @@ fetchAllAthleteResultsForCoach();
                   Compare agli atleti che hanno finito la settimana di prova e non sono ancora abbonati.
  
                 </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'invitoProva'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
                 <div style={{ marginBottom: '10px' }}>
  
@@ -17408,11 +17969,27 @@ fetchAllAthleteResultsForCoach();
  
                 </div>
  
-                <button type="button" onClick={saveTrialCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                </fieldset>
+ 
+                {sezioneBanner === 'invitoProva' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await saveTrialCta(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito
  
                 </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('invitoProva')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
  
               </div>
  
@@ -17425,6 +18002,8 @@ fetchAllAthleteResultsForCoach();
                   Compare solo agli atleti con abbonamento &quot;Scaduto&quot;, al posto delle schede. Se lasci un campo vuoto si usa il testo predefinito.
  
                 </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'invitoScaduto'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
                 <div style={{ marginBottom: '10px' }}>
  
@@ -17458,11 +18037,115 @@ fetchAllAthleteResultsForCoach();
  
                 </div>
  
-                <button type="button" onClick={saveScadutoCta} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+                </fieldset>
+ 
+                {sezioneBanner === 'invitoScaduto' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await saveScadutoCta(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito scaduto
  
                 </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('invitoScaduto')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
+ 
+              </div>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="razzo" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Messaggi motivazionali</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  Compaiono a chi ha l&apos;abbonamento scaduto o ha finito la prova, ogni volta che salva un massimale o una gara (dopo l&apos;eventuale record). Ne viene scelto uno a caso. Il pulsante porta al link dell&apos;invito.
+ 
+                </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'motivazioni'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '6px 0 6px 0' }}>Abbonamento scaduto</span>
+ 
+                {(motivazioni.scaduto || []).map((mm: any, i: number) => (
+ 
+                  <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
+ 
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+ 
+                      <input type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+ 
+                      <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
+ 
+                    </div>
+ 
+                    <textarea rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+ 
+                  </div>
+ 
+                ))}
+ 
+                <button type="button" onClick={() => setMotivazioni({ ...motivazioni, scaduto: [...(motivazioni.scaduto || []), { title: '', text: '' }] })} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}>+ Aggiungi messaggio</button>
+ 
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Testo del pulsante (scaduto)</label>
+ 
+                <input type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneScaduto} value={motivazioni.bottoneScaduto || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneScaduto: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '14px' }} />
+ 
+                <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '6px 0 6px 0' }}>Prova terminata</span>
+ 
+                {(motivazioni.prova || []).map((mm: any, i: number) => (
+ 
+                  <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
+ 
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
+ 
+                      <input type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+ 
+                      <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
+ 
+                    </div>
+ 
+                    <textarea rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+ 
+                  </div>
+ 
+                ))}
+ 
+                <button type="button" onClick={() => setMotivazioni({ ...motivazioni, prova: [...(motivazioni.prova || []), { title: '', text: '' }] })} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', marginBottom: '10px' }}>+ Aggiungi messaggio</button>
+ 
+                <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Testo del pulsante (prova)</label>
+ 
+                <input type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneProva} value={motivazioni.bottoneProva || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneProva: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px' }} />
+ 
+                </fieldset>
+ 
+                {sezioneBanner === 'motivazioni' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await saveMotivazioni(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
+ 
+                  Salva messaggi
+ 
+                </button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('motivazioni')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
  
               </div>
  
@@ -17475,6 +18158,8 @@ fetchAllAthleteResultsForCoach();
                   La pagina che si apre quando un atleta tocca il logo AMT in alto. Vale per tutti, subito.
  
                 </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'logo'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
                 <input
  
@@ -17490,13 +18175,21 @@ fetchAllAthleteResultsForCoach();
  
                 />
  
+                </fieldset>
+ 
                 <div style={{ display: 'flex', gap: '8px' }}>
  
-                  <button type="button" onClick={salvaLinkLogo} style={{ flex: 1, minWidth: 0, padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  {sezioneBanner === 'logo' ? (<>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await salvaLinkLogo(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                     Salva link
  
                   </button>
+ 
+                  </>) : (<div style={{ flex: 1, minWidth: 0 }}><button type="button" onClick={() => apriSezioneBanner('logo')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button></div>)}
  
                   {linkLogo && (
  
@@ -17530,7 +18223,9 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
-                  <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
+ 
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
  
                     <button onClick={() => setCoachAthleteDetailTab('anagrafici')} style={{ ...pillola(coachAthleteDetailTab === 'anagrafici', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}>Dati anagrafici</button>
  
@@ -20127,8 +20822,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                 // conferma prima di eliminare il giorno
  
                                 const e = (day.blocks || []).length;
- 
-                                const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
+                                 const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
  
                                 if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
@@ -23422,7 +24116,17 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-                    <div style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', marginBottom: '10px' }}>{exName}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+ 
+                      <span style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '14px', minWidth: 0, overflowWrap: 'anywhere' }}>{exName}</span>
+ 
+                      <button type="button" onClick={() => apriMaxInModifica({ tipo: 'strength', nome: exName, bozza: Object.fromEntries(REP_SCHEMES.map((r) => [String(r), String(athleteMaxes[exName]?.[r] || '')])) })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
+ 
+                        <Icona nome="modifica" size={12} /> Modifica
+ 
+                      </button>
+ 
+                    </div>
  
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px', alignItems: 'stretch' }}>
  
@@ -23432,7 +24136,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px', whiteSpace: 'nowrap' }}>{reps} RM</label>
  
-                          <input type="text" placeholder="kg" value={athleteMaxes[exName]?.[reps] || ''} onChange={(e) => handleMaxTyping(exName, reps, e.target.value)} onBlur={(e) => handleMaxChange(exName, reps, e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} style={{ width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }} />
+                          <span style={{ display: 'block', padding: '6px 2px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: athleteMaxes[exName]?.[reps] ? 'var(--fg-000000)' : 'var(--fg-94a3b8)', overflowWrap: 'anywhere' }}>{athleteMaxes[exName]?.[reps] ? `${athleteMaxes[exName][reps]}` : '\u2013'}</span>
  
                         </div>
  
@@ -23486,19 +24190,13 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
-                      <input
+                      <span style={{ display: 'block', minWidth: '70px', padding: '6px 8px', boxSizing: 'border-box', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '6px' }}>{athleteMaxes[exName]?.time || '\u2013'}</span>
  
-                        type="text"
+                      <button type="button" onClick={() => apriMaxInModifica({ tipo: 'metcon', nome: exName, bozza: { valore: String(athleteMaxes[exName]?.time || '') } })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
  
-                        placeholder="mm:ss"
+                        <Icona nome="modifica" size={12} /> Modifica
  
-                        value={athleteMaxes[exName]?.time || ''}
- 
-                        onChange={(e) => handleSpecialMaxTyping(exName, 'tempo', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'tempo', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
- 
-                        style={{ width: '90px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
- 
-                      />
+                      </button>
  
                     </div>
  
@@ -23542,21 +24240,13 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <span style={{ flex: 1, fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '13px' }}>{exName}</span>
  
-                      <input
+                      <span style={{ display: 'block', minWidth: '70px', padding: '6px 8px', boxSizing: 'border-box', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '6px' }}>{athleteMaxes[exName]?.reps ? `${athleteMaxes[exName].reps} rep` : '\u2013'}</span>
  
-                        type="number"
+                      <button type="button" onClick={() => apriMaxInModifica({ tipo: 'gym', nome: exName, bozza: { valore: String(athleteMaxes[exName]?.reps || '') } })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
  
-                        min="0"
+                        <Icona nome="modifica" size={12} /> Modifica
  
-                        placeholder="rep"
- 
-                        value={athleteMaxes[exName]?.reps || ''}
- 
-                        onChange={(e) => handleSpecialMaxTyping(exName, 'rep', e.target.value)} onBlur={(e) => handleSpecialMaxChange(exName, 'rep', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
- 
-                        style={{ width: '90px', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}
- 
-                      />
+                      </button>
  
                     </div>
  
@@ -23630,17 +24320,13 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', flex: 1 }}>Il tuo risultato — {unita}</span>
  
-                        <ScoreInput
+                        <span style={{ display: 'block', minWidth: '70px', padding: '6px 8px', boxSizing: 'border-box', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '6px' }}>{saved ? `${saved}${athleteMaxes[b.name]?.level ? ' \u00b7 ' + String(athleteMaxes[b.name].level).toUpperCase() : ''}` : '\u2013'}</span>
  
-                          mode={b.type}
+                        <button type="button" onClick={() => apriMaxInModifica({ tipo: 'bench', nome: b.name, bench: b, bozza: { valore: String(saved || ''), level: lvl } })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
  
-                          value={saved}
+                          <Icona nome="modifica" size={12} /> Modifica
  
-                          onChange={(v: string) => handleBenchTyping(b.name, v, lvl)}
- 
-                          onCommit={(v: string) => handleBenchSave(b.name, v, lvl, b.type)}
- 
-                        />
+                        </button>
  
                       </div>
  
