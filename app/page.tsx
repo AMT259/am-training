@@ -1939,7 +1939,8 @@ function costruisciFasi(cfg: any): any[] {
   }
  
   if (cfg.tipo === 'amrap') {
-     return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
+ 
+    return [{ nome: 'AMRAP', secondi: cfg.durata, colore: '#a855f7', round: null }];
  
   }
  
@@ -16463,9 +16464,9 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ display: 'block' }}>
  
-                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>Tempo (mm:ss)</span>
+                    <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '5px' }}>Tempo (minuti : secondi)</span>
  
-                    <input type="text" placeholder="mm:ss" value={b.valore ?? ''} onChange={(e) => aggiornaBozzaMax({ valore: e.target.value })} style={campo} />
+                    <ScoreInput mode="time" value={b.valore ?? ''} onChange={(v: string) => aggiornaBozzaMax({ valore: v })} onCommit={() => {}} />
  
                   </label>
  
@@ -20822,7 +20823,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                 // conferma prima di eliminare il giorno
  
                                 const e = (day.blocks || []).length;
-                                 const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
+ 
+                                const dettaglio = e > 0 ? ` con ${e} ${e === 1 ? 'esercizio' : 'esercizi'}` : '';
  
                                 if (!confirm(`Eliminare "${day.dayName}"${dettaglio}?\n\nNon si puo' annullare.`)) return;
  
