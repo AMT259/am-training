@@ -9921,8 +9921,7 @@ const [notificationError, setNotificationError] = useState('');
     const startOfDay = new Date();
  
     startOfDay.setHours(0, 0, 0, 0);
- 
-    const { data: existing } = await supabase
+     const { data: existing } = await supabase
  
       .from('athlete_max_history')
  
@@ -13817,7 +13816,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return [...uguale, ...altri];
  
   };
-   // ---- COMPETITION DAY: calendario gare ----
+ 
+  // ---- COMPETITION DAY: calendario gare ----
  
   const fetchCompetitions = async (athleteId: string) => {
  
@@ -18757,7 +18757,7 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
                                 return (
  
-                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: bloccoAperto ? '14px' : '10px 14px', marginBottom: '12px' }}>
  
 <div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
  
@@ -18863,7 +18863,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                   <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
-                                                    {`(${String(it.load).trim()})`}
+                                                    {`(${caricoLeggibile(it.load)})`}
  
                                                     {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
@@ -18923,6 +18923,8 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
+if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{ height: '1px', background: linea }} />;
+ 
                                               return (
  
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -18937,7 +18939,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                       title="Avvia questo recupero"
  
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ffffff)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                     >
  
@@ -18975,7 +18977,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                 onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogniSec, round: e.round * e.esercizi }); }}
  
-                                                style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                                style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
  
                                               >
  
@@ -19322,8 +19324,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
 {(() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                      <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />INSERISCI SCORE / NOTE (Personal):</span>
  
                                       {(blk.type !== 'warmup' && !isMobility(blk.name)) ? (
  
@@ -22361,8 +22361,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
  
-                      {programWeeks.map((week, wIdx) => {
- 
+                      {programWeeks.map((week, wIdx) => { 
                         const isSelected = selectedWeekView === week.weekName;
  
                         return (
@@ -23854,7 +23853,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
  
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
-               </p>
+ 
+              </p>
  
               <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>
  
@@ -25384,9 +25384,9 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                         return (
  
-                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: '14px', marginBottom: '12px' }}>
+                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: isClosed ? '10px 14px' : '14px', marginBottom: '12px' }}>
  
-                                            <div style={{ marginBottom: '8px' }}>
+                                            <div style={{ marginBottom: isClosed ? 0 : '8px' }}>
  
                                               <div onClick={() => toggleBlockCollapse(blockKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
  
@@ -25490,7 +25490,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                               <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
-                                                                {`(${String(it.load).trim()})`}
+                                                                {`(${caricoLeggibile(it.load)})`}
  
                                                                 {suggerito ? <span style={{ color: 'var(--fg-1d4ed8)', fontWeight: 'bold' }}>{` \u00b7 ${suggerito}`}</span> : null}
  
@@ -25550,6 +25550,8 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           const secRecEx = String(it.rest || '').trim() ? tempoDaValore(it.rest) : 0;
  
+if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{ height: '1px', background: linea }} />;
+ 
                                                           return (
  
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -25564,7 +25566,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                                   title="Avvia questo recupero"
  
-                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ffffff)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                                                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
                                                                 >
  
@@ -25602,7 +25604,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                             onClick={(ev) => { ev.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'emom', durata: e.ogniSec, round: e.round * e.esercizi }); }}
  
-                                                            style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                                            style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '8px 12px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
  
                                                           >
  
@@ -25937,8 +25939,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                 {blk.type !== 'warmup' && (
  
                                                 <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                  <span style={{ fontSize: '11px', color: 'var(--fg-10b981)', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}><Icona nome="modifica" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />I TUOI RISULTATI / NOTE:</span>
  
                                                   {usaFinestra && blk.scoreUnit !== 'spunta' && (
  
@@ -26461,11 +26461,63 @@ function CellaSerie({ valore, onSalva, placeholder, etichetta, centro }: any) {
  
 }
  
+// Carico come lo vede l'atleta: un numero da solo fino a 10 è un RPE ("7" -> "RPE 7"),
+ 
+// "rpe 7" / "@7" / "7 rpe" diventano "RPE 7"; percentuali, kg e numeri sopra 10 restano come scritti.
+ 
+function caricoLeggibile(testo: any): string {
+ 
+  const t = String(testo ?? '').trim();
+ 
+  if (!t) return t;
+ 
+  const num = '\\d{1,2}(?:[.,]\\d+)?';
+ 
+  const soloNumeri = new RegExp(`^(${num})(\\s*[\\/\\-\\u2013]\\s*(${num}))?$`);
+ 
+  const m = t.match(soloNumeri);
+ 
+  if (m) {
+ 
+    const valori = [m[1], m[3]].filter(Boolean).map((x) => parseFloat(String(x).replace(',', '.')));
+ 
+    if (valori.every((v) => v >= 1 && v <= 10)) return `RPE ${t}`;
+ 
+    return t;
+ 
+  }
+ 
+  const at = t.match(new RegExp(`^@\\s*(${num}(?:\\s*[\\/\\-\\u2013]\\s*${num})?)$`));
+ 
+  if (at) return `RPE ${at[1]}`;
+ 
+  const dopo = t.match(new RegExp(`^(${num}(?:\\s*[\\/\\-\\u2013]\\s*${num})?)\\s*rpe$`, 'i'));
+ 
+  if (dopo) return `RPE ${dopo[1]}`;
+ 
+  return t.replace(/\brpe\b/gi, 'RPE');
+ 
+}
+ 
 // Numero della serie: tocca per spostarla in un'altra posizione (come il numero dei blocchi)
  
 function NumeroSerie({ indice, tot, onSposta }: { indice: number; tot: number; onSposta?: (a: number) => void }) {
  
   const sposta = !!onSposta && tot > 1;
+ 
+  if (!onSposta) {
+ 
+    return (
+ 
+      <span title={`Set ${indice + 1}`} style={{ justifySelf: 'center', textAlign: 'center', fontSize: '15px', fontWeight: 800, color: 'var(--fg-10b981)', lineHeight: 1 }}>
+ 
+        {indice + 1}
+ 
+      </span>
+ 
+    );
+ 
+  }
  
   return (
  
@@ -26643,7 +26695,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
   const peso = (k: 'reps' | 'load' | 'rest', base: number) => Math.min(16, Math.max(base, ...v.map((r) => String(r[k] || '').length)));
  
-  const colonne = ['30px', haReps ? `minmax(0, ${peso('reps', 4)}fr)` : '', haLoad ? `minmax(0, ${peso('load', 6)}fr)` : '', haRest ? `minmax(0, ${peso('rest', 5) + (onTimer && recDiversi ? 2 : 0)}fr)` : ''].filter(Boolean).join(' ');
+  const colonne = ['34px', haReps ? `minmax(0, ${peso('reps', 4)}fr)` : '', haLoad ? `minmax(0, ${peso('load', 6)}fr)` : '', haRest ? `minmax(0, ${peso('rest', 5) + (onTimer && recDiversi ? 2 : 0)}fr)` : ''].filter(Boolean).join(' ');
  
   const testo: React.CSSProperties = { fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, lineHeight: 1.3, textAlign: 'center' };
  
@@ -26681,7 +26733,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           {haReps && <span style={testo}>{r.reps || '–'}</span>}
  
-          {haLoad && <span style={testo}>{r.load || '–'}</span>}
+          {haLoad && <span style={testo}>{r.load ? caricoLeggibile(r.load) : '–'}</span>}
  
           {haRest && (timerPerSet && parseRestSeconds(r.rest) ? (
  
@@ -26695,7 +26747,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
                 title="Avvia questo recupero"
  
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', maxWidth: '100%', boxSizing: 'border-box', minHeight: '26px', padding: '3px 9px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', maxWidth: '100%', boxSizing: 'border-box', minHeight: '26px', padding: '3px 9px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}
  
               >
  
@@ -26721,7 +26773,7 @@ function QuattroRiquadri({ blk, modifica, onCambia, onTimer }: any) {
  
           onClick={() => onTimer(speciale || secRec)}
  
-          style={{ boxSizing: 'border-box', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+          style={{ boxSizing: 'border-box', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
  
         >
  
