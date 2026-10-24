@@ -7330,17 +7330,23 @@ const [notificationError, setNotificationError] = useState('');
  
     notificheGiaCreate.current.add(chiaveNotifica);
  
+    // Cerco anche quelle mandate dal coach: fino a oggi avevano l'ora in fondo al codice
+ 
+    // (es. program_assigned_81_1729...), quindi un confronto esatto non le trovava.
+ 
+    const prefisso = notificationType.split('_').slice(0, 2).join('_');
+ 
     const { data: existing, error: checkError } = await supabase
  
       .from('notifications')
  
-      .select('id')
+      .select('notification_type')
  
       .eq('user_id', session.user.id)
  
-      .eq('notification_type', notificationType)
+      .like('notification_type', `${prefisso}%`)
  
-      .limit(1);
+      .limit(1000);
  
     if (checkError) {
  
@@ -7352,7 +7358,13 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    if (existing && existing.length > 0) return;
+    if ((existing || []).some((n: any) => {
+ 
+      const t = String(n.notification_type || '');
+ 
+      return t === notificationType || t.startsWith(`${notificationType}_`);
+ 
+    })) return;
  
     const { error } = await supabase.from('notifications').insert([{
  
@@ -9591,7 +9603,8 @@ const [notificationError, setNotificationError] = useState('');
       setNeedsAnamnesis(false);
  
       setAnamnesiUpdatedAt(new Date().toISOString());
-       setAnamnesiMancante(false);
+ 
+      setAnamnesiMancante(false);
  
       fetch('/api/notify-coach', {
  
@@ -13804,8 +13817,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     return [...uguale, ...altri];
  
   };
- 
-  // ---- COMPETITION DAY: calendario gare ----
+   // ---- COMPETITION DAY: calendario gare ----
  
   const fetchCompetitions = async (athleteId: string) => {
  
@@ -19251,11 +19263,11 @@ type="button"
  
 onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
  
-style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
 >
  
-<Icona nome="timer" size={17} /> Timer
+<Icona nome="timer" size={12} /> Timer
  
 </button>
  
@@ -19265,7 +19277,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
+                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px', paddingTop: '9px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                                         {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
  
@@ -20407,7 +20419,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         </div>
  
-                        <div> 
+                        <div>
+ 
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
  
                           <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}>
@@ -23841,8 +23854,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
               <p style={{ margin: '0 0 18px 0', fontSize: '14px', lineHeight: 1.6, opacity: 0.95, whiteSpace: 'pre-line' }}>
  
                 {trialCta.text || 'Scopri le programmazioni personalizzate e riprendi da dove hai lasciato.'}
- 
-              </p>
+               </p>
  
               <p style={{ margin: '0 0 18px 0', fontSize: '13px', lineHeight: 1.55, opacity: 0.95, background: 'rgba(var(--onacc-rgb), 0.12)', borderRadius: '10px', padding: '12px 14px' }}>
  
@@ -25876,11 +25888,11 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
  
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                                     >
  
-                                                      <Icona nome="timer" size={17} /> Timer
+                                                      <Icona nome="timer" size={12} /> Timer
  
                                                     </button>
  
@@ -25890,7 +25902,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
  
-                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px' }}>
+                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px', paddingTop: '9px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
                                                     {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
  
