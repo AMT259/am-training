@@ -5463,7 +5463,8 @@ const VARS_BLU: { [k: string]: string } = {
 };
  
 // Temi dell'app: ogni tema dà un valore a ogni colore usato nelle schermate.
- // Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
+ 
+// Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
  
 const TEMI: { [k: string]: { nome: string; descrizione: string; anteprima: string[]; vars: { [k: string]: string } } } = {
  
@@ -8539,8 +8540,7 @@ const [notificationError, setNotificationError] = useState('');
  
       .eq('id', session.user.id)
  
-      .select('privacy_consent_at');
- 
+      .select('privacy_consent_at'); 
     setConsentSaving(false);
  
     if (metaError && (profError || !updated || updated.length === 0)) {
@@ -10761,8 +10761,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const top = record.reduce((x, y) => (y.kg > x.kg ? y : x));
  
-      setPrBadge({
- 
+      setPrBadge({ 
         exercise: match,
  
         headline: record.length > 1 ? record.map((n) => `${n.kg} kg \u00d7 ${n.reps}`).join(' \u00b7 ') : `${top.kg} kg \u00d7 ${top.reps}`,
@@ -12522,8 +12521,7 @@ const [notificationError, setNotificationError] = useState('');
       return (
  
         <div>
- 
-          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '7px' }}>
+           <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '7px' }}>
  
             {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
  
@@ -14329,7 +14327,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setShowChangePassword(false);
  
-    if (typeof window !== 'undefined' && window.location.hash) { 
+    if (typeof window !== 'undefined' && window.location.hash) {
+ 
       window.history.replaceState(null, '', window.location.pathname);
  
     }
@@ -14789,8 +14788,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   };
  
   const addGlobalExercise = async (e: React.FormEvent) => {
- 
-    e.preventDefault();
+     e.preventDefault();
  
     if (!newExName) return;
  
@@ -17104,8 +17102,7 @@ fetchAllAthleteResultsForCoach();
  
                 maxHeight: 'min(70vh, 480px)',
  
-                overflowY: 'auto',
- 
+                overflowY: 'auto', 
                 background: 'var(--bg-ffffff)',
  
                 color: 'var(--fg-000000)',
@@ -18697,7 +18694,8 @@ return (
                                   {day.dayName}
  
 {totaleG > 0 && (
- <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px', fontSize: '10px', fontWeight: 'bold', background: completoG ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)') : fattiG > 0 ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d') : (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'), color: attivoG || completoG ? 'var(--onacc)' : fattiG > 0 ? '#101214' : 'var(--fg-334155)' }}>
+ 
+<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px', fontSize: '10px', fontWeight: 'bold', background: completoG ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)') : fattiG > 0 ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d') : (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'), color: attivoG || completoG ? 'var(--onacc)' : fattiG > 0 ? '#101214' : 'var(--fg-334155)' }}>
  
 {completoG ? <Icona nome="spunta" size={11} /> : `${fattiG}/${totaleG}`}
  
@@ -23493,9 +23491,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       return (
  
-                        <div key={prog.id} style={{ background: prog.trialStyle ? 'var(--bg-d6e9fb)' : progScaduto ? 'var(--bg-fee2e2)' : prog.visibility === 'none' ? 'var(--bg-fdf3d3)' : 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : progScaduto ? '2px solid #dc2626' : progInScadenza ? '2px solid #f97316' : prog.visibility === 'none' ? '2px solid var(--bd-e0a80c)' : '1px solid var(--bd-d8dde3)', marginBottom: '16px' }}>
+                        <div key={prog.id} style={{ background: prog.trialStyle ? 'var(--bg-d6e9fb)' : progScaduto ? 'var(--bg-fee2e2)' : prog.visibility === 'none' ? 'var(--bg-fdf3d3)' : 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '16px 16px 12px 16px', borderRadius: '14px', border: prog.trialStyle ? '2px solid #3b82f6' : progScaduto ? '2px solid #dc2626' : progInScadenza ? '2px solid #f97316' : prog.visibility === 'none' ? '2px solid var(--bd-e0a80c)' : '1px solid var(--bd-d8dde3)', marginBottom: '16px' }}>
  
-                          <div style={{ marginBottom: '12px' }}>
+                          <div style={{ marginBottom: '4px' }}>
  
                             <div>
  
@@ -23549,7 +23547,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             </div>
  
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '14px' }}>
  
                               {showDeletedPrograms ? (
  
