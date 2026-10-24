@@ -11946,8 +11946,7 @@ const [notificationError, setNotificationError] = useState('');
  
     let migliorati = 0;
  
-    let esclusi = 0;
- 
+    let esclusi = 0; 
     Object.keys(raccolta).forEach((nome) => {
  
       const righeEx: any[] = [];
@@ -14331,7 +14330,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setCollapsedBlocks(prev => {
  
       const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
-       return { ...prev, [blockKey]: !currentValue };
+ 
+      return { ...prev, [blockKey]: !currentValue };
  
     });
  
@@ -17239,7 +17239,8 @@ fetchAllAthleteResultsForCoach();
  
     cursor: 'pointer',
  
-    fontSize: '15px', 
+    fontSize: '15px',
+ 
     padding: '2px',
  
     color: 'var(--fg-94a3b8)'
@@ -18718,11 +18719,17 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
 </div>
  
-{bloccoAperto && ((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
+{bloccoAperto && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || blk.videoUrl) && (
  
 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
  
-{(blk.type === 'wod' || blk.type === 'test') && (
+{blk.videoUrl && (
+ 
+<AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
+ 
+)}
+ 
+{(blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) && (
  
 <button
  
@@ -18737,12 +18744,6 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
 <Icona nome="timer" size={12} /> Timer
  
 </button>
- 
-)}
- 
-{blk.videoUrl && (
- 
-<AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
 )}
  
@@ -19199,6 +19200,28 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
                                     ) : (
  
                                       <p style={{ overflowWrap: 'anywhere', margin: '0 0 10px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
+ 
+                                    )}
+ 
+                                    {blk.type === 'wod' && !isMobility(blk.name) && (
+ 
+                                      <div style={{ display: 'flex', marginTop: '2px', marginBottom: '2px' }}>
+ 
+<button
+ 
+type="button"
+ 
+onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
+ 
+style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+ 
+>
+ 
+<Icona nome="timer" size={12} /> Timer
+ 
+</button>
+ 
+                                      </div>
  
                                     )}
  
@@ -25324,11 +25347,17 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                               </div>
  
-                                              {!isClosed && ((blk.type === 'wod' || blk.type === 'test') || blk.videoUrl) && (
+                                              {!isClosed && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || blk.videoUrl) && (
  
                                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
  
-                                                  {(blk.type === 'wod' || blk.type === 'test') && (
+                                                  {blk.videoUrl && (
+ 
+                                                    <AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
+ 
+                                                  )}
+ 
+                                                  {(blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) && (
  
                                                     <button
  
@@ -25343,12 +25372,6 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                       <Icona nome="timer" size={12} /> Timer
  
                                                     </button>
- 
-                                                  )}
- 
-                                                  {blk.videoUrl && (
- 
-                                                    <AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
                                                   )}
  
@@ -25803,6 +25826,28 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
                                                 ) : (
  
                                                   <p style={{ overflowWrap: 'anywhere', margin: '0 0 8px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
+ 
+                                                )}
+ 
+                                                {blk.type === 'wod' && !isMobility(blk.name) && (
+ 
+                                                  <div style={{ display: 'flex', marginTop: '2px', marginBottom: '2px' }}>
+ 
+                                                    <button
+ 
+                                                      type="button"
+ 
+                                                      onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
+ 
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+ 
+                                                    >
+ 
+                                                      <Icona nome="timer" size={12} /> Timer
+ 
+                                                    </button>
+ 
+                                                  </div>
  
                                                 )}
  
