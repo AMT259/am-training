@@ -3156,6 +3156,64 @@ const MOTIVAZIONI_PREDEFINITE: { scaduto: MessaggioMotivazionale[]; prova: Messa
  
 };
  
+// Anteprima del video: per i link YouTube l'immagine del video, per gli altri un riquadro scuro con ▶.
+ 
+function idYoutube(url: any): string | null {
+ 
+  const m = String(url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/|v\/))([A-Za-z0-9_-]{11})/);
+ 
+  return m ? m[1] : null;
+ 
+}
+ 
+function AnteprimaVideo({ url, larghezza, altezza }: { url: string; larghezza: number; altezza: number }) {
+ 
+  const id = idYoutube(url);
+ 
+  const [errore, setErrore] = useState(false);
+ 
+  return (
+ 
+    <a
+ 
+      href={url}
+ 
+      target="_blank"
+ 
+      rel="noopener noreferrer"
+ 
+      onClick={(e) => e.stopPropagation()}
+ 
+      title="Guarda il video"
+ 
+      style={{ position: 'relative', display: 'inline-block', width: `${larghezza}px`, height: `${altezza}px`, borderRadius: '8px', overflow: 'hidden', background: '#111827', flexShrink: 0, border: '1px solid var(--bd-e2e8f0)', verticalAlign: 'middle' }}
+ 
+    >
+ 
+      {id && !errore && (
+ 
+        // eslint-disable-next-line @next/next/no-img-element
+ 
+        <img src={`https://i.ytimg.com/vi/${id}/mqdefault.jpg`} alt="" loading="lazy" onError={() => setErrore(true)} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+ 
+      )}
+ 
+      <span style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+ 
+        <span style={{ width: altezza > 40 ? '26px' : '20px', height: altezza > 40 ? '26px' : '20px', borderRadius: '999px', background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+ 
+          <Icona nome="video" size={altezza > 40 ? 13 : 10} />
+ 
+        </span>
+ 
+      </span>
+ 
+    </a>
+ 
+  );
+ 
+}
+ 
 function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
   const CAMPI = ['sets', 'reps', 'load', 'loadSerie', 'rest', 'restSerie', 'notes'];
@@ -7045,6 +7103,30 @@ const [notificationError, setNotificationError] = useState('');
     }
  
     return '';
+ 
+  };
+ 
+  // Risultato e note dell'ultima settimana passata in cui l'esercizio è stato segnato
+ 
+  const settimanaScorsaDato = (ris: any, chiave: string) => {
+ 
+    const arch = ris?.__cicli || {};
+ 
+    const cicli = Object.keys(arch).map(Number).filter((n) => !isNaN(n)).sort((a, b) => b - a);
+ 
+    for (const c of cicli) {
+ 
+      const v = arch[c]?.[chiave];
+ 
+      const score = String(v?.score || '').trim();
+ 
+      const notes = String(v?.notes || '').trim();
+ 
+      if (score || notes) return { score, notes };
+ 
+    }
+ 
+    return { score: '', notes: '' };
  
   };
  
@@ -12422,7 +12504,7 @@ const [notificationError, setNotificationError] = useState('');
  
           const scaduto = gg !== null && gg > 0;
  
-          const risultati = coachAllResults[prog.id]?.[athleteId] || {};
+          const risultati = (perAtleta ? athleteResults[prog.id] : coachAllResults[prog.id]?.[athleteId]) || {};
  
           const settimane = normalizeProgramWeeks(prog);
  
@@ -12470,7 +12552,25 @@ const [notificationError, setNotificationError] = useState('');
  
               <button
  
-                onClick={() => { if (!perAtleta) setProgrApertoId(aperto ? null : prog.id); }}
+                onClick={() => {
+ 
+                  // L'atleta vede solo i miglioramenti del programma, non la scheda né i risultati
+ 
+                  if (perAtleta) {
+ 
+                    const pr = progressiCompleti(prog, risultati, storicoCarichi || []);
+ 
+                    if (pr) setProgressiAperti({ dati: pr, titolo: prog.title, perAtleta: true });
+ 
+                    else avvisa('Ancora nessun miglioramento da confrontare in questo programma');
+ 
+                    return;
+ 
+                  }
+ 
+                  setProgrApertoId(aperto ? null : prog.id);
+ 
+                }}
  
                 style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', padding: '12px', background: scaduto ? 'var(--bg-fef2f2)' : 'var(--bg-f8fafc)', border: 'none', cursor: 'pointer', textAlign: 'left' }}
  
@@ -12504,7 +12604,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   )}
  
-                  {!perAtleta && <Icona nome={aperto ? 'su' : 'giu'} size={15} style={{ color: 'var(--fg-64748b)' }} />}
+                  {<Icona nome={perAtleta ? 'grafico' : aperto ? 'su' : 'giu'} size={15} style={{ color: 'var(--fg-64748b)' }} />}
  
                 </span>
  
@@ -12516,7 +12616,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {(() => {
  
-                    const p = progressiCompleti(prog, risultati, storicoCarichiCoach[athleteId] || []);
+                    const p = progressiCompleti(prog, risultati, (perAtleta ? storicoCarichi : storicoCarichiCoach[athleteId]) || []);
  
                     if (!p) return null;
  
@@ -12524,7 +12624,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       <button
  
-                        onClick={() => setProgressiAperti({ dati: p, titolo: prog.title, perAtleta: false })}
+                        onClick={() => setProgressiAperti({ dati: p, titolo: prog.title, perAtleta: !!perAtleta })}
  
                         style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '9px', marginBottom: '11px', padding: '11px 13px', borderRadius: '10px', border: '1px solid var(--bd-6ee7b7)', background: 'var(--bg-ecfdf5)', cursor: 'pointer' }}
  
@@ -12700,9 +12800,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           </div>
  
-                          {/* Cosa gli avevi chiesto: serie, ripetizioni, carico, recupero */}
+                          {/* Cosa era previsto: serie, ripetizioni, carico, recupero */}
  
-                          {(blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
+                          {!perAtleta && (blk.type || 'forza') === 'forza' && (blk.sets || blk.reps || blk.load || blk.rest) && (
  
                             <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '4px' }}>
  
@@ -12724,7 +12824,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           {/* Il testo del WOD, per capire a cosa si riferisce il punteggio */}
  
-                          {blk.type === 'wod' && blk.wodNotes && (
+                          {!perAtleta && blk.type === 'wod' && blk.wodNotes && (
  
                             <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line', background: 'var(--bg-f1f5f9)', borderRadius: '6px', padding: '7px 9px' }}>
  
@@ -12736,7 +12836,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           {/* Gli esercizi del riscaldamento */}
  
-                          {haElenco(blk.type) && (blk.items || []).length > 0 && (
+                          {!perAtleta && haElenco(blk.type) && (blk.items || []).length > 0 && (
  
                             <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '4px', lineHeight: 1.5 }}>
  
@@ -12750,7 +12850,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                           {/* Le tue indicazioni sull'esercizio */}
  
-                          {blk.notes && (
+                          {!perAtleta && blk.notes && (
  
                             <p style={{ overflowWrap: 'anywhere', margin: '6px 0 0 0', fontSize: '11px', color: 'var(--fg-92400e)', lineHeight: 1.45, whiteSpace: 'pre-line', background: 'var(--bg-fffbeb)', borderRadius: '6px', padding: '7px 9px' }}>
  
@@ -14231,8 +14331,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     setCollapsedBlocks(prev => {
  
       const currentValue = prev[blockKey] === undefined ? true : prev[blockKey];
- 
-      return { ...prev, [blockKey]: !currentValue };
+       return { ...prev, [blockKey]: !currentValue };
  
     });
  
@@ -17140,8 +17239,7 @@ fetchAllAthleteResultsForCoach();
  
     cursor: 'pointer',
  
-    fontSize: '15px',
- 
+    fontSize: '15px', 
     padding: '2px',
  
     color: 'var(--fg-94a3b8)'
@@ -18644,11 +18742,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 {blk.videoUrl && (
  
-<a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
- 
-<Icona nome="video" size={12} /> Video
- 
-</a>
+<AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
 )}
  
@@ -18696,7 +18790,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                           <React.Fragment key={i}>
  
-<div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
                                             <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
  
@@ -18734,25 +18828,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                               {it.videoUrl && (
  
-                                                <a
- 
-                                                  href={it.videoUrl}
- 
-                                                  target="_blank"
- 
-                                                  rel="noopener noreferrer"
- 
-                                                  onClick={(e) => e.stopPropagation()}
- 
-                                                  title="Guarda il video"
- 
-                                                  style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
- 
-                                                >
- 
-                                                  <Icona nome="video" size={12} />
- 
-                                                </a>
+                                                <AnteprimaVideo url={it.videoUrl} larghezza={52} altezza={30} />
  
                                               )}
  
@@ -19122,13 +19198,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     ) : (
  
-                                      <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '10px' }}>
- 
-                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</span>
- 
-                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
- 
-                                      </div>
+                                      <p style={{ overflowWrap: 'anywhere', margin: '0 0 10px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
  
                                     )}
  
@@ -19176,7 +19246,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
-{(() => { const sc = settimanaScorsa(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); if (sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps))) return null; return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
+{(() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -24708,17 +24778,57 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 if (!oggi) return null;
  
+                // Sedute fatte nella settimana del programma in cui si trova l'allenamento di oggi
+ 
+                const risOggi = athleteResults[oggi.prog.id] || {};
+ 
+                const giorniSett = ((oggi.week?.days || []) as any[])
+ 
+                  .map((d: any, di: number) => ({ d, di }))
+ 
+                  .filter((x: any) => x.d && !x.d.hidden && (x.d.blocks || []).length > 0);
+ 
+                const totSett = giorniSett.length;
+ 
+                const fattiSett = giorniSett.filter((x: any) => giornoCompleto(risOggi, oggi.wi, x.di, x.d.blocks.length)).length;
+ 
+                const R = 17;
+ 
+                const C = 2 * Math.PI * R;
+ 
+                const quota = totSett > 0 ? fattiSett / totSett : 0;
+ 
                 return (
  
                   <button
  
                     onClick={vaiAllenamentoDiOggi}
  
-                    style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '13px 18px', marginBottom: '18px', borderRadius: '999px', border: 'none', cursor: 'pointer', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', boxShadow: '0 4px 14px rgba(var(--acc-rgb), 0.35)' }}
+                    style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '13px 18px', marginBottom: '18px', borderRadius: totSett > 1 ? '22px' : '999px', border: 'none', cursor: 'pointer', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', boxShadow: '0 4px 14px rgba(var(--acc-rgb), 0.35)' }}
  
                   >
  
-                    <Icona nome="play" size={20} />
+                    {totSett > 1 ? (
+ 
+                      <span style={{ position: 'relative', width: '42px', height: '42px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} aria-label={`${fattiSett} sedute fatte su ${totSett} questa settimana`}>
+ 
+                        <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}>
+ 
+                          <circle cx="21" cy="21" r={R} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
+ 
+                          <circle cx="21" cy="21" r={R} fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${C}`} strokeDashoffset={`${C * (1 - quota)}`} />
+ 
+                        </svg>
+ 
+                        <span style={{ position: 'relative', fontSize: '11px', fontWeight: 'bold', letterSpacing: '-0.2px' }}>{`${fattiSett}/${totSett}`}</span>
+ 
+                      </span>
+ 
+                    ) : (
+ 
+                      <Icona nome="play" size={20} />
+ 
+                    )}
  
                     <span style={{ flex: 1, minWidth: 0 }}>
  
@@ -24729,6 +24839,16 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                         {athletePrograms.length > 1 ? `${oggi.prog.title} · ` : ''}{oggi.week.weekName} · {oggi.day.dayName}
  
                       </span>
+ 
+                      {totSett > 1 && (
+ 
+                        <span style={{ display: 'block', fontSize: '11px', opacity: 0.8, marginTop: '1px' }}>
+ 
+                          {fattiSett === 0 ? 'Nessuna seduta ancora fatta questa settimana' : `${fattiSett} ${fattiSett === 1 ? 'seduta fatta' : 'sedute fatte'} su ${totSett} questa settimana`}
+ 
+                        </span>
+ 
+                      )}
  
                     </span>
  
@@ -25228,11 +25348,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                   {blk.videoUrl && (
  
-                                                    <a href={blk.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.35)' }}>
- 
-                                                      <Icona nome="video" size={12} /> Video
- 
-                                                    </a>
+                                                    <AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
                                                   )}
  
@@ -25280,7 +25396,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       <React.Fragment key={i}>
  
-                                                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 26px 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
                                                         <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0, gridColumn: '1 / -1' }}>
  
@@ -25318,25 +25434,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                           {it.videoUrl && (
  
-                                                            <a
- 
-                                                              href={it.videoUrl}
- 
-                                                              target="_blank"
- 
-                                                              rel="noopener noreferrer"
- 
-                                                              onClick={(e) => e.stopPropagation()}
- 
-                                                              title="Guarda il video"
- 
-                                                              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', borderRadius: '999px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
- 
-                                                            >
- 
-                                                              <Icona nome="video" size={12} />
- 
-                                                            </a>
+                                                            <AnteprimaVideo url={it.videoUrl} larghezza={52} altezza={30} />
  
                                                           )}
  
@@ -25704,13 +25802,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 ) : (
  
-                                                  <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', marginBottom: '8px' }}>
- 
-                                                    <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</span>
- 
-                                                    <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap' }}>{blk.wodNotes}</p>
- 
-                                                  </div>
+                                                  <p style={{ overflowWrap: 'anywhere', margin: '0 0 8px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
  
                                                 )}
  
@@ -25746,7 +25838,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 )}
  
-{(() => { const sc = settimanaScorsa(athleteResults[prog.id], resultKey); if (sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps))) return null; return sc ? (<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa: <strong>{sc}</strong></span></div>) : null; })()}
+{(() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                                 {blk.type !== 'warmup' && (
  
