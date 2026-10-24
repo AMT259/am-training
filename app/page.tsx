@@ -5397,7 +5397,8 @@ const VARS_SCURO: { [k: string]: string } = {
   '--fg-fef2f2': '#FEE2E2',
  
   '--onacc': '#101214',
-   '--onacc-rgb': '16,18,20',
+ 
+  '--onacc-rgb': '16,18,20',
  
 };
  
@@ -5462,8 +5463,7 @@ const VARS_BLU: { [k: string]: string } = {
 };
  
 // Temi dell'app: ogni tema dà un valore a ogni colore usato nelle schermate.
- 
-// Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
+ // Il tema scelto viene scritto come variabili CSS (vedi StileTema) e vale per tutta l'app.
  
 const TEMI: { [k: string]: { nome: string; descrizione: string; anteprima: string[]; vars: { [k: string]: string } } } = {
  
@@ -14329,8 +14329,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setShowChangePassword(false);
  
-    if (typeof window !== 'undefined' && window.location.hash) {
- 
+    if (typeof window !== 'undefined' && window.location.hash) { 
       window.history.replaceState(null, '', window.location.pathname);
  
     }
@@ -16498,7 +16497,8 @@ fetchAllAthleteResultsForCoach();
           </div>
  
         </div>
-       )}
+ 
+      )}
  
       {prBadge && (
  
@@ -18697,8 +18697,7 @@ return (
                                   {day.dayName}
  
 {totaleG > 0 && (
- 
-<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px', fontSize: '10px', fontWeight: 'bold', background: completoG ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)') : fattiG > 0 ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d') : (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'), color: attivoG || completoG ? 'var(--onacc)' : fattiG > 0 ? '#101214' : 'var(--fg-334155)' }}>
+ <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '19px', height: '19px', borderRadius: '999px', padding: '0 5px', fontSize: '10px', fontWeight: 'bold', background: completoG ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-10b981)') : fattiG > 0 ? (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : '#fcd34d') : (attivoG ? 'rgba(var(--onacc-rgb), 0.2)' : 'var(--bg-cbd5e1)'), color: attivoG || completoG ? 'var(--onacc)' : fattiG > 0 ? '#101214' : 'var(--fg-334155)' }}>
  
 {completoG ? <Icona nome="spunta" size={11} /> : `${fattiG}/${totaleG}`}
  
@@ -19644,7 +19643,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                               <div key={reps} style={{ background: 'var(--bg-ffffff)', padding: '8px 6px', borderRadius: '6px', textAlign: 'center', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                                <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span> 
+                                <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
+ 
                                 <input
  
                                   type="text"
@@ -20787,7 +20787,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       />
  
-                                            <span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginTop: '2px' }}><span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
  
                         <button type="button" title="Sposta a sinistra" aria-label="Sposta a sinistra" onClick={() => moveEditingWeekOrder(actualWIdx, 'left')} disabled={actualWIdx === 0} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer', opacity: actualWIdx === 0 ? 0.35 : 1 }}><Icona nome="sinistra" size={16} /></button>
  
@@ -20795,7 +20795,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         <button type="button" title="Duplica" aria-label="Duplica" onClick={() => cloneEditingWeek(week)} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer' }}><Icona nome="duplica" size={16} /></button>
  
-                      </span>
+                      </span><span style={{ flex: 1 }} />
  
                       {pulsanteVisibilita(!!week.hidden, () => toggleVisibilitaSettimana(actualWIdx))}
  
@@ -20835,9 +20835,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           }
  
-                        }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
+                        }} title="Elimina settimana" aria-label="Elimina settimana" style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid #ef4444', background: 'var(--bg-fee2e2)', color: 'var(--fg-ef4444)', cursor: 'pointer' }}><Icona nome="cestino" size={16} /></button>
  
-                      )}
+                      )}</div>
  
                     </div>
  
@@ -20877,7 +20877,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       return (
  
-                        <div key={actualDIdx} style={{ padding: '12px 0 4px 0', marginBottom: '8px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+                        <div key={actualDIdx} style={{ padding: '4px 0 4px 0', marginBottom: '8px' }}>
  
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -20929,7 +20929,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             </div>
  
-                                                        <span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginTop: '2px' }}><span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
  
                               <button type="button" title="Sposta a sinistra" aria-label="Sposta a sinistra" onClick={() => moveEditingDayOrder(actualWIdx, actualDIdx, 'left')} disabled={actualDIdx === 0} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer', opacity: actualDIdx === 0 ? 0.35 : 1 }}><Icona nome="sinistra" size={16} /></button>
  
@@ -20937,7 +20937,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                               <button type="button" title="Duplica" aria-label="Duplica" onClick={() => cloneEditingDay(actualWIdx, day)} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer' }}><Icona nome="duplica" size={16} /></button>
  
-                            </span>
+                            </span><span style={{ flex: 1 }} />
  
                             {pulsanteVisibilita(!!day.hidden, () => toggleVisibilitaGiorno(actualWIdx, actualDIdx))}
  
@@ -20965,9 +20965,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 if (vicino) setSelectedDayView(vicino.dayName);
  
-                              }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
+                              }} title="Elimina giorno" aria-label="Elimina giorno" style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid #ef4444', background: 'var(--bg-fee2e2)', color: 'var(--fg-ef4444)', cursor: 'pointer' }}><Icona nome="cestino" size={16} /></button>
  
-                            )}
+                            )}</div>
  
                           </div>
  
@@ -22393,7 +22393,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           />
  
-                          <span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginTop: '2px' }}><span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
  
                             <button type="button" title="Sposta a sinistra" aria-label="Sposta a sinistra" onClick={() => moveWeekOrder(actualWIdx, 'left')} disabled={actualWIdx === 0} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer', opacity: actualWIdx === 0 ? 0.35 : 1 }}><Icona nome="sinistra" size={16} /></button>
  
@@ -22401,7 +22401,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <button type="button" title="Duplica" aria-label="Duplica" onClick={() => cloneWeek(week)} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer' }}><Icona nome="duplica" size={16} /></button>
  
-                          </span>
+                          </span><span style={{ flex: 1 }} />
  
                           {programWeeks.length > 1 && (
  
@@ -22439,9 +22439,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                               }
  
-                            }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Settimana</button>
+                            }} title="Elimina settimana" aria-label="Elimina settimana" style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid #ef4444', background: 'var(--bg-fee2e2)', color: 'var(--fg-ef4444)', cursor: 'pointer' }}><Icona nome="cestino" size={16} /></button>
  
-                          )}
+                          )}</div>
  
                         </div>
  
@@ -22481,7 +22481,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           return (
  
-                            <div key={actualDIdx} style={{ padding: '12px 0 4px 0', marginBottom: '8px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+                            <div key={actualDIdx} style={{ padding: '4px 0 4px 0', marginBottom: '8px' }}>
  
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
@@ -22533,7 +22533,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 </div>
  
-                                <span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', marginTop: '2px' }}><span style={{ display: 'inline-flex', gap: '6px', flexShrink: 0 }}>
  
                                   <button type="button" title="Sposta a sinistra" aria-label="Sposta a sinistra" onClick={() => moveDayOrder(actualWIdx, actualDIdx, 'left')} disabled={actualDIdx === 0} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer', opacity: actualDIdx === 0 ? 0.35 : 1 }}><Icona nome="sinistra" size={16} /></button>
  
@@ -22541,7 +22541,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   <button type="button" title="Duplica" aria-label="Duplica" onClick={() => cloneDay(actualWIdx, day)} style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-334155)', cursor: 'pointer' }}><Icona nome="duplica" size={16} /></button>
  
-                                </span>
+                                </span><span style={{ flex: 1 }} />
  
                                 {week.days.length > 1 && (
  
@@ -22567,9 +22567,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                     if (vicino) setSelectedDayView(vicino.dayName);
  
-                                  }} style={{ background: 'var(--bg-fee2e2)', border: '1px solid #ef4444', color: 'var(--fg-ef4444)', padding: '6px 10px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', flexShrink: 0, whiteSpace: 'nowrap' }}>Elimina Giorno</button>
+                                  }} title="Elimina giorno" aria-label="Elimina giorno" style={{ width: '40px', height: '40px', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: '999px', border: '1px solid #ef4444', background: 'var(--bg-fee2e2)', color: 'var(--fg-ef4444)', cursor: 'pointer' }}><Icona nome="cestino" size={16} /></button>
  
-                                )}
+                                )}</div>
  
                               </div>
  
@@ -23544,58 +23544,6 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                   </span>
  
                                   ); })()}
- 
-                                {!prog.trialStyle && assignedList.length > 0 && (() => {
- 
-                                  // Sedute fatte da ogni atleta assegnato, sul totale del programma
- 
-                                  const giorni: { wi: number; di: number; n: number }[] = [];
- 
-                                  weeks.forEach((w: any, wi: number) => {
- 
-                                    if (!w || w.hidden) return;
- 
-                                    (w.days || []).forEach((d: any, di: number) => {
- 
-                                      if (!d || d.hidden || !(d.blocks || []).length) return;
- 
-                                      giorni.push({ wi, di, n: d.blocks.length });
- 
-                                    });
- 
-                                  });
- 
-                                  if (giorni.length === 0) return null;
- 
-                                  const perAtleta = assignedList.map((a: any) => {
- 
-                                    const ris = coachAllResults[prog.id]?.[a.id] || {};
- 
-                                    const fatti = giorni.filter((g) => giornoCompleto(ris, g.wi, g.di, g.n)).length;
- 
-                                    const nome = String(a.full_name || a.email || '').trim().split(' ')[0];
- 
-                                    return { nome, fatti };
- 
-                                  });
- 
-                                  const testo = perAtleta.length === 1
- 
-                                    ? `${perAtleta[0].fatti}/${giorni.length} sedute fatte`
- 
-                                    : `Sedute fatte su ${giorni.length}: ` + perAtleta.slice(0, 4).map((x) => `${x.nome} ${x.fatti}`).join(' · ') + (perAtleta.length > 4 ? ` · +${perAtleta.length - 4}` : '');
- 
-                                  return (
- 
-                                    <span style={{ fontSize: '11px', color: 'var(--fg-334155)', background: 'var(--bg-f1f5f9)', padding: '3px 8px', borderRadius: '4px', display: 'inline-block', fontWeight: 'bold' }}>
- 
-                                      {testo}
- 
-                                    </span>
- 
-                                  );
- 
-                                })()}
  
                               </div>
  
