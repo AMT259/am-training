@@ -5468,9 +5468,7 @@ const VARS_BLU: { [k: string]: string } = {
  
 const TEMI: { [k: string]: { nome: string; descrizione: string; anteprima: string[]; vars: { [k: string]: string } } } = {
  
-  classico: { nome: 'Classico', descrizione: 'Schede chiare su sfondo scuro', anteprima: ['#18181b', '#ffffff', '#10b981'], vars: VARS_CLASSICO },
- 
-  scuro: { nome: 'Verde', descrizione: 'Scuro con accento verde acido', anteprima: ['#0B0C0E', '#23282E', '#C8F135'], vars: VARS_SCURO },
+  scuro: { nome: 'Verde', descrizione: 'Scuro con accento verde fluo', anteprima: ['#0B0C0E', '#23282E', '#C8F135'], vars: VARS_SCURO },
  
   arancione: { nome: 'Arancione', descrizione: 'Scuro con accento arancione', anteprima: ['#0B0C0E', '#23282E', '#FF5A1F'], vars: VARS_ARANCIONE },
  
@@ -8540,7 +8538,8 @@ const [notificationError, setNotificationError] = useState('');
  
       .eq('id', session.user.id)
  
-      .select('privacy_consent_at'); 
+      .select('privacy_consent_at');
+ 
     setConsentSaving(false);
  
     if (metaError && (profError || !updated || updated.length === 0)) {
@@ -9396,8 +9395,7 @@ const [notificationError, setNotificationError] = useState('');
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
  
       alert('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
- 
-      return false;
+       return false;
  
     }
  
@@ -10761,7 +10759,8 @@ const [notificationError, setNotificationError] = useState('');
  
       const top = record.reduce((x, y) => (y.kg > x.kg ? y : x));
  
-      setPrBadge({ 
+      setPrBadge({
+ 
         exercise: match,
  
         headline: record.length > 1 ? record.map((n) => `${n.kg} kg \u00d7 ${n.reps}`).join(' \u00b7 ') : `${top.kg} kg \u00d7 ${top.reps}`,
@@ -12521,7 +12520,8 @@ const [notificationError, setNotificationError] = useState('');
       return (
  
         <div>
-           <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '7px' }}>
+ 
+          <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px', marginBottom: '7px' }}>
  
             {perAtleta ? 'I TUOI PROGRAMMI' : 'PROGRAMMI E RISULTATI'}
  
@@ -14069,8 +14069,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                 Annulla
  
-              </button>
- 
+              </button> 
             </div>
  
           </div>
@@ -14788,7 +14787,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
   };
  
   const addGlobalExercise = async (e: React.FormEvent) => {
-     e.preventDefault();
+ 
+    e.preventDefault();
  
     if (!newExName) return;
  
@@ -17102,7 +17102,8 @@ fetchAllAthleteResultsForCoach();
  
                 maxHeight: 'min(70vh, 480px)',
  
-                overflowY: 'auto', 
+                overflowY: 'auto',
+ 
                 background: 'var(--bg-ffffff)',
  
                 color: 'var(--fg-000000)',
@@ -21343,8 +21344,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <input
  
-                                                type="text"
- 
+                                                type="text" 
                                                 inputMode="numeric"
  
                                                 placeholder="0"
