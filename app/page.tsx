@@ -7302,6 +7302,14 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Evita le notifiche doppie: il controllo "esiste già?" partiva più volte insieme
+ 
+  // (mentre si caricano programmi e abbonamento) e ognuno creava la sua notifica.
+ 
+  const syncNotificheInCorso = React.useRef(false);
+ 
+  const notificheGiaCreate = React.useRef<Set<string>>(new Set());
+ 
   const createNotificationIfMissing = async (
  
   title: string,
@@ -7315,6 +7323,12 @@ const [notificationError, setNotificationError] = useState('');
 ) => {
  
     if (!session?.user?.id) return;
+ 
+    const chiaveNotifica = `${session.user.id}|${notificationType}`;
+ 
+    if (notificheGiaCreate.current.has(chiaveNotifica)) return;
+ 
+    notificheGiaCreate.current.add(chiaveNotifica);
  
     const { data: existing, error: checkError } = await supabase
  
@@ -7358,6 +7372,10 @@ const [notificationError, setNotificationError] = useState('');
  
     if (error) {
  
+      // 23505 = esiste già (doppione bloccato dal database): niente errore e niente push
+ 
+      if ((error as any).code === '23505') return;
+ 
       console.error('Errore creazione notifica:', error);
  
       setNotificationError(error.message);
@@ -7389,6 +7407,26 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   const syncProgramNotifications = async () => {
+ 
+    if (!session?.user?.id || !programLibrary.length) return;
+ 
+    if (syncNotificheInCorso.current) return;
+ 
+    syncNotificheInCorso.current = true;
+ 
+    try {
+ 
+      await syncProgramNotificationsDentro();
+ 
+    } finally {
+ 
+      syncNotificheInCorso.current = false;
+ 
+    }
+ 
+  };
+ 
+  const syncProgramNotificationsDentro = async () => {
  
     if (!session?.user?.id || !programLibrary.length) return;
  
@@ -9553,8 +9591,7 @@ const [notificationError, setNotificationError] = useState('');
       setNeedsAnamnesis(false);
  
       setAnamnesiUpdatedAt(new Date().toISOString());
- 
-      setAnamnesiMancante(false);
+       setAnamnesiMancante(false);
  
       fetch('/api/notify-coach', {
  
@@ -11946,7 +11983,8 @@ const [notificationError, setNotificationError] = useState('');
  
     let migliorati = 0;
  
-    let esclusi = 0; 
+    let esclusi = 0;
+ 
     Object.keys(raccolta).forEach((nome) => {
  
       const righeEx: any[] = [];
@@ -19213,11 +19251,11 @@ type="button"
  
 onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta' }); }}
  
-style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
 >
  
-<Icona nome="timer" size={12} /> Timer
+<Icona nome="timer" size={17} /> Timer
  
 </button>
  
@@ -20369,8 +20407,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         </div>
  
-                        <div>
- 
+                        <div> 
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Abbonamento</label>
  
                           <select value={newAthlete.subscription_status} onChange={(e) => setNewAthlete({ ...newAthlete, subscription_status: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }}>
@@ -25839,11 +25876,11 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                       onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'scelta', progId: prog.id, key: resultKey }); }}
  
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '5px 11px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 2px 6px rgba(var(--acc-rgb), 0.35)' }}
  
                                                     >
  
-                                                      <Icona nome="timer" size={12} /> Timer
+                                                      <Icona nome="timer" size={17} /> Timer
  
                                                     </button>
  
