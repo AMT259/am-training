@@ -10698,7 +10698,8 @@ const [notificationError, setNotificationError] = useState('');
  
       return;
  
-    } 
+    }
+ 
     // --- 3. Esercizio di forza: il risultato è un peso ---
  
     // Con più serie conta ogni serie: "10/8/6/4" con "40/50/55/60" confronta 55 kg col 6RM, 60 kg col 4RM...
@@ -14330,8 +14331,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     });
  
     setAuthLoading(false);
- 
-    if (error) {
+     if (error) {
  
       setAuthError(error.message);
  
@@ -14725,7 +14725,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const newName = `Settimana ${n}`;
  
-    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }); 
+    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] });
+ 
     setEditingProgram(updated);
  
     setSelectedWeekView(newName);
@@ -21136,7 +21137,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: 'var(--bg-e2e8f0)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
                       <input
  
@@ -21213,6 +21214,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       )}</div>
  
                     </div>
+ 
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />GIORNI</span>
  
                     <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
  
@@ -22752,7 +22755,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <div key={actualWIdx} style={{ marginBottom: '16px' }}>
  
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px', background: 'var(--bg-e2e8f0)', padding: '10px', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
                           <input
  
@@ -22827,6 +22830,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                           )}</div>
  
                         </div>
+ 
+                        <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />GIORNI</span>
  
                         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '16px', paddingBottom: '6px' }}>
  
@@ -22928,8 +22933,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 </span><span style={{ flex: 1 }} />
  
-                                {week.days.length > 1 && (
- 
+                                {week.days.length > 1 && ( 
                                   <button onClick={() => {
  
                                     // conferma prima di eliminare il giorno
@@ -24421,7 +24425,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                           <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica dati anagrafici</h3>
+ 
+                          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica dati anagrafici</h3>
  
                           <button type="button" onClick={() => { if (anagraficiCopia) setPersonalData(anagraficiCopia); setAnagraficiInModifica(false); }} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>Annulla</button>
  
