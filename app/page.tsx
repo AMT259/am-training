@@ -13436,7 +13436,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       ? righe
  
-      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []); 
+      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
+ 
     const nelPeriodo = fonte.filter((r: any) => {
  
       const g = String(r.day);
@@ -13501,8 +13502,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>
  
-          {perAtleta ? 'Il tuo percorso' : 'Il suo percorso'}
- 
+          {perAtleta ? 'Il tuo percorso' : 'Il suo percorso'} 
         </h4>
  
         <p style={{ margin: '0 0 14px 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
@@ -14331,8 +14331,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setAuthLoading(true);
  
-    const { data: registrato, error } = await supabase.auth.signUp({
- 
+    const { data: registrato, error } = await supabase.auth.signUp({ 
       email,
  
       password,
@@ -17811,7 +17810,7 @@ fetchAllAthleteResultsForCoach();
  
           {coachSubView === 'home' ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px', minHeight: '60vh' }}>
+            <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px', minHeight: '60vh' }}>
  
               {(() => {
  
@@ -18309,7 +18308,7 @@ fetchAllAthleteResultsForCoach();
  
           ) : coachSubView === 'banner' ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+            <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
  
@@ -18855,7 +18854,7 @@ fetchAllAthleteResultsForCoach();
  
               {selectedCoachAthlete ? (
  
-                <div style={coachAthleteDetailTab === 'personal' ? {} : { background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+                <div style={coachAthleteDetailTab === 'personal' ? {} : { color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
@@ -19237,11 +19236,11 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
 </div>
  
-{bloccoAperto && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || blk.videoUrl) && (
+{bloccoAperto && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || (blk.videoUrl && !haElenco(blk.type))) && (
  
 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
  
-{blk.videoUrl && (
+{blk.videoUrl && !haElenco(blk.type) && (
  
 <AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
@@ -20771,7 +20770,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               ) : (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+                <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px', color: 'var(--fg-10b981)' }}>Seleziona un Atleta</h3>
  
@@ -20979,7 +20978,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
           ) : editingProgram ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+            <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
  
@@ -21610,7 +21609,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                           b.name = v;
  
                                           const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
-                                           if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
+ 
+                                          if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
  
                                           setEditingProgram(updated);
  
@@ -22491,8 +22491,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                             {libEditName.trim() && libEditName.trim() !== ex.name && (
  
                               <p style={{ fontSize: '10.5px', color: 'var(--fg-92400e)', margin: '9px 0 0 0', lineHeight: 1.45, background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '6px', padding: '8px 10px' }}>
- 
-                                Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
+                                 Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
  
                               </p>
  
@@ -22602,7 +22601,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               ) : activeTab === 'create' ? (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+                <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
  
@@ -24310,7 +24309,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
           {activeTab === 'profile' ? (
  
-            <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
+            <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
               {athleteProfileTab === null ? (() => {
  
@@ -25780,11 +25779,11 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                               </div>
  
-                                              {!isClosed && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || blk.videoUrl) && (
+                                              {!isClosed && ((blk.type === 'test' || (blk.type === 'wod' && isMobility(blk.name))) || (blk.videoUrl && !haElenco(blk.type))) && (
  
                                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '6px' }}>
  
-                                                  {blk.videoUrl && (
+                                                  {blk.videoUrl && !haElenco(blk.type) && (
  
                                                     <AnteprimaVideo url={blk.videoUrl} larghezza={96} altezza={54} />
  
