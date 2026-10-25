@@ -3332,9 +3332,15 @@ function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
 }
  
-function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
+function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any) {
  
   const serie = serieDaBlocco(blk);
+ 
+  // Carichi dell'ultima volta: in grigio dentro le caselle vuote, e un tocco per ricopiarli
+ 
+  const prec: string[] = String(precedente || '').replace(/\s*(kg|kilogrammi|kilo)\b/gi, '').split(/\s*\/\s*/).map((x: string) => x.trim()).filter(Boolean);
+ 
+  const precDi = (i: number) => (prec.length === 0 ? '' : prec.length === 1 ? prec[0] : prec[i] || '');
  
   const iniziali = String(valore || '').split(/\s*[\/]\s*/).map((s: string) => s.trim());
  
@@ -3422,6 +3428,34 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
         <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
  
+          {prec.length > 0 && blk?.scoreUnit !== 'tempo' && blk?.scoreUnit !== 'round' && (
+ 
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '11px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)' }}>
+ 
+              <span style={{ fontSize: '12px', color: 'var(--fg-64748b)', minWidth: 0, overflowWrap: 'anywhere' }}>
+ 
+                Ultima volta: <strong style={{ color: 'var(--fg-334155)' }}>{prec.join(' / ')}</strong>
+ 
+              </span>
+ 
+              <button
+ 
+                type="button"
+ 
+                onClick={() => setCarichi(serie.map((_x: any, i: number) => (String(carichi[i] || '').trim() ? carichi[i] : precDi(i))))}
+ 
+                style={{ flexShrink: 0, padding: '6px 11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer' }}
+ 
+              >
+ 
+                Usa questi
+ 
+              </button>
+ 
+            </div>
+ 
+          )}
+ 
           {serie.map((s: any, i: number) => (
  
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '9px' }}>
@@ -3466,7 +3500,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose }: any) {
  
                 inputMode={blk?.scoreUnit === 'kg' ? 'decimal' : blk?.scoreUnit === 'rep' ? 'numeric' : (blk?.scoreUnit === 'tempo' || blk?.scoreUnit === 'round') ? 'text' : (blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal')}
  
-                placeholder={SCORE_UNITS[blk?.scoreUnit || '']?.placeholder || (serie.length > 1 ? '—' : 'Risultato')}
+                placeholder={precDi(i) || SCORE_UNITS[blk?.scoreUnit || '']?.placeholder || (serie.length > 1 ? '—' : 'Risultato')}
  
                 value={carichi[i] || ''}
  
@@ -14331,7 +14365,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     });
  
     setAuthLoading(false);
-     if (error) {
+ 
+    if (error) {
  
       setAuthError(error.message);
  
@@ -15203,11 +15238,23 @@ setProgramWeeks(updated);
  
       avvisa(
  
-        quanti > 0
+        programTrialStyle
  
-          ? `Programma creato e assegnato a ${quanti} ${quanti === 1 ? 'atleta' : 'atleti'}`
+          ? 'Programma salvato \u2713 \u00b7 settimana di prova'
  
-          : 'Programma creato e salvato in libreria'
+          : programVisibility === 'none'
+ 
+            ? 'Programma salvato \u2713 \u00b7 bozza, non lo vede nessuno'
+ 
+            : programVisibility === 'all'
+ 
+              ? 'Programma salvato \u2713 \u00b7 visibile a tutti gli atleti'
+ 
+              : quanti > 0
+ 
+                ? `Programma salvato \u2713 \u00b7 visibile a ${quanti} ${quanti === 1 ? 'atleta' : 'atleti'}`
+ 
+                : 'Programma salvato \u2713 \u00b7 nessun atleta assegnato'
  
       );
  
@@ -15415,7 +15462,35 @@ fetchAllAthleteResultsForCoach();
  
       );
  
-      avvisa('Programma aggiornato');
+      {
+ 
+        const vis = editingProgram.trialStyle ? 'prova' : (editingProgram.visibility || 'selected');
+ 
+        const n = (editingProgram.assignedAthleteIds || []).length;
+ 
+        avvisa(
+ 
+          vis === 'prova'
+ 
+            ? 'Programma salvato \u2713 \u00b7 settimana di prova'
+ 
+            : vis === 'none'
+ 
+              ? 'Programma salvato \u2713 \u00b7 bozza, non lo vede nessuno'
+ 
+              : vis === 'all'
+ 
+                ? 'Programma salvato \u2713 \u00b7 visibile a tutti gli atleti'
+ 
+                : n > 0
+ 
+                  ? `Programma salvato \u2713 \u00b7 visibile a ${n} ${n === 1 ? 'atleta' : 'atleti'}`
+ 
+                  : 'Programma salvato \u2713 \u00b7 nessun atleta assegnato'
+ 
+        );
+ 
+      }
  
       setEditingProgram(null);
  
@@ -15864,8 +15939,7 @@ fetchAllAthleteResultsForCoach();
                 <input
  
                   type="checkbox"
- 
-                  checked={privacyConsent}
+                   checked={privacyConsent}
  
                   onChange={(e) => {
  
@@ -16775,6 +16849,28 @@ fetchAllAthleteResultsForCoach();
  
           blk={scoreAperto.blk}
  
+          precedente={(() => {
+ 
+            // Ultima volta: la settimana passata se il programma si ripete, altrimenti l'ultimo carico usato
+ 
+            const b = scoreAperto.blk;
+ 
+            if (!b || (b.type || 'forza') !== 'forza') return '';
+ 
+            const ris = scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId] : athleteResults[scoreAperto.progId];
+ 
+            const sett = settimanaScorsaDato(ris, scoreAperto.key).score;
+ 
+            if (sett) return sett;
+ 
+            const usati = scoreAperto.athleteId ? ultimoCaricoUsatoPer(scoreAperto.athleteId, b.name, b.reps) : ultimoCaricoUsato(b.name, b.reps);
+ 
+            const u = (usati || []).find((x: any) => String(x.reps ?? '') === String(b.reps ?? '')) || (usati || [])[0];
+ 
+            return u ? String(u.testo || u.kg || '') : '';
+ 
+          })()}
+ 
           valore={(scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId]?.[scoreAperto.key] : athleteResults[scoreAperto.progId]?.[scoreAperto.key])?.score}
  
           note={(scoreAperto.athleteId ? coachAllResults[scoreAperto.progId]?.[scoreAperto.athleteId]?.[scoreAperto.key] : athleteResults[scoreAperto.progId]?.[scoreAperto.key])?.notes}
@@ -17279,7 +17375,7 @@ fetchAllAthleteResultsForCoach();
  
             <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
  
-              {(personalData.full_name || session.user.email || '').trim()}{role === 'coach' ? ' · coach' : ''}
+              {role === 'coach' ? 'Coach' : (personalData.full_name || session.user.email || '').trim()}
  
             </span>
  
@@ -19135,7 +19231,7 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
 <div onClick={() => setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto }))} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
  
-<div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}</div>
+<div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : `Esercizio ${bIdx + 1}`)}{(() => { const r = coachAllResults[prog.id]?.[selectedCoachAthlete.id]?.[resultKey]; return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done) ? <Icona nome="spunta" size={15} style={{ marginLeft: '7px', verticalAlign: '-2px' }} /> : null; })()}</div>
  
 <button type="button" onClick={(e) => { e.stopPropagation(); setCoachAperti(prev => ({ ...prev, [chiaveBlocco]: !bloccoAperto })); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', flexShrink: 0 }}>{bloccoAperto ? '\u25B2' : '\u25BC'}</button>
  
@@ -22159,77 +22255,49 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               }}>
  
-                <button
+                <div style={{ display: 'flex', gap: '4px', width: '100%', padding: '4px', boxSizing: 'border-box', borderRadius: '999px', background: 'var(--bg-e8edf3)' }}>
  
-                  onClick={() => setActiveTab('create')}
+                  {[
  
-                  style={{
+                    { k: 'create', t: 'Crea' },
  
-                    ...pillola(activeTab === 'create'),
+                    { k: 'library', t: 'Programmi' },
  
-                    flex: '1 1 0', minWidth: 0,
+                    { k: 'exercises', t: 'Esercizi' },
  
-                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
+                  ].map((v) => (
  
-                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
+                    <button
  
-                    fontSize: '12.5px',
+                      key={v.k}
  
-                  }}
+                      onClick={() => setActiveTab(v.k as any)}
  
-                >
+                      style={{
  
-                  Crea Programma
+                        ...pillola(activeTab === v.k),
  
-                </button>
+                        flex: '1 1 0', minWidth: 0,
  
-                <button
+                        background: activeTab === v.k ? 'var(--fg-10b981)' : 'transparent',
  
-                  onClick={() => setActiveTab('library')}
+                        boxShadow: activeTab === v.k ? '0 2px 7px rgba(0,0,0,0.25)' : 'none',
  
-                  style={{
+                        padding: menuAgganciato ? '8px 6px' : '9px 6px',
  
-                    ...pillola(activeTab === 'library'),
+                        fontSize: '13px',
  
-                    flex: '1 1 0', minWidth: 0,
+                      }}
  
-                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
+                    >
  
-                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
+                      {v.t}
  
-                    fontSize: '12.5px',
+                    </button>
  
-                  }}
+                  ))}
  
-                >
- 
-                  Libreria Programmi
- 
-                </button>
- 
-                <button
- 
-                  onClick={() => setActiveTab('exercises')}
- 
-                  style={{
- 
-                    ...pillola(activeTab === 'exercises'),
- 
-                    flex: '1 1 0', minWidth: 0,
- 
-                    whiteSpace: 'normal', textAlign: 'center', lineHeight: 1.2,
- 
-                    padding: menuAgganciato ? '8px 6px' : '10px 6px',
- 
-                    fontSize: '12.5px',
- 
-                  }}
- 
-                >
- 
-                  Libreria Esercizi
- 
-                </button>
+                </div>
  
               </div>
  
@@ -22644,8 +22712,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       if (v === 'selected' && prev === 'all') setSelectedAthleteIds([]);
  
                     }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
- 
-                      <option value="none">Nessuno — bozza, la vedi solo tu</option>
+                       <option value="none">Nessuno — bozza, la vedi solo tu</option>
  
                       <option value="all">Tutti gli atleti</option>
  
@@ -22933,7 +23000,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 </span><span style={{ flex: 1 }} />
  
-                                {week.days.length > 1 && ( 
+                                {week.days.length > 1 && (
+ 
                                   <button onClick={() => {
  
                                     // conferma prima di eliminare il giorno
@@ -23710,43 +23778,23 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 <div>
  
-                  <h3 style={{ fontSize: '18px', margin: '0 0 12px 0' }}>
+                  {libraryView === 'cestino' ? (
  
-                    {libraryView === 'cestino' ? 'Cestino Programmi' : 'Libreria Programmi'}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
  
-                  </h3>
+                      <h3 style={{ fontSize: '17px', margin: 0 }}>Cestino Programmi</h3>
  
-                  <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                      <button onClick={() => setLibraryView('programmi' as any)} style={{ ...pillola(false, 'var(--fg-334155)', 'piccolo'), border: '1px solid var(--bd-cbd5e1)' }}>
  
-                    {[
- 
-                      { k: 'programmi', t: 'Programmi', n: 0 },
- 
-                      { k: 'cestino', t: 'Cestino', n: contaCestino },
- 
-                    ].map((v) => (
- 
-                      <button
- 
-                        key={v.k}
- 
-                        onClick={() => setLibraryView(v.k as any)}
- 
-                        style={{ ...pillola(libraryView === v.k, 'var(--fg-334155)'), flex: '1 1 auto' }}
- 
-                      >
- 
-                        {v.t}{v.n > 0 ? ` (${v.n})` : ''}
+                        <Icona nome="sinistra" size={12} /> Torna ai programmi
  
                       </button>
  
-                    ))}
+                    </div>
  
-                  </div>
+                  ) : (
  
-                  {libraryView === 'programmi' && (
- 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '12px' }}>
  
                       {[
  
@@ -23770,7 +23818,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           onClick={() => setLibraryFilter(f.k as any)}
  
-                          style={{ ...pillola(libraryFilter === f.k, f.col, 'piccolo'), flex: '1 1 auto' }}
+                          style={{ ...pillola(libraryFilter === f.k, f.col, 'piccolo'), padding: '6px 10px', fontSize: '11.5px', flex: '1 1 auto' }}
  
                         >
  
@@ -23779,6 +23827,18 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                         </button>
  
                       ))}
+ 
+                      <button
+ 
+                        onClick={() => setLibraryView('cestino' as any)}
+ 
+                        style={{ ...pillola(false, 'var(--fg-334155)', 'piccolo'), padding: '6px 10px', fontSize: '11.5px', flex: '1 1 auto' }}
+ 
+                      >
+ 
+                        <Icona nome="cestino" size={12} /> Cestino{contaCestino > 0 ? ` (${contaCestino})` : ''}
+ 
+                      </button>
  
                     </div>
  
@@ -25698,7 +25758,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                               <div onClick={() => toggleBlockCollapse(blockKey)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
  
-                                                <div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}</div>
+                                                <div style={{ fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere', minWidth: 0 }}>{blk.name || (haElenco(blk.type) ? nomeElenco(blk.type) : '')}{(() => { const r = athleteResults[prog.id]?.[resultKey]; return r && (String(r.score || '').trim() || String(r.notes || '').trim() || r.done) ? <Icona nome="spunta" size={15} style={{ marginLeft: '7px', verticalAlign: '-2px' }} /> : null; })()}</div>
  
                                                 <button type="button" onClick={(e) => { e.stopPropagation(); toggleBlockCollapse(blockKey); }} style={{ background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', padding: '4px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px', flexShrink: 0 }}>{isClosed ? '▼' : '▲'}</button>
  
