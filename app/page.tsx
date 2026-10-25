@@ -13436,8 +13436,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
       ? righe
  
-      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []);
- 
+      : (athleteId ? storicoDaiRisultati(athleteId, perAtleta) : []); 
     const nelPeriodo = fonte.filter((r: any) => {
  
       const g = String(r.day);
@@ -15939,7 +15938,8 @@ fetchAllAthleteResultsForCoach();
                 <input
  
                   type="checkbox"
-                   checked={privacyConsent}
+ 
+                  checked={privacyConsent}
  
                   onChange={(e) => {
  
@@ -21610,8 +21610,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                           b.name = v;
  
                                           const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
- 
-                                          if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
+                                           if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
  
                                           setEditingProgram(updated);
  
@@ -22303,19 +22302,35 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               {activeTab === 'exercises' ? (
  
-                <div style={{ background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', boxShadow: '0 3px 14px rgba(0,0,0,0.32)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bd-e2e8f0)' }}>
+                <div style={{ color: 'var(--fg-000000)' }}>
  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  {showDeletedExercises ? (
  
-                    <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{showDeletedExercises ? 'Cestino Esercizi' : 'Gestione Libreria Esercizi'}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '12px' }}>
  
-                    <button onClick={() => setShowDeletedExercises(!showDeletedExercises)} style={{ padding: '8px 10px', borderRadius: '999px', border: 'none', background: showDeletedExercises ? 'var(--bg-10b981)' : '#64748b', color: showDeletedExercises ? 'var(--onacc)' : '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0 }}>Cestino Esercizi</h3>
  
-                      {showDeletedExercises ? 'Torna agli esercizi' : 'Cestino'}
+                      <button onClick={() => setShowDeletedExercises(false)} style={{ ...pillola(false, 'var(--fg-334155)', 'piccolo'), border: '1px solid var(--bd-cbd5e1)' }}>
  
-                    </button>
+                        <Icona nome="sinistra" size={12} /> Torna agli esercizi
  
-                  </div>
+                      </button>
+ 
+                    </div>
+ 
+                  ) : (
+ 
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+ 
+                      <button onClick={() => setShowDeletedExercises(true)} style={{ ...pillola(false, 'var(--fg-334155)', 'piccolo'), padding: '6px 11px', fontSize: '11.5px' }}>
+ 
+                        <Icona nome="cestino" size={12} /> Cestino
+ 
+                      </button>
+ 
+                    </div>
+ 
+                  )}
  
                   {!showDeletedExercises && (
  
@@ -22712,7 +22727,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       if (v === 'selected' && prev === 'all') setSelectedAthleteIds([]);
  
                     }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
-                       <option value="none">Nessuno — bozza, la vedi solo tu</option>
+ 
+                      <option value="none">Nessuno — bozza, la vedi solo tu</option>
  
                       <option value="all">Tutti gli atleti</option>
  
