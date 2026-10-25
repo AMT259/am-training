@@ -6506,6 +6506,12 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [dupBlock, setDupBlock] = useState<any>(null);
  
+  // Importa settimana / giorno / esercizi da un altro programma
+ 
+  const [importa, setImporta] = useState<any>(null);
+ 
+  const [cercaImporta, setCercaImporta] = useState('');
+ 
   const [dupTargets, setDupTargets] = useState<string[]>([]);
  
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -9395,7 +9401,8 @@ const [notificationError, setNotificationError] = useState('');
     if (isMinorenne(data.birth_date) && !String(data.guardian_name || '').trim()) {
  
       alert('Per gli utenti minorenni è necessario indicare nome e cognome di chi esercita la responsabilità genitoriale.');
-       return false;
+ 
+      return false;
  
     }
  
@@ -11182,6 +11189,144 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Duplica un esercizio: nella stessa seduta oppure in altre a scelta
+ 
+  // ---- IMPORTA DA UN ALTRO PROGRAMMA ----
+ 
+  // tipo: 'settimana' (in fondo), 'giorno' (nella settimana aperta), 'esercizi' (nel giorno aperto).
+ 
+  // Copia solo il contenuto della scheda: il programma di partenza non cambia e i risultati non si copiano.
+ 
+  const apriImporta = (contesto: 'edit' | 'free', tipo: 'settimana' | 'giorno' | 'esercizi') => {
+ 
+    setCercaImporta('');
+ 
+    setImporta({ contesto, tipo, progId: null, wi: 0, di: 0, scelti: [] });
+ 
+  };
+ 
+  // "Settimana 3" -> il primo numero libero; altri nomi -> "(copia)" se esiste già
+ 
+  const nomeLibero = (nome: string, esistenti: string[], prefisso: string) => {
+ 
+    const pulito = String(nome || '').trim() || prefisso;
+ 
+    if (!esistenti.includes(pulito)) return pulito;
+ 
+    if (new RegExp(`^${prefisso}\\s*\\d+$`, 'i').test(pulito)) {
+ 
+      let n = esistenti.length + 1;
+ 
+      while (esistenti.includes(`${prefisso} ${n}`)) n++;
+ 
+      return `${prefisso} ${n}`;
+ 
+    }
+ 
+    let candidato = `${pulito} (copia)`;
+ 
+    let k = 2;
+ 
+    while (esistenti.includes(candidato)) candidato = `${pulito} (copia ${k++})`;
+ 
+    return candidato;
+ 
+  };
+ 
+  const copiaBlocchi = (blocchi: any[]) =>
+ 
+    (blocchi || []).map((b: any, i: number) => ({ ...senzaOrigine(b), id: Date.now() + Math.floor(Math.random() * 100000) + i }));
+ 
+  const confermaImporta = () => {
+ 
+    const imp = importa;
+ 
+    if (!imp || !imp.progId) return;
+ 
+    const sorgente = programLibrary.find((p: any) => p.id === imp.progId);
+ 
+    if (!sorgente) return;
+ 
+    const settSorg = normalizeProgramWeeks(sorgente);
+ 
+    const wSorg = settSorg[imp.wi];
+ 
+    if (!wSorg) return;
+ 
+    const settimane = JSON.parse(JSON.stringify(imp.contesto === 'edit' ? (editingProgram?.weeks || []) : (programWeeks || [])));
+ 
+    const posSett = Math.max(0, settimane.findIndex((w: any) => w.weekName === selectedWeekView));
+ 
+    let nuovaSett: string | null = null;
+ 
+    let nuovoGiorno: string | null = null;
+ 
+    if (imp.tipo === 'settimana') {
+ 
+      const copia = senzaOrigine(wSorg);
+ 
+      delete copia.ripetiSettimana;
+ 
+      copia.hidden = false;
+ 
+      copia.weekName = nomeLibero(wSorg.weekName, settimane.map((w: any) => w.weekName), 'Settimana');
+ 
+      copia.days = (copia.days || []).map((d: any) => ({ ...d, hidden: false, blocks: copiaBlocchi(d.blocks) }));
+ 
+      settimane.push(copia);
+ 
+      nuovaSett = copia.weekName;
+ 
+      nuovoGiorno = copia.days?.[0]?.dayName || null;
+ 
+    } else {
+ 
+      const dSorg = (wSorg.days || [])[imp.di];
+ 
+      if (!dSorg || !settimane[posSett]) return;
+ 
+      if (!settimane[posSett].days) settimane[posSett].days = [];
+ 
+      if (imp.tipo === 'giorno') {
+ 
+        const copia = { ...senzaOrigine(dSorg), hidden: false, blocks: copiaBlocchi(dSorg.blocks) };
+ 
+        copia.dayName = nomeLibero(dSorg.dayName, settimane[posSett].days.map((d: any) => d.dayName), 'Giorno');
+ 
+        settimane[posSett].days.push(copia);
+ 
+        nuovoGiorno = copia.dayName;
+ 
+      } else {
+ 
+        const scelti = (imp.scelti || []).slice().sort((a: number, b: number) => a - b).map((i: number) => (dSorg.blocks || [])[i]).filter(Boolean);
+ 
+        if (scelti.length === 0) return;
+ 
+        const posGiorno = Math.max(0, settimane[posSett].days.findIndex((d: any) => d.dayName === selectedDayView));
+ 
+        const giorno = settimane[posSett].days[posGiorno];
+ 
+        if (!giorno) return;
+ 
+        giorno.blocks = [...(giorno.blocks || []), ...copiaBlocchi(scelti)];
+ 
+      }
+ 
+    }
+ 
+    if (imp.contesto === 'edit') setEditingProgram({ ...editingProgram, weeks: settimane });
+ 
+    else setProgramWeeks(settimane);
+ 
+    if (nuovaSett) setSelectedWeekView(nuovaSett);
+ 
+    if (nuovoGiorno) setSelectedDayView(nuovoGiorno);
+ 
+    setImporta(null);
+ 
+    avvisa(imp.tipo === 'settimana' ? 'Settimana importata' : imp.tipo === 'giorno' ? 'Giorno importato' : 'Esercizi importati');
+ 
+  };
  
   const apriDuplicaBlocco = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, blocco: any) => {
  
@@ -13095,8 +13240,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           });
  
-        });
- 
+        }); 
       });
  
     return righe;
@@ -14069,7 +14213,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
                 Annulla
  
-              </button> 
+              </button>
+ 
             </div>
  
           </div>
@@ -16347,6 +16492,230 @@ fetchAllAthleteResultsForCoach();
         </div>
  
       )}
+ 
+      {importa && (() => {
+ 
+        const imp = importa;
+ 
+        const etichettaTipo = imp.tipo === 'settimana' ? 'una settimana' : imp.tipo === 'giorno' ? 'un giorno' : 'degli esercizi';
+ 
+        const idAperto = imp.contesto === 'edit' ? editingProgram?.id : null;
+ 
+        const elenco = programLibrary
+ 
+          .filter((p: any) => !p.isDeleted && p.id !== idAperto)
+ 
+          .filter((p: any) => contiene(p.title, cercaImporta))
+ 
+          .sort((a: any, b: any) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
+ 
+        const sorgente = imp.progId ? programLibrary.find((p: any) => p.id === imp.progId) : null;
+ 
+        const settSorg = sorgente ? normalizeProgramWeeks(sorgente) : [];
+ 
+        const wSorg = settSorg[imp.wi];
+ 
+        const dSorg = wSorg?.days?.[imp.di];
+ 
+        const nomeBlocco = (b: any, i: number) => String(b?.name || '').trim() || (haElenco(b?.type) ? nomeElenco(b.type) : b?.type === 'wod' ? 'WOD' : `Esercizio ${i + 1}`);
+ 
+        const pronto = !!sorgente && !!wSorg && (imp.tipo === 'settimana' || (!!dSorg && (imp.tipo === 'giorno' || (imp.scelti || []).length > 0)));
+ 
+        const aggiorna = (campi: any) => setImporta({ ...imp, ...campi });
+ 
+        return (
+ 
+          <div onClick={() => setImporta(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.78)', zIndex: 4500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }}>
+ 
+            <div onClick={(e: any) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', borderRadius: '14px', width: '100%', maxWidth: '440px', maxHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+ 
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', letterSpacing: '0.5px' }}>IMPORTA DA UN ALTRO PROGRAMMA</span>
+ 
+                <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', marginTop: '2px' }}>{sorgente ? sorgente.title : `Scegli da dove copiare ${etichettaTipo}`}</span>
+ 
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '3px' }}>
+ 
+                  {imp.tipo === 'settimana' ? 'Verrà aggiunta in fondo, dopo le altre settimane.' : imp.tipo === 'giorno' ? `Verrà aggiunto in "${selectedWeekView}".` : `Verranno aggiunti in fondo a "${selectedDayView}" (${selectedWeekView}).`}
+ 
+                </span>
+ 
+              </div>
+ 
+              <div style={{ padding: '12px 16px', overflowY: 'auto', flex: 1 }}>
+ 
+                {!sorgente ? (
+ 
+                  <>
+ 
+                    <input type="text" placeholder="Cerca un programma..." value={cercaImporta} onChange={(e: any) => setCercaImporta(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+ 
+                    {elenco.length === 0 && <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-94a3b8)' }}>Nessun programma trovato.</p>}
+ 
+                    {elenco.map((p: any) => (
+ 
+                      <button key={p.id} type="button" onClick={() => aggiorna({ progId: p.id, wi: 0, di: 0, scelti: [] })} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', display: 'block', padding: '10px 12px', marginBottom: '7px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', cursor: 'pointer' }}>
+ 
+                        <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{p.title || 'Programma'}</span>
+ 
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
+ 
+                          {p.trialStyle ? 'Settimana di prova' : (p.startDate || p.endDate) ? `${formatDateToIT(p.startDate)} → ${formatDateToIT(p.endDate)}` : p.visibility === 'none' ? 'Bozza' : ''}
+ 
+                          {` · ${normalizeProgramWeeks(p).length} ${normalizeProgramWeeks(p).length === 1 ? 'settimana' : 'settimane'}`}
+ 
+                        </span>
+ 
+                      </button>
+ 
+                    ))}
+ 
+                  </>
+ 
+                ) : (
+ 
+                  <>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)', marginBottom: '6px' }}>SETTIMANA</span>
+ 
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+ 
+                      {settSorg.map((w: any, wi: number) => (
+ 
+                        <button key={wi} type="button" onClick={() => aggiorna({ wi, di: 0, scelti: [] })} style={{ ...pillola(imp.wi === wi, 'var(--fg-334155)', 'piccolo') }}>{w.weekName || `Settimana ${wi + 1}`}</button>
+ 
+                      ))}
+ 
+                    </div>
+ 
+                    {imp.tipo === 'settimana' && wSorg && (
+ 
+                      <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>
+ 
+                        {`${(wSorg.days || []).length} ${(wSorg.days || []).length === 1 ? 'giorno' : 'giorni'}: ${(wSorg.days || []).map((d: any) => `${d.dayName} (${(d.blocks || []).length})`).join(' · ')}`}
+ 
+                      </p>
+ 
+                    )}
+ 
+                    {imp.tipo !== 'settimana' && wSorg && (
+ 
+                      <>
+ 
+                        <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)', marginBottom: '6px' }}>GIORNO</span>
+ 
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+ 
+                          {(wSorg.days || []).map((d: any, di: number) => (
+ 
+                            <button key={di} type="button" onClick={() => aggiorna({ di, scelti: [] })} style={{ ...pillola(imp.di === di, 'var(--fg-10b981)', 'piccolo') }}>{d.dayName || `Giorno ${di + 1}`}</button>
+ 
+                          ))}
+ 
+                        </div>
+ 
+                        {dSorg && imp.tipo === 'giorno' && (
+ 
+                          <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>
+ 
+                            {(dSorg.blocks || []).length === 0 ? 'Giorno vuoto.' : (dSorg.blocks || []).map((b: any, i: number) => nomeBlocco(b, i)).join(' · ')}
+ 
+                          </p>
+ 
+                        )}
+ 
+                        {dSorg && imp.tipo === 'esercizi' && (
+ 
+                          <div>
+ 
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+ 
+                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)' }}>ESERCIZI DA COPIARE</span>
+ 
+                              {(dSorg.blocks || []).length > 0 && (
+ 
+                                <button type="button" onClick={() => aggiorna({ scelti: (imp.scelti || []).length === (dSorg.blocks || []).length ? [] : (dSorg.blocks || []).map((_b: any, i: number) => i) })} style={{ background: 'none', border: 'none', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11.5px', cursor: 'pointer', padding: '4px' }}>
+ 
+                                  {(imp.scelti || []).length === (dSorg.blocks || []).length ? 'Togli tutti' : 'Seleziona tutti'}
+ 
+                                </button>
+ 
+                              )}
+ 
+                            </div>
+ 
+                            {(dSorg.blocks || []).length === 0 && <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-94a3b8)' }}>Giorno vuoto.</p>}
+ 
+                            {(dSorg.blocks || []).map((b: any, i: number) => {
+ 
+                              const sel = (imp.scelti || []).includes(i);
+ 
+                              return (
+ 
+                                <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', marginBottom: '6px', borderRadius: '10px', border: sel ? '1px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)', background: sel ? 'rgba(var(--acc-rgb), 0.10)' : 'var(--bg-f8fafc)', cursor: 'pointer' }}>
+ 
+                                  <input type="checkbox" checked={sel} onChange={() => aggiorna({ scelti: sel ? (imp.scelti || []).filter((x: number) => x !== i) : [...(imp.scelti || []), i] })} />
+ 
+                                  <span style={{ minWidth: 0 }}>
+ 
+                                    <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{nomeBlocco(b, i)}</span>
+ 
+                                    <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)' }}>
+ 
+                                      {(b?.type || 'forza') === 'forza' ? [b.sets && `${b.sets} serie`, b.reps && `${b.reps} rip`, b.load].filter(Boolean).join(' · ') : String(b?.type || '').toUpperCase()}
+ 
+                                    </span>
+ 
+                                  </span>
+ 
+                                </label>
+ 
+                              );
+ 
+                            })}
+ 
+                          </div>
+ 
+                        )}
+ 
+                      </>
+ 
+                    )}
+ 
+                  </>
+ 
+                )}
+ 
+              </div>
+ 
+              <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                <button type="button" onClick={() => (sorgente ? aggiorna({ progId: null, scelti: [] }) : setImporta(null))} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                  {sorgente ? 'Indietro' : 'Annulla'}
+ 
+                </button>
+ 
+                {sorgente && (
+ 
+                  <button type="button" disabled={!pronto} onClick={confermaImporta} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'linear-gradient(160deg, var(--bg-10b981) 0%, var(--bg-059669) 100%)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: pronto ? 'pointer' : 'default', opacity: pronto ? 1 : 0.5 }}>
+ 
+                    {imp.tipo === 'esercizi' ? `Importa${(imp.scelti || []).length ? ` (${(imp.scelti || []).length})` : ''}` : 'Importa'}
+ 
+                  </button>
+ 
+                )}
+ 
+              </div>
+ 
+            </div>
+ 
+          </div>
+ 
+        );
+ 
+      })()}
  
       {bloccoInModifica && (
  
@@ -20750,6 +21119,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
             <button onClick={addEditingWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
+            <button onClick={() => apriImporta('edit', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa settimana</button>
+ 
                 </div>
  
               </div>
@@ -20867,6 +21238,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       })}
  
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
+ 
+                      <button onClick={() => apriImporta('edit', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa giorno</button>
  
                     </div>
  
@@ -21344,7 +21717,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <input
  
-                                                type="text" 
+                                                type="text"
+ 
                                                 inputMode="numeric"
  
                                                 placeholder="0"
@@ -21707,7 +22081,13 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           })}
  
-                          <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px' }}>
+ 
+                            <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+ 
+                            <button onClick={() => apriImporta('edit', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>⇩ Importa esercizi</button>
+ 
+                          </div>
  
                         </div>
  
@@ -22355,6 +22735,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <button onClick={addWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
+                      <button onClick={() => apriImporta('free', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa settimana</button>
+ 
                     </div>
  
                   </div>
@@ -22470,6 +22852,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                           })}
  
                           <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
+ 
+                          <button onClick={() => apriImporta('free', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa giorno</button>
  
                         </div>
  
@@ -23275,7 +23659,13 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                               })}
  
-                              <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '8px' }}>
+ 
+                            <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
+ 
+                            <button onClick={() => apriImporta('free', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>⇩ Importa esercizi</button>
+ 
+                          </div>
  
                             </div>
  
@@ -23423,8 +23813,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       {athletes.map((a) => (
  
-                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
- 
+                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option> 
                       ))}
  
                     </select>
