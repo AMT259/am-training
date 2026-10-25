@@ -5914,6 +5914,10 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
       return <svg {...comuni}><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>;
  
+    case 'importa':
+ 
+      return <svg {...comuni}><path d="M12 3v12M7 10l5 5 5-5" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></svg>;
+ 
     case 'duplica':
  
       return <svg {...comuni}><rect x="8" y="8" width="13" height="13" rx="2" /><path d="M16 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h3" /></svg>;
@@ -10694,8 +10698,7 @@ const [notificationError, setNotificationError] = useState('');
  
       return;
  
-    }
- 
+    } 
     // --- 3. Esercizio di forza: il risultato è un peso ---
  
     // Con più serie conta ogni serie: "10/8/6/4" con "40/50/55/60" confronta 55 kg col 6RM, 60 kg col 4RM...
@@ -13240,7 +13243,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           });
  
-        }); 
+        });
+ 
       });
  
     return righe;
@@ -14721,8 +14725,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const newName = `Settimana ${n}`;
  
-    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] });
- 
+    updated.weeks.push({ weekNumber: updated.weeks.length + 1, weekName: newName, days: [{ dayNumber: 1, dayName: 'Giorno 1', blocks: [] }] }); 
     setEditingProgram(updated);
  
     setSelectedWeekView(newName);
@@ -21119,7 +21122,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
             <button onClick={addEditingWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
-            <button onClick={() => apriImporta('edit', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa settimana</button>
+            <button onClick={() => apriImporta('edit', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa settimana</button>
  
                 </div>
  
@@ -21153,7 +21156,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         }}
  
-                        style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
+                        style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', minWidth: 0 }}
  
                       />
  
@@ -21239,7 +21242,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <button onClick={() => addEditingDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
-                      <button onClick={() => apriImporta('edit', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa giorno</button>
+                      <button onClick={() => apriImporta('edit', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa giorno</button>
  
                     </div>
  
@@ -22085,7 +22088,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <button onClick={() => addBlockToEditingDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
-                            <button onClick={() => apriImporta('edit', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>⇩ Importa esercizi</button>
+                            <button onClick={() => apriImporta('edit', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa esercizi</button>
  
                           </div>
  
@@ -22735,7 +22738,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <button onClick={addWeek} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Settimana</button>
  
-                      <button onClick={() => apriImporta('free', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa settimana</button>
+                      <button onClick={() => apriImporta('free', 'settimana')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa settimana</button>
  
                     </div>
  
@@ -22769,7 +22772,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             }}
  
-                            style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '200px', maxWidth: '100%', minWidth: 0 }}
+                            style={{ fontWeight: 'bold', color: 'var(--fg-141416)', fontSize: '15px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', padding: '6px 10px', borderRadius: '6px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', minWidth: 0 }}
  
                           />
  
@@ -22853,7 +22856,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <button onClick={() => addDay(actualWIdx)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>+ Giorno</button>
  
-                          <button onClick={() => apriImporta('free', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}>⇩ Importa giorno</button>
+                          <button onClick={() => apriImporta('free', 'giorno')} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', border: '1px dashed var(--bd-10b981)' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa giorno</button>
  
                         </div>
  
@@ -23663,7 +23666,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <button onClick={() => addBlockToFreeDay(actualWIdx, actualDIdx)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Aggiungi Blocco</button>
  
-                            <button onClick={() => apriImporta('free', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>⇩ Importa esercizi</button>
+                            <button onClick={() => apriImporta('free', 'esercizi')} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-ecfdf5)', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', borderRadius: '999px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}><Icona nome="importa" size={14} style={{ marginRight: '5px' }} />Importa esercizi</button>
  
                           </div>
  
@@ -23813,7 +23816,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       {athletes.map((a) => (
  
-                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option> 
+                        <option key={a.id} value={a.id}>{a.full_name || a.email}</option>
+ 
                       ))}
  
                     </select>
@@ -24417,8 +24421,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
- 
-                          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica dati anagrafici</h3>
+                           <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>Modifica dati anagrafici</h3>
  
                           <button type="button" onClick={() => { if (anagraficiCopia) setPersonalData(anagraficiCopia); setAnagraficiInModifica(false); }} style={{ background: 'var(--bg-f1f5f9)', border: 'none', color: 'var(--fg-000000)', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>Annulla</button>
  
