@@ -11806,7 +11806,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {!conUsati && !mostraSc && nt && <span style={{ display: 'block' }}>L\u2019ultima volta</span>}
  
-              {nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}
+              {nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}><span style={{ fontStyle: 'normal', fontWeight: 'bold' }}>Note:</span> {`\u201c${nt}\u201d`}</span>}
  
             </span>
  
@@ -12856,7 +12856,8 @@ const [notificationError, setNotificationError] = useState('');
  
                             </span>
  
-                          </div> 
+                          </div>
+ 
                           {aperto && (
  
                             <div style={{ padding: '0 10px 10px 10px' }}>
@@ -13696,8 +13697,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     );
  
   };
- 
-  // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
+   // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
  
   // filtrando per periodo. Gli esercizi migliori vanno in cima.
  
@@ -20047,7 +20047,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
-{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
+{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}><span style={{ fontStyle: 'normal', fontWeight: 'bold' }}>Note:</span> {`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -23898,8 +23898,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                               <div style={{ flex: 1, minWidth: 0 }}>
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>
- 
-                                                  Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
+                                                   Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
  
                                                 </label>
  
@@ -26537,7 +26536,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                 )}
  
-{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
+{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}><span style={{ fontStyle: 'normal', fontWeight: 'bold' }}>Note:</span> {`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                                 {blk.type !== 'warmup' && (
  
