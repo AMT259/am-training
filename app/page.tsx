@@ -4752,8 +4752,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             onClick={() => setNascosto(true)}
  
-            style={{
- 
+            style={{ 
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
  
               margin: '18px auto 0 auto', padding: '9px 18px',
@@ -11820,6 +11819,68 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // iPhone: Safari decide di proporre nome/indirizzo leggendo il testo grigio (placeholder) e il nome
+ 
+  // delle caselle. Le caselle senza testo grigio (es. la tabella dei set) non lo fanno.
+ 
+  // Qui, per tutte le caselle tranne email e password, il testo grigio resta uguale a vederlo
+ 
+  // ma con un carattere invisibile tra le lettere, così Safari non riconosce parole come "nome" o "via".
+ 
+  useEffect(() => {
+ 
+    if (typeof document === 'undefined') return;
+ 
+    const INV = '\u2060';
+ 
+    const sistema = (el: any) => {
+ 
+      if (!el || !el.getAttribute) return;
+ 
+      const tipo = String(el.getAttribute('type') || '').toLowerCase();
+ 
+      if (tipo === 'email' || tipo === 'password' || tipo === 'checkbox' || tipo === 'radio' || tipo === 'file' || tipo === 'date' || tipo === 'time' || tipo === 'color' || tipo === 'range') return;
+ 
+      if (el.getAttribute('autocomplete') !== 'off') el.setAttribute('autocomplete', 'off');
+ 
+      if (!el.getAttribute('name')) el.setAttribute('name', 'c' + Math.random().toString(36).slice(2, 8));
+ 
+      const ph = el.getAttribute('placeholder');
+ 
+      if (ph && !ph.includes(INV)) el.setAttribute('placeholder', Array.from(ph).join(INV));
+ 
+    };
+ 
+    const tutti = (radice: any) => {
+ 
+      if (!radice || !radice.querySelectorAll) return;
+ 
+      if (radice.matches && radice.matches('input, textarea')) sistema(radice);
+ 
+      radice.querySelectorAll('input, textarea').forEach(sistema);
+ 
+    };
+ 
+    tutti(document.body);
+ 
+    const osserva = new MutationObserver((cambi) => {
+ 
+      cambi.forEach((c) => {
+ 
+        if (c.type === 'attributes') sistema(c.target);
+ 
+        else c.addedNodes.forEach((n: any) => tutti(n));
+ 
+      });
+ 
+    });
+ 
+    osserva.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['placeholder'] });
+ 
+    return () => osserva.disconnect();
+ 
+  }, []);
+ 
   // Barra in basso sempre attaccata al fondo dello schermo. Su iPhone, tornando
  
   // nell'app da un'altra o dopo la tastiera, Safari a volte la lascia spostata:
@@ -13697,7 +13758,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
     );
  
   };
-   // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
+ 
+  // Pannello dei progressi nel profilo: guarda tutti i programmi insieme,
  
   // filtrando per periodo. Gli esercizi migliori vanno in cima.
  
@@ -23898,7 +23960,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                               <div style={{ flex: 1, minWidth: 0 }}>
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>
-                                                   Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
+ 
+                                                  Esercizi con video <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>(facoltativo)</span>
  
                                                 </label>
  
