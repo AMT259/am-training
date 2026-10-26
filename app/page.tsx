@@ -4752,7 +4752,8 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             onClick={() => setNascosto(true)}
  
-            style={{ 
+            style={{
+ 
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
  
               margin: '18px auto 0 auto', padding: '9px 18px',
@@ -6900,8 +6901,7 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
  
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
- 
-  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
+   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
  
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
  
@@ -11818,68 +11818,6 @@ const [notificationError, setNotificationError] = useState('');
     );
  
   };
- 
-  // iPhone: Safari decide di proporre nome/indirizzo leggendo il testo grigio (placeholder) e il nome
- 
-  // delle caselle. Le caselle senza testo grigio (es. la tabella dei set) non lo fanno.
- 
-  // Qui, per tutte le caselle tranne email e password, il testo grigio resta uguale a vederlo
- 
-  // ma con un carattere invisibile tra le lettere, così Safari non riconosce parole come "nome" o "via".
- 
-  useEffect(() => {
- 
-    if (typeof document === 'undefined') return;
- 
-    const INV = '\u2060';
- 
-    const sistema = (el: any) => {
- 
-      if (!el || !el.getAttribute) return;
- 
-      const tipo = String(el.getAttribute('type') || '').toLowerCase();
- 
-      if (tipo === 'email' || tipo === 'password' || tipo === 'checkbox' || tipo === 'radio' || tipo === 'file' || tipo === 'date' || tipo === 'time' || tipo === 'color' || tipo === 'range') return;
- 
-      if (el.getAttribute('autocomplete') !== 'off') el.setAttribute('autocomplete', 'off');
- 
-      if (!el.getAttribute('name')) el.setAttribute('name', 'c' + Math.random().toString(36).slice(2, 8));
- 
-      const ph = el.getAttribute('placeholder');
- 
-      if (ph && !ph.includes(INV)) el.setAttribute('placeholder', Array.from(ph).join(INV));
- 
-    };
- 
-    const tutti = (radice: any) => {
- 
-      if (!radice || !radice.querySelectorAll) return;
- 
-      if (radice.matches && radice.matches('input, textarea')) sistema(radice);
- 
-      radice.querySelectorAll('input, textarea').forEach(sistema);
- 
-    };
- 
-    tutti(document.body);
- 
-    const osserva = new MutationObserver((cambi) => {
- 
-      cambi.forEach((c) => {
- 
-        if (c.type === 'attributes') sistema(c.target);
- 
-        else c.addedNodes.forEach((n: any) => tutti(n));
- 
-      });
- 
-    });
- 
-    osserva.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['placeholder'] });
- 
-    return () => osserva.disconnect();
- 
-  }, []);
  
   // Barra in basso sempre attaccata al fondo dello schermo. Su iPhone, tornando
  
@@ -19080,8 +19018,7 @@ fetchAllAthleteResultsForCoach();
                   <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
  
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
- 
-                      <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                       <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                       <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
  
