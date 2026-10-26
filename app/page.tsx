@@ -190,15 +190,15 @@ function TempoNuoto({ value, onChange, onCommit }: { value: string; onChange: (v
  
     <div onBlur={fine} style={{ display: 'flex', gap: '3px', alignItems: 'center', flexShrink: 0 }}>
  
-      <input type="text" inputMode="numeric" placeholder="min" value={min} onChange={(e) => onChange(componi(solo(e.target.value, 2), sec, cen))} style={box} />
+      <input autoComplete="off" type="text" inputMode="numeric" placeholder="min" value={min} onChange={(e) => onChange(componi(solo(e.target.value, 2), sec, cen))} style={box} />
  
       <span style={sep}>:</span>
  
-      <input type="text" inputMode="numeric" placeholder="sec" value={sec} onChange={(e) => onChange(componi(min, solo(e.target.value, 2), cen))} style={box} />
+      <input autoComplete="off" type="text" inputMode="numeric" placeholder="sec" value={sec} onChange={(e) => onChange(componi(min, solo(e.target.value, 2), cen))} style={box} />
  
       <span style={sep}>,</span>
  
-      <input type="text" inputMode="numeric" placeholder="cent" value={cen} onChange={(e) => onChange(componi(min, sec, solo(e.target.value, 2)))} style={box} />
+      <input autoComplete="off" type="text" inputMode="numeric" placeholder="cent" value={cen} onChange={(e) => onChange(componi(min, sec, solo(e.target.value, 2)))} style={box} />
  
     </div>
  
@@ -1038,11 +1038,11 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
       <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
  
-        <input type="number" min="0" placeholder="min" value={m} onChange={(e) => onChange(`${e.target.value}:${s}`)} onKeyDown={enter} style={box} />
+        <input autoComplete="off" type="number" min="0" placeholder="min" value={m} onChange={(e) => onChange(`${e.target.value}:${s}`)} onKeyDown={enter} style={box} />
  
         <span style={sep}>:</span>
  
-        <input type="number" min="0" max="59" placeholder="sec" value={s} onChange={(e) => onChange(`${m}:${e.target.value}`)} onKeyDown={enter} style={box} />
+        <input autoComplete="off" type="number" min="0" max="59" placeholder="sec" value={s} onChange={(e) => onChange(`${m}:${e.target.value}`)} onKeyDown={enter} style={box} />
  
       </div>
  
@@ -1062,11 +1062,11 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
       <div onBlur={groupBlur} style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
  
-        <input type="number" min="0" placeholder="round" value={r} onChange={(e) => onChange(`${e.target.value}+${rep}`)} onKeyDown={enter} style={box} />
+        <input autoComplete="off" type="number" min="0" placeholder="round" value={r} onChange={(e) => onChange(`${e.target.value}+${rep}`)} onKeyDown={enter} style={box} />
  
         <span style={sep}>+</span>
  
-        <input type="number" min="0" placeholder="rep" value={rep} onChange={(e) => onChange(`${r}+${e.target.value}`)} onKeyDown={enter} style={box} />
+        <input autoComplete="off" type="number" min="0" placeholder="rep" value={rep} onChange={(e) => onChange(`${r}+${e.target.value}`)} onKeyDown={enter} style={box} />
  
       </div>
  
@@ -1080,7 +1080,7 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
       <div onBlur={groupBlur}>
  
-        <input type="number" min="0" placeholder="rep" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '80px' }} />
+        <input autoComplete="off" type="number" min="0" placeholder="rep" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '80px' }} />
  
       </div>
  
@@ -1092,7 +1092,7 @@ function ScoreInput({ mode, value, onChange, onCommit }: any) {
  
     <div onBlur={groupBlur} style={{ width: '100%' }}>
  
-      <input type="text" placeholder="es. 100kg" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '100%', boxSizing: 'border-box' }} />
+      <input autoComplete="off" type="text" placeholder="es. 100kg" value={value || ''} onChange={(e) => onChange(e.target.value)} onKeyDown={enter} style={{ ...box, width: '100%', boxSizing: 'border-box' }} />
  
     </div>
  
@@ -1436,7 +1436,7 @@ function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | n
  
 // Testo del riquadro con le percentuali: "Il tuo 75% del 1RM" e su quale massimale è calcolato
  
-function dettaglioPercentuale(loadText: any, exMaxes: any, tuo: boolean): { titolo: string; base: string } | null {
+function dettaglioPercentuale(loadText: any, exMaxes: any, tuo: boolean): { titolo: string; base: string; intervallo: boolean } | null {
  
   const txt = String(loadText ?? '').trim();
  
@@ -1464,9 +1464,17 @@ function dettaglioPercentuale(loadText: any, exMaxes: any, tuo: boolean): { tito
  
   const kg = (v: number) => String(Math.round(v * 10) / 10).replace('.', ',');
  
+  // "Start from 50% to 80%", "dal 50% all'80%", "50-80%": è una salita, non un valore per serie
+ 
+  const intervallo = !pctRM && percentuali.length === 2 && !/\d\s*%?\s*\/\s*\d/.test(txt)
+ 
+    && /(from|to\b|\bda\b|\bdal\b|\ba\b|\bal|fino|\u2192|->|\d\s*%?\s*[-\u2013]\s*\d)/i.test(txt);
+ 
   return {
  
-    titolo: `${tuo ? 'Il tuo' : 'Il suo'} ${percentuali.join('/')}% del ${baseReps}RM`,
+    intervallo,
+ 
+    titolo: `${tuo ? 'Il tuo' : 'Il suo'} ${intervallo ? `${percentuali[0]}% \u2192 ${percentuali[1]}%` : `${percentuali.join('/')}%`} del ${baseReps}RM`,
  
     base: reale
  
@@ -2034,7 +2042,7 @@ function CampoEsercizio({ valore, onChange, elenco, placeholder, style }: any) {
  
     <div ref={contenitore} style={{ position: 'relative', ...(style || {}) }}>
  
-      <input
+      <input autoComplete="off"
  
         type="text"
  
@@ -2674,7 +2682,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
                     ) : (
  
-                    <input
+                    <input autoComplete="off"
  
                       type="text"
  
@@ -2710,7 +2718,7 @@ function FinestraSuperserie({ blk, dato, onSalva, onClose }: any) {
  
           </label>
  
-          <textarea
+          <textarea autoComplete="off"
  
             rows={3}
  
@@ -2894,7 +2902,7 @@ function CampoNote({ valore, onSalva, rows, placeholder, margine }: any) {
  
   return (
  
-    <textarea
+    <textarea autoComplete="off"
  
 rows={rows || 3}
  
@@ -3062,7 +3070,7 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
       <div style={{ flex: 1, minWidth: 0 }}>
  
-        <input
+        <input autoComplete="off"
  
           type="text"
  
@@ -3086,7 +3094,7 @@ function CaselleDoppie({ tipo, valore, onChange }: any) {
  
       <div style={{ flex: 1, minWidth: 0 }}>
  
-        <input
+        <input autoComplete="off"
  
           type="text"
  
@@ -3274,7 +3282,7 @@ function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
           <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0', fontWeight: 'bold' }}>NOTE</label>
  
-          <textarea
+          <textarea autoComplete="off"
  
             rows={3}
  
@@ -3494,7 +3502,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
               ) : (
  
-              <input
+              <input autoComplete="off"
  
                 type="text"
  
@@ -3548,7 +3556,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
           </label>
  
-          <textarea
+          <textarea autoComplete="off"
  
             rows={3}
  
@@ -3674,7 +3682,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
         <div style={{ flex: 1, minWidth: 0 }}>
  
-          <input
+          <input autoComplete="off"
  
             type="text"
  
@@ -3700,7 +3708,7 @@ function CampoTempo({ etichetta, valore, imposta, min, max }: any) {
  
         <div style={{ flex: 1, minWidth: 0 }}>
  
-          <input
+          <input autoComplete="off"
  
             type="text"
  
@@ -3766,7 +3774,7 @@ function CampoNumero({ etichetta, valore, imposta, passo, min, max }: any) {
  
         <button onClick={() => applica((parseInt(testo, 10) || 0) - passo)} style={btnPiccolo}>−</button>
  
-        <input
+        <input autoComplete="off"
  
           type="text"
  
@@ -9742,6 +9750,60 @@ const [notificationError, setNotificationError] = useState('');
  
     });
  
+    // Se un RM con più ripetizioni è più alto di uno con meno ripetizioni, alzo anche quello:
+ 
+    // se hai fatto 5 ripetizioni con 50 kg, una con 50 kg l'hai fatta di sicuro.
+ 
+    // Tocca solo gli RM già inseriti e solo per alzarli, mai per abbassarli.
+ 
+    const alzati: { ex: string; reps: number; kg: number }[] = [];
+ 
+    Object.keys(patch).forEach((k) => {
+ 
+      const p = patch[k];
+ 
+      const ex = merged[k];
+ 
+      if (!p || typeof p !== 'object' || !ex || typeof ex !== 'object') return;
+ 
+      const cambiati = Object.keys(p).filter((f) => /^\d+$/.test(f));
+ 
+      if (cambiati.length === 0) return;
+ 
+      const nuovo = { ...ex };
+ 
+      cambiati.forEach((f) => {
+ 
+        const n = parseInt(f, 10);
+ 
+        const kg = parseWeightValue(nuovo[f]);
+ 
+        if (!kg) return;
+ 
+        Object.keys(nuovo).filter((g) => /^\d+$/.test(g) && parseInt(g, 10) < n).forEach((g) => {
+ 
+          const attuale = parseWeightValue(nuovo[g]);
+ 
+          if (attuale !== null && attuale < kg) {
+ 
+            nuovo[g] = String(kg);
+ 
+            const gia = alzati.find((x) => x.ex === k && x.reps === parseInt(g, 10));
+ 
+            if (gia) gia.kg = Math.max(gia.kg, kg);
+ 
+            else alzati.push({ ex: k, reps: parseInt(g, 10), kg });
+ 
+          }
+ 
+        });
+ 
+      });
+ 
+      merged[k] = nuovo;
+ 
+    });
+ 
     const { error } = await supabase.from('athlete_maxes').upsert(
  
       { athlete_id: aid, maxes: merged, updated_at: new Date().toISOString() },
@@ -9750,7 +9812,13 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
-    if (!error) setMaxesOf(aid, merged);
+    if (!error) {
+ 
+      setMaxesOf(aid, merged);
+ 
+      for (const x of alzati) await recordMaxHistory(aid, x.ex, x.reps, x.kg, 'manuale');
+ 
+    }
  
     return { merged, error };
  
@@ -10094,7 +10162,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
+    const { merged: salvato } = await salvaMaxDiff(aid, {}, { [exercise]: { [reps]: value } });
  
     const w = parseWeightValue(value);
  
@@ -10140,7 +10208,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { merged: salvato, error } = await salvaMaxDiff(aid, cur, updatedAll);
+    const { merged: salvato, error } = await salvaMaxDiff(aid, {}, { [exercise]: { ...nuovi } });
  
     if (error) { alert('Errore: ' + error.message); return false; }
  
@@ -10212,7 +10280,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
+    const { merged: salvato } = await salvaMaxDiff(aid, {}, { [exercise]: { [key]: raw } });
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
  
@@ -10276,7 +10344,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
+    const { merged: salvato } = await salvaMaxDiff(aid, {}, { [name]: { result: raw, level } });
  
     const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
  
@@ -10330,7 +10398,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
+    const { merged: salvato } = await salvaMaxDiff(aid, {}, { [chiave]: { time: raw } });
  
     const sec = nuotoSecondi(raw);
  
@@ -10569,6 +10637,8 @@ const [notificationError, setNotificationError] = useState('');
       if (isCoachEditing) {
  
         setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: merged });
+ 
+        setSavedCoachMaxes({ ...savedCoachMaxes, [athleteId]: merged });
  
       } else {
  
@@ -11672,6 +11742,84 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Un solo riquadro blu nei blocchi di forza: in alto il peso da usare, sotto l'ultima volta (carichi e note)
+ 
+  const riquadroConsigli = (blk: any, hint: string | null, det: any, usati: any[] | null, ris: any, resultKey: string, maxes: any, piccolo: boolean) => {
+ 
+    const ds = settimanaScorsaDato(ris, resultKey);
+ 
+    const sc = ds.score;
+ 
+    const nt = ds.notes;
+ 
+    const conUsati = !!usati && usati.length > 0;
+ 
+    const mostraSc = !!sc && !giaNelUltimoCarico(sc, blk, maxes, usati);
+ 
+    const conUltima = conUsati || mostraSc || !!nt;
+ 
+    if (!hint && !conUltima) return null;
+ 
+    const valore = hint ? (det?.intervallo ? hint.replace('\u2248 ', '').replace(' / ', ' \u2192 ') : det ? hint.replace('\u2248 ', '') : hint) : '';
+ 
+    return (
+ 
+      <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: piccolo ? '7px 9px' : '9px 11px', marginTop: piccolo ? '7px' : '8px' }}>
+ 
+        {hint && (
+ 
+          <>
+ 
+            <span style={{ display: 'block', fontSize: piccolo ? '9px' : '10px', color: 'var(--fg-1e40af)', marginBottom: '2px' }}>PESO DA USARE</span>
+ 
+            <span style={{ display: 'block', fontSize: piccolo ? '13px' : '15px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{det ? `${det.titolo}: ${valore}` : valore}</span>
+ 
+            {det && <span style={{ display: 'block', fontSize: piccolo ? '10.5px' : '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{det.base}</span>}
+ 
+          </>
+ 
+        )}
+ 
+        {hint && conUltima && <div style={{ borderTop: '1px solid var(--bd-bfdbfe)', margin: '8px 0' }} />}
+ 
+        {conUltima && (
+ 
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+ 
+            <Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px', flexShrink: 0 }} />
+ 
+            <span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>
+ 
+              {conUsati && (
+ 
+                <span style={{ display: 'block' }}>
+ 
+                  {usati!.length === 1 ? 'L\u2019ultima volta' : 'Carichi gi\u00e0 usati'}: <strong>{usati![0].reps ? `${usati![0].reps} rip. \u2192 ` : ''}{mostraCarico(usati![0])}</strong>
+ 
+                  {usati!.length > 1 && (<span style={{ fontSize: '11px', opacity: 0.8 }}>{' \u00b7 ' + usati!.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' \u00b7 ')}</span>)}
+ 
+                </span>
+ 
+              )}
+ 
+              {mostraSc && <span style={{ display: 'block', marginTop: conUsati ? '3px' : 0 }}>La settimana scorsa: <strong>{sc}</strong></span>}
+ 
+              {!conUsati && !mostraSc && nt && <span style={{ display: 'block' }}>L\u2019ultima volta</span>}
+ 
+              {nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}
+ 
+            </span>
+ 
+          </div>
+ 
+        )}
+ 
+      </div>
+ 
+    );
+ 
+  };
+ 
   // Barra in basso sempre attaccata al fondo dello schermo. Su iPhone, tornando
  
   // nell'app da un'altra o dopo la tastiera, Safari a volte la lascia spostata:
@@ -12708,8 +12856,7 @@ const [notificationError, setNotificationError] = useState('');
  
                             </span>
  
-                          </div>
- 
+                          </div> 
                           {aperto && (
  
                             <div style={{ padding: '0 10px 10px 10px' }}>
@@ -13694,7 +13841,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Dal</label>
  
-              <input
+              <input autoComplete="off"
  
                 type="date"
  
@@ -13712,7 +13859,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Al</label>
  
-              <input
+              <input autoComplete="off"
  
                 type="date"
  
@@ -14336,7 +14483,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             </label>
  
-            <input
+            <input autoComplete="off"
  
               type="text"
  
@@ -14356,7 +14503,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             </label>
  
-            <input
+            <input autoComplete="off"
  
               type="date"
  
@@ -14374,7 +14521,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
             </label>
  
-            <textarea
+            <textarea autoComplete="off"
  
               rows={2}
  
@@ -15748,7 +15895,7 @@ fetchAllAthleteResultsForCoach();
  
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '320px' }}>
  
-          <input
+          <input autoComplete="off"
  
             type="password"
  
@@ -15762,7 +15909,7 @@ fetchAllAthleteResultsForCoach();
  
           />
  
-          <input
+          <input autoComplete="off"
  
             type="password"
  
@@ -15976,9 +16123,9 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ display: 'flex', gap: '12px' }}>
  
-                <input type="text" placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
+                <input autoComplete="off" type="text" placeholder="Nome" value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
-                <input type="text" placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
+                <input autoComplete="off" type="text" placeholder="Cognome" value={lastName} onChange={(e) => setLastName(e.target.value)} required style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
               </div>
  
@@ -15986,7 +16133,7 @@ fetchAllAthleteResultsForCoach();
  
                 <label style={{ fontSize: '12px', color: 'var(--fg-94a3b8)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                <input type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
+                <input autoComplete="off" type="date" value={signupBirthDate} onChange={(e) => cambiaDataNascita(e.target.value)} required style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', boxSizing: 'border-box' }} />
  
               </div>
  
@@ -16006,7 +16153,7 @@ fetchAllAthleteResultsForCoach();
  
                   </p>
  
-                  <input
+                  <input autoComplete="off"
  
                     type="text"
  
@@ -16060,9 +16207,9 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ display: 'flex', gap: '12px' }}>
  
-                <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
-                <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
+                <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={signupHeight} onChange={(e) => setSignupHeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
               </div>
  
@@ -16084,7 +16231,7 @@ fetchAllAthleteResultsForCoach();
  
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: 'var(--fg-94a3b8)', lineHeight: 1.4 }}>
  
-                <input
+                <input autoComplete="off"
  
                   type="checkbox"
  
@@ -16776,7 +16923,7 @@ fetchAllAthleteResultsForCoach();
  
                   <>
  
-                    <input type="text" placeholder="Cerca un programma..." value={cercaImporta} onChange={(e: any) => setCercaImporta(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                    <input autoComplete="off" type="text" placeholder="Cerca un programma..." value={cercaImporta} onChange={(e: any) => setCercaImporta(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px 12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                     {elenco.length === 0 && <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--fg-94a3b8)' }}>Nessun programma trovato.</p>}
  
@@ -16882,7 +17029,7 @@ fetchAllAthleteResultsForCoach();
  
                                 <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', marginBottom: '6px', borderRadius: '10px', border: sel ? '1px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)', background: sel ? 'rgba(var(--acc-rgb), 0.10)' : 'var(--bg-f8fafc)', cursor: 'pointer' }}>
  
-                                  <input type="checkbox" checked={sel} onChange={() => aggiorna({ scelti: sel ? (imp.scelti || []).filter((x: number) => x !== i) : [...(imp.scelti || []), i] })} />
+                                  <input autoComplete="off" type="checkbox" checked={sel} onChange={() => aggiorna({ scelti: sel ? (imp.scelti || []).filter((x: number) => x !== i) : [...(imp.scelti || []), i] })} />
  
                                   <span style={{ minWidth: 0 }}>
  
@@ -17232,15 +17379,15 @@ fetchAllAthleteResultsForCoach();
  
                 {m.tipo === 'strength' && (
  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '6px' }}>
  
                     {REP_SCHEMES.map((r) => (
  
                       <label key={r} style={{ display: 'block', minWidth: 0 }}>
  
-                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>{`${r} RM (kg)`}</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px', textAlign: 'center', whiteSpace: 'nowrap' }}>{`${r} RM`}</span>
  
-                        <input type="text" inputMode="decimal" placeholder="kg" value={b[String(r)] ?? ''} onChange={(e) => aggiornaBozzaMax({ [String(r)]: e.target.value })} style={campo} />
+                        <input autoComplete="off" type="text" inputMode="decimal" placeholder="kg" value={b[String(r)] ?? ''} onChange={(e) => aggiornaBozzaMax({ [String(r)]: e.target.value })} style={campo} />
  
                       </label>
  
@@ -17268,7 +17415,7 @@ fetchAllAthleteResultsForCoach();
  
                     <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '3px' }}>Ripetizioni unbroken</span>
  
-                    <input type="number" min="0" inputMode="numeric" placeholder="rep" value={b.valore ?? ''} onChange={(e) => aggiornaBozzaMax({ valore: e.target.value })} style={campo} />
+                    <input autoComplete="off" type="number" min="0" inputMode="numeric" placeholder="rep" value={b.valore ?? ''} onChange={(e) => aggiornaBozzaMax({ valore: e.target.value })} style={campo} />
  
                   </label>
  
@@ -17458,7 +17605,7 @@ fetchAllAthleteResultsForCoach();
  
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.4, marginBottom: '14px' }}>
  
-              <input type="checkbox" checked={consentGateChecked} onChange={(e) => setConsentGateChecked(e.target.checked)} style={{ marginTop: '3px', flexShrink: 0 }} />
+              <input autoComplete="off" type="checkbox" checked={consentGateChecked} onChange={(e) => setConsentGateChecked(e.target.checked)} style={{ marginTop: '3px', flexShrink: 0 }} />
  
               <span>Ho letto l&apos;informativa e acconsento al trattamento dei miei dati personali, inclusi i dati relativi allo stato di salute, per la programmazione degli allenamenti.</span>
  
@@ -18470,7 +18617,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Carica Nuova Immagine Banner:</label>
  
-                  <input type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setBannerImageFile(e.target.files[0]); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)' }} />
+                  <input autoComplete="off" type="file" accept="image/*" onChange={(e) => { if (e.target.files && e.target.files[0]) setBannerImageFile(e.target.files[0]); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)' }} />
  
                 </div>
  
@@ -18490,7 +18637,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '6px' }}>Link di destinazione:</label>
  
-                  <input type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
+                  <input autoComplete="off" type="url" placeholder="https://tuosito.com" value={bannerData.link_url} onChange={(e) => setBannerData({ ...bannerData, link_url: e.target.value })} style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', fontSize: '13px', color: 'var(--fg-000000)', boxSizing: 'border-box' }} />
  
                 </div>
  
@@ -18554,7 +18701,7 @@ fetchAllAthleteResultsForCoach();
  
                 </button>
  
-                <textarea
+                <textarea autoComplete="off"
  
                   rows={4}
  
@@ -18610,7 +18757,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Titolo: La tua prova sta per finire</span>
  
-                  <textarea
+                  <textarea autoComplete="off"
  
                     rows={3}
  
@@ -18630,7 +18777,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Titolo: Com&apos;è andata la prova?</span>
  
-                  <textarea
+                  <textarea autoComplete="off"
  
                     rows={3}
  
@@ -18650,7 +18797,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Puoi aggiungere un&apos;offerta, es. -10% sul primo mese</span>
  
-                  <textarea
+                  <textarea autoComplete="off"
  
                     rows={3}
  
@@ -18670,7 +18817,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>{'{nome}'}, {'{fatti}'} e {'{totali}'} diventano il nome e gli allenamenti fatti nella prova</span>
  
-                  <textarea
+                  <textarea autoComplete="off"
  
                     rows={3}
  
@@ -18724,7 +18871,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Messaggio</label>
  
-                  <textarea
+                  <textarea autoComplete="off"
  
                     rows={5}
  
@@ -18744,7 +18891,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link al tuo sito</label>
  
-                  <input
+                  <input autoComplete="off"
  
                     type="url"
  
@@ -18800,7 +18947,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Titolo</label>
  
-                  <input type="text" placeholder="Il tuo abbonamento è scaduto" value={scadutoCta.title} onChange={(e) => setScadutoCta({ ...scadutoCta, title: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                  <input autoComplete="off" type="text" placeholder="Il tuo abbonamento è scaduto" value={scadutoCta.title} onChange={(e) => setScadutoCta({ ...scadutoCta, title: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                 </div>
  
@@ -18808,7 +18955,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Messaggio</label>
  
-                  <textarea rows={4} placeholder={'Rinnova il tuo percorso per tornare ad allenarti con le tue schede personalizzate.'} value={scadutoCta.text} onChange={(e) => setScadutoCta({ ...scadutoCta, text: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                  <textarea autoComplete="off" rows={4} placeholder={'Rinnova il tuo percorso per tornare ad allenarti con le tue schede personalizzate.'} value={scadutoCta.text} onChange={(e) => setScadutoCta({ ...scadutoCta, text: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
                 </div>
  
@@ -18816,7 +18963,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link per rinnovare</label>
  
-                  <input type="url" placeholder="Se vuoto usa il link dell'invito a fine prova" value={scadutoCta.link_url} onChange={(e) => setScadutoCta({ ...scadutoCta, link_url: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                  <input autoComplete="off" type="url" placeholder="Se vuoto usa il link dell'invito a fine prova" value={scadutoCta.link_url} onChange={(e) => setScadutoCta({ ...scadutoCta, link_url: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                 </div>
  
@@ -18824,7 +18971,7 @@ fetchAllAthleteResultsForCoach();
  
                   <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Testo del pulsante</label>
  
-                  <input type="text" placeholder="Rinnova l&apos;abbonamento" value={scadutoCta.button} onChange={(e) => setScadutoCta({ ...scadutoCta, button: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                  <input autoComplete="off" type="text" placeholder="Rinnova l&apos;abbonamento" value={scadutoCta.button} onChange={(e) => setScadutoCta({ ...scadutoCta, button: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                 </div>
  
@@ -18872,13 +19019,13 @@ fetchAllAthleteResultsForCoach();
  
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
  
-                      <input type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                      <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                       <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
  
                     </div>
  
-                    <textarea rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+                    <textarea autoComplete="off" rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                   </div>
  
@@ -18888,7 +19035,7 @@ fetchAllAthleteResultsForCoach();
  
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Testo del pulsante (scaduto)</label>
  
-                <input type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneScaduto} value={motivazioni.bottoneScaduto || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneScaduto: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '14px' }} />
+                <input autoComplete="off" type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneScaduto} value={motivazioni.bottoneScaduto || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneScaduto: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '14px' }} />
  
                 <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '6px 0 6px 0' }}>Prova terminata</span>
  
@@ -18898,13 +19045,13 @@ fetchAllAthleteResultsForCoach();
  
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
  
-                      <input type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                      <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                       <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
  
                     </div>
  
-                    <textarea rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+                    <textarea autoComplete="off" rows={3} placeholder="Testo del messaggio" value={mm.text || ''} onChange={(e) => setMotivazioni({ ...motivazioni, prova: (motivazioni.prova || []).map((x: any, k: number) => (k === i ? { ...x, text: e.target.value } : x)) })} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                   </div>
  
@@ -18914,7 +19061,7 @@ fetchAllAthleteResultsForCoach();
  
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Testo del pulsante (prova)</label>
  
-                <input type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneProva} value={motivazioni.bottoneProva || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneProva: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px' }} />
+                <input autoComplete="off" type="text" placeholder={MOTIVAZIONI_PREDEFINITE.bottoneProva} value={motivazioni.bottoneProva || ''} onChange={(e) => setMotivazioni({ ...motivazioni, bottoneProva: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '12px' }} />
  
                 </fieldset>
  
@@ -18952,7 +19099,7 @@ fetchAllAthleteResultsForCoach();
  
                 <fieldset disabled={sezioneBanner !== 'logo'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
-                <input
+                <input autoComplete="off"
  
                   type="url"
  
@@ -19072,7 +19219,7 @@ fetchAllAthleteResultsForCoach();
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
  
-                          <input type="text" value={athData.full_name} onChange={(e) => updateField('full_name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <input autoComplete="off" type="text" value={athData.full_name} onChange={(e) => updateField('full_name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -19080,7 +19227,7 @@ fetchAllAthleteResultsForCoach();
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Email</label>
  
-                          <input type="text" value={selectedCoachAthlete.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <input autoComplete="off" type="text" value={selectedCoachAthlete.email || ''} disabled style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -19088,7 +19235,7 @@ fetchAllAthleteResultsForCoach();
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                          <input type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <input autoComplete="off" type="date" value={athData.birth_date} onChange={(e) => updateField('birth_date', e.target.value)} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -19098,7 +19245,7 @@ fetchAllAthleteResultsForCoach();
  
                             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                            <input type="text" placeholder="Nome e cognome" value={athData.guardian_name || ''} onChange={(e) => updateField('guardian_name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                            <input autoComplete="off" type="text" placeholder="Nome e cognome" value={athData.guardian_name || ''} onChange={(e) => updateField('guardian_name', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                           </div>
  
@@ -19126,7 +19273,7 @@ fetchAllAthleteResultsForCoach();
  
                             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
  
-                            <input type="number" step="0.1" min="0" value={athData.weight} onChange={(e) => updateField('weight', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                            <input autoComplete="off" type="number" step="0.1" min="0" value={athData.weight} onChange={(e) => updateField('weight', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                           </div>
  
@@ -19134,7 +19281,7 @@ fetchAllAthleteResultsForCoach();
  
                             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
  
-                            <input type="number" step="0.1" min="0" value={athData.height} onChange={(e) => updateField('height', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                            <input autoComplete="off" type="number" step="0.1" min="0" value={athData.height} onChange={(e) => updateField('height', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                           </div>
  
@@ -19820,47 +19967,9 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                         const det = hint ? dettaglioPercentuale(blk.load, exM, false) : null;
  
-                                        const riquadroPeso = hint ? (
- 
-                                            <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '7px 9px', marginTop: '7px' }}>
- 
-                                              <span style={{ display: 'block', fontSize: '9px', color: 'var(--fg-1e40af)' }}>PESO DA USARE</span>
- 
-                                              <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{det ? `${det.titolo} \u00e8 ${hint.replace('\u2248 ', '')}` : hint}</span>
- 
-                                              {det && <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '1px' }}>{det.base}</span>}
- 
-                                            </div>
- 
-                                        ) : null;
- 
                                         const usati = ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps);
  
-                                        if (!usati || usati.length === 0) return riquadroPeso;
- 
-                                        return (
- 
-                                          <>
- 
-                                          {riquadroPeso}
- 
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
- 
-                                            <Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} />
- 
-                                            <span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                              {usati.length === 1 ? 'L\u2019ultima volta' : 'Carichi gi\u00e0 usati'}: <strong>{usati[0].reps ? `${usati[0].reps} rip. \u2192 ` : ''}{mostraCarico(usati[0])}</strong>
- 
-                                              {usati.length > 1 && (<span style={{ fontSize: '11px', opacity: 0.8 }}>{' \u00b7 ' + usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' \u00b7 ')}</span>)}
- 
-                                            </span>
- 
-                                          </div>
- 
-                                          </>
- 
-                                        );
+                                        return riquadroConsigli(blk, hint, det, usati, coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey, coachAthleteMaxes[selectedCoachAthlete.id], true);
  
                                       })()}
  
@@ -19938,7 +20047,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
-{(() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
+{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(coachAllResults[prog.id]?.[selectedCoachAthlete.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, coachAthleteMaxes[selectedCoachAthlete.id], ultimoCaricoUsatoPer(selectedCoachAthlete.id, blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -20132,7 +20241,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
  
-                        <input
+                        <input autoComplete="off"
  
                           type="text"
  
@@ -20186,7 +20295,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 <>
  
-                                  <input
+                                  <input autoComplete="off"
  
                                     type="text"
  
@@ -20214,7 +20323,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, cursor: 'pointer' }}>
  
-                                    <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
+                                    <input autoComplete="off" type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
  
                                     <span style={{ fontSize: '13px', color: 'var(--fg-000000)' }}>{ex.name}</span>
  
@@ -20262,7 +20371,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', whiteSpace: 'nowrap' }}>{reps} RM</span>
  
-                                <input
+                                <input autoComplete="off"
  
                                   type="text"
  
@@ -20328,7 +20437,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} list="pr_suggestions" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                      <input autoComplete="off" type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('metcon'); }} list="pr_suggestions" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                       <datalist id="pr_suggestions">
  
@@ -20406,7 +20515,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <div style={{ display: 'flex', gap: '8px' }}>
  
-                      <input type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                      <input autoComplete="off" type="text" placeholder="Nuovo test (es. 400mt Run)" value={newPrName} onChange={(e) => setNewPrName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addPrExercise('gym'); }} list="pr_suggestions_gym" style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                       <datalist id="pr_suggestions_gym">
  
@@ -20786,7 +20895,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
  
-                                  <input type="date" value={fineDaExtra(b.extra)} min={baseISO} disabled={!baseISO} onChange={(e) => setBozzaAbb({ ...b, extra: extraDaFine(e.target.value) })} style={{ flex: '1 1 160px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }} />
+                                  <input autoComplete="off" type="date" value={fineDaExtra(b.extra)} min={baseISO} disabled={!baseISO} onChange={(e) => setBozzaAbb({ ...b, extra: extraDaFine(e.target.value) })} style={{ flex: '1 1 160px', minWidth: 0, maxWidth: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)' }} />
  
                                   {b.extra > 0 && (
  
@@ -20840,7 +20949,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
  
-                          <textarea value={athAnamnesi.goal} onChange={(e) => updateField('goal', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea autoComplete="off" value={athAnamnesi.goal} onChange={(e) => updateField('goal', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -20884,7 +20993,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
  
-                          <textarea value={athAnamnesi.equipment} onChange={(e) => updateField('equipment', e.target.value)} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea autoComplete="off" value={athAnamnesi.equipment} onChange={(e) => updateField('equipment', e.target.value)} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -20892,7 +21001,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
  
-                          <textarea value={athAnamnesi.physical_issues} onChange={(e) => updateField('physical_issues', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                          <textarea autoComplete="off" value={athAnamnesi.physical_issues} onChange={(e) => updateField('physical_issues', e.target.value)} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                         </div>
  
@@ -20926,7 +21035,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
  <div style={{ position: 'relative', marginBottom: '12px' }}>
  
-   <input
+   <input autoComplete="off"
  
      type="text"
  
@@ -20982,21 +21091,21 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         <div style={{ display: 'flex', gap: '9px' }}>
  
-                          <input type="text" placeholder="Nome" value={newAthlete.first_name} onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                          <input autoComplete="off" type="text" placeholder="Nome" value={newAthlete.first_name} onChange={(e) => setNewAthlete({ ...newAthlete, first_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                          <input type="text" placeholder="Cognome" value={newAthlete.last_name} onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                          <input autoComplete="off" type="text" placeholder="Cognome" value={newAthlete.last_name} onChange={(e) => setNewAthlete({ ...newAthlete, last_name: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
-                        <input type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                        <input autoComplete="off" type="email" placeholder="Email" value={newAthlete.email} onChange={(e) => setNewAthlete({ ...newAthlete, email: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        <input type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                        <input autoComplete="off" type="text" placeholder="Password provvisoria (min. 6 caratteri)" value={newAthlete.password} onChange={(e) => setNewAthlete({ ...newAthlete, password: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         <div>
  
                           <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                          <input type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                          <input autoComplete="off" type="date" value={newAthlete.birth_date} onChange={(e) => setNewAthlete({ ...newAthlete, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
@@ -21006,7 +21115,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                            <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                            <input autoComplete="off" type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                           </div>
  
@@ -21030,9 +21139,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         <div style={{ display: 'flex', gap: '9px' }}>
  
-                          <input type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                          <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Peso (kg)" value={newAthlete.weight} onChange={(e) => setNewAthlete({ ...newAthlete, weight: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                          <input type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                          <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Altezza (cm)" value={newAthlete.height} onChange={(e) => setNewAthlete({ ...newAthlete, height: e.target.value })} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         </div>
  
@@ -21140,7 +21249,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Titolo Programma:</label>
  
-              <input type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
+              <input autoComplete="off" type="text" value={editingProgram.title} onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
  
               {editingProgram.trialStyle ? (
  
@@ -21160,7 +21269,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
  
-                  <input type="date" value={editingProgram.startDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, startDate: e.target.value })} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
+                  <input autoComplete="off" type="date" value={editingProgram.startDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, startDate: e.target.value })} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
  
 {editingProgram.startDate && (<button type="button" onClick={() => setEditingProgram({ ...editingProgram, startDate: '' })} style={{ marginTop: '6px', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Cancella data</button>)}
  
@@ -21170,7 +21279,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
  
-                  <input type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
+                  <input autoComplete="off" type="date" value={editingProgram.endDate || ''} onChange={(e) => setEditingProgram({ ...editingProgram, endDate: e.target.value })} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
  
 {editingProgram.endDate && (<button type="button" onClick={() => setEditingProgram({ ...editingProgram, endDate: '' })} style={{ marginTop: '6px', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Cancella data</button>)}
  
@@ -21284,7 +21393,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 </div>
  
-                <input type="text" placeholder="Cerca atleta..." value={cercaAtletaProg} onChange={(e: any) => setCercaAtletaProg(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', marginBottom: '6px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                <input autoComplete="off" type="text" placeholder="Cerca atleta..." value={cercaAtletaProg} onChange={(e: any) => setCercaAtletaProg(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', marginBottom: '6px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                 <div style={{ maxHeight: '220px', overflowY: 'auto', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '10px' }}>
  
@@ -21302,7 +21411,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--fg-000000)', marginBottom: '6px', cursor: 'pointer' }}>
  
-                        <input
+                        <input autoComplete="off"
  
                           type="checkbox"
  
@@ -21384,7 +21493,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
-                      <input
+                      <input autoComplete="off"
  
                         type="text"
  
@@ -21506,7 +21615,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 180px', minWidth: 0 }}>
  
-                              <input
+                              <input autoComplete="off"
  
                                 type="text"
  
@@ -21782,7 +21891,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   ) : (
  
-                                    <input type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                    <input autoComplete="off" type="text" value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                   )}
  
@@ -21796,7 +21905,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                     <div style={{ marginBottom: '10px' }}>
  
-                                      <input type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
+                                      <input autoComplete="off" type="url" value={block.videoUrl || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
  
                                       {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
  
@@ -21864,7 +21973,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                         <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE DEL COACH</label>
  
-                                        <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        <input autoComplete="off" type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                         <p style={{ fontSize: '10px', color: 'var(--fg-64748b)', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
  
@@ -21880,7 +21989,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                            <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                                            <input autoComplete="off" type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                                           </div>
  
@@ -21888,7 +21997,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>N. round</label>
  
-                                            <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+                                            <input autoComplete="off" type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
  
                                           </div>
  
@@ -21900,7 +22009,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                                <input
+                                                <input autoComplete="off"
  
                                                   type="text"
  
@@ -21918,7 +22027,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
-                                                <input
+                                                <input autoComplete="off"
  
                                                   type="text"
  
@@ -21948,7 +22057,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="text"
  
@@ -21966,7 +22075,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="text"
  
@@ -22014,7 +22123,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="text"
  
@@ -22030,7 +22139,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               {block.type !== 'emom' && (
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="text"
  
@@ -22054,7 +22163,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="text"
  
@@ -22104,7 +22213,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             </div>
  
-                                            <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
+                                            <input autoComplete="off" type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('edit', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                           </div>
  
@@ -22118,7 +22227,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
       <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
-      <textarea rows={3} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+      <textarea autoComplete="off" rows={3} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                                       </div>
  
@@ -22128,7 +22237,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                         <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
  
-                                        <textarea
+                                        <textarea autoComplete="off"
  
                                           rows={6}
  
@@ -22162,7 +22271,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                           <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</label>
  
-                                          <textarea rows={3} value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ minHeight: '78px', resize: 'vertical', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
+                                          <textarea autoComplete="off" rows={3} value={block.notes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ minHeight: '78px', resize: 'vertical', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                         </div>
  
@@ -22174,7 +22283,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                         <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
-                                        <textarea value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
+                                        <textarea autoComplete="off" value={block.wodNotes || ''} onChange={(e) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                           {(() => {
  
@@ -22232,7 +22341,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Round</label>
  
-                                            <input
+                                            <input autoComplete="off"
  
                                               type="text"
  
@@ -22274,7 +22383,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
  
-                                              <input
+                                              <input autoComplete="off"
  
                                                 type="url"
  
@@ -22358,11 +22467,11 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
-                <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={editingProgram.trainingTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trainingTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                <textarea autoComplete="off" rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={editingProgram.trainingTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, trainingTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
  
                 <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
  
-                <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                <textarea autoComplete="off" rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={editingProgram.nutritionTips || ''} onChange={(e) => setEditingProgram({ ...editingProgram, nutritionTips: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
               </div>
  
@@ -22486,9 +22595,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <form onSubmit={addGlobalExercise} style={{ background: 'var(--bg-f8fafc)', padding: '14px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid var(--bd-e2e8f0)' }}>
  
-                      <input type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
+                      <input autoComplete="off" type="text" placeholder="Nome Esercizio" value={newExName} onChange={(e) => setNewExName(e.target.value)} required style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
  
-                      <input type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
+                      <input autoComplete="off" type="url" placeholder="Link Video" value={newExVideo} onChange={(e) => setNewExVideo(e.target.value)} style={{ padding: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px' }} />
  
                       <select value={newExType} onChange={(e) => setNewExType(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', background: 'var(--bg-ffffff)', marginBottom: '10px' }}>
  
@@ -22510,7 +22619,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
  
-                    <input
+                    <input autoComplete="off"
  
                       type="text"
  
@@ -22564,7 +22673,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Nome esercizio</label>
  
-                            <input
+                            <input autoComplete="off"
  
                               type="text"
  
@@ -22580,7 +22689,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Link video</label>
  
-                            <input
+                            <input autoComplete="off"
  
                               type="url"
  
@@ -22602,7 +22711,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             </label>
  
-                            <input
+                            <input autoComplete="off"
  
                               type="text"
  
@@ -22686,7 +22795,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                               <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '5px', cursor: 'pointer' }}>
  
-                                <input type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
+                                <input autoComplete="off" type="checkbox" checked={!!ex.track_max} onChange={(e) => toggleTrackMax(ex.id, e.target.checked)} />
  
                                 <span style={{ fontSize: '11px', color: 'var(--fg-0284c7)', fontWeight: 'bold' }}>Traccia massimali</span>
  
@@ -22756,7 +22865,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Nuovo Allenamento</h3>
  
-                  <input type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
+                  <input autoComplete="off" type="text" placeholder="Titolo Programma" value={programTitle} onChange={(e) => setProgramTitle(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', marginBottom: '12px', boxSizing: 'border-box' }} />
  
                   {programTrialStyle ? (
  
@@ -22776,7 +22885,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Inizio:</label>
  
-                      <input type="date" value={programStartDate} onChange={(e) => setProgramStartDate(e.target.value)} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
+                      <input autoComplete="off" type="date" value={programStartDate} onChange={(e) => setProgramStartDate(e.target.value)} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
  
 {programStartDate && (<button type="button" onClick={() => setProgramStartDate('')} style={{ marginTop: '6px', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Cancella data</button>)}
  
@@ -22786,7 +22895,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label style={{ fontSize: '12px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '6px' }}>Data Fine:</label>
  
-                      <input type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
+                      <input autoComplete="off" type="date" value={programEndDate} onChange={(e) => setProgramEndDate(e.target.value)} style={{ display: 'block', width: '100%', maxWidth: '100%', minWidth: 0, minHeight: '44px', padding: '10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', textAlign: 'left' }} />
  
 {programEndDate && (<button type="button" onClick={() => setProgramEndDate('')} style={{ marginTop: '6px', background: 'var(--bg-fef2f2)', border: '1px solid var(--bd-fecaca)', color: 'var(--fg-b91c1c)', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Cancella data</button>)}
  
@@ -22898,7 +23007,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 </div>
  
-                <input type="text" placeholder="Cerca atleta..." value={cercaAtletaProg} onChange={(e: any) => setCercaAtletaProg(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', marginBottom: '6px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                <input autoComplete="off" type="text" placeholder="Cerca atleta..." value={cercaAtletaProg} onChange={(e: any) => setCercaAtletaProg(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px 11px', marginBottom: '6px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                     <div style={{ maxHeight: '220px', overflowY: 'auto', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', borderRadius: '8px', padding: '10px' }}>
  
@@ -22918,7 +23027,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                           <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--fg-000000)', marginBottom: '6px', cursor: 'pointer' }}>
  
-                            <input
+                            <input autoComplete="off"
  
                               type="checkbox"
  
@@ -22990,7 +23099,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
  
-                          <input
+                          <input autoComplete="off"
  
                             type="text"
  
@@ -23110,7 +23219,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 180px', minWidth: 0 }}>
  
-                                  <input
+                                  <input autoComplete="off"
  
                                     type="text"
  
@@ -23350,7 +23459,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                       ) : (
  
-                                        <input type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                        <input autoComplete="off" type="text" value={block.name} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} placeholder="Nome WOD" style={{ width: '100%', padding: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                       )}
  
@@ -23364,7 +23473,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                         <div style={{ marginBottom: '10px' }}>
  
-                                          <input type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
+                                          <input autoComplete="off" type="url" value={block.videoUrl || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'videoUrl', e.target.value)} placeholder="Link video esercizio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '6px', fontSize: '12px' }} />
  
                                           {block.type === 'forza' && block.name && block.name.trim() && !exerciseLibrary.some((ex: any) => sameName(ex.name, block.name)) && (
  
@@ -23432,7 +23541,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE DEL COACH</label>
  
-                                            <input type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+                                            <input autoComplete="off" type="text" placeholder="Indicazioni per l'atleta (facoltativo)" value={block.target || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'target', e.target.value)} style={{ width: '100%', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                                             <p style={{ fontSize: '10px', color: 'var(--fg-64748b)', margin: '6px 0 0 0', lineHeight: 1.3 }}>Blocco di test: niente serie, ripetizioni, carico o recupero.</p>
  
@@ -23448,7 +23557,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Titolo della sezione</label>
  
-                                                <input type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                                                <input autoComplete="off" type="text" placeholder={nomeElenco(block.type)} value={block.name || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', e.target.value)} onBlur={(e) => { if (!e.target.value.trim()) updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'name', nomeElenco(block.type)); }} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                                               </div>
  
@@ -23456,7 +23565,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>N. round</label>
  
-                                                <input type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
+                                                <input autoComplete="off" type="text" inputMode="numeric" placeholder="1" value={block.rounds || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'rounds', e.target.value.replace(/[^0-9]/g, '').slice(0, 2))} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', textAlign: 'center' }} />
  
                                               </div>
  
@@ -23468,7 +23577,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                                    <input
+                                                    <input autoComplete="off"
  
                                                       type="text"
  
@@ -23486,7 +23595,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                   <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
-                                                    <input
+                                                    <input autoComplete="off"
  
                                                       type="text"
  
@@ -23516,7 +23625,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="text"
  
@@ -23534,7 +23643,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                   <span style={{ color: 'var(--fg-94a3b8)', fontWeight: 'bold' }}>:</span>
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="text"
  
@@ -23582,7 +23691,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <div style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="text"
  
@@ -23598,7 +23707,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                   {block.type !== 'emom' && (
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="text"
  
@@ -23622,7 +23731,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '7px', alignItems: 'center', marginBottom: '7px' }}>
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="text"
  
@@ -23672,7 +23781,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 </div>
  
-                                                <input type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
+                                                <input autoComplete="off" type="url" placeholder="Link video (facoltativo)" value={it.videoUrl || ''} onChange={(e) => modificaWarmItem('free', actualWIdx, actualDIdx, bIdx, block.items, i, 'videoUrl', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', color: 'var(--fg-000000)', fontSize: '12.5px' }} />
  
                                               </div>
  
@@ -23686,7 +23795,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
       <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', margin: '10px 0 3px 0' }}>Note del coach</label>
  
-      <textarea rows={3} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
+      <textarea autoComplete="off" rows={3} placeholder="Indicazioni sull'esecuzione, cosa curare..." value={block.notes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical' }} />
  
                                           </div>
  
@@ -23696,7 +23805,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Testo della mobility (lo vedrà l&apos;atleta)</label>
  
-                                            <textarea
+                                            <textarea autoComplete="off"
  
                                               rows={6}
  
@@ -23730,7 +23839,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</label>
  
-                                              <textarea rows={3} value={block.notes} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ minHeight: '78px', resize: 'vertical', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
+                                              <textarea autoComplete="off" rows={3} value={block.notes} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'notes', e.target.value)} placeholder="Note..." style={{ minHeight: '78px', resize: 'vertical', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                             </div>
  
@@ -23742,7 +23851,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                             <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>WOD / CIRCUITO</label>
  
-                                            <textarea value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
+                                            <textarea autoComplete="off" value={block.wodNotes || ''} onChange={(e) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, 'wodNotes', e.target.value)} placeholder="Scrivi il WOD..." style={{ width: '100%', boxSizing: 'border-box', height: '120px', fontFamily: 'inherit', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }} />
  
                                               {(() => {
  
@@ -23800,7 +23909,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <label style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '3px' }}>Round</label>
  
-                                                <input
+                                                <input autoComplete="off"
  
                                                   type="text"
  
@@ -23842,7 +23951,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
  
-                                                  <input
+                                                  <input autoComplete="off"
  
                                                     type="url"
  
@@ -23928,11 +24037,11 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli per l&apos;allenamento</label>
  
-                    <textarea rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={programTrainingTips} onChange={(e) => setProgramTrainingTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
+                    <textarea autoComplete="off" rows={4} placeholder={'Indicazioni su tecnica, riscaldamento, recuperi, gestione dei carichi...'} value={programTrainingTips} onChange={(e) => setProgramTrainingTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5, marginBottom: '12px' }} />
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Consigli nutrizionali</label>
  
-                    <textarea rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
+                    <textarea autoComplete="off" rows={4} placeholder={'Indicazioni generali su alimentazione e idratazione...'} value={programNutritionTips} onChange={(e) => setProgramNutritionTips(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.5 }} />
  
                   </div>
  
@@ -24012,7 +24121,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   <div style={{ position: 'relative', marginBottom: '12px' }}>
  
-                    <input
+                    <input autoComplete="off"
  
                       type="text"
  
@@ -24662,7 +24771,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Nome e Cognome</label>
  
-                    <input type="text" value={personalData.full_name} onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input autoComplete="off" type="text" value={personalData.full_name} onChange={(e) => setPersonalData({ ...personalData, full_name: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -24670,7 +24779,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Email</label>
  
-                    <input type="text" value={session.user.email || ''} disabled style={{ overflowWrap: 'anywhere', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input autoComplete="off" type="text" value={session.user.email || ''} disabled style={{ overflowWrap: 'anywhere', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -24678,7 +24787,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Data di nascita</label>
  
-                    <input type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <input autoComplete="off" type="date" value={personalData.birth_date} onChange={(e) => setPersonalData({ ...personalData, birth_date: e.target.value })} style={{ width: '100%', maxWidth: '100%', minWidth: 0, padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -24688,7 +24797,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-92400e)', display: 'block', marginBottom: '4px' }}>Genitore o tutore</label>
  
-                      <input type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                      <input autoComplete="off" type="text" placeholder="Nome e cognome" value={personalData.guardian_name || ''} onChange={(e) => setPersonalData({ ...personalData, guardian_name: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                     </div>
  
@@ -24716,7 +24825,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Peso (kg)</label>
  
-                      <input type="number" step="0.1" min="0" value={personalData.weight} onChange={(e) => setPersonalData({ ...personalData, weight: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                      <input autoComplete="off" type="number" step="0.1" min="0" value={personalData.weight} onChange={(e) => setPersonalData({ ...personalData, weight: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                     </div>
  
@@ -24724,7 +24833,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Altezza (cm)</label>
  
-                      <input type="number" step="0.1" min="0" value={personalData.height} onChange={(e) => setPersonalData({ ...personalData, height: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                      <input autoComplete="off" type="number" step="0.1" min="0" value={personalData.height} onChange={(e) => setPersonalData({ ...personalData, height: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                     </div>
  
@@ -24780,7 +24889,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 <div style={{ position: 'relative', marginBottom: '12px' }}>
  
-                  <input
+                  <input autoComplete="off"
  
                     type="text"
  
@@ -25164,7 +25273,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Obiettivo</label>
  
-                    <textarea value={anamnesis.goal} onChange={(e) => setAnamnesis({ ...anamnesis, goal: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea autoComplete="off" value={anamnesis.goal} onChange={(e) => setAnamnesis({ ...anamnesis, goal: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -25208,7 +25317,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
  
-                    <textarea value={anamnesis.equipment} onChange={(e) => setAnamnesis({ ...anamnesis, equipment: e.target.value })} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea autoComplete="off" value={anamnesis.equipment} onChange={(e) => setAnamnesis({ ...anamnesis, equipment: e.target.value })} rows={2} placeholder='Se ti alleni in palestra scrivi: "palestra"' style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -25216,7 +25325,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Problematiche fisiche o sistemiche</label>
  
-                    <textarea value={anamnesis.physical_issues} onChange={(e) => setAnamnesis({ ...anamnesis, physical_issues: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
+                    <textarea autoComplete="off" value={anamnesis.physical_issues} onChange={(e) => setAnamnesis({ ...anamnesis, physical_issues: e.target.value })} rows={2} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', boxSizing: 'border-box' }} />
  
                   </div>
  
@@ -25302,9 +25411,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
-                        <input type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                        <input autoComplete="off" type="password" placeholder="Nuova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
-                        <input type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
+                        <input autoComplete="off" type="password" placeholder="Ripeti la nuova password" value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px' }} />
  
                         <div style={{ display: 'flex', gap: '8px' }}>
  
@@ -26348,49 +26457,9 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                       const det = hint ? dettaglioPercentuale(blk.load, exM, true) : null;
  
-                                                      const riquadroPeso = hint ? (
- 
-                                                          <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '8px', padding: '9px 11px', marginTop: '8px' }}>
- 
-                                                            <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-1e40af)', marginBottom: '2px' }}>PESO DA USARE</span>
- 
-                                                            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-1d4ed8)' }}>{det ? `${det.titolo} \u00e8 ${hint.replace('\u2248 ', '')}` : hint}</span>
- 
-                                                            {det && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{det.base}</span>}
- 
-                                                          </div>
- 
-                                                      ) : null;
- 
-                                                      // Carichi usati l'ultima volta: sempre, anche sotto il peso da usare
- 
                                                       const usati = ultimoCaricoUsato(blk.name, blk.reps);
  
-                                                      if (!usati || usati.length === 0) return riquadroPeso;
- 
-                                                      return (
- 
-                                                        <>
- 
-                                                        {riquadroPeso}
- 
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}>
- 
-                                                          <Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)' }} />
- 
-                                                          <span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>
- 
-                                                            {usati.length === 1 ? 'L\u2019ultima volta' : 'Carichi gi\u00e0 usati'}: <strong>{usati[0].reps ? `${usati[0].reps} rip. \u2192 ` : ''}{mostraCarico(usati[0])}</strong>
- 
-                                                            {usati.length > 1 && (<span style={{ fontSize: '11px', opacity: 0.8 }}>{' \u00b7 ' + usati.slice(1).map((u: any) => `${u.reps ? u.reps + ' rip. ' : ''}${mostraCarico(u).replace(' kg', '')}`).join(' \u00b7 ')}</span>)}
- 
-                                                          </span>
- 
-                                                        </div>
- 
-                                                        </>
- 
-                                                      );
+                                                      return riquadroConsigli(blk, hint, det, usati, athleteResults[prog.id], resultKey, athleteMaxes, false);
  
                                                     })()}
  
@@ -26468,7 +26537,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                 )}
  
-{(() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
+{blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}>{`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
                                                 {blk.type !== 'warmup' && (
  
@@ -26850,7 +26919,7 @@ function CampoRapido({ etichetta, valore, onSalva, largo }: any) {
  
       <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)' }}>{etichetta}</span>
  
-      <input
+      <input autoComplete="off"
  
         value={t}
  
@@ -26969,7 +27038,7 @@ function CellaSerie({ valore, onSalva, placeholder, etichetta, centro }: any) {
  
       {etichetta && <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-64748b)', fontWeight: 'bold', marginBottom: '2px' }}>{etichetta}</span>}
  
-      <input
+      <input autoComplete="off"
  
         value={t}
  
@@ -27341,7 +27410,7 @@ function CampoSerie({ valore, onSalva, stile }: any) {
  
   return (
  
-    <input
+    <input autoComplete="off"
  
       value={t}
  
