@@ -9694,6 +9694,68 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Salva i massimali senza cancellare quelli cambiati da un altro dispositivo:
+ 
+  // rilegge dal database e scrive solo i valori modificati qui.
+ 
+  const salvaMaxDiff = async (aid: string, prima: any, dopo: any): Promise<{ merged: any; error: any }> => {
+ 
+    const patch: any = {};
+ 
+    Object.keys(dopo || {}).forEach((k) => {
+ 
+      const a = (prima || {})[k];
+ 
+      const b = dopo[k];
+ 
+      if (b && typeof b === 'object' && !Array.isArray(b)) {
+ 
+        Object.keys(b).forEach((f) => {
+ 
+          if (JSON.stringify(b[f]) !== JSON.stringify(a && typeof a === 'object' ? a[f] : undefined)) {
+ 
+            patch[k] = { ...(patch[k] || {}), [f]: b[f] };
+ 
+          }
+ 
+        });
+ 
+      } else if (JSON.stringify(b) !== JSON.stringify(a)) {
+ 
+        patch[k] = b;
+ 
+      }
+ 
+    });
+ 
+    const { data: riga, error: errLettura } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', aid).maybeSingle();
+ 
+    const fresco = errLettura ? (prima || {}) : (riga?.maxes || {});
+ 
+    const merged: any = { ...fresco };
+ 
+    Object.keys(patch).forEach((k) => {
+ 
+      const p = patch[k];
+ 
+      merged[k] = p && typeof p === 'object' && !Array.isArray(p) && fresco[k] && typeof fresco[k] === 'object' ? { ...fresco[k], ...p } : p;
+ 
+    });
+ 
+    const { error } = await supabase.from('athlete_maxes').upsert(
+ 
+      { athlete_id: aid, maxes: merged, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'athlete_id' }
+ 
+    );
+ 
+    if (!error) setMaxesOf(aid, merged);
+ 
+    return { merged, error };
+ 
+  };
+ 
   const getSavedOf = (athleteId: string) =>
  
     athleteId === session?.user?.id ? savedMaxes : (savedCoachMaxes[athleteId] || {});
@@ -10032,13 +10094,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    await supabase.from('athlete_maxes').upsert(
- 
-      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-      { onConflict: 'athlete_id' }
- 
-    );
+    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
  
     const w = parseWeightValue(value);
  
@@ -10048,7 +10104,7 @@ const [notificationError, setNotificationError] = useState('');
  
       await recordMaxHistory(aid, exercise, reps, w, 'manuale');
  
-      setSavedOf(aid, updatedAll);
+      setSavedOf(aid, salvato);
  
       if (prima === null || w > prima) {
  
@@ -10084,13 +10140,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    const { error } = await supabase.from('athlete_maxes').upsert(
- 
-      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-      { onConflict: 'athlete_id' }
- 
-    );
+    const { merged: salvato, error } = await salvaMaxDiff(aid, cur, updatedAll);
  
     if (error) { alert('Errore: ' + error.message); return false; }
  
@@ -10128,7 +10178,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    setSavedOf(aid, updatedAll);
+    setSavedOf(aid, salvato);
  
     if (record) setPrBadge(record);
  
@@ -10162,13 +10212,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    await supabase.from('athlete_maxes').upsert(
- 
-      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-      { onConflict: 'athlete_id' }
- 
-    );
+    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
  
     const numeric = kind === 'tempo' ? timeToSeconds(raw) : parseWeightValue(raw);
  
@@ -10180,7 +10224,7 @@ const [notificationError, setNotificationError] = useState('');
  
       await recordMaxHistory(aid, exercise, kind === 'tempo' ? -1 : -2, numeric, kind === 'tempo' ? 'metabolico' : 'ginnastica');
  
-      setSavedOf(aid, updatedAll);
+      setSavedOf(aid, salvato);
  
       const migliore = kind === 'tempo' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
  
@@ -10232,13 +10276,7 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    await supabase.from('athlete_maxes').upsert(
- 
-      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-      { onConflict: 'athlete_id' }
- 
-    );
+    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
  
     const numeric = type === 'time' ? timeToSeconds(raw) : type === 'rounds' ? roundsToNumber(raw) : parseWeightValue(raw);
  
@@ -10250,7 +10288,7 @@ const [notificationError, setNotificationError] = useState('');
  
       await recordMaxHistory(aid, name, -3, numeric, 'benchmark');
  
-      setSavedOf(aid, updatedAll);
+      setSavedOf(aid, salvato);
  
       const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
  
@@ -10292,19 +10330,13 @@ const [notificationError, setNotificationError] = useState('');
  
     setMaxesOf(aid, updatedAll);
  
-    await supabase.from('athlete_maxes').upsert(
- 
-      { athlete_id: aid, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-      { onConflict: 'athlete_id' }
- 
-    );
+    const { merged: salvato } = await salvaMaxDiff(aid, cur, updatedAll);
  
     const sec = nuotoSecondi(raw);
  
     const prima = nuotoSecondi(getSavedOf(aid)[chiave]?.time);
  
-    setSavedOf(aid, updatedAll);
+    setSavedOf(aid, salvato);
  
     if (!sec) return;
  
@@ -10516,7 +10548,13 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!nameTrim) return;
  
-    const currentAll = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
+    // Confronto con i massimali aggiornati del database, non con quelli in memoria (magari vecchi)
+ 
+    const locali = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
+ 
+    const { data: rigaMax, error: errMax } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', athleteId).maybeSingle();
+ 
+    const currentAll = errMax ? locali : (rigaMax?.maxes || {});
  
     const startOfDay = new Date();
  
@@ -10524,25 +10562,19 @@ const [notificationError, setNotificationError] = useState('');
  
     const saveMax = async (updatedAll: any) => {
  
-      const { error } = await supabase.from('athlete_maxes').upsert(
- 
-        { athlete_id: athleteId, maxes: updatedAll, updated_at: new Date().toISOString() },
- 
-        { onConflict: 'athlete_id' }
- 
-      );
+      const { merged, error } = await salvaMaxDiff(athleteId, currentAll, updatedAll);
  
       if (error) return false;
  
       if (isCoachEditing) {
  
-        setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: updatedAll });
+        setCoachAthleteMaxes({ ...coachAthleteMaxes, [athleteId]: merged });
  
       } else {
  
-        setAthleteMaxes(updatedAll);
+        setAthleteMaxes(merged);
  
-        setSavedMaxes(updatedAll);
+        setSavedMaxes(merged);
  
       }
  
@@ -10574,13 +10606,75 @@ const [notificationError, setNotificationError] = useState('');
  
     };
  
+    // Valore del massimale prima di oggi (dallo storico): serve quando si corregge uno score
+ 
+    // nello stesso giorno, così un errore di battitura non abbassa mai il massimale.
+ 
+    const valorePrimaDiOggi = async (exercise: string, repsKey: number): Promise<number | null> => {
+ 
+      const { data } = await supabase
+ 
+        .from('athlete_max_history')
+ 
+        .select('value')
+ 
+        .eq('athlete_id', athleteId)
+ 
+        .eq('exercise', exercise)
+ 
+        .eq('reps', repsKey)
+ 
+        .lt('recorded_at', startOfDay.toISOString())
+ 
+        .order('recorded_at', { ascending: false })
+ 
+        .limit(1);
+ 
+      const v = data && data.length > 0 ? Number(data[0].value) : NaN;
+ 
+      return isFinite(v) && v > 0 ? v : null;
+ 
+    };
+ 
+    // Correzione che riporta al valore di prima di oggi: tolgo la riga di oggi dallo storico
+ 
+    const togliOggiDalloStorico = async (exercise: string, repsKey: number) => {
+ 
+      await supabase
+ 
+        .from('athlete_max_history')
+ 
+        .delete()
+ 
+        .eq('athlete_id', athleteId)
+ 
+        .eq('exercise', exercise)
+ 
+        .eq('reps', repsKey)
+ 
+        .eq('source', 'scheda')
+ 
+        .gte('recorded_at', startOfDay.toISOString());
+ 
+      setHistoryCache((prev) => {
+ 
+        const copy = { ...prev };
+ 
+        delete copy[`${athleteId}|${exercise}`];
+ 
+        return copy;
+ 
+      });
+ 
+    };
+ 
     // --- 0. Benchmark WOD ---
  
     const bench = BENCHMARK_WODS.find((b: any) => b.name.toLowerCase() === nameTrim.toLowerCase());
  
     if (bench) {
  
-      const val = bench.type === 'time'
+      let val = bench.type === 'time'
  
         ? timeToSeconds(scoreText)
  
@@ -10610,6 +10704,16 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!isCorrection && !migliore) return;
  
+      let ripristino = false;
+ 
+      if (isCorrection) {
+ 
+        const base = await valorePrimaDiOggi(bench.name, -3);
+ 
+        if (base !== null && (bench.type === 'time' ? base <= val : base >= val)) { val = base; ripristino = true; }
+ 
+      }
+ 
       if (isCorrection && prev !== null && val === prev) return;
  
       const testo = bench.type === 'time' ? secondsToTime(val) : bench.type === 'rounds' ? numberToRounds(val) : String(val);
@@ -10618,7 +10722,9 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!(await saveMax(updatedAll))) return;
  
-      await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
+      if (ripristino) await togliOggiDalloStorico(bench.name, -3);
+ 
+      else await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
  
       if (!isCorrection) {
  
@@ -10648,7 +10754,7 @@ const [notificationError, setNotificationError] = useState('');
  
     if (met) {
  
-      const seconds = timeToSeconds(scoreText);
+      let seconds = timeToSeconds(scoreText);
  
       if (!seconds || seconds <= 0) return;
  
@@ -10658,13 +10764,25 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!isCorrection && prevSec !== null && seconds >= prevSec) return;
  
+      let ripristino = false;
+ 
+      if (isCorrection) {
+ 
+        const base = await valorePrimaDiOggi(met, -1);
+ 
+        if (base !== null && base <= seconds) { seconds = base; ripristino = true; }
+ 
+      }
+ 
       if (isCorrection && prevSec !== null && seconds === prevSec) return;
  
       const updatedAll = { ...currentAll, [met]: { ...(currentAll[met] || {}), time: secondsToTime(seconds) } };
  
       if (!(await saveMax(updatedAll))) return;
  
-      await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
+      if (ripristino) await togliOggiDalloStorico(met, -1);
+ 
+      else await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
  
       if (!isCorrection) {
  
@@ -10694,7 +10812,7 @@ const [notificationError, setNotificationError] = useState('');
  
     if (gym) {
  
-      const reps = parseWeightValue(scoreText);
+      let reps = parseWeightValue(scoreText);
  
       if (!reps || reps <= 0) return;
  
@@ -10704,13 +10822,25 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!isCorrection && prevReps !== null && reps <= prevReps) return;
  
+      let ripristino = false;
+ 
+      if (isCorrection) {
+ 
+        const base = await valorePrimaDiOggi(gym, -2);
+ 
+        if (base !== null && base >= reps) { reps = base; ripristino = true; }
+ 
+      }
+ 
       if (isCorrection && prevReps !== null && reps === prevReps) return;
  
       const updatedAll = { ...currentAll, [gym]: { ...(currentAll[gym] || {}), reps: String(reps) } };
  
       if (!(await saveMax(updatedAll))) return;
  
-      await recordMaxHistory(athleteId, gym, -2, reps, 'scheda');
+      if (ripristino) await togliOggiDalloStorico(gym, -2);
+ 
+      else await recordMaxHistory(athleteId, gym, -2, reps, 'scheda');
  
       if (!isCorrection) {
  
@@ -10768,11 +10898,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const currentEx = { ...(currentAll[match] || {}) };
  
-    const nuovi: { reps: number; kg: number; prima: number | null; correzione: boolean }[] = [];
+    const nuovi: { reps: number; kg: number; prima: number | null; correzione: boolean; ripristino: boolean }[] = [];
  
     for (const r of Object.keys(migliori).map(Number)) {
  
-      const weight = migliori[r];
+      let weight = migliori[r];
  
       const previous = parseWeightValue(currentEx[r]);
  
@@ -10780,11 +10910,23 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!isCorrection && previous !== null && weight <= previous) continue;
  
+      // Correzione: mai sotto il massimale che c'era prima di oggi
+ 
+      let ripristino = false;
+ 
+      if (isCorrection) {
+ 
+        const base = await valorePrimaDiOggi(match, r);
+ 
+        if (base !== null && base >= weight) { weight = base; ripristino = true; }
+ 
+      }
+ 
       if (isCorrection && previous !== null && weight === previous) continue;
  
       currentEx[r] = String(weight);
  
-      nuovi.push({ reps: r, kg: weight, prima: previous, correzione: isCorrection });
+      nuovi.push({ reps: r, kg: weight, prima: previous, correzione: isCorrection, ripristino });
  
     }
  
@@ -10794,7 +10936,13 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!(await saveMax(updatedAll))) return;
  
-    for (const n of nuovi) await recordMaxHistory(athleteId, match, n.reps, n.kg, 'scheda');
+    for (const n of nuovi) {
+ 
+      if (n.ripristino) await togliOggiDalloStorico(match, n.reps);
+ 
+      else await recordMaxHistory(athleteId, match, n.reps, n.kg, 'scheda');
+ 
+    }
  
     const record = nuovi.filter((n) => !n.correzione);
  
@@ -13502,7 +13650,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>
  
-          {perAtleta ? 'Il tuo percorso' : 'Il suo percorso'} 
+          {perAtleta ? 'Il tuo percorso' : 'Il suo percorso'}
+ 
         </h4>
  
         <p style={{ margin: '0 0 14px 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>
@@ -14331,7 +14480,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     setAuthLoading(true);
  
-    const { data: registrato, error } = await supabase.auth.signUp({ 
+    const { data: registrato, error } = await supabase.auth.signUp({
+ 
       email,
  
       password,
@@ -22491,7 +22641,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                             {libEditName.trim() && libEditName.trim() !== ex.name && (
  
                               <p style={{ fontSize: '10.5px', color: 'var(--fg-92400e)', margin: '9px 0 0 0', lineHeight: 1.45, background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fcd34d)', borderRadius: '6px', padding: '8px 10px' }}>
-                                 Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
+ 
+                                Cambiando il nome verrà aggiornato ovunque: nelle schede già create, nei massimali degli atleti e nel loro storico. Nessun dato viene perso.
  
                               </p>
  
