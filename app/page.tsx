@@ -8085,6 +8085,8 @@ const [notificationError, setNotificationError] = useState('');
  
     if (t.startsWith('comp_')) { setActiveTab('profile'); setAthleteProfileTab('gare'); return vai(true); }
  
+    if (t.startsWith('amt_')) { setActiveTab('profile'); setAthleteProfileTab('amt'); return vai(true); }
+ 
     if (t.startsWith('sub_') || t.startsWith('trial_')) { setActiveTab('create'); return vai(true); }
  
   };
@@ -8173,8 +8175,7 @@ const [notificationError, setNotificationError] = useState('');
  
       // 23505 = esiste già (doppione bloccato dal database): niente errore e niente push
  
-      if ((error as any).code === '23505') return;
- 
+      if ((error as any).code === '23505') return; 
       console.error('Errore creazione notifica:', error);
  
       setNotificationError(error.message);
@@ -11645,8 +11646,7 @@ const [notificationError, setNotificationError] = useState('');
  
       else await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
  
-      if (!isCorrection) {
- 
+      if (!isCorrection) { 
         setPrBadge({
  
           exercise: met,
@@ -11779,7 +11779,8 @@ const [notificationError, setNotificationError] = useState('');
  
         const base = await valorePrimaDiOggi(match, r);
  
-        if (base !== null && base >= weight) { weight = base; ripristino = true; } 
+        if (base !== null && base >= weight) { weight = base; ripristino = true; }
+ 
       }
  
       if (isCorrection && previous !== null && weight === previous) continue;
@@ -12770,8 +12771,7 @@ const [notificationError, setNotificationError] = useState('');
  
                           </div>
  
-                        );
- 
+                        ); 
                       })}
  
                     </div>
@@ -15085,7 +15085,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             </div>
  
           );
-         })}
+ 
+        })}
  
       </div>
  
@@ -16703,7 +16704,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     if (newIndex < 0 || newIndex >= updated.weeks.length) return;
  
-    const temp = updated.weeks[index]; 
+    const temp = updated.weeks[index];
+ 
     updated.weeks[index] = updated.weeks[newIndex];
  
     updated.weeks[newIndex] = temp;
@@ -19515,8 +19517,7 @@ fetchAllAthleteResultsForCoach();
               <div
  
                 onClick={() => setShowNotifications(false)}
- 
-                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
+                 style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
  
               />
  
@@ -21096,8 +21097,7 @@ fetchAllAthleteResultsForCoach();
  
                     );
  
-                  })()}
- 
+                  })()} 
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
@@ -26438,7 +26438,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   target="_blank"
  
-                  rel="noopener noreferrer" 
+                  rel="noopener noreferrer"
+ 
                   style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
  
                 >
@@ -27392,6 +27393,48 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
           ) : (
  
             <div>
+ 
+              {(() => {
+ 
+                // AMT Test sbloccato: promemoria in cima agli allenamenti per tutta la durata
+ 
+                const ap = (amtSessioni[session.user.id] || []).find((x: any) => x.status === 'aperta');
+ 
+                if (!ap) return null;
+ 
+                const fatte = AMT_GIORNATE.filter((g) => (ap.giorni || {})[g.n]).length;
+ 
+                const rimasti = amtGiorniRimasti(ap);
+ 
+                return (
+ 
+                  <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '14px', padding: '13px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+ 
+                    <span style={{ width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--acc-rgb), 0.15)', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={19} /></span>
+ 
+                    <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                      <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{ap.started_at ? 'AMT Test in corso' : 'AMT Test sbloccato! \u{1F3C5}'}</span>
+ 
+                      <span style={{ display: 'block', fontSize: '12px', color: rimasti !== null && rimasti <= 2 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)', marginTop: '2px' }}>
+ 
+                        {`Giornate ${fatte}/${AMT_GIORNATE.length} \u00b7 ${rimasti === null ? '' : rimasti <= 0 ? 'ultimo giorno' : rimasti === 1 ? 'manca 1 giorno' : `mancano ${rimasti} giorni`}`}
+ 
+                      </span>
+ 
+                    </span>
+ 
+                    <button type="button" onClick={() => { setActiveTab('profile'); setAthleteProfileTab('amt'); setAmtInCorso(true); setAmtGiornata(null); setAmtAvvio({ hoTutto: false, peso: '', sesso: '' }); amtCaricaMaxRecenti(session.user.id); window.scrollTo(0, 0); }} style={{ flexShrink: 0, padding: '9px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                      {ap.started_at ? 'Continua' : 'Inizia'}
+ 
+                    </button>
+ 
+                  </div>
+ 
+                );
+ 
+              })()}
  
               <CompetitionCountdown gare={competitions} />
  
