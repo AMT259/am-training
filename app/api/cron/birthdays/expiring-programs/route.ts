@@ -573,6 +573,71 @@ async function controllaAbbonamenti(oggiKey: string, origin: string, atleti: any
 }
  
  
+// ---- 6) AMT TEST ----
+ 
+// All'atleta: 2 giorni prima della scadenza della sessione aperta, e quando sono passati 4 mesi dall'ultimo test.
+ 
+// Al coach: quando sono passati 4 mesi dall'ultimo test di un atleta attivo.
+ 
+const piuMesi = (chiave: string, n: number) => {
+ 
+  const [a, m, g] = chiave.split('-').map(Number);
+ 
+  return new Date(Date.UTC(a, m - 1 + n, g)).toISOString().split('T')[0];
+ 
+};
+ 
+async function controllaAmt(oggiKey: string, origin: string, atleti: any[], coaches: any[]) {
+ 
+  const { data: sessioni, error } = await supabaseAdmin.from('amt_test_sessions').select('id,athlete_id,status,deadline,completed_at');
+ 
+  if (error) return { nota: 'tabella amt_test_sessions non trovata' };
+ 
+  let avvisati = 0;
+ 
+  const traDue = sommaGiorni(oggiKey, 2);
+ 
+  for (const s of sessioni || []) {
+ 
+    if (s.status === 'aperta' && String(s.deadline || '').slice(0, 10) === traDue) {
+ 
+      if (await avvisa(origin, s.athlete_id, 'AMT Test: mancano 2 giorni', `Hai tempo fino al ${formatoIT(traDue)} per completare il tuo AMT Test. Le giornate non fatte non verranno conteggiate.`, `amt_scade_${s.id}`)) avvisati++;
+ 
+    }
+ 
+  }
+ 
+  for (const a of atleti) {
+ 
+    if ((a.subscription_status || 'prova') !== 'attivo') continue;
+ 
+    const sue = (sessioni || []).filter((s: any) => s.athlete_id === a.id);
+ 
+    if (sue.some((s: any) => s.status === 'aperta')) continue;
+ 
+    const fatte = sue.filter((s: any) => s.status === 'completata' && s.completed_at).sort((x: any, y: any) => String(x.completed_at).localeCompare(String(y.completed_at)));
+ 
+    if (fatte.length === 0) continue;
+ 
+    const ultima = ROMA(new Date(fatte[fatte.length - 1].completed_at)).chiave;
+ 
+    if (piuMesi(ultima, 4) !== oggiKey) continue;
+ 
+    if (await avvisa(origin, a.id, 'È il momento di un nuovo AMT Test', 'Sono passati 4 mesi dal tuo ultimo AMT Test: rifallo per vedere quanto sei migliorato. Chiedi al coach di sbloccarlo.', `amt_4mesi_${a.id}_${ultima}`)) avvisati++;
+ 
+    for (const c of coaches) {
+ 
+      if (await avvisa(origin, c.id, 'AMT Test da rifare', `Sono passati 4 mesi dall’ultimo AMT Test di ${a.full_name || 'un atleta'}: proponigli di rifarlo.`, `amt_4mesi_${a.id}_${ultima}_coach`)) avvisati++;
+ 
+    }
+ 
+  }
+ 
+  return { avvisati };
+ 
+}
+ 
+ 
 export async function GET(req: NextRequest) {
  
   try {
@@ -631,8 +696,10 @@ export async function GET(req: NextRequest) {
  
     const abbonamenti = await esegui(() => controllaAbbonamenti(oggiKey, origin, atleti || [], coaches || []));
  
+    const amt = await esegui(() => controllaAmt(oggiKey, origin, atleti || [], coaches || []));
  
-    return NextResponse.json({ ok: true, giorno: oggiKey, scadenze, anamnesi, assegnati, prove, abbonamenti });
+ 
+    return NextResponse.json({ ok: true, giorno: oggiKey, scadenze, anamnesi, assegnati, prove, abbonamenti, amt });
  
   } catch (err: any) {
  
