@@ -1368,6 +1368,154 @@ function elencoPercentuali(txt: string): string[] {
  
 }
  
+// ---- Abbonamento a pacchetto (es. 12 mesi): quanto ne ha usato e quanto gli resta ----
+ 
+function isoDiOggi(): string {
+ 
+  const d = new Date();
+ 
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+ 
+}
+ 
+function isoPiuGiorni(iso: string, n: number): string {
+ 
+  const [a, m, g] = iso.split('-').map(Number);
+ 
+  return new Date(Date.UTC(a, m - 1, g + n)).toISOString().slice(0, 10);
+ 
+}
+ 
+// Fine di un pacchetto di N mesi: il giorno prima dello stesso giorno N mesi dopo (15/03 + 12 mesi = 14/03)
+ 
+function fineDopoMesi(inizio: string, mesi: number): string {
+ 
+  const [a, m, g] = inizio.split('-').map(Number);
+ 
+  return new Date(Date.UTC(a, m - 1 + mesi, g - 1)).toISOString().slice(0, 10);
+ 
+}
+ 
+function mesiInteriTra(da: string, a: string): number {
+ 
+  const [a1, m1, g1] = da.split('-').map(Number);
+ 
+  const [a2, m2, g2] = a.split('-').map(Number);
+ 
+  let n = (a2 - a1) * 12 + (m2 - m1);
+ 
+  if (g2 < g1) n -= 1;
+ 
+  return n;
+ 
+}
+ 
+function giorniFraIso(da: string, a: string): number {
+ 
+  const [a1, m1, g1] = da.split('-').map(Number);
+ 
+  const [a2, m2, g2] = a.split('-').map(Number);
+ 
+  return Math.round((Date.UTC(a2, m2 - 1, g2) - Date.UTC(a1, m1 - 1, g1)) / 86400000);
+ 
+}
+ 
+function itDaIso(iso: string): string {
+ 
+  const [a, m, g] = iso.split('-');
+ 
+  return `${g}/${m}/${a}`;
+ 
+}
+ 
+function infoPacchetto(p: any) {
+ 
+  if (!p || p.abbonamento_tipo !== 'pacchetto' || !p.abbonamento_inizio || !p.abbonamento_fine) return null;
+ 
+  const inizio = String(p.abbonamento_inizio).slice(0, 10);
+ 
+  const fine = String(p.abbonamento_fine).slice(0, 10);
+ 
+  if (fine < inizio) return null;
+ 
+  const dopoFine = isoPiuGiorni(fine, 1);
+ 
+  const oggi = isoDiOggi();
+ 
+  const mesiTot = Math.max(1, mesiInteriTra(inizio, dopoFine));
+ 
+  const mesiUsati = oggi < inizio ? 0 : Math.min(mesiTot, Math.max(0, mesiInteriTra(inizio, oggi)));
+ 
+  const giorniTot = Math.max(1, giorniFraIso(inizio, dopoFine));
+ 
+  const pct = Math.max(0, Math.min(100, Math.round((giorniFraIso(inizio, oggi) / giorniTot) * 100)));
+ 
+  return { inizio, fine, mesiTot, mesiUsati, mesiRestano: Math.max(0, mesiTot - mesiUsati), giorni: giorniFraIso(oggi, fine), pct, nonIniziato: oggi < inizio };
+ 
+}
+ 
+// Riquadro con la barra del pacchetto: lo vedono il coach (nel profilo dell'atleta) e l'atleta (nel suo Profilo)
+ 
+function RiquadroPacchetto({ info, tuo }: { info: any; tuo: boolean }) {
+ 
+  if (!info) return null;
+ 
+  const finito = info.giorni < 0;
+ 
+  const colore = finito ? 'var(--fg-b91c1c)' : info.giorni <= 30 ? 'var(--fg-b45309)' : 'var(--fg-10b981)';
+ 
+  const sotto = info.nonIniziato
+ 
+    ? `Inizia il ${itDaIso(info.inizio)}`
+ 
+    : finito
+ 
+      ? `Scaduto il ${itDaIso(info.fine)}`
+ 
+      : info.giorni === 0
+ 
+        ? 'Scade oggi'
+ 
+        : info.giorni === 1
+ 
+          ? 'Scade domani'
+ 
+          : `Scade tra ${info.giorni} giorni`;
+ 
+  return (
+ 
+    <div style={{ padding: '12px 13px', borderRadius: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)' }}>
+ 
+      <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '5px' }}>{tuo ? 'Il tuo abbonamento' : 'Pacchetto'} · {info.mesiTot} {info.mesiTot === 1 ? 'mese' : 'mesi'}</span>
+ 
+      <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '13px', color: 'var(--fg-334155)', fontWeight: 'bold' }}>
+ 
+        <Icona nome="calendario" size={14} />
+ 
+        {`Dal ${itDaIso(info.inizio)} al ${itDaIso(info.fine)}`}
+ 
+      </span>
+ 
+      <span style={{ display: 'block', height: '8px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', overflow: 'hidden', margin: '10px 0 6px 0' }}>
+ 
+        <span style={{ display: 'block', height: '100%', width: `${info.pct}%`, background: finito ? '#f87171' : 'var(--bg-10b981)', borderRadius: '999px' }} />
+ 
+      </span>
+ 
+      <span style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap', fontSize: '12px' }}>
+ 
+        <span style={{ color: 'var(--fg-64748b)' }}>{finito ? `${info.mesiTot} mesi su ${info.mesiTot}` : `${info.mesiUsati} ${info.mesiUsati === 1 ? 'mese usato' : 'mesi usati'} · ${info.mesiRestano === 1 ? 'ne resta 1' : `ne restano ${info.mesiRestano}`}`}</span>
+ 
+        <span style={{ fontWeight: 'bold', color: colore }}>{sotto}</span>
+ 
+      </span>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 function computeLoadHint(loadText: any, repsText: any, exMaxes: any): string | null {
  
   if (!loadText || massimaliNoti(exMaxes).length === 0) return null;
@@ -6796,7 +6944,9 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   // Stato abbonamento: si cambia solo dopo aver toccato "Modifica"
  
-  const [bozzaAbb, setBozzaAbb] = useState<{ stato: string; trial: string; extra: number } | null>(null);
+  const [bozzaAbb, setBozzaAbb] = useState<{ stato: string; trial: string; extra: number; tipo: string; inizio: string; fine: string } | null>(null);
+ 
+  const [mioPacchetto, setMioPacchetto] = useState<any>(null);
  
   // Il nuoto lo vede solo chi è abilitato dal coach (colonna profiles.nuoto)
  
@@ -6901,7 +7051,8 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [coachAllAnamnesis, setCoachAllAnamnesis] = useState<{ [athleteId: string]: any }>({});
  
   const emptyAnamnesis = { goal: '', weekly_sessions: '', session_duration: '', equipment: '', physical_issues: '' };
-   const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
+ 
+  const [anamnesis, setAnamnesis] = useState<any>(emptyAnamnesis);
  
   const [anamnesisSaving, setAnamnesisSaving] = useState(false);
  
@@ -8793,6 +8944,20 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
+    // Abbonamento a pacchetto: letto a parte, se le colonne non ci sono ancora non si vede niente
+ 
+    try {
+ 
+      const { data: pac, error: errPac } = await supabase.from('profiles').select('abbonamento_tipo,abbonamento_inizio,abbonamento_fine').eq('id', userId).maybeSingle();
+ 
+      setMioPacchetto(!errPac ? pac : null);
+ 
+    } catch (e) {
+ 
+      setMioPacchetto(null);
+ 
+    }
+ 
     // Proroga della prova: letta a parte, così se la colonna non c'è ancora il resto funziona lo stesso
  
     try {
@@ -8948,6 +9113,36 @@ const [notificationError, setNotificationError] = useState('');
   // Solo il coach può cambiare lo stile: la scadenza resta legata all'iscrizione
  
   // Prolunga (o riporta a sette giorni) la prova di un atleta
+ 
+  const salvaPacchetto = async (atleta: any, tipo: string, inizio: string, fine: string) => {
+ 
+    const campi = {
+ 
+      abbonamento_tipo: tipo === 'pacchetto' ? 'pacchetto' : 'singolo',
+ 
+      abbonamento_inizio: tipo === 'pacchetto' && inizio ? inizio : null,
+ 
+      abbonamento_fine: tipo === 'pacchetto' && fine ? fine : null,
+ 
+    };
+ 
+    const { error } = await supabase.from('profiles').update(campi).eq('id', atleta.id);
+ 
+    if (error) {
+ 
+      alert('Errore: ' + error.message + '\n\nSe dice che la colonna abbonamento_tipo non esiste, va prima aggiunta su Supabase (vedi istruzioni).');
+ 
+      return false;
+ 
+    }
+ 
+    setSelectedCoachAthlete((p: any) => (p && p.id === atleta.id ? { ...p, ...campi } : p));
+ 
+    setAthletes((prev: any[]) => prev.map((a) => (a.id === atleta.id ? { ...a, ...campi } : a)));
+ 
+    return true;
+ 
+  };
  
   const prolungaProva = async (atleta: any, nuoviGiorniExtra: number) => {
  
@@ -18285,6 +18480,17 @@ fetchAllAthleteResultsForCoach();
                   .sort((x: any, y: any) => x.restano - y.restano);
  
  
+                // 5b) Pacchetti (es. 12 mesi) che finiscono nei prossimi 30 giorni o finiti da meno di 30
+ 
+                const pacchetti = athletes
+ 
+                  .map((a: any) => ({ a, info: infoPacchetto(a) }))
+ 
+                  .filter((x: any) => x.info && !x.info.nonIniziato && x.info.giorni <= 30 && x.info.giorni >= -30)
+ 
+                  .sort((x: any, y: any) => x.info.giorni - y.info.giorni);
+ 
+ 
                 // 6) Compleanni nei prossimi 7 giorni
  
                 const compleanni = athletes
@@ -18431,7 +18637,7 @@ fetchAllAthleteResultsForCoach();
  
                 const quantiOnline = accessi.filter((x: any) => x.on).length;
  
-                const vuota = accessi.length + gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + compleanni.length + anamnesi.length === 0;
+                const vuota = accessi.length + gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + pacchetti.length + compleanni.length + anamnesi.length === 0;
  
                 return (
  
@@ -18544,6 +18750,20 @@ fetchAllAthleteResultsForCoach();
                       );
  
                     }), 'Finiscono nei prossimi 7 giorni o sono finiti da meno di 7. Tocca per aprire il programma.')}
+ 
+                    {sezione('pacchetti', 'calendario', 'Abbonamenti in scadenza', pacchetti.length, pacchetti.map(({ a, info }: any) => riga(
+ 
+                      `ab${a.id}`,
+ 
+                      () => apriAtleta(a, 'abbonamento'),
+ 
+                      nome(a),
+ 
+                      etichetta(info.giorni > 1 ? `finisce tra ${info.giorni} giorni` : info.giorni === 1 ? 'finisce domani' : info.giorni === 0 ? 'finisce oggi' : `finito da ${-info.giorni} ${info.giorni === -1 ? 'giorno' : 'giorni'}`, info.giorni < 0 ? rosso : info.giorni <= 7 ? giallo : verde),
+ 
+                      <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '3px' }}>{`Pacchetto ${info.mesiTot} ${info.mesiTot === 1 ? 'mese' : 'mesi'} · fine ${itDaIso(info.fine)}`}</span>
+ 
+                    )), 'Pacchetti che finiscono nei prossimi 30 giorni o finiti da meno di 30. Lo stato (attivo/scaduto) lo cambi tu dal profilo.')}
  
                     {sezione('senza', 'avviso', 'Attivi senza programma', senzaProgramma.length, senzaProgramma.map((a: any) => riga(
  
@@ -19018,7 +19238,8 @@ fetchAllAthleteResultsForCoach();
                   <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '10px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
  
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px' }}>
-                       <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
+ 
+                      <input autoComplete="off" type="text" placeholder="Titolo" value={mm.title || ''} onChange={(e) => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).map((x: any, k: number) => (k === i ? { ...x, title: e.target.value } : x)) })} style={{ flex: 1, minWidth: 0, padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', fontWeight: 'bold', boxSizing: 'border-box' }} />
  
                       <button type="button" title="Togli il messaggio" onClick={() => setMotivazioni({ ...motivazioni, scaduto: (motivazioni.scaduto || []).filter((_x: any, k: number) => k !== i) })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', borderRadius: '999px', width: '30px', height: '30px', color: 'var(--fg-b91c1c)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}><Icona nome="cestino" size={13} /></button>
  
@@ -20704,11 +20925,23 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     };
  
-                    const apri = () => setBozzaAbb({ stato, trial: selectedCoachAthlete.trial_choice || '', extra: extraAttuale });
+                    const tipoAttuale = selectedCoachAthlete.abbonamento_tipo === 'pacchetto' ? 'pacchetto' : 'singolo';
+ 
+                    const inizioAttuale = String(selectedCoachAthlete.abbonamento_inizio || '').slice(0, 10);
+ 
+                    const fineAttuale = String(selectedCoachAthlete.abbonamento_fine || '').slice(0, 10);
+ 
+                    const pacchetto = infoPacchetto(selectedCoachAthlete);
+ 
+                    const apri = () => setBozzaAbb({ stato, trial: selectedCoachAthlete.trial_choice || '', extra: extraAttuale, tipo: tipoAttuale, inizio: inizioAttuale, fine: fineAttuale });
  
                     const b = bozzaAbb;
  
-                    const cambiato = !!b && (b.stato !== stato || b.trial !== (selectedCoachAthlete.trial_choice || '') || b.extra !== extraAttuale);
+                    const pacchettoCambiato = !!b && (b.tipo !== tipoAttuale || (b.tipo === 'pacchetto' && (b.inizio !== inizioAttuale || b.fine !== fineAttuale)));
+ 
+                    const pacchettoValido = !b || b.tipo !== 'pacchetto' || (!!b.inizio && !!b.fine && b.fine >= b.inizio);
+ 
+                    const cambiato = !!b && pacchettoValido && (b.stato !== stato || b.trial !== (selectedCoachAthlete.trial_choice || '') || b.extra !== extraAttuale || pacchettoCambiato);
  
                     const salva = async () => {
  
@@ -20719,6 +20952,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       if (b.trial !== (selectedCoachAthlete.trial_choice || '')) await setAthleteTrialStyle(selectedCoachAthlete.id, b.trial);
  
                       if (b.extra !== extraAttuale) await prolungaProva(selectedCoachAthlete, b.extra);
+ 
+                      if (pacchettoCambiato && !(await salvaPacchetto(selectedCoachAthlete, b.tipo, b.inizio, b.fine))) return;
  
                       setBozzaAbb(null);
  
@@ -20743,6 +20978,16 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                           </span>
  
                         </div>
+ 
+                        {pacchetto ? <RiquadroPacchetto info={pacchetto} tuo={false} /> : (
+ 
+                          <div style={{ padding: '10px 13px', borderRadius: '10px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', fontSize: '12px', color: 'var(--fg-64748b)' }}>
+ 
+                            <strong style={{ color: 'var(--fg-475569)' }}>Programma singolo</strong> · segui la scadenza dei suoi programmi
+ 
+                          </div>
+ 
+                        )}
  
                         {(() => {
  
@@ -20867,6 +21112,72 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                 </button>
  
                               ))}
+ 
+                              <div style={{ paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>Tipo di abbonamento</span>
+ 
+                                <div style={{ display: 'flex', gap: '6px' }}>
+ 
+                                  {[['singolo', 'Programma singolo'], ['pacchetto', 'Pacchetto']].map(([k, t]) => (
+ 
+                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button>
+ 
+                                  ))}
+ 
+                                </div>
+ 
+                                {b.tipo === 'pacchetto' && (() => {
+ 
+                                  const mesi = b.inizio && b.fine && b.fine >= b.inizio ? Math.max(1, mesiInteriTra(b.inizio, isoPiuGiorni(b.fine, 1))) : null;
+ 
+                                  const campoData: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px' };
+ 
+                                  return (
+ 
+                                    <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+ 
+                                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
+ 
+                                        <label style={{ display: 'block', minWidth: 0 }}>
+ 
+                                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>Inizio</span>
+ 
+                                          <input autoComplete="off" type="date" value={b.inizio} onChange={(e) => setBozzaAbb({ ...b, inizio: e.target.value, fine: e.target.value && mesi ? fineDopoMesi(e.target.value, mesi) : b.fine })} style={campoData} />
+ 
+                                        </label>
+ 
+                                        <label style={{ display: 'block', minWidth: 0 }}>
+ 
+                                          <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginBottom: '3px' }}>Fine</span>
+ 
+                                          <input autoComplete="off" type="date" value={b.fine} min={b.inizio || undefined} onChange={(e) => setBozzaAbb({ ...b, fine: e.target.value })} style={campoData} />
+ 
+                                        </label>
+ 
+                                      </div>
+ 
+                                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+ 
+                                        <span style={{ fontSize: '11px', color: 'var(--fg-64748b)' }}>Durata:</span>
+ 
+                                        {[1, 3, 6, 12].map((n) => (
+ 
+                                          <button key={n} type="button" disabled={!b.inizio} onClick={() => setBozzaAbb({ ...b, fine: fineDopoMesi(b.inizio, n) })} style={pillola(mesi === n, 'var(--fg-10b981)', 'piccolo')}>{`${n} ${n === 1 ? 'mese' : 'mesi'}`}</button>
+ 
+                                        ))}
+ 
+                                      </div>
+ 
+                                      {!pacchettoValido && <span style={{ fontSize: '11.5px', color: 'var(--fg-b91c1c)' }}>Inserisci inizio e fine (la fine non può essere prima dell'inizio).</span>}
+ 
+                                    </div>
+ 
+                                  );
+ 
+                                })()}
+ 
+                              </div>
  
                               <div style={{ paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -24659,6 +24970,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                       </span>
  
                     </div>
+ 
+                    {infoPacchetto(mioPacchetto) && <div style={{ marginBottom: '18px' }}><RiquadroPacchetto info={infoPacchetto(mioPacchetto)} tuo /></div>}
  
                     {gruppo('IL MIO ALLENAMENTO', [
  
