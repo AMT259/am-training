@@ -1434,9 +1434,9 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
-  { k: 'kipping_pull_up', video: ['Kipping pull up', 'Pull up'], nome: 'Kipping pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
+  { k: 'kipping_pull_up', video: ['Kipping pull up', 'Butterfly pull up', 'Pull up'], nome: 'Kipping o butterfly pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
  
-    istruzioni: 'Facoltativo, solo se li sai fare. Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken.' },
+    istruzioni: 'Facoltativo, solo se li sai fare. Kipping o butterfly, come preferisci: puoi anche mixare gli stili nella stessa serie (es. partire butterfly e finire kipping). Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken: appena scendi dalla sbarra il test finisce.' },
  
   { k: 'wall_ball', video: ['Wall ball', 'Wall balls'], nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
  
@@ -2814,8 +2814,7 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
         <div style={{ padding: '12px 18px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
           <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
- 
-            Chiudi
+             Chiudi
  
           </button>
  
@@ -3576,7 +3575,8 @@ function SelettoreScore({ valore, onChange }: any) {
         <option value="rep">Ripetizioni</option>
  
         <option value="tempo">Tempo</option>
-         <option value="round">Round + rep</option>
+ 
+        <option value="round">Round + rep</option>
  
         <option value="spunta">Solo spunta (fatto / non fatto)</option>
  
@@ -7720,6 +7720,12 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [sezioneBanner, setSezioneBanner] = useState<string | null>(null);
  
+  const [bannerVoce, setBannerVoce] = useState<string | null>(null);
+ 
+  const [amtAnnuncio, setAmtAnnuncio] = useState<{ titolo: string; testo: string; chi: string } | null>(null);
+ 
+  const [amtInvio, setAmtInvio] = useState(false);
+ 
   const fotoSezioneBanner = React.useRef<any>(null);
  
   // Messaggi motivazionali (dal Banner) e quello da mostrare adesso
@@ -11123,8 +11129,7 @@ const [notificationError, setNotificationError] = useState('');
     const cur = getMaxesOf(aid);
  
     setMaxesOf(aid, { ...cur, [name]: { ...(cur[name] || {}), result: raw, level } });
- 
-  };
+   };
  
   const handleBenchSave = async (name: string, raw: string, level: string, type: string, athleteId?: string) => {
  
@@ -12095,6 +12100,54 @@ const [notificationError, setNotificationError] = useState('');
     );
  
     alert(error ? 'Errore: ' + error.message : 'AMT Test salvato!');
+ 
+  };
+ 
+  const amtInviaAnnuncio = async () => {
+ 
+    if (!amtAnnuncio) return;
+ 
+    const destinatari = athletes.filter((a: any) => amtAnnuncio.chi === 'tutti' || (coachSubs[a.id] || 'prova') === 'attivo');
+ 
+    if (destinatari.length === 0) { alert('Nessun atleta a cui mandarlo.'); return; }
+ 
+    if (!window.confirm(`Mandare l\u2019annuncio a ${destinatari.length} atleti?`)) return;
+ 
+    setAmtInvio(true);
+ 
+    let inviati = 0;
+ 
+    for (const a of destinatari) {
+ 
+      try {
+ 
+        const r = await fetch('/api/notify-user', {
+ 
+          method: 'POST',
+ 
+          headers: { 'Content-Type': 'application/json' },
+ 
+          body: JSON.stringify({ user_id: a.id, type: 'amt_annuncio', title: amtAnnuncio.titolo.trim(), message: amtAnnuncio.testo.trim() }),
+ 
+        });
+ 
+        if (r.ok) inviati++;
+ 
+      } catch (e) { /* passo al prossimo */ }
+ 
+    }
+ 
+    const nuovo = { ...amtConfig, ultimoAnnuncio: { data: new Date().toISOString(), quanti: inviati } };
+ 
+    setAmtConfig(nuovo as any);
+ 
+    await supabase.from('settings').upsert({ key: 'amt_test', value: nuovo, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+ 
+    setAmtInvio(false);
+ 
+    setAmtAnnuncio(null);
+ 
+    alert(`Annuncio inviato a ${inviati} atleti.`);
  
   };
  
@@ -13666,8 +13719,7 @@ const [notificationError, setNotificationError] = useState('');
  
     // Scrivendo un esercizio già in libreria, ne recupero il video
  
-    if (campo === 'name') {
- 
+    if (campo === 'name') { 
       const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, valore));
  
       if (inLibreria?.video_url && !copia[i].videoUrl) copia[i].videoUrl = inLibreria.video_url;
@@ -19151,7 +19203,8 @@ fetchAllAthleteResultsForCoach();
               </div>
  
             </div>
-           </div>
+ 
+          </div>
  
         );
  
@@ -20351,7 +20404,107 @@ fetchAllAthleteResultsForCoach();
  
             <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
  
-              <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', marginBottom: '16px' }}>Gestione Banner Pubblicitario</h3>
+              {bannerVoce === null ? (() => {
+ 
+                // Elenco delle sezioni, come nel profilo dell'atleta: ognuna si apre a tutta pagina
+ 
+                const voceB = (k: string, icona: string, titolo: string, sotto: string, stato?: { t: string; bg: string; fg: string } | null) => (
+ 
+                  <button key={k} type="button" onClick={() => { setBannerVoce(k); window.scrollTo(0, 0); }} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 14px', background: 'none', border: 'none', borderTop: '1px solid var(--bd-e2e8f0)', cursor: 'pointer', textAlign: 'left' }}>
+ 
+                    <span style={{ width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)' }}><Icona nome={icona} size={17} /></span>
+ 
+                    <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                      <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{titolo}</span>
+ 
+                      <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{sotto}</span>
+ 
+                    </span>
+ 
+                    {stato && <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '999px', background: stato.bg, color: stato.fg, whiteSpace: 'nowrap' }}>{stato.t}</span>}
+ 
+                    <Icona nome="destra" size={16} style={{ color: 'var(--fg-94a3b8)' }} />
+ 
+                  </button>
+ 
+                );
+ 
+                const gruppoB = (titolo: string, voci: any[]) => (
+ 
+                  <div style={{ marginBottom: '18px' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', margin: '0 0 6px 4px' }}>{titolo}</span>
+ 
+                    <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', overflow: 'hidden' }}>
+ 
+                      <div style={{ marginTop: '-1px' }}>{voci}</div>
+ 
+                    </div>
+ 
+                  </div>
+ 
+                );
+ 
+                const acceso = { t: 'Attivo', bg: 'var(--bg-dcfce7)', fg: 'var(--fg-166534)' };
+ 
+                const spento = { t: 'Spento', bg: 'var(--bg-f1f5f9)', fg: 'var(--fg-64748b)' };
+ 
+                return (
+ 
+                  <>
+ 
+                    <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', margin: '0 0 16px 0' }}>Banner e messaggi</h3>
+ 
+                    {gruppoB('PUBBLICITÀ', [
+ 
+                      voceB('banner', 'megafono', 'Banner pubblicitario', 'Immagine e link in cima agli allenamenti', bannerData.image_url ? acceso : spento),
+ 
+                    ])}
+ 
+                    {gruppoB('MESSAGGI AGLI ATLETI', [
+ 
+                      voceB('messaggio', 'megafono', 'Messaggio iniziale', 'Il benvenuto al primo accesso', messaggioAttivo ? acceso : spento),
+ 
+                      voceB('promemoria', 'campana', 'Promemoria fine prova', 'Gli avvisi prima e dopo la fine della prova'),
+ 
+                      voceB('motivazioni', 'razzo', 'Messaggi motivazionali', 'Per chi è scaduto o ha finito la prova'),
+ 
+                    ])}
+ 
+                    {gruppoB('INVITI E LINK', [
+ 
+                      voceB('invitoProva', 'link', 'Invito a fine prova', 'Il pulsante per abbonarsi dopo la prova'),
+ 
+                      voceB('invitoScaduto', 'link', 'Invito abbonamento scaduto', 'Cosa vede chi ha l\u2019abbonamento scaduto'),
+ 
+                      voceB('logo', 'link', 'Link del logo', 'La pagina che si apre toccando il logo'),
+ 
+                    ])}
+ 
+                    {gruppoB('FUNZIONI A PAGAMENTO', [
+ 
+                      voceB('amt', 'medaglia', 'AMT Test', 'Presentazione, link allo shop, WhatsApp e annuncio', amtConfig.shopUrl || amtConfig.whatsapp ? acceso : { t: 'Da completare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }),
+ 
+                    ])}
+ 
+                  </>
+ 
+                );
+ 
+              })() : (
+ 
+                <button type="button" onClick={() => { if (sezioneBanner) annullaSezioneBanner(); setBannerVoce(null); window.scrollTo(0, 0); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                  <Icona nome="sinistra" size={14} /> Indietro
+ 
+                </button>
+ 
+              )}
+ 
+              {bannerVoce === 'banner' && (<>
+ 
+              <h3 style={{ fontSize: '18px', color: 'var(--fg-10b981)', margin: '0 0 14px 0' }}>Banner pubblicitario</h3>
  
               <form onSubmit={async (e) => { await saveBanner(e); chiudiSezioneBanner(); }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
@@ -20409,7 +20562,11 @@ fetchAllAthleteResultsForCoach();
  
               </form>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'messaggio' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="megafono" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Messaggio iniziale</h4>
  
@@ -20483,7 +20640,11 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'promemoria' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="campana" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Promemoria fine prova</h4>
  
@@ -20599,7 +20760,11 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'invitoProva' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito a fine prova</h4>
  
@@ -20675,7 +20840,11 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'invitoScaduto' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito abbonamento scaduto</h4>
  
@@ -20743,7 +20912,11 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'motivazioni' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="razzo" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Messaggi motivazionali</h4>
  
@@ -20831,7 +21004,11 @@ fetchAllAthleteResultsForCoach();
  
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'amt' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test</h4>
  
@@ -20879,9 +21056,75 @@ fetchAllAthleteResultsForCoach();
  
                 )}
  
+                <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '4px' }}>Annuncio</span>
+ 
+                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.45 }}>Manda a tutti una notifica (anche push) per far conoscere l&apos;AMT Test. Toccandola si apre la pagina del test.</span>
+ 
+                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT Test \u{1F3C5}', testo: 'Scopri che atleta sei davvero: 15 test, 6 qualità e il tuo profilo a ragnatela. Lo trovi in Profilo > AMT Test.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+ 
+                    {'\u{1F4E3}'} Annuncia a tutti gli atleti
+ 
+                  </button>
+ 
+                  {(amtConfig as any).ultimoAnnuncio && (
+ 
+                    <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '7px', textAlign: 'center' }}>{`Ultimo annuncio inviato il ${amtDataIT((amtConfig as any).ultimoAnnuncio.data)} a ${(amtConfig as any).ultimoAnnuncio.quanti} atleti`}</span>
+ 
+                  )}
+ 
+                </div>
+ 
+                {amtAnnuncio && (
+ 
+                  <div onClick={() => !amtInvio && setAmtAnnuncio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 4600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+ 
+                    <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', maxWidth: '420px', width: '100%', boxSizing: 'border-box' }}>
+ 
+                      <h3 style={{ margin: '0 0 12px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Annuncia AMT Test</h3>
+ 
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Titolo</label>
+ 
+                      <input autoComplete="off" type="text" value={amtAnnuncio.titolo} onChange={(e) => setAmtAnnuncio({ ...amtAnnuncio, titolo: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+ 
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Testo</label>
+ 
+                      <textarea autoComplete="off" rows={4} value={amtAnnuncio.testo} onChange={(e) => setAmtAnnuncio({ ...amtAnnuncio, testo: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
+ 
+                      <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '6px' }}>A chi</span>
+ 
+                      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+ 
+                        {[['attivi', 'Solo attivi'], ['tutti', 'Tutti gli atleti']].map(([k, t]) => (
+ 
+                          <button key={k} type="button" onClick={() => setAmtAnnuncio({ ...amtAnnuncio, chi: k })} style={{ ...pillola(amtAnnuncio.chi === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{`${t} (${athletes.filter((a: any) => k === 'tutti' || (coachSubs[a.id] || 'prova') === 'attivo').length})`}</button>
+ 
+                        ))}
+ 
+                      </div>
+ 
+                      <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                        <button type="button" disabled={amtInvio} onClick={() => setAmtAnnuncio(null)} style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                        <button type="button" disabled={amtInvio || !amtAnnuncio.titolo.trim() || !amtAnnuncio.testo.trim()} onClick={() => amtInviaAnnuncio()} style={{ flex: 1, padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', opacity: amtInvio ? 0.6 : 1 }}>{amtInvio ? 'Invio in corso...' : 'Invia'}</button>
+ 
+                      </div>
+ 
+                    </div>
+ 
+                  </div>
+ 
+                )}
+ 
               </div>
  
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+              </>)}
+ 
+              {bannerVoce === 'logo' && (<>
+ 
+              <div>
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Link del logo</h4>
  
@@ -20936,6 +21179,8 @@ fetchAllAthleteResultsForCoach();
                 </div>
  
               </div>
+ 
+              </>)}
  
             </div>
  
@@ -21508,8 +21753,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                                     <button
  
                                                       onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
- 
-                                                      title="Avvia questo recupero"
+                                                       title="Avvia questo recupero"
  
                                                       style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
@@ -27729,8 +27973,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             onClick={() => apriConsigli(prog.id, aperto)}
  
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-fde68a)', background: 'var(--bg-fffbeb)', cursor: 'pointer' }}
- 
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-fde68a)', background: 'var(--bg-fffbeb)', cursor: 'pointer' }} 
                           >
  
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
