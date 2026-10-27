@@ -524,6 +524,55 @@ async function controllaProve(oggiKey: string, origin: string, atleti: any[], co
 }
  
  
+// ---- 5) ABBONAMENTI A PACCHETTO IN SCADENZA (es. 12 mesi) ----
+ 
+// All'atleta (se attivo) e al coach: 30 giorni prima, 7 giorni prima e il giorno stesso.
+ 
+const TAPPE_ABB = [30, 7, 0];
+ 
+async function controllaAbbonamenti(oggiKey: string, origin: string, atleti: any[], coaches: any[]) {
+ 
+  let avvisati = 0;
+ 
+  for (const a of atleti) {
+ 
+    if (a.abbonamento_tipo !== 'pacchetto' || !a.abbonamento_fine) continue;
+ 
+    const fine = String(a.abbonamento_fine).slice(0, 10);
+ 
+    const n = TAPPE_ABB.find((t) => sommaGiorni(oggiKey, t) === fine);
+ 
+    if (n === undefined) continue;
+ 
+    const quandoAbb = n === 0 ? 'scade oggi' : `scade fra ${n} giorni, il ${formatoIT(fine)}`;
+ 
+    if ((a.subscription_status || 'prova') === 'attivo') {
+ 
+      const titolo = n === 0 ? 'Il tuo abbonamento scade oggi' : 'Il tuo abbonamento sta per scadere';
+ 
+      const testo = `Il tuo abbonamento ${quandoAbb}. Contatta il coach per rinnovarlo e continuare il tuo percorso.`;
+ 
+      if (await avvisa(origin, a.id, titolo, testo, `abb_scad_${a.id}_${n}_${fine}`)) avvisati++;
+ 
+    }
+ 
+    const titoloCoach = n === 0 ? 'Abbonamento in scadenza oggi' : 'Abbonamento in scadenza';
+ 
+    const testoCoach = `Il pacchetto di ${a.full_name || 'un atleta'} ${quandoAbb}. Valuta il rinnovo.`;
+ 
+    for (const c of coaches) {
+ 
+      if (await avvisa(origin, c.id, titoloCoach, testoCoach, `abb_scad_${a.id}_${n}_${fine}_coach`)) avvisati++;
+ 
+    }
+ 
+  }
+ 
+  return { avvisati };
+ 
+}
+ 
+ 
 export async function GET(req: NextRequest) {
  
   try {
@@ -580,8 +629,10 @@ export async function GET(req: NextRequest) {
  
     const prove = await esegui(() => controllaProve(oggiKey, origin, atleti || [], coaches || []));
  
+    const abbonamenti = await esegui(() => controllaAbbonamenti(oggiKey, origin, atleti || [], coaches || []));
  
-    return NextResponse.json({ ok: true, giorno: oggiKey, scadenze, anamnesi, assegnati, prove });
+ 
+    return NextResponse.json({ ok: true, giorno: oggiKey, scadenze, anamnesi, assegnati, prove, abbonamenti });
  
   } catch (err: any) {
  
