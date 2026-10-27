@@ -1368,6 +1368,445 @@ function elencoPercentuali(txt: string): string[] {
  
 }
  
+// ======================= AMT TEST =======================
+ 
+// Batteria di test a pagamento: lo sblocca il coach, l'atleta lo fa da solo in 5 giornate (14 giorni),
+ 
+// il risultato è una ragnatela con 6 qualità da 0 a 100, rapportate a peso corporeo e sesso.
+ 
+const AMT_QUALITA: { k: string; nome: string; icona: string }[] = [
+ 
+  { k: 'forza', nome: 'Forza', icona: '\u{1F4AA}' },
+ 
+  { k: 'potenza', nome: 'Potenza', icona: '⚡' },
+ 
+  { k: 'anaerobica', nome: 'Capacità anaerobica', icona: '\u{1F525}' },
+ 
+  { k: 'aerobica', nome: 'Motore aerobico', icona: '\u{1FAC0}' },
+ 
+  { k: 'resistenza', nome: 'Resistenza muscolare', icona: '\u{1F501}' },
+ 
+  { k: 'ginnastica', nome: 'Ginnastica', icona: '\u{1F938}' },
+ 
+];
+ 
+type AmtTestDef = {
+ 
+  k: string; nome: string; q: string; giorno: number; tipo: 'kg' | 'rep' | 'cal' | 'tempo';
+ 
+  rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string;
+ 
+  m: number[]; f: number[]; min: number; max: number; istruzioni: string;
+ 
+};
+ 
+// Soglie: Principiante 20 · Intermedio 40 · Avanzato 60 · Esperto 80 · Elite 100.
+ 
+// "rel" = diviso il peso corporeo; "meno" = più basso è meglio (tempi, in secondi).
+ 
+const AMT_TEST: AmtTestDef[] = [
+ 
+  { k: 'back_squat', nome: 'Back Squat 1RM', esercizio: 'Back Squat', q: 'forza', giorno: 1, tipo: 'kg', rel: true, m: [0.75, 1.25, 1.5, 2.0, 2.5], f: [0.5, 0.85, 1.1, 1.5, 1.9], min: 0.2, max: 4,
+ 
+    istruzioni: 'Riscaldati con serie crescenti (es. 8-5-3-2-1 ripetizioni). Poi fai al massimo 3-4 tentativi singoli per trovare il tuo massimale. Squat sotto il parallelo. Usa i fermi di sicurezza del rack o fatti assistere. Scrivi il carico più alto riuscito.' },
+ 
+  { k: 'pull_up', nome: 'Pull up strict (max)', q: 'ginnastica', giorno: 1, tipo: 'rep', m: [3, 8, 13, 18, 25], f: [1, 3, 7, 11, 16], min: 0, max: 80,
+ 
+    istruzioni: 'Partenza a braccia completamente tese, mento sopra la sbarra, nessuno slancio. Una sola serie unbroken: appena scendi dalla sbarra il test finisce. Se non ne fai nessuna scrivi 0.' },
+ 
+  { k: 'row_500', nome: '500 m remo', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
+ 
+    istruzioni: 'Damper a tua scelta (consigliato 6-8). Partenza da fermo, a tutta per 500 m. Scrivi il tempo finale (minuti e secondi).' },
+ 
+  { k: 'deadlift', nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
+ 
+    istruzioni: 'Schiena neutra per tutta l’alzata, chiusura completa in alto. Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
+ 
+  { k: 'push_up', nome: 'Push up (max)', q: 'ginnastica', giorno: 2, tipo: 'rep', m: [15, 30, 45, 60, 75], f: [8, 18, 30, 40, 52], min: 0, max: 150,
+ 
+    istruzioni: 'Corpo in linea, petto a terra in basso e braccia tese in alto. Una sola serie unbroken: se appoggi le ginocchia o ti fermi più di 2 secondi il test finisce.' },
+ 
+  { k: 'assault_1', nome: 'Assault bike 1′ (calorie)', q: 'anaerobica', giorno: 2, tipo: 'cal', secondi: 60, m: [20, 28, 35, 42, 50], f: [13, 19, 24, 29, 35], min: 3, max: 100,
+ 
+    istruzioni: 'Fai almeno 10 minuti di recupero dopo gli altri test. Azzera il display, parti da fermo e vai a tutta per 1 minuto. Scrivi le calorie.' },
+ 
+  { k: 'power_clean', nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
+ 
+    istruzioni: 'Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
+ 
+  { k: 'kipping_pull_up', nome: 'Kipping pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
+ 
+    istruzioni: 'Facoltativo, solo se li sai fare. Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken.' },
+ 
+  { k: 'wall_ball', nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
+ 
+    istruzioni: 'Uomini 9 kg a 3 m, donne 6 kg a 2,7 m. Squat sotto il parallelo, la palla deve toccare il bersaglio. Più ripetizioni possibili in 3 minuti.' },
+ 
+  { k: 'strict_press', nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
+ 
+    istruzioni: 'Dal rack, bilanciere sulle spalle. Spinta sopra la testa senza piegare le gambe (nessuna spinta dalle anche). Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
+ 
+  { k: 'kipping_hspu', nome: 'Kipping HSPU (max)', q: 'ginnastica', giorno: 4, tipo: 'rep', facoltativo: true, m: [5, 12, 20, 28, 36], f: [3, 8, 14, 20, 27], min: 0, max: 80,
+ 
+    istruzioni: 'Facoltativo, solo se li sai fare. Verticale al muro, testa a terra (o sul cuscino) e braccia tese in alto. Una sola serie unbroken.' },
+ 
+  { k: 'row_2000', nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
+ 
+    istruzioni: 'Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
+ 
+  { k: 'power_snatch', nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
+ 
+    istruzioni: 'Facoltativo, solo se conosci la tecnica. Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
+ 
+  { k: 'burpee', nome: 'Burpee 3′ (max)', q: 'resistenza', giorno: 5, tipo: 'rep', secondi: 180, m: [35, 45, 55, 63, 70], f: [30, 40, 50, 57, 64], min: 0, max: 150,
+ 
+    istruzioni: 'Petto e cosce a terra, in piedi con un piccolo salto e battito delle mani sopra la testa. Più ripetizioni possibili in 3 minuti.' },
+ 
+  { k: 'assault_10', nome: 'Assault bike 10′ (calorie)', q: 'aerobica', giorno: 5, tipo: 'cal', secondi: 600, m: [100, 130, 155, 180, 210], f: [70, 90, 110, 130, 150], min: 30, max: 400,
+ 
+    istruzioni: 'Fai almeno 15 minuti di recupero dopo i burpee. Azzera il display e tieni il ritmo più alto che riesci a sostenere per 10 minuti. Scrivi le calorie.' },
+ 
+];
+ 
+const AMT_GIORNATE: { n: number; titolo: string }[] = [
+ 
+  { n: 1, titolo: 'Squat, pull up, remo 500 m' },
+ 
+  { n: 2, titolo: 'Stacco, push up, bike 1\u2032' },
+ 
+  { n: 3, titolo: 'Clean, kipping, wall ball' },
+ 
+  { n: 4, titolo: 'Press, HSPU, remo 2000 m' },
+ 
+  { n: 5, titolo: 'Snatch, burpee, bike 10\u2032' },
+ 
+];
+ 
+const AMT_ATTREZZI = [
+ 
+  'Bilanciere con carichi (meglio dischi in gomma / bumper)',
+ 
+  'Rack con fermi di sicurezza',
+ 
+  'Remoergometro',
+ 
+  'Assault bike (o Echo bike) con display delle calorie',
+ 
+  'Wall ball (9 kg uomini / 6 kg donne) e bersaglio a 3 m / 2,7 m',
+ 
+  'Sbarra per le trazioni e un muro libero',
+ 
+  'Cronometro (va bene il timer dell’app)',
+ 
+];
+ 
+const AMT_GIORNI_DURATA = 14;
+ 
+const AMT_INTRO_PREDEFINITA = `Scopri che atleta sei davvero.
+ 
+ 
+Ti alleni con costanza, ma sai qual è il tuo vero punto forte? E quello che ti sta frenando?
+ 
+ 
+L'AMT Test misura 6 qualità fondamentali dell'atleta completo: Forza, Potenza, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
+ 
+ 
+Alla fine ottieni il tuo profilo a ragnatela: un grafico che mostra a colpo d'occhio dove sei forte e dove puoi crescere, confrontato con i livelli da Principiante a Elite e rapportato al tuo peso corporeo.
+ 
+ 
+Perché farlo
+ 
+• Smetti di andare a sensazione: vedi i tuoi numeri reali.
+ 
+• Allenamenti più mirati: il coach usa i risultati per costruire i tuoi prossimi programmi sui tuoi punti deboli.
+ 
+• Vedi i tuoi progressi: rifacendolo ogni 4-6 mesi, la nuova ragnatela si sovrappone alla vecchia e vedi dove sei migliorato.
+ 
+• Motivazione vera: salire da "Intermedio" ad "Avanzato" in una qualità dà soddisfazione.
+ 
+ 
+Come funziona
+ 
+5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.`;
+ 
+// "m:ss" -> secondi
+ 
+function amtSecondi(v: any): number | null {
+ 
+  const t = String(v ?? '').trim();
+ 
+  if (!t) return null;
+ 
+  if (t.includes(':')) {
+ 
+    const [m, s] = t.split(':');
+ 
+    const n = (parseInt(m || '0', 10) || 0) * 60 + (parseInt(s || '0', 10) || 0);
+ 
+    return n > 0 ? n : null;
+ 
+  }
+ 
+  const n = parseFloat(t.replace(',', '.'));
+ 
+  return isFinite(n) && n > 0 ? n : null;
+ 
+}
+ 
+function amtTempoTesto(sec: number): string {
+ 
+  const m = Math.floor(sec / 60);
+ 
+  const s = Math.round(sec - m * 60);
+ 
+  return `${m}:${String(s).padStart(2, '0')}`;
+ 
+}
+ 
+// Valore "da confrontare" di un test: kg ÷ peso, tempo in secondi, oppure il numero
+ 
+function amtValore(def: AmtTestDef, grezzo: any, peso: number | null): number | null {
+ 
+  if (grezzo === null || grezzo === undefined || String(grezzo).trim() === '' || grezzo === 'salta') return null;
+ 
+  if (def.tipo === 'tempo') return amtSecondi(grezzo);
+ 
+  const n = parseFloat(String(grezzo).replace(',', '.'));
+ 
+  if (!isFinite(n) || n < 0) return null;
+ 
+  if (def.rel) return peso && peso > 0 ? n / peso : null;
+ 
+  return n;
+ 
+}
+ 
+// Punteggio 0-100 di un test: tra due soglie sale in proporzione
+ 
+function amtPunteggio(def: AmtTestDef, valore: number | null, sesso: string): number | null {
+ 
+  if (valore === null) return null;
+ 
+  const t = sesso === 'f' ? def.f : def.m;
+ 
+  const p = [20, 40, 60, 80, 100];
+ 
+  if (def.meno) {
+ 
+    if (valore <= t[4]) return 100;
+ 
+    if (valore >= t[0]) return Math.max(0, Math.round(20 * (1 - (valore - t[0]) / t[0])));
+ 
+    for (let i = 0; i < 4; i++) {
+ 
+      if (valore <= t[i] && valore >= t[i + 1]) return Math.round(p[i] + ((t[i] - valore) / (t[i] - t[i + 1])) * 20);
+ 
+    }
+ 
+    return null;
+ 
+  }
+ 
+  if (valore >= t[4]) return 100;
+ 
+  if (valore <= t[0]) return Math.max(0, Math.round(20 * (valore / t[0])));
+ 
+  for (let i = 0; i < 4; i++) {
+ 
+    if (valore >= t[i] && valore <= t[i + 1]) return Math.round(p[i] + ((valore - t[i]) / (t[i + 1] - t[i])) * 20);
+ 
+  }
+ 
+  return null;
+ 
+}
+ 
+function amtLivello(p: number | null): string {
+ 
+  if (p === null) return '';
+ 
+  if (p >= 100) return 'Elite';
+ 
+  if (p >= 80) return 'Esperto';
+ 
+  if (p >= 60) return 'Avanzato';
+ 
+  if (p >= 40) return 'Intermedio';
+ 
+  if (p >= 20) return 'Principiante';
+ 
+  return 'Base';
+ 
+}
+ 
+// Punteggi di una sessione: per test e per qualità (media dei test fatti)
+ 
+function amtCalcola(sessione: any): { test: { [k: string]: number }; qualita: { [k: string]: number }; media: number | null } {
+ 
+  const ris = sessione?.results || {};
+ 
+  const peso = parseFloat(String(sessione?.weight_kg ?? '').replace(',', '.')) || null;
+ 
+  const sesso = sessione?.sex === 'f' ? 'f' : 'm';
+ 
+  const test: { [k: string]: number } = {};
+ 
+  AMT_TEST.forEach((d) => {
+ 
+    const p = amtPunteggio(d, amtValore(d, ris[d.k], peso), sesso);
+ 
+    if (p !== null) test[d.k] = p;
+ 
+  });
+ 
+  const qualita: { [k: string]: number } = {};
+ 
+  AMT_QUALITA.forEach((q) => {
+ 
+    const v = AMT_TEST.filter((d) => d.q === q.k && test[d.k] !== undefined).map((d) => test[d.k]);
+ 
+    if (v.length > 0) qualita[q.k] = Math.round(v.reduce((a, b) => a + b, 0) / v.length);
+ 
+  });
+ 
+  const vals = Object.values(qualita);
+ 
+  return { test, qualita, media: vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null };
+ 
+}
+ 
+// Il risultato da mostrare: ultima sessione completata; le qualità che non ha rifatto
+ 
+// prendono il valore dell'ultima volta in cui sono state misurate, segnate "non aggiornato"
+ 
+function amtProfilo(sessioni: any[]) {
+ 
+  const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at)
+ 
+    .sort((a: any, b: any) => String(a.completed_at).localeCompare(String(b.completed_at)));
+ 
+  if (fatte.length === 0) return null;
+ 
+  const ultima = fatte[fatte.length - 1];
+ 
+  const precedente = fatte.length > 1 ? fatte[fatte.length - 2] : null;
+ 
+  const calc = amtCalcola(ultima);
+ 
+  const qualita: { [k: string]: { v: number; vecchio: boolean } } = {};
+ 
+  AMT_QUALITA.forEach((q) => {
+ 
+    if (calc.qualita[q.k] !== undefined) { qualita[q.k] = { v: calc.qualita[q.k], vecchio: false }; return; }
+ 
+    for (let i = fatte.length - 2; i >= 0; i--) {
+ 
+      const c = amtCalcola(fatte[i]).qualita[q.k];
+ 
+      if (c !== undefined) { qualita[q.k] = { v: c, vecchio: true }; break; }
+ 
+    }
+ 
+  });
+ 
+  const prec = precedente ? amtCalcola(precedente) : null;
+ 
+  const vals = Object.values(qualita).map((x) => x.v);
+ 
+  return { ultima, precedente, calc, qualita, prec, media: vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null, quante: fatte.length };
+ 
+}
+ 
+function amtDataIT(iso: any): string {
+ 
+  const t = String(iso || '');
+ 
+  if (!t) return '';
+ 
+  const d = new Date(t.length <= 10 ? t + 'T12:00:00' : t);
+ 
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('it-IT');
+ 
+}
+ 
+// Grafico a ragnatela (SVG): 6 assi, il test attuale pieno e il precedente tratteggiato
+ 
+function RagnatelaAmt({ valori, precedenti, dim = 280 }: { valori: { [k: string]: number }; precedenti?: { [k: string]: number } | null; dim?: number }) {
+ 
+  const c = dim / 2;
+ 
+  const r = dim / 2 - 40;
+ 
+  const n = AMT_QUALITA.length;
+ 
+  const punto = (i: number, v: number) => {
+ 
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+ 
+    return [c + Math.cos(a) * r * (v / 100), c + Math.sin(a) * r * (v / 100)];
+ 
+  };
+ 
+  const forma = (vals: { [k: string]: number }) => AMT_QUALITA.map((q, i) => punto(i, Math.max(0, Math.min(100, vals[q.k] ?? 0))).join(',')).join(' ');
+ 
+  const etichette: { [k: string]: string } = { forza: 'Forza', potenza: 'Potenza', anaerobica: 'Anaerobica', aerobica: 'Aerobica', resistenza: 'Resistenza', ginnastica: 'Ginnastica' };
+ 
+  return (
+ 
+    <svg viewBox={`-45 -4 ${dim + 90} ${dim + 8}`} style={{ width: '100%', maxWidth: `${dim + 90}px`, display: 'block', margin: '0 auto' }}>
+ 
+      {[20, 40, 60, 80, 100].map((l) => (
+ 
+        <polygon key={l} points={AMT_QUALITA.map((_q, i) => punto(i, l).join(',')).join(' ')} fill="none" stroke="var(--bd-e2e8f0)" strokeWidth={l === 100 ? 1.5 : 1} />
+ 
+      ))}
+ 
+      {AMT_QUALITA.map((q, i) => {
+ 
+        const [x, y] = punto(i, 100);
+ 
+        return <line key={q.k} x1={c} y1={c} x2={x} y2={y} stroke="var(--bd-e2e8f0)" strokeWidth={1} />;
+ 
+      })}
+ 
+      {precedenti && <polygon points={forma(precedenti)} fill="none" stroke="var(--fg-94a3b8)" strokeWidth={1.5} strokeDasharray="4 3" />}
+ 
+      <polygon points={forma(valori)} fill="rgba(var(--acc-rgb), 0.28)" stroke="var(--fg-10b981)" strokeWidth={2} />
+ 
+      {AMT_QUALITA.map((q, i) => {
+ 
+        const [x, y] = punto(i, Math.max(0, Math.min(100, valori[q.k] ?? 0)));
+ 
+        return valori[q.k] !== undefined ? <circle key={q.k} cx={x} cy={y} r={3.5} fill="var(--fg-10b981)" /> : null;
+ 
+      })}
+ 
+      {AMT_QUALITA.map((q, i) => {
+ 
+        const [x, y] = punto(i, 128);
+ 
+        const anchor = Math.abs(x - c) < 4 ? 'middle' : x > c ? 'start' : 'end';
+ 
+        return (
+ 
+          <text key={q.k} x={x} y={y} textAnchor={anchor} dominantBaseline="middle" style={{ fontSize: '11px', fontWeight: 'bold', fill: 'var(--fg-334155)' }}>
+ 
+            {etichette[q.k]}
+ 
+            <tspan x={x} dy="13" style={{ fontSize: '10.5px', fill: 'var(--fg-10b981)' }}>{valori[q.k] !== undefined ? String(valori[q.k]) : '–'}</tspan>
+ 
+          </text>
+ 
+        );
+ 
+      })}
+ 
+    </svg>
+ 
+  );
+ 
+}
+ 
 // ---- Abbonamento a pacchetto (es. 12 mesi): quanto ne ha usato e quanto gli resta ----
  
 function isoDiOggi(): string {
@@ -7058,7 +7497,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [personalExpandedProgramId, setPersonalExpandedProgramId] = useState<string | null>(null);
  
-  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi' | 'personal'>('anagrafici');
+  const [coachAthleteDetailTab, setCoachAthleteDetailTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'abbonamento' | 'gare' | 'progressi' | 'personal' | 'amt'>('anagrafici');
  
   const [coachMaxSubTab, setCoachMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench' | 'nuoto'>('strength');
  
@@ -7071,6 +7510,28 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [bozzaAbb, setBozzaAbb] = useState<{ stato: string; trial: string; extra: number; tipo: string; inizio: string; fine: string } | null>(null);
  
   const [mioPacchetto, setMioPacchetto] = useState<any>(null);
+ 
+  // ---- AMT TEST ----
+ 
+  const [amtSessioni, setAmtSessioni] = useState<{ [athleteId: string]: any[] }>({});
+ 
+  const [amtConfig, setAmtConfig] = useState<{ intro: string; shopUrl: string; whatsapp: string }>({ intro: '', shopUrl: '', whatsapp: '' });
+ 
+  const [amtInCorso, setAmtInCorso] = useState(false);
+ 
+  const [amtGiornata, setAmtGiornata] = useState<number | null>(null);
+ 
+  const [amtBozza, setAmtBozza] = useState<{ [k: string]: string }>({});
+ 
+  const [amtAvvio, setAmtAvvio] = useState<{ hoTutto: boolean; peso: string; sesso: string }>({ hoTutto: false, peso: '', sesso: '' });
+ 
+  const [amtLucchetto, setAmtLucchetto] = useState(false);
+ 
+  const [amtIntroAperta, setAmtIntroAperta] = useState(false);
+ 
+  const [amtQualitaAperta, setAmtQualitaAperta] = useState<string | null>(null);
+ 
+  const [amtMaxRecenti, setAmtMaxRecenti] = useState<{ [nome: string]: { kg: number; data: string } }>({});
  
   // Il nuoto lo vede solo chi è abilitato dal coach (colonna profiles.nuoto)
  
@@ -7194,7 +7655,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const promemoriaAnamnesiRef = React.useRef<string>('');
  
-  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal' | null>(null);
+  const [athleteProfileTab, setAthleteProfileTab] = useState<'anagrafici' | 'maxes' | 'anamnesi' | 'privacy' | 'gare' | 'progressi' | 'personal' | 'amt' | null>(null);
  
   const [athleteMaxSubTab, setAthleteMaxSubTab] = useState<'strength' | 'metcon' | 'gym' | 'bench' | 'nuoto'>('strength');
  
@@ -8320,6 +8781,10 @@ const [notificationError, setNotificationError] = useState('');
  
         fetchMotivazioni();
  
+        fetchAmtSessioni();
+ 
+        fetchAmtConfig();
+ 
       } else {
  
         fetchAthleteResults();
@@ -8341,6 +8806,10 @@ const [notificationError, setNotificationError] = useState('');
         fetchScadutoCta();
  
         fetchMotivazioni();
+ 
+        fetchAmtSessioni(session.user.id);
+ 
+        fetchAmtConfig();
  
       }
  
@@ -9556,6 +10025,8 @@ const [notificationError, setNotificationError] = useState('');
  
     : k === 'motivazioni' ? { motivazioni }
  
+    : k === 'amt' ? { amtConfig }
+ 
     : { linkLogoBozza }
  
   );
@@ -9575,6 +10046,8 @@ const [notificationError, setNotificationError] = useState('');
     else if (k === 'invitoScaduto') setScadutoCta(f.scadutoCta);
  
     else if (k === 'motivazioni') setMotivazioni(f.motivazioni);
+ 
+    else if (k === 'amt') setAmtConfig(f.amtConfig);
  
     else if (k === 'logo') setLinkLogoBozza(f.linkLogoBozza);
  
@@ -11306,8 +11779,7 @@ const [notificationError, setNotificationError] = useState('');
  
         const base = await valorePrimaDiOggi(match, r);
  
-        if (base !== null && base >= weight) { weight = base; ripristino = true; }
- 
+        if (base !== null && base >= weight) { weight = base; ripristino = true; } 
       }
  
       if (isCorrection && previous !== null && weight === previous) continue;
@@ -11470,6 +11942,12 @@ const [notificationError, setNotificationError] = useState('');
  
     if (role !== 'athlete' && coachAthleteDetailTab === 'progressi' && selectedCoachAthlete?.id) fetchStoricoTest(selectedCoachAthlete.id);
  
+    if (role === 'athlete' && athleteProfileTab === 'amt' && session?.user?.id) fetchAmtSessioni(session.user.id);
+ 
+    if (role !== 'athlete' && coachAthleteDetailTab === 'amt' && selectedCoachAthlete?.id) fetchAmtSessioni(selectedCoachAthlete.id);
+ 
+    if (athleteProfileTab !== 'amt') setAmtInCorso(false);
+ 
     // eslint-disable-next-line react-hooks/exhaustive-deps
  
   }, [athleteProfileTab, coachAthleteDetailTab, selectedCoachAthlete?.id, session?.user?.id]);
@@ -11563,6 +12041,880 @@ const [notificationError, setNotificationError] = useState('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
  
   }, [programLibrary, coachAllResults, role]);
+ 
+  // ======================= AMT TEST: dati e azioni =======================
+ 
+  const fetchAmtSessioni = async (athleteId?: string) => {
+ 
+    try {
+ 
+      let q: any = supabase.from('amt_test_sessions').select('*').order('unlocked_at', { ascending: true });
+ 
+      if (athleteId) q = q.eq('athlete_id', athleteId);
+ 
+      const { data, error } = await q;
+ 
+      if (error || !data) return;
+ 
+      const mappa: { [k: string]: any[] } = {};
+ 
+      data.forEach((s: any) => { (mappa[s.athlete_id] = mappa[s.athlete_id] || []).push(s); });
+ 
+      setAmtSessioni((prev) => (athleteId ? { ...prev, [athleteId]: mappa[athleteId] || [] } : mappa));
+ 
+    } catch (e) {
+ 
+      // tabella non ancora creata: AMT Test semplicemente non compare
+ 
+    }
+ 
+  };
+ 
+  const fetchAmtConfig = async () => {
+ 
+    try {
+ 
+      const { data } = await supabase.from('settings').select('value').eq('key', 'amt_test').maybeSingle();
+ 
+      if (data?.value) setAmtConfig({ intro: '', shopUrl: '', whatsapp: '', ...data.value });
+ 
+    } catch (e) { /* niente */ }
+ 
+  };
+ 
+  const saveAmtConfig = async () => {
+ 
+    const { error } = await supabase.from('settings').upsert(
+ 
+      { key: 'amt_test', value: amtConfig, updated_at: new Date().toISOString() },
+ 
+      { onConflict: 'key' }
+ 
+    );
+ 
+    alert(error ? 'Errore: ' + error.message : 'AMT Test salvato!');
+ 
+  };
+ 
+  const amtSostituisci = (s: any) => {
+ 
+    setAmtSessioni((prev) => {
+ 
+      const lista = [...(prev[s.athlete_id] || [])];
+ 
+      const i = lista.findIndex((x: any) => x.id === s.id);
+ 
+      if (i >= 0) lista[i] = s; else lista.push(s);
+ 
+      return { ...prev, [s.athlete_id]: lista };
+ 
+    });
+ 
+  };
+ 
+  const amtAggiorna = async (s: any, campi: any) => {
+ 
+    const { data, error } = await supabase.from('amt_test_sessions').update(campi).eq('id', s.id).select().maybeSingle();
+ 
+    if (error) { alert('Errore: ' + error.message); return null; }
+ 
+    const nuova = data || { ...s, ...campi };
+ 
+    amtSostituisci(nuova);
+ 
+    return nuova;
+ 
+  };
+ 
+  const amtOggi = () => isoDiOggi();
+ 
+  const amtGiorniRimasti = (s: any) => (s?.deadline ? giorniFraIso(amtOggi(), String(s.deadline).slice(0, 10)) : null);
+ 
+  // Coach: sblocca una sessione (14 giorni)
+ 
+  const amtSblocca = async (atleta: any) => {
+ 
+    const deadline = isoPiuGiorni(amtOggi(), AMT_GIORNI_DURATA);
+ 
+    const { data, error } = await supabase.from('amt_test_sessions').insert([{
+ 
+      athlete_id: atleta.id, status: 'aperta', deadline, results: {}, giorni: {}, created_by: session.user.id,
+ 
+    }]).select().maybeSingle();
+ 
+    if (error) { alert('Errore: ' + error.message + '\n\nSe dice che la tabella amt_test_sessions non esiste, va prima creata su Supabase (vedi istruzioni).'); return; }
+ 
+    if (data) amtSostituisci(data);
+ 
+    fetch('/api/notify-user', {
+ 
+      method: 'POST',
+ 
+      headers: { 'Content-Type': 'application/json' },
+ 
+      body: JSON.stringify({ user_id: atleta.id, type: `amt_sbloccato_${data?.id || ''}`, title: 'AMT Test sbloccato! \u{1F3C5}', message: `Il tuo AMT Test è pronto: hai ${AMT_GIORNI_DURATA} giorni, fino al ${itDaIso(deadline)}, per completare le ${AMT_GIORNATE.length} giornate. Lo trovi in Profilo > AMT Test.` }),
+ 
+    }).catch(() => {});
+ 
+    avvisa('AMT Test sbloccato');
+ 
+  };
+ 
+  const amtProroga = async (s: any, giorni: number) => {
+ 
+    const base = String(s.deadline || amtOggi()).slice(0, 10);
+ 
+    const da = base < amtOggi() ? amtOggi() : base;
+ 
+    await amtAggiorna(s, { deadline: isoPiuGiorni(da, giorni) });
+ 
+    avvisa(`Prorogato di ${giorni} giorni`);
+ 
+  };
+ 
+  const amtAnnulla = async (s: any) => {
+ 
+    const conRisultati = Object.keys(s.results || {}).length > 0;
+ 
+    if (!window.confirm(conRisultati ? 'L’atleta ha già inserito dei risultati: annullando si perdono. Vuoi annullare lo sblocco?' : 'Annullare lo sblocco dell’AMT Test?')) return;
+ 
+    const { error } = await supabase.from('amt_test_sessions').delete().eq('id', s.id);
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setAmtSessioni((prev) => ({ ...prev, [s.athlete_id]: (prev[s.athlete_id] || []).filter((x: any) => x.id !== s.id) }));
+ 
+  };
+ 
+  // Atleta: inizio (attrezzatura, peso, sesso)
+ 
+  const amtInizia = async (s: any) => {
+ 
+    const peso = parseFloat(String(amtAvvio.peso).replace(',', '.'));
+ 
+    if (!amtAvvio.hoTutto) { alert('Prima conferma di avere tutta l’attrezzatura.'); return; }
+ 
+    if (!(peso >= 30 && peso <= 250)) { alert('Scrivi il tuo peso di oggi in kg (es. 72,5).'); return; }
+ 
+    const sesso = amtAvvio.sesso || (personalData.gender === 'f' || personalData.gender === 'm' ? personalData.gender : '');
+ 
+    if (sesso !== 'm' && sesso !== 'f') { alert('Indica se sei uomo o donna: le tabelle dei livelli sono diverse.'); return; }
+ 
+    await amtAggiorna(s, { started_at: new Date().toISOString(), weight_kg: peso, sex: sesso });
+ 
+  };
+ 
+  const amtCaricaMaxRecenti = async (athleteId: string) => {
+ 
+    try {
+ 
+      const da = new Date(Date.now() - 90 * 86400000).toISOString();
+ 
+      const { data } = await supabase.from('athlete_max_history').select('exercise,value,recorded_at').eq('athlete_id', athleteId).eq('reps', 1).gte('recorded_at', da).order('recorded_at', { ascending: false });
+ 
+      const mappa: { [k: string]: { kg: number; data: string } } = {};
+ 
+      (data || []).forEach((r: any) => {
+ 
+        const k = String(r.exercise || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+ 
+        if (!mappa[k] && Number(r.value) > 0) mappa[k] = { kg: Number(r.value), data: r.recorded_at };
+ 
+      });
+ 
+      setAmtMaxRecenti(mappa);
+ 
+    } catch (e) { setAmtMaxRecenti({}); }
+ 
+  };
+ 
+  const amtApriGiornata = (s: any, n: number) => {
+ 
+    const bozza: { [k: string]: string } = {};
+ 
+    AMT_TEST.filter((d) => d.giorno === n).forEach((d) => { bozza[d.k] = String((s.results || {})[d.k] ?? ''); });
+ 
+    setAmtBozza(bozza);
+ 
+    setAmtGiornata(n);
+ 
+    window.scrollTo(0, 0);
+ 
+  };
+ 
+  const amtSalvaGiornata = async (s: any, n: number) => {
+ 
+    const peso = parseFloat(String(s.weight_kg ?? '').replace(',', '.')) || null;
+ 
+    const strani: string[] = [];
+ 
+    const nuovi: { [k: string]: string } = {};
+ 
+    AMT_TEST.filter((d) => d.giorno === n).forEach((d) => {
+ 
+      const grezzo = String(amtBozza[d.k] ?? '').trim();
+ 
+      nuovi[d.k] = grezzo;
+ 
+      if (!grezzo || grezzo === 'salta') return;
+ 
+      const v = amtValore(d, grezzo, peso);
+ 
+      if (v === null || v < d.min || v > d.max) strani.push(d.nome);
+ 
+    });
+ 
+    if (strani.length > 0 && !window.confirm(`Controlla questi valori, sembrano strani:\n• ${strani.join('\n• ')}\n\nSei sicuro di volerli salvare?`)) return;
+ 
+    const mancanti = AMT_TEST.filter((d) => d.giorno === n && !d.facoltativo && !nuovi[d.k]).map((d) => d.nome);
+ 
+    if (mancanti.length > 0 && !window.confirm(`Non hai inserito:\n• ${mancanti.join('\n• ')}\n\nQuesti test non verranno conteggiati. Salvare lo stesso?`)) return;
+ 
+    const risultati = { ...(s.results || {}), ...nuovi };
+ 
+    const giorni = { ...(s.giorni || {}), [n]: amtOggi() };
+ 
+    const nuova = await amtAggiorna(s, { results: risultati, giorni });
+ 
+    if (!nuova) return;
+ 
+    setAmtGiornata(null);
+ 
+    window.scrollTo(0, 0);
+ 
+    const fatte = AMT_GIORNATE.filter((g) => (nuova.giorni || {})[g.n]).length;
+ 
+    if (fatte === AMT_GIORNATE.length && window.confirm('Hai completato tutte le giornate! Vuoi concludere il test e vedere il tuo profilo?')) await amtConcludi(nuova, true);
+ 
+    else avvisa(`Giornata ${n} salvata`);
+ 
+  };
+ 
+  const amtConcludi = async (s: any, conferma?: boolean) => {
+ 
+    const fatte = AMT_GIORNATE.filter((g) => (s.giorni || {})[g.n]).length;
+ 
+    if (!conferma && !window.confirm(fatte < AMT_GIORNATE.length
+ 
+      ? `Hai fatto ${fatte} giornate su ${AMT_GIORNATE.length}. Le qualità non misurate resteranno quelle del test precedente. Concludere il test adesso?`
+ 
+      : 'Concludere il test? Dopo non potrai più modificare i risultati.')) return;
+ 
+    const calc = amtCalcola(s);
+ 
+    const nuova = await amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: calc });
+ 
+    if (!nuova) return;
+ 
+    // I massimali del test aggiornano anche i massimali dell'atleta (solo se più alti)
+ 
+    for (const d of AMT_TEST.filter((x) => x.tipo === 'kg' && x.esercizio)) {
+ 
+      const v = String((s.results || {})[d.k] ?? '').trim();
+ 
+      if (v && v !== 'salta') await maybeUpdateMaxFromScore(s.athlete_id, d.esercizio as string, '1', v, s.athlete_id !== session.user.id, 'forza');
+ 
+    }
+ 
+    if (s.athlete_id === session.user.id) {
+ 
+      fetch('/api/notify-coach', {
+ 
+        method: 'POST',
+ 
+        headers: { 'Content-Type': 'application/json' },
+ 
+        body: JSON.stringify({ type: `amt_completato_${s.id}`, title: 'AMT Test completato', message: `${personalData.full_name || session.user.email} ha completato l’AMT Test${calc.media !== null ? ` (media ${calc.media})` : ''}.` }),
+ 
+      }).catch(() => {});
+ 
+    }
+ 
+    setAmtInCorso(false);
+ 
+    setAmtGiornata(null);
+ 
+    window.scrollTo(0, 0);
+ 
+    avvisa('AMT Test completato! \u{1F3C5}');
+ 
+  };
+ 
+  // Sessioni scadute: si chiudono con quello che è stato fatto
+ 
+  useEffect(() => {
+ 
+    if (!session?.user?.id) return;
+ 
+    const oggi = amtOggi();
+ 
+    Object.values(amtSessioni).flat().forEach((s: any) => {
+ 
+      if (s.status !== 'aperta' || !s.deadline || String(s.deadline).slice(0, 10) >= oggi) return;
+ 
+      if (role === 'athlete' && s.athlete_id !== session.user.id) return;
+ 
+      const conRisultati = Object.values(s.results || {}).some((v: any) => String(v || '').trim() && v !== 'salta');
+ 
+      if (conRisultati) amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: amtCalcola(s), parziale: true });
+ 
+      else amtAggiorna(s, { status: 'scaduta' });
+ 
+    });
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [amtSessioni, role, session?.user?.id]);
+ 
+  const amtLinkWhatsapp = () => {
+ 
+    const n = String(amtConfig.whatsapp || '').replace(/[^0-9]/g, '');
+ 
+    if (!n) return '';
+ 
+    const completo = n.length <= 10 ? `39${n}` : n;
+ 
+    return `https://wa.me/${completo}?text=${encodeURIComponent('Ciao! Vorrei sbloccare l’AMT Test.')}`;
+ 
+  };
+ 
+  // Schermata delle singole giornate (atleta)
+ 
+  const sessioneAmt = (s: any) => {
+ 
+    const rimasti = amtGiorniRimasti(s);
+ 
+    const campo: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' };
+ 
+    const testa = (
+ 
+      <div style={{ marginBottom: '14px' }}>
+ 
+        <button type="button" onClick={() => { if (amtGiornata !== null) setAmtGiornata(null); else setAmtInCorso(false); window.scrollTo(0, 0); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '12px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+          <Icona nome="sinistra" size={14} /> {amtGiornata !== null ? 'Le giornate' : 'AMT Test'}
+ 
+        </button>
+ 
+        <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{amtGiornata !== null ? `Giornata ${amtGiornata} · ${AMT_GIORNATE.find((g) => g.n === amtGiornata)?.titolo || ''}` : 'AMT Test in corso'}</h3>
+ 
+        {rimasti !== null && <span style={{ display: 'block', fontSize: '12px', color: rimasti <= 2 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)', marginTop: '3px' }}>{`Da completare entro il ${itDaIso(String(s.deadline).slice(0, 10))} · ${rimasti <= 0 ? 'ultimo giorno' : rimasti === 1 ? 'manca 1 giorno' : `mancano ${rimasti} giorni`}`}</span>}
+ 
+      </div>
+ 
+    );
+ 
+    // 1) Prima di iniziare: attrezzatura, peso, sesso
+ 
+    if (!s.started_at) {
+ 
+      const sessoNoto = personalData.gender === 'f' || personalData.gender === 'm';
+ 
+      return (
+ 
+        <div>
+ 
+          {testa}
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+ 
+            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Ti serve</span>
+ 
+            {AMT_ATTREZZI.map((a) => (
+ 
+              <span key={a} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}><span style={{ color: 'var(--fg-10b981)' }}>{'•'}</span>{a}</span>
+ 
+            ))}
+ 
+            <label style={{ display: 'flex', alignItems: 'center', gap: '9px', marginTop: '10px', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)', cursor: 'pointer' }}>
+ 
+              <input type="checkbox" checked={amtAvvio.hoTutto} onChange={(e) => setAmtAvvio({ ...amtAvvio, hoTutto: e.target.checked })} style={{ width: '18px', height: '18px' }} />
+ 
+              Ho tutta l&apos;attrezzatura
+ 
+            </label>
+ 
+          </div>
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+ 
+            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Come funziona</span>
+ 
+            {AMT_GIORNATE.map((g) => (
+ 
+              <span key={g.n} style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}>
+ 
+                <strong>{`Giornata ${g.n} · ${g.titolo}: `}</strong>{AMT_TEST.filter((d) => d.giorno === g.n).map((d) => d.nome + (d.facoltativo ? ' (facoltativo)' : '')).join(', ')}
+ 
+              </span>
+ 
+            ))}
+ 
+            <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
+ 
+              {`Hai ${AMT_GIORNI_DURATA} giorni per completarle. In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
+ 
+            </span>
+ 
+          </div>
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px', marginBottom: '14px' }}>
+ 
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '6px' }}>Quanto pesi oggi? (kg)</label>
+ 
+            <input autoComplete="off" type="text" inputMode="decimal" placeholder={String(personalData.weight || 'kg')} value={amtAvvio.peso} onChange={(e) => setAmtAvvio({ ...amtAvvio, peso: e.target.value })} style={campo} />
+ 
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '5px' }}>Serve per rapportare la forza al tuo peso: pesati la mattina, a digiuno.</span>
+ 
+            {!sessoNoto && (
+ 
+              <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+ 
+                {[['m', 'Uomo'], ['f', 'Donna']].map(([k, t]) => (
+ 
+                  <button key={k} type="button" onClick={() => setAmtAvvio({ ...amtAvvio, sesso: k })} style={{ ...pillola(amtAvvio.sesso === k, 'var(--fg-10b981)', 'medio'), flex: 1 }}>{t}</button>
+ 
+                ))}
+ 
+              </div>
+ 
+            )}
+ 
+          </div>
+ 
+          <button type="button" onClick={() => amtInizia(s)} style={{ width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+ 
+            Inizia il test
+ 
+          </button>
+ 
+        </div>
+ 
+      );
+ 
+    }
+ 
+    // 3) Una giornata aperta: i suoi test
+ 
+    if (amtGiornata !== null) {
+ 
+      const giaFatta = !!(s.giorni || {})[amtGiornata];
+ 
+      return (
+ 
+        <div>
+ 
+          {testa}
+ 
+          {AMT_TEST.filter((d) => d.giorno === amtGiornata).map((d) => {
+ 
+            const nomeVideo = d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '');
+ 
+            const video = exerciseLibrary.find((ex: any) => !ex.dismissed && ex.video_url && sameName(ex.name, nomeVideo))?.video_url;
+ 
+            const recente = d.tipo === 'kg' && d.esercizio ? amtMaxRecenti[d.esercizio.toLowerCase().replace(/[^a-z0-9]/g, '')] : null;
+ 
+            const saltato = amtBozza[d.k] === 'salta';
+ 
+            return (
+ 
+              <div key={d.k} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '13px', marginBottom: '12px', opacity: saltato ? 0.6 : 1 }}>
+ 
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+ 
+                  <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{d.nome}</span>
+ 
+                  {d.facoltativo && <span style={{ fontSize: '10.5px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)' }}>facoltativo</span>}
+ 
+                </div>
+ 
+                <p style={{ margin: '0 0 9px 0', fontSize: '12.5px', color: 'var(--fg-475569)', lineHeight: 1.5 }}>{d.istruzioni}</p>
+ 
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '9px' }}>
+ 
+                  {video && <AnteprimaVideo url={video} larghezza={96} altezza={54} />}
+ 
+                  {d.secondi && (
+ 
+                    <button type="button" onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: d.secondi }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer', alignSelf: 'center' }}>
+ 
+                      <Icona nome="timer" size={14} /> {`Avvia timer ${amtTempoTesto(d.secondi)}`}
+ 
+                    </button>
+ 
+                  )}
+ 
+                  {recente && !saltato && (
+ 
+                    <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: String(recente.kg).replace('.', ',') })} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-bfdbfe)', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', alignSelf: 'center' }}>
+ 
+                      {`Usa il tuo 1RM: ${String(recente.kg).replace('.', ',')} kg (${amtDataIT(recente.data)})`}
+ 
+                    </button>
+ 
+                  )}
+ 
+                </div>
+ 
+                {!saltato && (d.tipo === 'tempo' ? (
+ 
+                  <CaselleDoppie tipo="tempo" valore={amtBozza[d.k] || ''} onChange={(v: string) => setAmtBozza({ ...amtBozza, [d.k]: v })} />
+ 
+                ) : (
+ 
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 
+                    <input autoComplete="off" type="text" inputMode={d.tipo === 'kg' ? 'decimal' : 'numeric'} value={amtBozza[d.k] || ''} onChange={(e) => setAmtBozza({ ...amtBozza, [d.k]: e.target.value })} style={{ ...campo, flex: 1 }} />
+ 
+                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-64748b)', width: '40px' }}>{d.tipo === 'kg' ? 'kg' : d.tipo === 'cal' ? 'cal' : 'rip'}</span>
+ 
+                  </div>
+ 
+                ))}
+ 
+                {d.facoltativo && (
+ 
+                  <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: saltato ? '' : 'salta' })} style={{ marginTop: '8px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+ 
+                    {saltato ? 'Lo faccio' : 'Non lo so fare / Salta'}
+ 
+                  </button>
+ 
+                )}
+ 
+              </div>
+ 
+            );
+ 
+          })}
+ 
+          <button type="button" onClick={() => amtSalvaGiornata(s, amtGiornata)} style={{ width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+ 
+            {giaFatta ? 'Salva le modifiche' : 'Salva la giornata'}
+ 
+          </button>
+ 
+        </div>
+ 
+      );
+ 
+    }
+ 
+    // 2) Elenco delle giornate
+ 
+    const fatte = AMT_GIORNATE.filter((g) => (s.giorni || {})[g.n]).length;
+ 
+    return (
+ 
+      <div>
+ 
+        {testa}
+ 
+        <span style={{ display: 'block', height: '8px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', overflow: 'hidden', marginBottom: '6px' }}>
+ 
+          <span style={{ display: 'block', height: '100%', width: `${(fatte / AMT_GIORNATE.length) * 100}%`, background: 'var(--bg-10b981)', borderRadius: '999px' }} />
+ 
+        </span>
+ 
+        <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '14px' }}>{`${fatte} giornate su ${AMT_GIORNATE.length} · peso ${String(s.weight_kg).replace('.', ',')} kg`}</span>
+ 
+        {AMT_GIORNATE.map((g) => {
+ 
+          const fatta = (s.giorni || {})[g.n];
+ 
+          return (
+ 
+            <button key={g.n} type="button" onClick={() => amtApriGiornata(s, g.n)} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '14px', marginBottom: '10px', borderRadius: '12px', cursor: 'pointer', background: 'var(--bg-ffffff)', border: fatta ? '1.5px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)' }}>
+ 
+              <span style={{ width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', background: fatta ? 'var(--bg-10b981)' : 'var(--bg-f1f5f9)', color: fatta ? 'var(--onacc)' : 'var(--fg-475569)' }}>{fatta ? '✓' : g.n}</span>
+ 
+              <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{`Giornata ${g.n} · ${g.titolo}`}</span>
+ 
+                <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{fatta ? `Fatta il ${itDaIso(String(fatta))}` : AMT_TEST.filter((d) => d.giorno === g.n).map((d) => d.nome).join(' · ')}</span>
+ 
+              </span>
+ 
+              <Icona nome="destra" size={16} style={{ color: 'var(--fg-94a3b8)' }} />
+ 
+            </button>
+ 
+          );
+ 
+        })}
+ 
+        <button type="button" disabled={fatte === 0} onClick={() => amtConcludi(s)} style={{ width: '100%', marginTop: '6px', padding: '14px', borderRadius: '999px', border: 'none', background: fatte === 0 ? 'var(--bg-e2e8f0)' : 'var(--bg-10b981)', color: fatte === 0 ? 'var(--fg-94a3b8)' : 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: fatte === 0 ? 'default' : 'pointer' }}>
+ 
+          {fatte === AMT_GIORNATE.length ? 'Concludi il test e guarda il risultato' : 'Concludi il test con le giornate fatte'}
+ 
+        </button>
+ 
+      </div>
+ 
+    );
+ 
+  };
+ 
+  // Pagina AMT Test: ragnatela, risultati, sblocco (coach) o lucchetto (atleta)
+ 
+  const pannelloAmt = (athleteId: string, perCoach: boolean, atleta?: any) => {
+ 
+    const sessioni = amtSessioni[athleteId] || [];
+ 
+    const aperta = sessioni.find((s: any) => s.status === 'aperta');
+ 
+    if (!perCoach && amtInCorso && aperta) return sessioneAmt(aperta);
+ 
+    const prof = amtProfilo(sessioni);
+ 
+    const intro = String(amtConfig.intro || '').trim() || AMT_INTRO_PREDEFINITA;
+ 
+    const valori: { [k: string]: number } = {};
+ 
+    if (prof) Object.keys(prof.qualita).forEach((k) => { valori[k] = prof.qualita[k].v; });
+ 
+    const bottone: React.CSSProperties = { width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' };
+ 
+    const testoIntro = (
+ 
+      <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{intro}</p>
+ 
+    );
+ 
+    return (
+ 
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+ 
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+ 
+          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={17} style={{ marginRight: '6px', verticalAlign: '-3px' }} />AMT Test</h3>
+ 
+          {prof && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)' }}>{`ultimo: ${amtDataIT(prof.ultima.completed_at)}`}</span>}
+ 
+        </div>
+ 
+        {prof && (
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px' }}>
+ 
+            <RagnatelaAmt valori={valori} precedenti={prof.prec ? prof.prec.qualita : null} />
+ 
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '11px', color: 'var(--fg-64748b)', margin: '4px 0 10px 0' }}>
+ 
+              <span><span style={{ display: 'inline-block', width: '14px', height: '3px', background: 'var(--bg-10b981)', verticalAlign: 'middle', marginRight: '5px' }} />{`Ora (${amtDataIT(prof.ultima.completed_at)})`}</span>
+ 
+              {prof.precedente && <span><span style={{ display: 'inline-block', width: '14px', borderTop: '2px dashed var(--fg-94a3b8)', verticalAlign: 'middle', marginRight: '5px' }} />{`Precedente (${amtDataIT(prof.precedente.completed_at)})`}</span>}
+ 
+            </div>
+ 
+            {prof.media !== null && <span style={{ display: 'block', textAlign: 'center', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '10px' }}>Punteggio medio <strong style={{ color: 'var(--fg-10b981)', fontSize: '16px' }}>{prof.media}</strong> {`· ${amtLivello(prof.media)}`}</span>}
+ 
+            {AMT_QUALITA.map((q) => {
+ 
+              const x = prof.qualita[q.k];
+ 
+              const prima = prof.prec?.qualita?.[q.k];
+ 
+              const diff = x && !x.vecchio && prima !== undefined ? x.v - prima : null;
+ 
+              const aperto = amtQualitaAperta === q.k;
+ 
+              return (
+ 
+                <div key={q.k} style={{ borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                  <button type="button" onClick={() => setAmtQualitaAperta(aperto ? null : q.k)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+ 
+                    <span style={{ width: '22px', flexShrink: 0 }}>{q.icona}</span>
+ 
+                    <span style={{ flex: 1, minWidth: 0, fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{q.nome}</span>
+ 
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', minWidth: '26px', textAlign: 'right' }}>{x ? x.v : '–'}</span>
+ 
+                    <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', width: '78px' }}>{x ? (x.vecchio ? 'non aggiornato' : amtLivello(x.v)) : 'non misurato'}</span>
+ 
+                    <span style={{ fontSize: '11.5px', fontWeight: 'bold', width: '38px', textAlign: 'right', color: diff === null ? 'var(--fg-94a3b8)' : diff > 0 ? 'var(--fg-16a34a)' : diff < 0 ? 'var(--fg-dc2626)' : 'var(--fg-64748b)' }}>{diff === null ? '' : diff > 0 ? `▲ ${diff}` : diff < 0 ? `▼ ${-diff}` : '='}</span>
+ 
+                  </button>
+ 
+                  {aperto && (
+ 
+                    <div style={{ padding: '0 0 10px 30px' }}>
+ 
+                      {AMT_TEST.filter((d) => d.q === q.k).map((d) => {
+ 
+                        const grezzo = (prof.ultima.results || {})[d.k];
+ 
+                        const p = prof.calc.test[d.k];
+ 
+                        const peso = parseFloat(String(prof.ultima.weight_kg ?? '').replace(',', '.')) || null;
+ 
+                        const v = amtValore(d, grezzo, peso);
+ 
+                        const testo = !grezzo || grezzo === 'salta' ? (grezzo === 'salta' ? 'saltato' : 'non fatto')
+ 
+                          : d.tipo === 'tempo' ? amtTempoTesto(v || 0)
+ 
+                          : d.tipo === 'kg' ? `${String(grezzo).replace('.', ',')} kg${v ? ` · ${String(Math.round(v * 100) / 100).replace('.', ',')}× peso` : ''}`
+ 
+                          : `${grezzo} ${d.tipo === 'cal' ? 'cal' : 'rip'}`;
+ 
+                        return (
+ 
+                          <div key={d.k} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '3px 0' }}>
+ 
+                            <span style={{ color: 'var(--fg-475569)', minWidth: 0 }}>{d.nome}</span>
+ 
+                            <span style={{ color: 'var(--fg-334155)', fontWeight: 'bold', textAlign: 'right' }}>{testo}{p !== undefined ? ` · ${amtLivello(p)}` : ''}</span>
+ 
+                          </div>
+ 
+                        );
+ 
+                      })}
+ 
+                    </div>
+ 
+                  )}
+ 
+                </div>
+ 
+              );
+ 
+            })}
+ 
+            {prof.ultima.parziale && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-b45309)', marginTop: '6px' }}>Test chiuso alla scadenza: alcune giornate non sono state fatte.</span>}
+ 
+          </div>
+ 
+        )}
+ 
+        {perCoach ? (
+ 
+          aperta ? (() => {
+ 
+            const fatte = AMT_GIORNATE.filter((g) => (aperta.giorni || {})[g.n]).length;
+ 
+            const rimasti = amtGiorniRimasti(aperta);
+ 
+            return (
+ 
+              <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '12px', padding: '14px' }}>
+ 
+                <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{aperta.started_at ? 'Test in corso' : 'Test sbloccato, non ancora iniziato'}</span>
+ 
+                <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-64748b)', marginTop: '4px' }}>{`Giornate fatte: ${fatte} di ${AMT_GIORNATE.length} · scade il ${itDaIso(String(aperta.deadline).slice(0, 10))}${rimasti !== null ? ` (${rimasti <= 0 ? 'oggi' : rimasti === 1 ? 'domani' : `tra ${rimasti} giorni`})` : ''}`}</span>
+ 
+                {aperta.weight_kg && <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{`Peso al test: ${String(aperta.weight_kg).replace('.', ',')} kg`}</span>}
+ 
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+ 
+                  <button type="button" onClick={() => amtProroga(aperta, 7)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Proroga +7 giorni</button>
+ 
+                  <button type="button" onClick={() => amtAnnulla(aperta)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla sblocco</button>
+ 
+                </div>
+ 
+              </div>
+ 
+            );
+ 
+          })() : (
+ 
+            <>
+ 
+              <button type="button" onClick={() => atleta && amtSblocca(atleta)} style={bottone}><Icona nome="chiave" size={16} /> Sblocca AMT Test</button>
+ 
+              <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '-6px', lineHeight: 1.45 }}>{`L’atleta riceve una notifica e ha ${AMT_GIORNI_DURATA} giorni per completare le ${AMT_GIORNATE.length} giornate. Quando finisce, il test si richiude da solo.`}</span>
+ 
+            </>
+ 
+          )
+ 
+        ) : aperta ? (
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '12px', padding: '14px' }}>
+ 
+            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{aperta.started_at ? 'Il tuo test è in corso' : 'Il tuo AMT Test è sbloccato! \u{1F3C5}'}</span>
+ 
+            <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-64748b)', margin: '4px 0 12px 0' }}>{`Giornate fatte: ${AMT_GIORNATE.filter((g) => (aperta.giorni || {})[g.n]).length} di ${AMT_GIORNATE.length} · da completare entro il ${itDaIso(String(aperta.deadline).slice(0, 10))}`}</span>
+ 
+            <button type="button" onClick={() => { setAmtInCorso(true); setAmtGiornata(null); setAmtAvvio({ hoTutto: false, peso: '', sesso: '' }); amtCaricaMaxRecenti(athleteId); window.scrollTo(0, 0); }} style={bottone}>
+ 
+              {aperta.started_at ? 'Continua il test' : 'Inizia il test'}
+ 
+            </button>
+ 
+          </div>
+ 
+        ) : (
+ 
+          <button type="button" onClick={() => setAmtLucchetto(true)} style={{ ...bottone, background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)' }}>
+ 
+            <Icona nome="lucchetto" size={16} /> {prof ? 'Rifai l’AMT Test' : 'Sblocca AMT Test'}
+ 
+          </button>
+ 
+        )}
+ 
+        {prof ? (
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '12px 14px' }}>
+ 
+            <button type="button" onClick={() => setAmtIntroAperta(!amtIntroAperta)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>
+ 
+              Cos&apos;è l&apos;AMT Test? <span style={{ color: 'var(--fg-10b981)' }}>{amtIntroAperta ? '▲' : '▼'}</span>
+ 
+            </button>
+ 
+            {amtIntroAperta && <div style={{ marginTop: '10px' }}>{testoIntro}</div>}
+ 
+          </div>
+ 
+        ) : (
+ 
+          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px' }}>{testoIntro}</div>
+ 
+        )}
+ 
+        {amtLucchetto && !perCoach && (
+ 
+          <div onClick={() => setAmtLucchetto(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 4600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+ 
+            <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '24px 20px', maxWidth: '360px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
+ 
+              <div style={{ fontSize: '34px', marginBottom: '6px' }}>{'\u{1F512}'}</div>
+ 
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: 'var(--fg-10b981)' }}>AMT Test</h3>
+ 
+              <p style={{ margin: '0 0 18px 0', fontSize: '14px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>L&apos;AMT Test è una funzione a pagamento. Contatta il tuo coach per sbloccarlo.</p>
+ 
+              {amtConfig.shopUrl && (
+ 
+                <a href={amtConfig.shopUrl} target="_blank" rel="noopener noreferrer" style={{ ...bottone, textDecoration: 'none', marginBottom: '9px' }}>{'\u{1F6D2}'} Acquista il test</a>
+ 
+              )}
+ 
+              {amtLinkWhatsapp() && (
+ 
+                <a href={amtLinkWhatsapp()} target="_blank" rel="noopener noreferrer" style={{ ...bottone, textDecoration: 'none', marginBottom: '9px', background: '#25D366', color: '#fff' }}>{'\u{1F4AC}'} Scrivi al coach</a>
+ 
+              )}
+ 
+              <button type="button" onClick={() => setAmtLucchetto(false)} style={{ width: '100%', padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Chiudi</button>
+ 
+            </div>
+ 
+          </div>
+ 
+        )}
+ 
+      </div>
+ 
+    );
+ 
+  };
  
   // Nuovo record dell'atleta: avviso al coach
  
@@ -13733,8 +15085,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
             </div>
  
           );
- 
-        })}
+         })}
  
       </div>
  
@@ -15352,8 +16703,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     if (newIndex < 0 || newIndex >= updated.weeks.length) return;
  
-    const temp = updated.weeks[index];
- 
+    const temp = updated.weeks[index]; 
     updated.weeks[index] = updated.weeks[newIndex];
  
     updated.weeks[newIndex] = temp;
@@ -18615,6 +19965,29 @@ fetchAllAthleteResultsForCoach();
                   .sort((x: any, y: any) => x.info.giorni - y.info.giorni);
  
  
+                // 5c) AMT Test: passati 4 mesi dall'ultimo (e nessun test aperto)
+ 
+                const amtDaRifare = athletes
+ 
+                  .filter((a: any) => (coachSubs[a.id] || 'prova') === 'attivo')
+ 
+                  .map((a: any) => {
+ 
+                    const sess = amtSessioni[a.id] || [];
+ 
+                    if (sess.some((x: any) => x.status === 'aperta')) return null;
+ 
+                    const pr = amtProfilo(sess);
+ 
+                    if (!pr || periodiDa4Mesi(pr.ultima.completed_at) < 1) return null;
+ 
+                    return { a, quando: pr.ultima.completed_at };
+ 
+                  })
+ 
+                  .filter(Boolean) as any[];
+ 
+ 
                 // 6) Compleanni nei prossimi 7 giorni
  
                 const compleanni = athletes
@@ -18761,7 +20134,7 @@ fetchAllAthleteResultsForCoach();
  
                 const quantiOnline = accessi.filter((x: any) => x.on).length;
  
-                const vuota = accessi.length + gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + pacchetti.length + compleanni.length + anamnesi.length === 0;
+                const vuota = accessi.length + gare.length + allenamenti.length + inScadenza.length + senzaProgramma.length + prove.length + pacchetti.length + amtDaRifare.length + compleanni.length + anamnesi.length === 0;
  
                 return (
  
@@ -18888,6 +20261,18 @@ fetchAllAthleteResultsForCoach();
                       <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '3px' }}>{`Pacchetto ${info.mesiTot} ${info.mesiTot === 1 ? 'mese' : 'mesi'} · fine ${itDaIso(info.fine)}`}</span>
  
                     )), 'Pacchetti che finiscono nei prossimi 30 giorni o finiti da meno di 30. Lo stato (attivo/scaduto) lo cambi tu dal profilo.')}
+ 
+                    {sezione('amt', 'medaglia', 'AMT Test da rifare', amtDaRifare.length, amtDaRifare.map(({ a, quando }: any) => riga(
+ 
+                      `amt${a.id}`,
+ 
+                      () => apriAtleta(a, 'amt'),
+ 
+                      nome(a),
+ 
+                      etichetta(`ultimo ${amtDataIT(quando)}`, giallo)
+ 
+                    )), 'Sono passati almeno 4 mesi dall\u2019ultimo AMT Test: è il momento di proporglielo di nuovo.')}
  
                     {sezione('senza', 'avviso', 'Attivi senza programma', senzaProgramma.length, senzaProgramma.map((a: any) => riga(
  
@@ -19433,6 +20818,56 @@ fetchAllAthleteResultsForCoach();
  
               <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
  
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test</h4>
+ 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
+                  La presentazione che gli atleti vedono aprendo AMT Test, e dove li mandano i pulsanti del lucchetto. Se lasci la presentazione vuota si usa il testo predefinito.
+ 
+                </p>
+ 
+                <fieldset disabled={sezioneBanner !== 'amt'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
+ 
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Presentazione</label>
+ 
+                <textarea autoComplete="off" rows={10} placeholder={AMT_INTRO_PREDEFINITA} value={amtConfig.intro || ''} onChange={(e) => setAmtConfig({ ...amtConfig, intro: e.target.value })} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.45 }} />
+ 
+                {!amtConfig.intro && sezioneBanner === 'amt' && (
+ 
+                  <button type="button" onClick={() => setAmtConfig({ ...amtConfig, intro: AMT_INTRO_PREDEFINITA })} style={{ marginTop: '-4px', marginBottom: '10px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Parti dal testo predefinito</button>
+ 
+                )}
+ 
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link al prodotto sullo shop</label>
+ 
+                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test" value={amtConfig.shopUrl || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrl: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+ 
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Numero WhatsApp</label>
+ 
+                <input autoComplete="off" type="tel" placeholder="es. 333 1234567" value={amtConfig.whatsapp || ''} onChange={(e) => setAmtConfig({ ...amtConfig, whatsapp: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+ 
+                </fieldset>
+ 
+                {sezioneBanner === 'amt' ? (
+ 
+                  <div style={{ display: 'flex', gap: '8px' }}>
+ 
+                    <button type="button" onClick={annullaSezioneBanner} style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Annulla</button>
+ 
+                    <button type="button" onClick={async () => { await saveAmtConfig(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>Salva</button>
+ 
+                  </div>
+ 
+                ) : (
+ 
+                  <button type="button" onClick={() => apriSezioneBanner('amt')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
+ 
+                )}
+ 
+              </div>
+ 
+              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '2px solid var(--bd-e2e8f0)' }}>
+ 
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Link del logo</h4>
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
@@ -19534,6 +20969,8 @@ fetchAllAthleteResultsForCoach();
                     <button onClick={() => setCoachAthleteDetailTab('gare')} style={{ ...pillola(coachAthleteDetailTab === 'gare', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Gare</button>
  
                     <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
+ 
+                    <button onClick={() => setCoachAthleteDetailTab('amt')} style={{ ...pillola(coachAthleteDetailTab === 'amt', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="medaglia" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test</button>
  
                   </div>
  
@@ -19664,6 +21101,8 @@ fetchAllAthleteResultsForCoach();
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
+ 
+                  {coachAthleteDetailTab === 'amt' && pannelloAmt(selectedCoachAthlete.id, true, selectedCoachAthlete)}
  
                   {coachAthleteDetailTab === 'personal' && (() => {
  
@@ -24999,8 +26438,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   target="_blank"
  
-                  rel="noopener noreferrer"
- 
+                  rel="noopener noreferrer" 
                   style={{ display: 'inline-block', padding: '13px 26px', borderRadius: '10px', background: 'var(--bg-ffffff)', color: 'var(--fg-059669)', fontWeight: 'bold', textDecoration: 'none', fontSize: '15px' }}
  
                 >
@@ -25117,6 +26555,26 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                       voce('progressi', 'razzo', 'Percorso'),
  
+                      (() => {
+ 
+                        const mie = amtSessioni[session.user.id] || [];
+ 
+                        const ap = mie.find((x: any) => x.status === 'aperta');
+ 
+                        const pr = amtProfilo(mie);
+ 
+                        return voce('amt', 'medaglia', 'AMT Test', ap
+ 
+                          ? { t: ap.started_at ? 'In corso' : 'Sbloccato!', bg: 'var(--bg-dcfce7)', fg: 'var(--fg-166534)' }
+ 
+                          : pr && pr.media !== null
+ 
+                            ? { t: `${pr.media} \u00b7 ${amtLivello(pr.media)}`, bg: 'var(--bg-ecfdf5)', fg: 'var(--fg-047857)' }
+ 
+                            : { t: '\u{1F512}', bg: 'var(--bg-f1f5f9)', fg: 'var(--fg-64748b)' });
+ 
+                      })(),
+ 
                       voce('gare', 'bersaglio', 'Gare', prossimaGara !== undefined
  
                         ? { t: prossimaGara === 0 ? 'Oggi!' : prossimaGara === 1 ? 'Domani' : `tra ${prossimaGara} giorni`, bg: prossimaGara <= 7 ? 'var(--bg-fee2e2)' : 'var(--bg-ecfdf5)', fg: prossimaGara <= 7 ? 'var(--fg-b91c1c)' : 'var(--fg-047857)' }
@@ -25139,11 +26597,11 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 );
  
-              })() : (
+              })() : (athleteProfileTab === 'amt' && amtInCorso) ? null : (
  
                 <button
  
-                  onClick={() => { setAthleteProfileTab(null); window.scrollTo(0, 0); }}
+                  onClick={() => { setAthleteProfileTab(null); setAmtInCorso(false); window.scrollTo(0, 0); }}
  
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '16px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
  
@@ -25316,6 +26774,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
               {athleteProfileTab === 'gare' && pannelloCompetizioni(session.user.id, competitions, false)}
  
               {athleteProfileTab === 'progressi' && pannelloProgressi(storicoCarichi, true, session.user.id)}
+ 
+              {athleteProfileTab === 'amt' && pannelloAmt(session.user.id, false)}
  
               {athleteProfileTab === 'maxes' && (
  
