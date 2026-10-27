@@ -1394,7 +1394,7 @@ type AmtTestDef = {
  
   k: string; nome: string; q: string; giorno: number; tipo: 'kg' | 'rep' | 'cal' | 'tempo';
  
-  rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string;
+  rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string; video?: string[];
  
   m: number[]; f: number[]; min: number; max: number; istruzioni: string;
  
@@ -1406,63 +1406,63 @@ type AmtTestDef = {
  
 const AMT_TEST: AmtTestDef[] = [
  
-  { k: 'back_squat', nome: 'Back Squat 1RM', esercizio: 'Back Squat', q: 'forza', giorno: 1, tipo: 'kg', rel: true, m: [0.75, 1.25, 1.5, 2.0, 2.5], f: [0.5, 0.85, 1.1, 1.5, 1.9], min: 0.2, max: 4,
+  { k: 'back_squat', video: ['Back Squat'], nome: 'Back Squat 1RM', esercizio: 'Back Squat', q: 'forza', giorno: 1, tipo: 'kg', rel: true, m: [0.75, 1.25, 1.5, 2.0, 2.5], f: [0.5, 0.85, 1.1, 1.5, 1.9], min: 0.2, max: 4,
  
     istruzioni: 'Riscaldati con serie crescenti (es. 8-5-3-2-1 ripetizioni). Poi fai al massimo 3-4 tentativi singoli per trovare il tuo massimale. Squat sotto il parallelo. Usa i fermi di sicurezza del rack o fatti assistere. Scrivi il carico più alto riuscito.' },
  
-  { k: 'pull_up', nome: 'Pull up strict (max)', q: 'ginnastica', giorno: 1, tipo: 'rep', m: [3, 8, 13, 18, 25], f: [1, 3, 7, 11, 16], min: 0, max: 80,
+  { k: 'pull_up', video: ['Strict pull up', 'Pull up strict', 'Pull up'], nome: 'Pull up strict (max)', q: 'ginnastica', giorno: 1, tipo: 'rep', m: [3, 8, 13, 18, 25], f: [1, 3, 7, 11, 16], min: 0, max: 80,
  
     istruzioni: 'Partenza a braccia completamente tese, mento sopra la sbarra, nessuno slancio. Una sola serie unbroken: appena scendi dalla sbarra il test finisce. Se non ne fai nessuna scrivi 0.' },
  
-  { k: 'row_500', nome: '500 m remo', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
+  { k: 'row_500', video: ['Row', 'Remoergometro'], nome: '500 m remo', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
  
     istruzioni: 'Damper a tua scelta (consigliato 6-8). Partenza da fermo, a tutta per 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
-  { k: 'deadlift', nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
+  { k: 'deadlift', video: ['Deadlift'], nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
  
     istruzioni: 'Schiena neutra per tutta l’alzata, chiusura completa in alto. Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
  
-  { k: 'push_up', nome: 'Push up (max)', q: 'ginnastica', giorno: 2, tipo: 'rep', m: [15, 30, 45, 60, 75], f: [8, 18, 30, 40, 52], min: 0, max: 150,
+  { k: 'push_up', video: ['Push up', 'Push ups'], nome: 'Push up (max)', q: 'ginnastica', giorno: 2, tipo: 'rep', m: [15, 30, 45, 60, 75], f: [8, 18, 30, 40, 52], min: 0, max: 150,
  
     istruzioni: 'Corpo in linea, petto a terra in basso e braccia tese in alto. Una sola serie unbroken: se appoggi le ginocchia o ti fermi più di 2 secondi il test finisce.' },
  
-  { k: 'assault_1', nome: 'Assault bike 1′ (calorie)', q: 'anaerobica', giorno: 2, tipo: 'cal', secondi: 60, m: [20, 28, 35, 42, 50], f: [13, 19, 24, 29, 35], min: 3, max: 100,
+  { k: 'assault_1', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 1′ (calorie)', q: 'anaerobica', giorno: 2, tipo: 'cal', secondi: 60, m: [20, 28, 35, 42, 50], f: [13, 19, 24, 29, 35], min: 3, max: 100,
  
     istruzioni: 'Fai almeno 10 minuti di recupero dopo gli altri test. Azzera il display, parti da fermo e vai a tutta per 1 minuto. Scrivi le calorie.' },
  
-  { k: 'power_clean', nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
+  { k: 'power_clean', video: ['Power Clean'], nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
  
     istruzioni: 'Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
-  { k: 'kipping_pull_up', nome: 'Kipping pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
+  { k: 'kipping_pull_up', video: ['Kipping pull up', 'Pull up'], nome: 'Kipping pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
  
     istruzioni: 'Facoltativo, solo se li sai fare. Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken.' },
  
-  { k: 'wall_ball', nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
+  { k: 'wall_ball', video: ['Wall ball', 'Wall balls'], nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
  
     istruzioni: 'Uomini 9 kg a 3 m, donne 6 kg a 2,7 m. Squat sotto il parallelo, la palla deve toccare il bersaglio. Più ripetizioni possibili in 3 minuti.' },
  
-  { k: 'strict_press', nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
+  { k: 'strict_press', video: ['Shoulder press', 'Strict Press'], nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
  
     istruzioni: 'Dal rack, bilanciere sulle spalle. Spinta sopra la testa senza piegare le gambe (nessuna spinta dalle anche). Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
  
-  { k: 'kipping_hspu', nome: 'Kipping HSPU (max)', q: 'ginnastica', giorno: 4, tipo: 'rep', facoltativo: true, m: [5, 12, 20, 28, 36], f: [3, 8, 14, 20, 27], min: 0, max: 80,
+  { k: 'kipping_hspu', video: ['Kipping HSPU', 'Kipping handstand push up', 'Strict HSPU', 'Strict handstand push up', 'Handstand push up', 'HSPU'], nome: 'Kipping HSPU (max)', q: 'ginnastica', giorno: 4, tipo: 'rep', facoltativo: true, m: [5, 12, 20, 28, 36], f: [3, 8, 14, 20, 27], min: 0, max: 80,
  
     istruzioni: 'Facoltativo, solo se li sai fare. Verticale al muro, testa a terra (o sul cuscino) e braccia tese in alto. Una sola serie unbroken.' },
  
-  { k: 'row_2000', nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
+  { k: 'row_2000', video: ['Row', 'Remoergometro'], nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
  
     istruzioni: 'Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
-  { k: 'power_snatch', nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
+  { k: 'power_snatch', video: ['Power Snatch'], nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
  
     istruzioni: 'Facoltativo, solo se conosci la tecnica. Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
-  { k: 'burpee', nome: 'Burpee 3′ (max)', q: 'resistenza', giorno: 5, tipo: 'rep', secondi: 180, m: [35, 45, 55, 63, 70], f: [30, 40, 50, 57, 64], min: 0, max: 150,
+  { k: 'burpee', video: ['Burpees', 'Burpee'], nome: 'Burpee 3′ (max)', q: 'resistenza', giorno: 5, tipo: 'rep', secondi: 180, m: [35, 45, 55, 63, 70], f: [30, 40, 50, 57, 64], min: 0, max: 150,
  
     istruzioni: 'Petto e cosce a terra, in piedi con un piccolo salto e battito delle mani sopra la testa. Più ripetizioni possibili in 3 minuti.' },
  
-  { k: 'assault_10', nome: 'Assault bike 10′ (calorie)', q: 'aerobica', giorno: 5, tipo: 'cal', secondi: 600, m: [100, 130, 155, 180, 210], f: [70, 90, 110, 130, 150], min: 30, max: 400,
+  { k: 'assault_10', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 10′ (calorie)', q: 'aerobica', giorno: 5, tipo: 'cal', secondi: 600, m: [100, 130, 155, 180, 210], f: [70, 90, 110, 130, 150], min: 30, max: 400,
  
     istruzioni: 'Fai almeno 15 minuti di recupero dopo i burpee. Azzera il display e tieni il ritmo più alto che riesci a sostenere per 10 minuti. Scrivi le calorie.' },
  
@@ -3576,8 +3576,7 @@ function SelettoreScore({ valore, onChange }: any) {
         <option value="rep">Ripetizioni</option>
  
         <option value="tempo">Tempo</option>
- 
-        <option value="round">Round + rep</option>
+         <option value="round">Round + rep</option>
  
         <option value="spunta">Solo spunta (fatto / non fatto)</option>
  
@@ -8175,7 +8174,8 @@ const [notificationError, setNotificationError] = useState('');
  
       // 23505 = esiste già (doppione bloccato dal database): niente errore e niente push
  
-      if ((error as any).code === '23505') return; 
+      if ((error as any).code === '23505') return;
+ 
       console.error('Errore creazione notifica:', error);
  
       setNotificationError(error.message);
@@ -11646,7 +11646,8 @@ const [notificationError, setNotificationError] = useState('');
  
       else await recordMaxHistory(athleteId, met, -1, seconds, 'scheda');
  
-      if (!isCorrection) { 
+      if (!isCorrection) {
+ 
         setPrBadge({
  
           exercise: met,
@@ -12509,9 +12510,21 @@ const [notificationError, setNotificationError] = useState('');
  
           {AMT_TEST.filter((d) => d.giorno === amtGiornata).map((d) => {
  
-            const nomeVideo = d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '');
+            // Video dalla libreria esercizi: cerco i nomi del test, anche tra le abbreviazioni dell'esercizio
  
-            const video = exerciseLibrary.find((ex: any) => !ex.dismissed && ex.video_url && sameName(ex.name, nomeVideo))?.video_url;
+            const conVideo = exerciseLibrary.filter((ex: any) => !ex.dismissed && ex.video_url);
+ 
+            const candidati = [...(d.video || []), d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '')];
+ 
+            let video: string | undefined;
+ 
+            for (const c of candidati) {
+ 
+              const ex = conVideo.find((e: any) => sameName(e.name, c) || String(e.aliases || '').split(',').some((al: string) => al.trim() && sameName(al, c)));
+ 
+              if (ex) { video = ex.video_url; break; }
+ 
+            }
  
             const recente = d.tipo === 'kg' && d.esercizio ? amtMaxRecenti[d.esercizio.toLowerCase().replace(/[^a-z0-9]/g, '')] : null;
  
@@ -12771,7 +12784,8 @@ const [notificationError, setNotificationError] = useState('');
  
                           </div>
  
-                        ); 
+                        );
+ 
                       })}
  
                     </div>
@@ -19137,8 +19151,7 @@ fetchAllAthleteResultsForCoach();
               </div>
  
             </div>
- 
-          </div>
+           </div>
  
         );
  
@@ -19517,7 +19530,8 @@ fetchAllAthleteResultsForCoach();
               <div
  
                 onClick={() => setShowNotifications(false)}
-                 style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
+ 
+                style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 40 }}
  
               />
  
@@ -21097,7 +21111,8 @@ fetchAllAthleteResultsForCoach();
  
                     );
  
-                  })()} 
+                  })()}
+ 
                   {coachAthleteDetailTab === 'gare' && pannelloCompetizioni(selectedCoachAthlete.id, coachCompetitions[selectedCoachAthlete.id] || [], true)}
  
                   {coachAthleteDetailTab === 'progressi' && pannelloProgressi(storicoCarichiCoach[selectedCoachAthlete.id] || [], false, selectedCoachAthlete.id)}
