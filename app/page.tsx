@@ -3488,6 +3488,100 @@ function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
 }
  
+// WOD a più round con uno score diverso per ogni round (es. round 1 a tempo, round 2 a ripetizioni)
+ 
+function unitaRound(blk: any, i: number): string {
+ 
+  if (blk?.scoreMisto && Array.isArray(blk.scoreUnitRounds) && blk.scoreUnitRounds[i]) return String(blk.scoreUnitRounds[i]);
+ 
+  return String(blk?.scoreUnit || '');
+ 
+}
+ 
+function scoreMisto(blk: any): boolean {
+ 
+  if (!blk?.scoreMisto || !(blk?.type === 'wod' || blk?.type === 'test')) return false;
+ 
+  const n = serieDaBlocco(blk).length;
+ 
+  if (n < 2) return false;
+ 
+  return new Set(Array.from({ length: n }, (_, i) => unitaRound(blk, i))).size > 1;
+ 
+}
+ 
+// Nell'editor: interruttore "Score diverso per ogni round" e un menu per ogni round
+ 
+function ScoreDiversoPerRound({ blk, onCambia }: any) {
+ 
+  const n = Math.min(30, parseInt(String(blk?.scoreRounds ?? ''), 10) || 0);
+ 
+  if (n < 2 || blk?.scoreUnit === 'spunta') return null;
+ 
+  const attivo = !!blk.scoreMisto;
+ 
+  const lista: string[] = Array.isArray(blk.scoreUnitRounds) ? blk.scoreUnitRounds : [];
+ 
+  return (
+ 
+    <div style={{ background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)', margin: '6px 0 8px 0' }}>
+ 
+      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-334155)', cursor: 'pointer' }}>
+ 
+        <input type="checkbox" checked={attivo} onChange={(e) => onCambia('scoreMisto', e.target.checked)} />
+ 
+        Score diverso per ogni round
+ 
+      </label>
+ 
+      {attivo && Array.from({ length: n }, (_, i) => (
+ 
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+ 
+          <span style={{ width: '64px', flexShrink: 0, fontSize: '11px', color: 'var(--fg-64748b)', fontWeight: 'bold' }}>{`Round ${i + 1}`}</span>
+ 
+          <select
+ 
+            value={lista[i] || ''}
+ 
+            onChange={(e) => {
+ 
+              const copia = [...lista];
+ 
+              while (copia.length < n) copia.push('');
+ 
+              copia[i] = e.target.value;
+ 
+              onCambia('scoreUnitRounds', copia);
+ 
+            }}
+ 
+            style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', borderRadius: '4px', fontSize: '12px' }}
+ 
+          >
+ 
+            <option value="">{`Come sopra (${SCORE_UNITS[blk.scoreUnit || '']?.nome || 'Generico'})`}</option>
+ 
+            <option value="kg">Kg</option>
+ 
+            <option value="rep">Ripetizioni</option>
+ 
+            <option value="tempo">Tempo</option>
+ 
+            <option value="round">Round + rep</option>
+ 
+          </select>
+ 
+        </div>
+ 
+      ))}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any) {
  
   const serie = serieDaBlocco(blk);
@@ -3498,7 +3592,11 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
   const precDi = (i: number) => (prec.length === 0 ? '' : prec.length === 1 ? prec[0] : prec[i] || '');
  
-  const iniziali = String(valore || '').split(/\s*[\/]\s*/).map((s: string) => s.trim());
+  const misto = scoreMisto(blk);
+ 
+  // Con lo score diverso per round il risultato è "12:30 / 45 rep / 60 kg": tolgo le unità per rimetterlo nelle caselle
+ 
+  const iniziali = String(valore || '').split(/\s*[\/]\s*/).map((s: string) => s.trim()).map((s: string) => (misto ? (s === '\u2014' ? '' : s.replace(/\s*(rep|kg)$/i, '')) : s));
  
   const [carichi, setCarichi] = useState<string[]>(
  
@@ -3510,7 +3608,31 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
   const [nascosto, setNascosto] = useState(false);
  
-  const riepilogo = carichi.map((c) => normalizzaScore(c, blk?.scoreUnit || '')).filter(Boolean).join(' / ');
+  const riepilogo = misto
+ 
+    ? (() => {
+ 
+        // ogni round resta al suo posto (vuoto = "—"), con l'unità per leggerlo bene
+ 
+        const pezzi = carichi.map((c, i) => {
+ 
+          const u = unitaRound(blk, i);
+ 
+          const v = normalizzaScore(c, u);
+ 
+          if (!v) return '\u2014';
+ 
+          return u === 'rep' ? `${v} rep` : u === 'kg' ? `${v} kg` : v;
+ 
+        });
+ 
+        while (pezzi.length > 0 && pezzi[pezzi.length - 1] === '\u2014') pezzi.pop();
+ 
+        return pezzi.join(' / ');
+ 
+      })()
+ 
+    : carichi.map((c) => normalizzaScore(c, blk?.scoreUnit || '')).filter(Boolean).join(' / ');
  
   if (nascosto) {
  
@@ -3584,7 +3706,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
         <div style={{ padding: '14px 16px', overflowY: 'auto', flex: 1 }}>
  
-          {prec.length > 0 && blk?.scoreUnit !== 'tempo' && blk?.scoreUnit !== 'round' && (
+          {prec.length > 0 && !misto && blk?.scoreUnit !== 'tempo' && blk?.scoreUnit !== 'round' && (
  
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '11px', padding: '8px 10px', borderRadius: '8px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -3612,7 +3734,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
           )}
  
-          {serie.map((s: any, i: number) => (
+          {serie.map((s: any, i: number) => { const u = unitaRound(blk, i); return (
  
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '9px' }}>
  
@@ -3624,15 +3746,17 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
                   : (blk?.type === 'wod' || blk?.type === 'test' ? `Round ${i + 1}` : `${i + 1}ª serie`)}
  
+                {misto ? <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-10b981)', fontWeight: 'bold' }}>{SCORE_UNITS[u]?.nome || 'Risultato'}</span> : null}
+ 
                 {s.reps ? <span style={{ display: 'block', fontSize: '10px', color: 'var(--fg-94a3b8)', fontWeight: 'normal' }}>{s.reps} rip</span> : null}
  
               </span>
  
-              {blk?.scoreUnit === 'tempo' || blk?.scoreUnit === 'round' ? (
+              {u === 'tempo' || u === 'round' ? (
  
                 <CaselleDoppie
  
-                  tipo={blk.scoreUnit}
+                  tipo={u}
  
                   valore={carichi[i] || ''}
  
@@ -3654,9 +3778,9 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
                 type="text"
  
-                inputMode={blk?.scoreUnit === 'kg' ? 'decimal' : blk?.scoreUnit === 'rep' ? 'numeric' : (blk?.scoreUnit === 'tempo' || blk?.scoreUnit === 'round') ? 'text' : (blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal')}
+                inputMode={u === 'kg' ? 'decimal' : u === 'rep' ? 'numeric' : (u === 'tempo' || u === 'round') ? 'text' : (blk?.type === 'wod' || blk?.type === 'test' ? 'text' : 'decimal')}
  
-                placeholder={precDi(i) || SCORE_UNITS[blk?.scoreUnit || '']?.placeholder || (serie.length > 1 ? '—' : 'Risultato')}
+                placeholder={(misto ? '' : precDi(i)) || SCORE_UNITS[u]?.placeholder || (serie.length > 1 ? '—' : 'Risultato')}
  
                 value={carichi[i] || ''}
  
@@ -3680,7 +3804,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
             </div>
  
-          ))}
+          ); })}
  
           {serie.length > 1 && (
  
@@ -20305,9 +20429,9 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
-rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
+rip={(unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')) && !scoreMisto(blk)}
  
-tempo={blk.scoreUnit === 'tempo'}
+tempo={blk.scoreUnit === 'tempo' && !scoreMisto(blk)}
  
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
@@ -22673,6 +22797,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                         </div>
  
+<ScoreDiversoPerRound blk={block} onCambia={(campo: string, v: any) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, campo, v)} />
+ 
                                         {(block.items || []).map((it: any, i: number) => (
  
                                           <div key={i} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px', marginBottom: '8px' }}>
@@ -24240,6 +24366,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                               </div>
  
                                             </div>
+ 
+<ScoreDiversoPerRound blk={block} onCambia={(campo: string, v: any) => updateFreeBlock(actualWIdx, actualDIdx, bIdx, campo, v)} />
  
                                             {(block.items || []).map((it: any, i: number) => (
  
@@ -26891,9 +27019,9 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
 note={comeSuperserie(blk.type) ? '' : String(dato?.notes || '').trim()}
  
-rip={unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')}
+rip={(unitaBlocco(blk) === 'rip' || ((blk.type === 'wod' || blk.type === 'test') && blk.scoreUnit === 'rep')) && !scoreMisto(blk)}
  
-tempo={blk.scoreUnit === 'tempo'}
+tempo={blk.scoreUnit === 'tempo' && !scoreMisto(blk)}
  
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
