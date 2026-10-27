@@ -19505,6 +19505,16 @@ fetchAllAthleteResultsForCoach();
  
                   </div>
  
+                  {infoPacchetto(selectedCoachAthlete) && coachAthleteDetailTab !== 'abbonamento' && (
+ 
+                    <div onClick={() => setCoachAthleteDetailTab('abbonamento')} style={{ marginBottom: '12px', cursor: 'pointer' }}>
+ 
+                      <RiquadroPacchetto info={infoPacchetto(selectedCoachAthlete)} tuo={false} />
+ 
+                    </div>
+ 
+                  )}
+ 
                   <CompetitionCountdown gare={coachCompetitions[selectedCoachAthlete.id] || []} perCoach />
  
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
