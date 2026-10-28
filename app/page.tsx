@@ -1402,7 +1402,7 @@ type AmtTestDef = {
  
   m: number[]; f: number[]; min: number; max: number; istruzioni: string;
  
-  prodotto?: 'test' | 'longevity'; scelte?: string[]; cronometro?: boolean; fastidio?: boolean; usaDa?: string; domanda?: string;
+  prodotto?: 'test' | 'longevity'; massimale?: { tipo: 'forza' | 'gym' | 'metcon'; nomi: string[] }; scelte?: string[]; cronometro?: boolean; fastidio?: boolean; usaDa?: string; domanda?: string;
  
 };
  
@@ -1412,23 +1412,23 @@ type AmtTestDef = {
  
 const AMT_TEST: AmtTestDef[] = [
  
-  { k: 'back_squat', video: ['Back Squat'], nome: 'Back Squat 1RM', esercizio: 'Back Squat', q: 'forza', giorno: 1, tipo: 'kg', rel: true, m: [0.75, 1.25, 1.5, 2.0, 2.5], f: [0.5, 0.85, 1.1, 1.5, 1.9], min: 0.2, max: 4,
+  { k: 'back_squat', massimale: { tipo: 'forza', nomi: ['Back Squat'] }, video: ['Back Squat'], nome: 'Back Squat 1RM', esercizio: 'Back Squat', q: 'forza', giorno: 1, tipo: 'kg', rel: true, m: [0.75, 1.25, 1.5, 2.0, 2.5], f: [0.5, 0.85, 1.1, 1.5, 1.9], min: 0.2, max: 4,
  
     istruzioni: 'Riscaldati con serie crescenti (es. 8-5-3-2-1 ripetizioni). Poi fai al massimo 3-4 tentativi singoli per trovare il tuo massimale. Squat sotto il parallelo. Usa i fermi di sicurezza del rack o fatti assistere. Scrivi il carico più alto riuscito.' },
  
-  { k: 'pull_up', video: ['Strict pull up', 'Pull up strict', 'Pull up'], nome: 'Pull up strict (max)', q: 'ginnastica', giorno: 1, tipo: 'rep', m: [3, 8, 13, 18, 25], f: [1, 3, 7, 11, 16], min: 0, max: 80,
+  { k: 'pull_up', massimale: { tipo: 'gym', nomi: ['Strict Pull Up'] }, video: ['Strict pull up', 'Pull up strict', 'Pull up'], nome: 'Pull up strict (max)', q: 'ginnastica', giorno: 1, tipo: 'rep', m: [3, 8, 13, 18, 25], f: [1, 3, 7, 11, 16], min: 0, max: 80,
  
     istruzioni: 'Partenza a braccia completamente tese, mento sopra la sbarra, nessuno slancio. Una sola serie unbroken: appena scendi dalla sbarra il test finisce. Se non ne fai nessuna scrivi 0.' },
  
-  { k: 'row_500', video: ['Row', 'Remoergometro'], nome: '500 m remo', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
+  { k: 'row_500', massimale: { tipo: 'metcon', nomi: ['500mt Row'] }, video: ['Row', 'Remoergometro'], nome: '500mt Row', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
  
     istruzioni: 'Dopo almeno 5 minuti di recupero dalle trazioni. Damper a tua scelta (consigliato 6-8). Partenza da fermo, a tutta per 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
-  { k: 'deadlift', video: ['Deadlift'], nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
+  { k: 'deadlift', massimale: { tipo: 'forza', nomi: ['Deadlift'] }, video: ['Deadlift'], nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
  
     istruzioni: 'Schiena neutra per tutta l’alzata, chiusura completa in alto. Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
  
-  { k: 'push_up', video: ['Push up', 'Push ups'], nome: 'Push up (max)', q: 'ginnastica', giorno: 2, tipo: 'rep', m: [15, 30, 45, 60, 75], f: [8, 18, 30, 40, 52], min: 0, max: 150,
+  { k: 'push_up', massimale: { tipo: 'gym', nomi: ['Push up'] }, video: ['Push up', 'Push ups'], nome: 'Push up (max)', q: 'ginnastica', giorno: 2, tipo: 'rep', m: [15, 30, 45, 60, 75], f: [8, 18, 30, 40, 52], min: 0, max: 150,
  
     istruzioni: 'Corpo in linea, petto a terra in basso e braccia tese in alto. Una sola serie unbroken: se appoggi le ginocchia o ti fermi più di 2 secondi il test finisce.' },
  
@@ -1436,35 +1436,35 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Dopo almeno 10 minuti di recupero dai push up. Azzera il display, parti da fermo e vai a tutta per 1 minuto. Scrivi le calorie.' },
  
-  { k: 'power_clean', video: ['Power Clean'], nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
+  { k: 'power_clean', massimale: { tipo: 'forza', nomi: ['Power Clean'] }, video: ['Power Clean'], nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
  
     istruzioni: 'Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
-  { k: 'kipping_pull_up', video: ['Kipping pull up', 'Butterfly pull up', 'Pull up'], nome: 'Kipping o butterfly pull up (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
+  { k: 'kipping_pull_up', massimale: { tipo: 'gym', nomi: ['Pull up'] }, video: ['Kipping pull up', 'Butterfly pull up', 'Pull up'], nome: 'Pull up · kipping o butterfly (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
  
-    istruzioni: 'Facoltativo, solo se li sai fare. Kipping o butterfly, come preferisci: puoi anche mixare gli stili nella stessa serie (es. partire butterfly e finire kipping). Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken: appena scendi dalla sbarra il test finisce.' },
+    istruzioni: 'Facoltativo, solo se li sai fare. Vanno fatti kipping o butterfly (non strict), come preferisci: puoi anche mixare gli stili nella stessa serie (es. partire butterfly e finire kipping). Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken: appena scendi dalla sbarra il test finisce.' },
  
   { k: 'wall_ball', video: ['Wall ball', 'Wall balls'], nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
  
     istruzioni: 'Dopo almeno 5 minuti di recupero dai test precedenti. Uomini 9 kg a 3 m, donne 6 kg a 2,7 m. Squat sotto il parallelo, la palla deve toccare il bersaglio. Più ripetizioni possibili in 3 minuti.' },
  
-  { k: 'strict_press', video: ['Shoulder press', 'Strict Press'], nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
+  { k: 'strict_press', massimale: { tipo: 'forza', nomi: ['Shoulder Press', 'Strict Press'] }, video: ['Shoulder press', 'Strict Press'], nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
  
     istruzioni: 'Dal rack, bilanciere sulle spalle. Spinta sopra la testa senza piegare le gambe (nessuna spinta dalle anche). Riscaldamento a salire, poi 3-4 tentativi singoli. Scrivi il carico più alto riuscito.' },
  
-  { k: 'kipping_hspu', video: ['Kipping HSPU', 'Kipping handstand push up', 'Strict HSPU', 'Strict handstand push up', 'Handstand push up', 'HSPU'], nome: 'Kipping HSPU (max)', q: 'ginnastica', giorno: 4, tipo: 'rep', facoltativo: true, m: [5, 12, 20, 28, 36], f: [3, 8, 14, 20, 27], min: 0, max: 80,
+  { k: 'kipping_hspu', massimale: { tipo: 'gym', nomi: ['Kipping HSPU'] }, video: ['Kipping HSPU', 'Kipping handstand push up', 'Strict HSPU', 'Strict handstand push up', 'Handstand push up', 'HSPU'], nome: 'Kipping HSPU (max)', q: 'ginnastica', giorno: 4, tipo: 'rep', facoltativo: true, m: [5, 12, 20, 28, 36], f: [3, 8, 14, 20, 27], min: 0, max: 80,
  
     istruzioni: 'Facoltativo, solo se li sai fare. Verticale al muro, testa a terra (o sul cuscino) e braccia tese in alto. Una sola serie unbroken.' },
  
-  { k: 'row_100', video: ['Row', 'Remoergometro'], nome: '100 m remo (sprint)', q: 'velocita', giorno: 4, tipo: 'sec', meno: true, m: [22, 19, 17.5, 16.5, 15.5], f: [26, 23, 21, 19.8, 18.8], min: 12, max: 60,
+  { k: 'row_100', video: ['Row', 'Remoergometro'], nome: '100mt Row (sprint)', q: 'velocita', giorno: 4, tipo: 'sec', meno: true, m: [22, 19, 17.5, 16.5, 15.5], f: [26, 23, 21, 19.8, 18.8], min: 12, max: 60,
  
-    istruzioni: 'Prima del 2000 m. Damper a tua scelta (consigliato 8-10). Partenza da fermo, a tutta per 100 m. Scrivi il tempo in secondi con i decimali che vedi sul display (es. 17,8). Poi recupera almeno 10 minuti prima del 2000 m.' },
+    istruzioni: 'Prima del 2000mt Row. Damper a tua scelta (consigliato 8-10). Partenza da fermo, a tutta per 100 m. Scrivi il tempo in secondi con i decimali che vedi sul display (es. 17,8). Poi recupera almeno 10 minuti prima del 2000mt Row.' },
  
-  { k: 'row_2000', video: ['Row', 'Remoergometro'], nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
+  { k: 'row_2000', massimale: { tipo: 'metcon', nomi: ['2000mt Row'] }, video: ['Row', 'Remoergometro'], nome: '2000mt Row', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
  
-    istruzioni: 'Dopo almeno 10 minuti di recupero dal 100 m. Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
+    istruzioni: 'Dopo almeno 10 minuti di recupero dal 100mt Row. Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
-  { k: 'power_snatch', video: ['Power Snatch'], nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
+  { k: 'power_snatch', massimale: { tipo: 'forza', nomi: ['Power Snatch'] }, video: ['Power Snatch'], nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
  
     istruzioni: 'Facoltativo, solo se conosci la tecnica. Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
@@ -1526,21 +1526,21 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Valuta insieme mobilità, equilibrio e forza.\n1. Scalzo, su un pavimento libero (meglio su un tappetino).\n2. Incrocia le gambe e scendi a sederti a terra SENZA usare mani, braccia, ginocchia o il lato della gamba come appoggio.\n3. Da seduto, rialzati in piedi, sempre senza appoggi.\n4. Si parte da 10 punti: 5 per scendere e 5 per salire. Togli 1 punto per ogni appoggio (mano, ginocchio, gomito, avambraccio, lato della gamba) e 0,5 punti se perdi l\u2019equilibrio.\n5. Puoi riprovare: conta il tentativo migliore.\nUsa i pulsanti qui sotto per togliere i punti.' },
  
-  { k: 'push_up_l', prodotto: 'longevity', usaDa: 'push_up', nome: 'Push up (max)', q: 'longevita', giorno: 1, tipo: 'rep', m: [], f: [], min: 0, max: 150,
+  { k: 'push_up_l', video: ['Push up', 'Push ups'], massimale: { tipo: 'gym', nomi: ['Push up'] }, prodotto: 'longevity', usaDa: 'push_up', nome: 'Push up (max)', q: 'longevita', giorno: 1, tipo: 'rep', m: [], f: [], min: 0, max: 150,
  
     istruzioni: 'Mani poco più larghe delle spalle, corpo in linea dalla testa ai talloni. Petto a terra (o a un pugno da terra) in basso e braccia tese in alto. Più ripetizioni possibili in una sola serie: se appoggi le ginocchia o ti fermi più di 2 secondi, il test finisce.' },
  
-  { k: 'dead_hang', prodotto: 'longevity', nome: 'Dead hang (presa)', q: 'longevita', giorno: 1, tipo: 'sec', cronometro: true, facoltativo: true, m: [], f: [], min: 0, max: 400,
+  { k: 'dead_hang', video: ['Dead hang', 'Dead hangs'], prodotto: 'longevity', nome: 'Dead hang (presa)', q: 'longevita', giorno: 1, tipo: 'sec', cronometro: true, facoltativo: true, m: [], f: [], min: 0, max: 400,
  
     istruzioni: 'Facoltativo, serve una sbarra. Misura la forza della presa.\n1. Presa con i palmi in avanti, alla larghezza delle spalle.\n2. Braccia completamente tese, piedi staccati da terra, corpo fermo.\n3. Premi Avvia appena sei appeso e Stop quando lasci la sbarra.' },
  
   { k: 'aer_3k', prodotto: 'longevity', nome: '3 km di corsa', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 540, max: 3600,
  
-    istruzioni: 'Facoltativo, serve per stimare la tua capacità aerobica. Fallo in un giorno a parte o dopo almeno 15 minuti di recupero dagli altri test.\nCorri 3 km su un percorso misurato (pista o un giro che conosci) oppure con un\u2019app GPS, al ritmo più veloce che riesci a tenere fino alla fine. Scrivi il tempo finale. Se hai fatto l\u2019AMT Performance Test puoi usare invece il tuo 2000 m remo qui sotto.' },
+    istruzioni: 'Facoltativo, serve per stimare la tua capacità aerobica. Fallo in un giorno a parte o dopo almeno 15 minuti di recupero dagli altri test.\nCorri 3 km su un percorso misurato (pista o un giro che conosci) oppure con un\u2019app GPS, al ritmo più veloce che riesci a tenere fino alla fine. Scrivi il tempo finale. Se hai fatto l\u2019AMT Performance Test puoi usare invece il tuo 2000mt Row qui sotto.' },
  
-  { k: 'aer_row', prodotto: 'longevity', usaDa: 'row_2000', nome: 'oppure 2000 m remo', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 330, max: 1200,
+  { k: 'aer_row', massimale: { tipo: 'metcon', nomi: ['2000mt Row'] }, prodotto: 'longevity', usaDa: 'row_2000', nome: 'oppure 2000mt Row', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 330, max: 1200,
  
-    istruzioni: 'Facoltativo, in alternativa ai 3 km. Il tuo tempo sui 2000 m al remoergometro, fatto a tutta (va bene anche quello dell\u2019AMT Performance Test).' },
+    istruzioni: 'Facoltativo, in alternativa ai 3 km. Il tuo tempo sul 2000mt Row, fatto a tutta (va bene anche quello dell\u2019AMT Performance Test).' },
  
   { k: 'girovita', prodotto: 'longevity', nome: 'Girovita (cm)', q: 'longevita', giorno: 1, tipo: 'cm', facoltativo: true, m: [], f: [], min: 40, max: 200,
  
@@ -1550,13 +1550,13 @@ const AMT_TEST: AmtTestDef[] = [
  
 const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
-  { n: 1, titolo: 'Squat, pull up, remo 500 m' },
+  { n: 1, titolo: 'Squat, pull up, 500mt Row' },
  
   { n: 2, titolo: 'Stacco, push up, bike 1\u2032' },
  
   { n: 3, titolo: 'Clean, kipping, wall ball' },
  
-  { n: 4, titolo: 'Press, HSPU, remo 100 e 2000 m' },
+  { n: 4, titolo: 'Press, HSPU, 100mt e 2000mt Row' },
  
   { n: 5, titolo: 'Snatch, burpee, bike 10\u2033 e 10\u2032' },
  
@@ -1608,9 +1608,9 @@ const amtDefs = (p: string): AmtTestDef[] => {
  
 const AMT_GIORNATE_COMPLETO: { n: number; titolo: string }[] = AMT_GIORNATE.map((g) => (
  
-  g.n === 1 ? { n: 1, titolo: 'Mobilità ed equilibrio, squat, pull up, remo 500 m' }
+  g.n === 1 ? { n: 1, titolo: 'Mobilità ed equilibrio, squat, pull up, 500mt Row' }
  
-  : g.n === 4 ? { n: 4, titolo: 'Dead hang, press, HSPU, remo 100 e 2000 m' } : g
+  : g.n === 4 ? { n: 4, titolo: 'Dead hang, press, HSPU, 100mt e 2000mt Row' } : g
  
 ));
  
@@ -1626,7 +1626,7 @@ const AMT_ATTREZZI_LONGEVITY = [
  
   'Uno specchio o qualcuno che ti faccia una foto (per le spalle)',
  
-  'Facoltativi: una sbarra (dead hang), un metro da sarta (girovita), un percorso da 3 km o un remoergometro',
+  'Facoltativi: una sbarra (dead hang), un metro da sarta (girovita), un percorso da 3 km o un Row',
  
 ];
  
@@ -1646,7 +1646,7 @@ const AMT_ATTREZZI = [
  
   'Rack con fermi di sicurezza',
  
-  'Remoergometro',
+  'Row (remoergometro)',
  
   'Assault bike (o Echo bike) con display delle calorie',
  
@@ -1987,7 +1987,7 @@ function amtVo2(ris: any, peso: number | null, sesso: string): { v: number; da: 
  
     const litri = sesso === 'f' ? 14.9 - 1.44 * min : 15.7 - 1.5 * min;
  
-    if (litri > 0) return { v: Math.round(((litri * 1000) / peso) * 10) / 10, da: 'dal 2000 m remo' };
+    if (litri > 0) return { v: Math.round(((litri * 1000) / peso) * 10) / 10, da: 'dal 2000mt Row' };
  
   }
  
@@ -2122,6 +2122,32 @@ function amtLongevity(s: any): { mobilita: AmtSemaforo[]; longevita: AmtSemaforo
   return { mobilita, longevita, fastidi, asimmetrie };
  
 }
+ 
+// Prove del Longevity Test che hanno un'immagine (caricata dal coach nel Banner) al posto del video.
+ 
+// Se manca l'immagine del lato sinistro si usa quella del destro.
+ 
+const AMT_CON_IMMAGINE: { k: string; nome: string; come?: string }[] = [
+ 
+  { k: 'deep_squat', nome: 'Deep Squat Test' },
+ 
+  { k: 'apley_dx', nome: 'Apley Scratch Test \u00b7 destro' },
+ 
+  { k: 'apley_sx', nome: 'Apley Scratch Test \u00b7 sinistro', come: 'apley_dx' },
+ 
+  { k: 'toe_touch', nome: 'Toe Touch' },
+ 
+  { k: 'eq_chiusi_dx', nome: 'Equilibrio occhi chiusi \u00b7 destra' },
+ 
+  { k: 'eq_chiusi_sx', nome: 'Equilibrio occhi chiusi \u00b7 sinistra', come: 'eq_chiusi_dx' },
+ 
+  { k: 'eq_aperti', nome: 'Equilibrio 10\u2033 occhi aperti' },
+ 
+  { k: 'sitting_rising', nome: 'Sitting-Rising Test' },
+ 
+  { k: 'girovita', nome: 'Girovita' },
+ 
+];
  
 const AMT_PALLINO: { [k: string]: string } = { verde: '\u{1F7E2}', giallo: '\u{1F7E1}', rosso: '\u{1F534}' };
  
@@ -2305,9 +2331,9 @@ const AMT_CONSIGLI_PERF: { [k: string]: string } = {
  
   potenza: 'Lavora sulle alzate olimpiche e le loro varianti (power clean, power snatch, high pull) e sui salti, con poche ripetizioni veloci e ben recuperate.',
  
-  velocita: 'Aggiungi sprint brevi (8-15 secondi) a remo, bike o corsa, con recuperi lunghi: la qualità conta più della quantità.',
+  velocita: 'Aggiungi sprint brevi (8-15 secondi) a Row, bike o corsa, con recuperi lunghi: la qualità conta più della quantità.',
  
-  anaerobica: 'Inserisci intervalli intensi da 30 secondi a 2 minuti (remo, bike, corsa) con recuperi uguali o doppi rispetto al lavoro.',
+  anaerobica: 'Inserisci intervalli intensi da 30 secondi a 2 minuti (Row, bike, corsa) con recuperi uguali o doppi rispetto al lavoro.',
  
   aerobica: 'Inserisci 2 sedute a settimana di lavoro aerobico lungo a ritmo moderato (30-45 minuti), più una seduta di intervalli medi (3-5 minuti).',
  
@@ -7373,7 +7399,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={sStyle}>C) Dati relativi alla salute</p>
  
-        <p style={pStyle}>Nel corso dell’anamnesi, l’utente minorenne potrà fornire informazioni che, in considerazione della loro natura e delle finalità per le quali vengono trattate, possono qualificarsi come dati relativi alla salute ai sensi dell’art. 4, n. 15, del GDPR e rientrare, pertanto, tra le categorie particolari di dati personali disciplinate dall’art. 9 del GDPR.</p> 
+        <p style={pStyle}>Nel corso dell’anamnesi, l’utente minorenne potrà fornire informazioni che, in considerazione della loro natura e delle finalità per le quali vengono trattate, possono qualificarsi come dati relativi alla salute ai sensi dell’art. 4, n. 15, del GDPR e rientrare, pertanto, tra le categorie particolari di dati personali disciplinate dall’art. 9 del GDPR.</p>
+ 
         <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente minorenne.</p>
  
         <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
@@ -8091,6 +8118,8 @@ function TrainingApp({ tema, impostaTema }: any) {
   const [amtInCorso, setAmtInCorso] = useState(false);
  
   const [amtSessioneId, setAmtSessioneId] = useState<string | null>(null);
+ 
+  const [amtImmagineInCarico, setAmtImmagineInCarico] = useState<string | null>(null);
  
   const [amtGiornata, setAmtGiornata] = useState<number | null>(null);
  
@@ -11577,7 +11606,8 @@ const [notificationError, setNotificationError] = useState('');
     const cur = getMaxesOf(aid);
  
     const updatedAll = { ...cur, [exercise]: { ...(cur[exercise] || {}), ...nuovi } };
-     setMaxesOf(aid, updatedAll);
+ 
+    setMaxesOf(aid, updatedAll);
  
     const { merged: salvato, error } = await salvaMaxDiff(aid, {}, { [exercise]: { ...nuovi } });
  
@@ -11990,8 +12020,7 @@ const [notificationError, setNotificationError] = useState('');
     // Confronto con i massimali aggiornati del database, non con quelli in memoria (magari vecchi)
  
     const locali = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
- 
-    const { data: rigaMax, error: errMax } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', athleteId).maybeSingle();
+     const { data: rigaMax, error: errMax } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', athleteId).maybeSingle();
  
     const currentAll = errMax ? locali : (rigaMax?.maxes || {});
  
@@ -12663,6 +12692,42 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  // Carica l'immagine di una prova nello stesso spazio del banner e la collega alla prova
+ 
+  const amtCaricaImmagine = async (k: string, file: File | null) => {
+ 
+    if (!file) return;
+ 
+    if (file.size > 8 * 1024 * 1024) { alert('L\u2019immagine è troppo grande (massimo 8 MB).'); return; }
+ 
+    setAmtImmagineInCarico(k);
+ 
+    try {
+ 
+      const est = (file.name.split('.').pop() || 'jpg').toLowerCase();
+ 
+      const percorso = `amt_${k}_${Date.now()}.${est}`;
+ 
+      const { error } = await supabase.storage.from('banners').upload(percorso, file);
+ 
+      if (error) throw error;
+ 
+      const { data } = supabase.storage.from('banners').getPublicUrl(percorso);
+ 
+      setAmtConfig((c: any) => ({ ...c, immagini: { ...(c.immagini || {}), [k]: data.publicUrl } }));
+ 
+    } catch (e: any) {
+ 
+      alert('Errore nel caricamento: ' + (e?.message || e));
+ 
+    } finally {
+ 
+      setAmtImmagineInCarico(null);
+ 
+    }
+ 
+  };
+ 
   const saveAmtConfig = async () => {
  
     const { error } = await supabase.from('settings').upsert(
@@ -13027,17 +13092,25 @@ const [notificationError, setNotificationError] = useState('');
  
     if (!nuova) return;
  
-    if (p !== 'longevity') {
+    // I risultati del test aggiornano anche i massimali dell'atleta (solo se migliori):
  
-      // I massimali del test aggiornano anche i massimali dell'atleta (solo se più alti)
+    // 1RM di forza, ginnastica (ripetizioni) e metcon (tempi), cercando la voce con il nome usato nei Massimali
  
-      for (const d of amtDefs('test').filter((x) => x.tipo === 'kg' && x.esercizio)) {
+    for (const d of amtDefs(p).filter((x) => x.massimale)) {
  
-        const v = String((s.results || {})[d.k] ?? '').trim();
+      const v = String((s.results || {})[d.k] ?? '').trim();
  
-        if (v && v !== 'salta') await maybeUpdateMaxFromScore(s.athlete_id, d.esercizio as string, '1', v, s.athlete_id !== session.user.id, 'forza');
+      if (!v || v === 'salta') continue;
  
-      }
+      const m = d.massimale!;
+ 
+      const elenco = m.tipo === 'forza' ? maxExerciseNames : m.tipo === 'gym' ? gymPRNames : metconPRNames;
+ 
+      const voce = elenco.find((n: string) => m.nomi.some((c) => sameName(n, c)));
+ 
+      if (!voce) continue;
+ 
+      await maybeUpdateMaxFromScore(s.athlete_id, voce, m.tipo === 'forza' ? '1' : '', v, s.athlete_id !== session.user.id, m.tipo === 'forza' ? 'forza' : undefined);
  
     }
  
@@ -13337,7 +13410,7 @@ const [notificationError, setNotificationError] = useState('');
  
             const conVideo = exerciseLibrary.filter((ex: any) => !ex.dismissed && ex.video_url);
  
-            const candidati = d.prodotto === 'longevity' ? [] : [...(d.video || []), d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '')];
+            const candidati = d.prodotto === 'longevity' ? [...(d.video || [])] : [...(d.video || []), d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '')];
  
             let video: string | undefined;
  
@@ -13368,6 +13441,26 @@ const [notificationError, setNotificationError] = useState('');
                   {d.facoltativo && <span style={{ fontSize: '10.5px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', background: 'var(--bg-f1f5f9)', color: 'var(--fg-64748b)' }}>facoltativo</span>}
  
                 </div>
+ 
+                {(() => {
+ 
+                  const imm = (amtConfig as any).immagini || {};
+ 
+                  const voce = AMT_CON_IMMAGINE.find((x) => x.k === d.k);
+ 
+                  const url = voce ? (imm[d.k] || (voce.come ? imm[voce.come] : '')) : '';
+ 
+                  return url ? (
+ 
+                    <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', marginBottom: '10px' }}>
+ 
+                      <img src={url} alt={d.nome} style={{ display: 'block', width: '100%', maxHeight: '280px', objectFit: 'contain', borderRadius: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)' }} />
+ 
+                    </a>
+ 
+                  ) : null;
+ 
+                })()}
  
                 <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: 'var(--fg-475569)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{d.istruzioni}</p>
  
@@ -18373,8 +18466,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
-  const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
- 
+  const addBlockToFreeDay = (wIdx: number, dayIndex: number) => { 
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
     updated[wIdx].days[dayIndex].blocks.push({
@@ -21021,7 +21113,8 @@ fetchAllAthleteResultsForCoach();
  
                         color: notification.is_read ? 'var(--fg-334155)' : 'var(--fg-047857)',
  
-                        marginBottom: '4px' 
+                        marginBottom: '4px'
+ 
                       }}>
  
                         {notification.title}
@@ -22343,6 +22436,54 @@ fetchAllAthleteResultsForCoach();
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Link allo shop</label>
  
                   <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test-longevity" value={(amtConfig as any).shopUrlBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlBundle: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, marginBottom: 0 }} />
+ 
+                </div>
+ 
+                <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '4px' }}>Immagini del Longevity Test</span>
+ 
+                  <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.4 }}>L&apos;atleta le vede nella scheda della prova, sopra le istruzioni (toccandole si ingrandiscono). Per i lati sinistri, se non carichi niente si usa l&apos;immagine del destro. Push up e dead hang usano i video della libreria.</span>
+ 
+                  {AMT_CON_IMMAGINE.map((x) => {
+ 
+                    const url = (amtConfig as any).immagini?.[x.k] || '';
+ 
+                    const inCarico = amtImmagineInCarico === x.k;
+ 
+                    return (
+ 
+                      <div key={x.k} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                        <span style={{ width: '56px', height: '56px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-f1f5f9)', border: '1px solid var(--bd-e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-94a3b8)', fontSize: '10px', textAlign: 'center' }}>
+ 
+                          {url ? <img src={url} alt={x.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : x.come ? 'come destro' : 'nessuna'}
+ 
+                        </span>
+ 
+                        <span style={{ flex: 1, minWidth: 0, fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>{x.nome}</span>
+ 
+                        <label style={{ flexShrink: 0, padding: '7px 12px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '12px', cursor: sezioneBanner === 'amt' ? 'pointer' : 'default', opacity: sezioneBanner === 'amt' ? 1 : 0.5 }}>
+ 
+                          {inCarico ? 'Carico...' : url ? 'Cambia' : 'Carica'}
+ 
+                          <input type="file" accept="image/*" disabled={sezioneBanner !== 'amt' || inCarico} onChange={(e) => { amtCaricaImmagine(x.k, e.target.files && e.target.files[0] ? e.target.files[0] : null); e.target.value = ''; }} style={{ display: 'none' }} />
+ 
+                        </label>
+ 
+                        {url && sezioneBanner === 'amt' && (
+ 
+                          <button type="button" onClick={() => setAmtConfig((c: any) => { const im = { ...(c.immagini || {}) }; delete im[x.k]; return { ...c, immagini: im }; })} style={{ flexShrink: 0, background: 'var(--bg-fee2e2)', border: 'none', color: 'var(--fg-b91c1c)', borderRadius: '999px', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}>{'\u00d7'}</button>
+ 
+                        )}
+ 
+                      </div>
+ 
+                    );
+ 
+                  })}
+ 
+                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '8px' }}>Dopo aver caricato le immagini premi Salva in fondo.</span>
  
                 </div>
  
@@ -25618,7 +25759,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 type="text"
  
-                                                placeholder="rec. 1:30" 
+                                                placeholder="rec. 1:30"
+ 
                                                 title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
  
                                                 value={it.rest || ''}
