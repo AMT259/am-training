@@ -1652,84 +1652,109 @@ const AMT_ATTREZZI = [
  
 const AMT_GIORNI_DURATA = 14;
  
-const AMT_INTRO_TEST = `Scopri che atleta sei davvero.
+const AMT_INTRO_TEST = `Scopri che atleta sei davvero 💥
  
  
-Ti alleni con costanza, ma sai qual è il tuo vero punto forte? E quello che ti sta frenando?
+Cosa misuri
  
+💪 Forza
  
-L'AMT Performance Test misura 7 qualità fondamentali dell'atleta completo: Forza, Potenza, Velocità, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
+⚡ Potenza
  
+🏃 Velocità
  
-Alla fine ottieni il tuo profilo a ragnatela: un grafico che mostra a colpo d'occhio dove sei forte e dove puoi crescere, confrontato con i livelli da Principiante a Elite e rapportato al tuo peso corporeo.
+🔥 Capacità anaerobica
  
+🫀 Motore aerobico
  
-Perché farlo
+🔁 Resistenza muscolare
  
-• Smetti di andare a sensazione: vedi i tuoi numeri reali.
- 
-• Allenamenti più mirati: il coach usa i risultati per costruire i tuoi prossimi programmi sui tuoi punti deboli.
- 
-• Vedi i tuoi progressi: rifacendolo ogni 4-6 mesi, la nuova ragnatela si sovrappone alla vecchia.
- 
- 
-Come funziona
- 
-5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.`;
- 
-const AMT_INTRO_LONG = `Muoviti bene, oggi e domani.
- 
- 
-Quanto si muove bene il tuo corpo? Che equilibrio hai? E come stai sugli indicatori che la ricerca collega alla salute nel tempo?
- 
- 
-AMT Longevity Test unisce in un'unica valutazione mobilità, equilibrio e longevità.
- 
- 
-Cosa valuti
- 
-• Mobilità: anche, caviglie, spalle e catena posteriore.
- 
-• Equilibrio: su ogni gamba, con le differenze tra destra e sinistra.
- 
-• Longevità: Sitting-Rising Test, push up, presa e capacità aerobica.
+🤸 Ginnastica
  
  
 Cosa ottieni
  
-Risultati a semaforo facili da leggere, il confronto con il test precedente e programmi con il lavoro che ti serve davvero.
+🕸️ La tua ragnatela, da Principiante a Elite
+ 
+⚖️ Livelli rapportati al tuo peso corporeo
+ 
+🧬 Il tuo profilo atletico
+ 
+💡 Consigli su cosa migliorare
+ 
+📈 Il confronto con i test precedenti
  
  
 Come funziona
  
-Una sola sessione di 20-30 minuti, anche a casa, da fare entro 7 giorni. Ti servono un muro, un tappetino e il telefono.
+📅 5 giornate in 14 giorni
+ 
+🎥 Istruzioni, video e timer in ogni prova
+ 
+🏋️ Serve una palestra attrezzata`;
+ 
+const AMT_INTRO_LONG = `Muoviti bene, oggi e domani 🌿
+ 
+ 
+Cosa misuri
+ 
+🧘 Mobilità di anche, caviglie, spalle e schiena
+ 
+🦩 Equilibrio su ogni gamba
+ 
+❤️ Longevità: Sitting-Rising Test, push up, presa e capacità aerobica
+ 
+ 
+Cosa ottieni
+ 
+🚦 Risultati a semaforo, facili da leggere
+ 
+🎂 La tua età fitness
+ 
+↔️ Le differenze tra lato destro e sinistro
+ 
+💡 Consigli su cosa migliorare
+ 
+ 
+Come funziona
+ 
+⏱️ Una seduta di 20-30 minuti
+ 
+🏠 Anche a casa: bastano un muro, un tappetino e il telefono
  
  
 Stime a scopo sportivo, non una valutazione medica.`;
  
-const AMT_INTRO_BUNDLE = `Il test completo.
+const AMT_INTRO_BUNDLE = `Il test completo 🏆
  
  
-Prestazione, mobilità, equilibrio e longevità: tutto in un solo pacchetto.
+Cosa misuri
  
+💪 Le 7 qualità della prestazione
  
-Si comincia con una seduta dedicata all'AMT Longevity Test, poi si fanno le 5 giornate dell'AMT Performance Test. Push up e capacità aerobica si misurano una volta sola, senza ripetere nulla.
+🧘 Mobilità ed equilibrio
+ 
+❤️ Gli indicatori di longevità
  
  
 Cosa ottieni
  
-• La tua ragnatela con 7 qualità, da Principiante a Elite.
+🕸️ La tua ragnatela e i semafori di longevità
  
-• Il quadro di mobilità ed equilibrio, con le differenze tra lato destro e sinistro.
+🎂 La tua età fitness e il tuo profilo atletico
  
-• Gli indicatori di longevità a semaforo.
+💡 Consigli su cosa migliorare
  
-• Il confronto con i test precedenti e programmi sui tuoi punti deboli.
+💰 Costa meno dei due test presi separatamente
  
  
 Come funziona
  
-6 giornate (1 Longevity + 5 Performance) da completare in 14 giorni, con istruzioni, video e timer. Ti serve una palestra attrezzata.`;
+1️⃣ Prima seduta: Longevity Test
+ 
+📅 Poi le 5 giornate del Performance Test
+ 
+🗓️ Tutto in 14 giorni, con istruzioni, video e timer`;
  
 const AMT_INTRO_PREDEFINITA = AMT_INTRO_TEST;
  
@@ -8681,7 +8706,8 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    if (t.startsWith('anamnesi_reminder')) { setActiveTab('profile'); setAthleteProfileTab('anamnesi'); return vai(true); } 
+    if (t.startsWith('anamnesi_reminder')) { setActiveTab('profile'); setAthleteProfileTab('anamnesi'); return vai(true); }
+ 
     if (t.startsWith('comp_')) { setActiveTab('profile'); setAthleteProfileTab('gare'); return vai(true); }
  
     if (t.startsWith('amt_')) { setActiveTab('profile'); setAthleteProfileTab('amt'); return vai(true); }
@@ -8852,8 +8878,7 @@ const [notificationError, setNotificationError] = useState('');
  
   `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
  
-  `program_assigned_${prog.id}`,
- 
+  `program_assigned_${prog.id}`, 
   prog.id
  
 );
@@ -13982,7 +14007,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {eta !== null && <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)' }}>{`La tua età: ${eta} anni${meglio ? ' \u00b7 sei più giovane della tua età! \u{1F389}' : ''}`}</span>}
  
-              <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '4px' }}>Stimata dalla capacità aerobica: l\u2019età in cui il tuo livello è quello tipico. Non è una valutazione medica.</span>
+              <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '4px' }}>Stimata dalla capacità aerobica: l’età in cui il tuo livello è quello tipico. Non è una valutazione medica.</span>
  
             </div>
  
@@ -14904,7 +14929,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {mostraSc && <span style={{ display: 'block', marginTop: conUsati ? '3px' : 0 }}>La settimana scorsa: <strong>{sc}</strong></span>}
  
-              {!conUsati && !mostraSc && nt && <span style={{ display: 'block' }}>L\u2019ultima volta</span>}
+              {!conUsati && !mostraSc && nt && <span style={{ display: 'block' }}>L’ultima volta</span>}
  
               {nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}><span style={{ fontStyle: 'normal', fontWeight: 'bold' }}>Note:</span> {`\u201c${nt}\u201d`}</span>}
  
@@ -19663,7 +19688,8 @@ fetchAllAthleteResultsForCoach();
       } catch (e) {
  
         // niente
-       }
+ 
+      }
  
     }, 150);
  
@@ -22379,7 +22405,7 @@ fetchAllAthleteResultsForCoach();
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
-                  Per ogni test: la descrizione che l\u2019atleta vede toccandolo nella pagina AMT, e il link allo shop del pulsante Acquista. Se lasci una descrizione vuota si usa il testo predefinito.
+                  Per ogni test: la descrizione che l’atleta vede toccandolo nella pagina AMT, e il link allo shop del pulsante Acquista. Se lasci una descrizione vuota si usa il testo predefinito.
  
                 </p>
  
@@ -23251,8 +23277,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                   <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                </div>
- 
+                                                </div> 
                                               );
  
                                             })()}
@@ -23624,7 +23649,8 @@ tempo={blk.scoreUnit === 'tempo' && !scoreMisto(blk)}
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               />
- {comeSuperserie(blk.type) && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
+ 
+{comeSuperserie(blk.type) && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
  
                                               </>
  
@@ -23860,7 +23886,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   </label>
  
-                                  <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>\u270f\ufe0f Rinomina</button>
+                                  <button onClick={() => { setEditingExerciseId(ex.id); setEditingExerciseName(ex.name); }} style={{ background: '#3b82f6', border: 'none', color: '#fff', padding: '5px 8px', borderRadius: '999px', cursor: 'pointer', fontSize: '11px' }}>✏️ Rinomina</button>
  
                                 </>
  
@@ -27345,8 +27371,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                                     style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', textAlign: 'center' }}
  
                                                   />
- 
-                                                  )}
+                                                   )}
  
                                                 </div>
  
