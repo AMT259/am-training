@@ -589,7 +589,7 @@ const piuMesi = (chiave: string, n: number) => {
  
 async function controllaAmt(oggiKey: string, origin: string, atleti: any[], coaches: any[]) {
  
-  const { data: sessioni, error } = await supabaseAdmin.from('amt_test_sessions').select('id,athlete_id,status,deadline,completed_at');
+  const { data: sessioni, error } = await supabaseAdmin.from('amt_test_sessions').select('*');
  
   if (error) return { nota: 'tabella amt_test_sessions non trovata' };
  
@@ -601,7 +601,9 @@ async function controllaAmt(oggiKey: string, origin: string, atleti: any[], coac
  
     if (s.status === 'aperta' && String(s.deadline || '').slice(0, 10) === traDue) {
  
-      if (await avvisa(origin, s.athlete_id, 'AMT Test: mancano 2 giorni', `Hai tempo fino al ${formatoIT(traDue)} per completare il tuo AMT Test. Le giornate non fatte non verranno conteggiate.`, `amt_scade_${s.id}`)) avvisati++;
+      const nome = s.prodotto === 'longevity' ? 'AMT Longevity' : 'AMT Test';
+ 
+      if (await avvisa(origin, s.athlete_id, `${nome}: mancano 2 giorni`, `Hai tempo fino al ${formatoIT(traDue)} per completare il tuo ${nome}. Le prove non fatte non verranno conteggiate.`, `amt_scade_${s.id}`)) avvisati++;
  
     }
  
@@ -623,11 +625,11 @@ async function controllaAmt(oggiKey: string, origin: string, atleti: any[], coac
  
     if (piuMesi(ultima, 4) !== oggiKey) continue;
  
-    if (await avvisa(origin, a.id, 'È il momento di un nuovo AMT Test', 'Sono passati 4 mesi dal tuo ultimo AMT Test: rifallo per vedere quanto sei migliorato. Chiedi al coach di sbloccarlo.', `amt_4mesi_${a.id}_${ultima}`)) avvisati++;
+    if (await avvisa(origin, a.id, 'È il momento di un nuovo test AMT', 'Sono passati 4 mesi dal tuo ultimo test AMT: rifallo per vedere quanto sei migliorato. Chiedi al coach di sbloccarlo.', `amt_4mesi_${a.id}_${ultima}`)) avvisati++;
  
     for (const c of coaches) {
  
-      if (await avvisa(origin, c.id, 'AMT Test da rifare', `Sono passati 4 mesi dall’ultimo AMT Test di ${a.full_name || 'un atleta'}: proponigli di rifarlo.`, `amt_4mesi_${a.id}_${ultima}_coach`)) avvisati++;
+      if (await avvisa(origin, c.id, 'AMT da rifare', `Sono passati 4 mesi dall’ultimo test AMT di ${a.full_name || 'un atleta'}: proponigli di rifarlo.`, `amt_4mesi_${a.id}_${ultima}_coach`)) avvisati++;
  
     }
  
