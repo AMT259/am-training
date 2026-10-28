@@ -601,7 +601,7 @@ async function controllaAmt(oggiKey: string, origin: string, atleti: any[], coac
  
     if (s.status === 'aperta' && String(s.deadline || '').slice(0, 10) === traDue) {
  
-      const nome = s.prodotto === 'longevity' ? 'AMT Longevity Test' : s.prodotto === 'completo' ? 'AMT Performance Test + Longevity' : 'AMT Performance Test';
+      const nome = s.prodotto === 'longevity' ? 'AMT Longevity Test' : s.prodotto === 'completo' ? 'AMT Performance Test + Longevity Test' : 'AMT Performance Test';
  
       if (await avvisa(origin, s.athlete_id, `${nome}: mancano 2 giorni`, `Hai tempo fino al ${formatoIT(traDue)} per completare il tuo ${nome}. Le prove non fatte non verranno conteggiate.`, `amt_scade_${s.id}`)) avvisati++;
  
