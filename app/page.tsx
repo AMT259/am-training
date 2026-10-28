@@ -13753,9 +13753,13 @@ const [notificationError, setNotificationError] = useState('');
  
           const aperta = sessP.find((x: any) => x.status === 'aperta');
  
-          const profK = pk !== 'longevity' ? amtProfilo(sessP) : null;
+          // Il test completo vale anche per i due singoli: se l'hai fatto, Performance e Longevity risultano fatti
  
-          const lonK = pk !== 'test' ? amtProfiloLong(sessP) : null;
+          const sessCoperte = sessioni.filter((x: any) => amtProdottoDi(x) === pk || amtProdottoDi(x) === 'completo');
+ 
+          const profK = pk !== 'longevity' ? amtProfilo(sessCoperte) : null;
+ 
+          const lonK = pk !== 'test' ? amtProfiloLong(sessCoperte) : null;
  
           const ultimo = profK ? profK.ultima.completed_at : lonK ? lonK.ultima.completed_at : null;
  
