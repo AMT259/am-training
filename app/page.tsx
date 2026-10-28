@@ -1564,7 +1564,7 @@ const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
 const AMT_GIORNATE_LONGEVITY: { n: number; titolo: string }[] = [{ n: 1, titolo: 'Sessione unica' }];
  
-const AMT_NOMI: { [k: string]: string } = { test: 'AMT Performance Test', longevity: 'AMT Longevity Test', completo: 'AMT Performance Test + Longevity' };
+const AMT_NOMI: { [k: string]: string } = { test: 'AMT Performance Test', longevity: 'AMT Longevity Test', completo: 'AMT Performance Test + Longevity Test' };
  
 const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7, completo: 14 };
  
@@ -1572,7 +1572,7 @@ type AmtProdotto = 'test' | 'longevity' | 'completo';
  
 const amtProdottoDi = (s: any): AmtProdotto => (s?.prodotto === 'longevity' ? 'longevity' : s?.prodotto === 'completo' ? 'completo' : 'test');
  
-// "AMT Performance Test + Longevity" è un unico test: le prove di Longevity entrano nelle 5 giornate
+// "AMT Performance Test + Longevity Test" è un unico test: le prove di Longevity entrano nelle 5 giornate
  
 // (mobilità ed equilibrio all'inizio della giornata 1, dead hang all'inizio della 4);
  
@@ -10931,7 +10931,8 @@ const [notificationError, setNotificationError] = useState('');
  
     return true;
  
-  }; 
+  };
+ 
   // Aggiorna solo a schermo mentre si digita (nessun salvataggio, nessun record)
  
   // Legge/scrive i massimali dell'atleta giusto: se stesso oppure quello aperto dal coach
@@ -12704,6 +12705,16 @@ const [notificationError, setNotificationError] = useState('');
  
     if (sesso !== 'm' && sesso !== 'f') { alert('Indica se sei uomo o donna: i valori di riferimento sono diversi.'); return; }
  
+    // Peso di oggi e sesso vanno anche nei dati anagrafici, così restano aggiornati
+ 
+    const datiProfilo: any = { weight: peso };
+ 
+    if (personalData.gender !== 'm' && personalData.gender !== 'f') datiProfilo.gender = sesso;
+ 
+    const { error: errP } = await supabase.from('profiles').update(datiProfilo).eq('id', session.user.id);
+ 
+    if (!errP) setPersonalData((pd: any) => ({ ...pd, ...datiProfilo }));
+ 
     const extra: any = {};
  
     // Data di nascita: se manca negli anagrafici la chiedo qui e la salvo anche nel profilo
@@ -12718,13 +12729,27 @@ const [notificationError, setNotificationError] = useState('');
  
       const { error: errN } = await supabase.from('profiles').update({ birth_date: nascita }).eq('id', session.user.id);
  
-      if (!errN) { setPersonalData({ ...personalData, birth_date: nascita }); setSavedBirthDate(nascita); }
+      if (!errN) { setPersonalData((pd: any) => ({ ...pd, birth_date: nascita })); setSavedBirthDate(nascita); }
  
     }
  
     extra.__eta = amtEtaDa(nascita);
  
-    const alt = parseFloat(String(personalData.height || '').replace(',', '.'));
+    // Altezza: serve per il girovita (Longevity e completo); se manca la chiedo e la salvo nel profilo
+ 
+    let alt = parseFloat(String(personalData.height || '').replace(',', '.'));
+ 
+    if (!(alt > 0) && amtProdottoDi(s) !== 'test') {
+ 
+      alt = parseFloat(String((amtAvvio as any).altezza || '').replace(',', '.'));
+ 
+      if (!(alt >= 100 && alt <= 230)) { alert('Scrivi la tua altezza in cm (es. 175).'); return; }
+ 
+      const { error: errA } = await supabase.from('profiles').update({ height: alt }).eq('id', session.user.id);
+ 
+      if (!errA) setPersonalData((pd: any) => ({ ...pd, height: alt }));
+ 
+    }
  
     if (alt > 0) extra.__altezza = alt;
  
@@ -13128,6 +13153,20 @@ const [notificationError, setNotificationError] = useState('');
  
             )}
  
+            {p !== 'test' && !(parseFloat(String(personalData.height || '').replace(',', '.')) > 0) && (
+ 
+              <>
+ 
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '12px 0 6px 0' }}>Quanto sei alto? (cm)</label>
+ 
+                <input autoComplete="off" type="text" inputMode="numeric" placeholder="es. 175" value={(amtAvvio as any).altezza || ''} onChange={(e) => setAmtAvvio({ ...amtAvvio, altezza: e.target.value } as any)} style={campo} />
+ 
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '5px' }}>La salviamo anche nei tuoi dati anagrafici.</span>
+ 
+              </>
+ 
+            )}
+ 
           </div>
  
           <button type="button" onClick={() => amtInizia(s)} style={{ width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
@@ -13432,7 +13471,17 @@ const [notificationError, setNotificationError] = useState('');
  
   // Risultati di Longevity: ultima sessione completata e la precedente
  
-  const amtProfiloLong = (sessioni: any[]) => {
+  const amtProfiloLong = (sessioni: any[], altezza?: any) => {
+ 
+    // Se nel test manca l'altezza (es. test fatti prima), uso quella degli anagrafici
+ 
+    const conAltezza = (x: any) => {
+ 
+      const alt = parseFloat(String(altezza || '').replace(',', '.'));
+ 
+      return x && !x.results?.__altezza && alt > 0 ? { ...x, results: { ...(x.results || {}), __altezza: alt } } : x;
+ 
+    };
  
     const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) !== 'test')
  
@@ -13444,7 +13493,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const prec = fatte.length > 1 ? fatte[fatte.length - 2] : null;
  
-    return { ultima, dati: amtLongevity(ultima), prec: prec ? amtLongevity(prec) : null };
+    return { ultima, dati: amtLongevity(conAltezza(ultima)), prec: prec ? amtLongevity(conAltezza(prec)) : null };
  
   };
  
@@ -13466,7 +13515,9 @@ const [notificationError, setNotificationError] = useState('');
  
     const prof = amtProfilo(sessioni);
  
-    const lon = amtProfiloLong(sessioni);
+    const altezzaAtleta = perCoach ? atleta?.height : personalData.height;
+ 
+    const lon = amtProfiloLong(sessioni, altezzaAtleta);
  
     const descrizioneAmt = (k: string) => k === 'longevity' ? (String(amtConfig.introLong || '').trim() || AMT_INTRO_LONG)
  
@@ -13700,7 +13751,7 @@ const [notificationError, setNotificationError] = useState('');
  
         {(prof || lon) && (
  
-          // Risultati tutti insieme: una sola ragnatela (AMT Performance Test o Performance Test + Longevity, il più recente)
+          // Risultati tutti insieme: una sola ragnatela (AMT Performance Test o Performance Test + Longevity Test, il più recente)
  
           // e un solo quadro di mobilità e longevità (Longevity o Test + Longevity, il più recente)
  
@@ -13720,7 +13771,7 @@ const [notificationError, setNotificationError] = useState('');
  
             ) : (
  
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', padding: '4px 0 8px 0' }}>Ragnatela: si ottiene con AMT Performance Test o AMT Performance Test + Longevity.</span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', padding: '4px 0 8px 0' }}>Ragnatela: si ottiene con AMT Performance Test o AMT Performance Test + Longevity Test.</span>
  
             )}
  
@@ -13736,7 +13787,7 @@ const [notificationError, setNotificationError] = useState('');
  
             ) : (
  
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>Mobilità, equilibrio e longevità: si ottengono con AMT Longevity Test o AMT Performance Test + Longevity.</span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>Mobilità, equilibrio e longevità: si ottengono con AMT Longevity Test o AMT Performance Test + Longevity Test.</span>
  
             )}
  
@@ -13744,7 +13795,7 @@ const [notificationError, setNotificationError] = useState('');
  
         )}
  
-        {([['test', 'test', 'AMT Performance Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity Test', 'foglia'], ['bundle', 'completo', 'AMT Performance Test + Longevity', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
+        {([['test', 'test', 'AMT Performance Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity Test', 'foglia'], ['bundle', 'completo', 'AMT Performance Test + Longevity Test', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
  
           // Un blocco per prodotto: descrizione, sblocco, test in corso e risultati, tutto insieme
  
@@ -13848,7 +13899,7 @@ const [notificationError, setNotificationError] = useState('');
  
         })}
  
-        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Performance Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity Test: ${AMT_DURATA.longevity} giorni \u00b7 AMT Performance Test + Longevity: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
+        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Performance Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity Test: ${AMT_DURATA.longevity} giorni \u00b7 AMT Performance Test + Longevity Test: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
  
         {amtLucchetto && !perCoach && (
  
@@ -13862,7 +13913,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 const k = typeof amtLucchetto === 'string' ? amtLucchetto : 'test';
  
-                const titolo = k === 'bundle' ? 'AMT Performance Test + Longevity' : AMT_NOMI[k];
+                const titolo = k === 'bundle' ? 'AMT Performance Test + Longevity Test' : AMT_NOMI[k];
  
                 const link = k === 'longevity' ? amtConfig.shopUrlLong : k === 'bundle' ? amtConfig.shopUrlBundle : amtConfig.shopUrl;
  
@@ -13872,11 +13923,43 @@ const [notificationError, setNotificationError] = useState('');
  
                     <h3 style={{ margin: '0 0 10px 0', fontSize: '19px', color: 'var(--fg-10b981)', textAlign: 'center' }}>{titolo}</h3>
  
-                    <p style={{ margin: '0 0 14px 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{descrizioneAmt(k)}</p>
+                    <div style={{ margin: '0 0 14px 0' }}>
+ 
+                      {descrizioneAmt(k).split(/\n\s*\n/).map((par: string, i: number) => {
+ 
+                        const righe = par.split('\n');
+ 
+                        const titoletto = righe.length > 1 && !righe[0].startsWith('\u2022') && righe[0].length < 40;
+ 
+                        return (
+ 
+                          <p key={i} style={{ margin: i === 0 ? '0 0 10px 0' : '0 0 10px 0', fontSize: i === 0 ? '15px' : '13.5px', fontWeight: i === 0 ? 'bold' : 'normal', color: i === 0 ? 'var(--fg-000000)' : 'var(--fg-334155)', lineHeight: 1.5, textAlign: i === 0 ? 'center' : 'left' }}>
+ 
+                            {titoletto ? (<><span style={{ display: 'block', fontWeight: 'bold', color: 'var(--fg-10b981)', fontSize: '12.5px', letterSpacing: '0.4px', marginBottom: '3px' }}>{righe[0].toUpperCase()}</span>{righe.slice(1).map((r, j) => <span key={j} style={{ display: 'block', marginBottom: '2px' }}>{r}</span>)}</>)
+ 
+                              : righe.map((r, j) => <span key={j} style={{ display: 'block' }}>{r}</span>)}
+ 
+                          </p>
+ 
+                        );
+ 
+                      })}
+ 
+                    </div>
  
                     <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, textAlign: 'center' }}>È una funzione a pagamento: acquistalo o contatta il tuo coach per sbloccarlo.</p>
  
-                    {link && <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...bottone, marginBottom: '9px' }}>{'\u{1F6D2}'} Acquista {titolo}</a>}
+                    {link && (
+ 
+                      <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...bottone, marginBottom: '9px', flexDirection: 'column', gap: '2px', padding: '12px 16px' }}>
+ 
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '16px' }}>{'\u{1F6D2}'} Acquista ora</span>
+ 
+                        <span style={{ fontSize: '11.5px', fontWeight: 'normal', opacity: 0.85 }}>si apre lo shop AMTraining</span>
+ 
+                      </a>
+ 
+                    )}
  
                   </>
  
@@ -18863,7 +18946,8 @@ fetchAllAthleteResultsForCoach();
                 <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '5px' }}>Serve per assegnarti la scheda di prova corretta.</span>
  
               </div>
-               <div style={{ display: 'flex', gap: '12px' }}>
+ 
+              <div style={{ display: 'flex', gap: '12px' }}>
  
                 <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
@@ -21985,7 +22069,7 @@ fetchAllAthleteResultsForCoach();
  
                 <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Performance Test + Longevity</span>
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Performance Test + Longevity Test</span>
  
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
  
@@ -23628,7 +23712,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                             <span style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '15px' }}>{b.name}</span>
  
                             <div style={{ display: 'flex', gap: '4px' }}>
-                               {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
+ 
+                              {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
  
                                 <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
  
