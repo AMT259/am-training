@@ -1372,7 +1372,7 @@ function elencoPercentuali(txt: string): string[] {
  
 // Due prodotti a pagamento, sbloccati dal coach:
  
-// - AMT Test: 5 giornate in palestra (14 giorni), ragnatela con 7 qualità da 0 a 100, rapportate a peso e sesso;
+// - AMT Performance Test: 5 giornate in palestra (14 giorni), ragnatela con 7 qualità da 0 a 100, rapportate a peso e sesso;
  
 // - AMT Longevity: una sessione anche a casa (7 giorni), mobilità, equilibrio e indicatori di longevità a semaforo.
  
@@ -1422,7 +1422,7 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'row_500', video: ['Row', 'Remoergometro'], nome: '500 m remo', q: 'anaerobica', giorno: 1, tipo: 'tempo', meno: true, m: [115, 105, 97, 91, 86], f: [135, 123, 115, 108, 102], min: 70, max: 300,
  
-    istruzioni: 'Damper a tua scelta (consigliato 6-8). Partenza da fermo, a tutta per 500 m. Scrivi il tempo finale (minuti e secondi).' },
+    istruzioni: 'Dopo almeno 5 minuti di recupero dalle trazioni. Damper a tua scelta (consigliato 6-8). Partenza da fermo, a tutta per 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
   { k: 'deadlift', video: ['Deadlift'], nome: 'Deadlift 1RM', esercizio: 'Deadlift', q: 'forza', giorno: 2, tipo: 'kg', rel: true, m: [1.0, 1.5, 2.0, 2.5, 3.0], f: [0.75, 1.1, 1.5, 1.9, 2.4], min: 0.3, max: 4.5,
  
@@ -1434,7 +1434,7 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'assault_1', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 1′ (calorie)', q: 'anaerobica', giorno: 2, tipo: 'cal', secondi: 60, m: [20, 28, 35, 42, 50], f: [13, 19, 24, 29, 35], min: 3, max: 100,
  
-    istruzioni: 'Fai almeno 10 minuti di recupero dopo gli altri test. Azzera il display, parti da fermo e vai a tutta per 1 minuto. Scrivi le calorie.' },
+    istruzioni: 'Dopo almeno 10 minuti di recupero dai push up. Azzera il display, parti da fermo e vai a tutta per 1 minuto. Scrivi le calorie.' },
  
   { k: 'power_clean', video: ['Power Clean'], nome: 'Power Clean 1RM', esercizio: 'Power Clean', q: 'potenza', giorno: 3, tipo: 'kg', rel: true, m: [0.6, 0.85, 1.05, 1.25, 1.45], f: [0.4, 0.6, 0.75, 0.9, 1.05], min: 0.1, max: 2.6,
  
@@ -1446,7 +1446,7 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'wall_ball', video: ['Wall ball', 'Wall balls'], nome: 'Wall ball 3′ (max)', q: 'resistenza', giorno: 3, tipo: 'rep', secondi: 180, m: [45, 60, 75, 85, 95], f: [40, 55, 70, 80, 90], min: 0, max: 200,
  
-    istruzioni: 'Uomini 9 kg a 3 m, donne 6 kg a 2,7 m. Squat sotto il parallelo, la palla deve toccare il bersaglio. Più ripetizioni possibili in 3 minuti.' },
+    istruzioni: 'Dopo almeno 5 minuti di recupero dai test precedenti. Uomini 9 kg a 3 m, donne 6 kg a 2,7 m. Squat sotto il parallelo, la palla deve toccare il bersaglio. Più ripetizioni possibili in 3 minuti.' },
  
   { k: 'strict_press', video: ['Shoulder press', 'Strict Press'], nome: 'Strict Press 1RM', esercizio: 'Strict Press', q: 'forza', giorno: 4, tipo: 'kg', rel: true, m: [0.4, 0.55, 0.7, 0.85, 1.0], f: [0.25, 0.35, 0.5, 0.6, 0.75], min: 0.1, max: 2,
  
@@ -1462,7 +1462,7 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'row_2000', video: ['Row', 'Remoergometro'], nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
  
-    istruzioni: 'Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
+    istruzioni: 'Dopo almeno 10 minuti di recupero dal 100 m. Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
  
   { k: 'power_snatch', video: ['Power Snatch'], nome: 'Power Snatch 1RM', esercizio: 'Power Snatch', q: 'potenza', giorno: 5, tipo: 'kg', rel: true, facoltativo: true, m: [0.45, 0.65, 0.8, 0.95, 1.15], f: [0.3, 0.45, 0.6, 0.7, 0.85], min: 0.1, max: 2.2,
  
@@ -1470,15 +1470,15 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'burpee', video: ['Burpees', 'Burpee'], nome: 'Burpee 3′ (max)', q: 'resistenza', giorno: 5, tipo: 'rep', secondi: 180, m: [35, 45, 55, 63, 70], f: [30, 40, 50, 57, 64], min: 0, max: 150,
  
-    istruzioni: 'Petto e cosce a terra, in piedi con un piccolo salto e battito delle mani sopra la testa. Più ripetizioni possibili in 3 minuti.' },
+    istruzioni: 'Dopo almeno 5 minuti di recupero dallo snatch (se l\u2019hai fatto). Petto e cosce a terra, in piedi con un piccolo salto e battito delle mani sopra la testa. Più ripetizioni possibili in 3 minuti.' },
  
   { k: 'assault_10s', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 10\u2033 (calorie)', q: 'velocita', giorno: 5, tipo: 'cal', secondi: 10, m: [5, 7, 9, 11, 13], f: [3, 4.5, 6, 7.5, 9], min: 1, max: 25,
  
-    istruzioni: 'Prima dei 10 minuti. Azzera il display, parti da fermo e vai al massimo per 10 secondi. Scrivi le calorie (anche con i decimali se il display li mostra). Poi recupera almeno 10 minuti prima dei 10 minuti di bike.' },
+    istruzioni: 'Dopo almeno 5 minuti di recupero dai burpee e prima dei 10 minuti di bike. Azzera il display, parti da fermo e vai al massimo per 10 secondi. Scrivi le calorie (anche con i decimali se il display li mostra). Poi recupera almeno 10 minuti prima dei 10 minuti di bike.' },
  
   { k: 'assault_10', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 10′ (calorie)', q: 'aerobica', giorno: 5, tipo: 'cal', secondi: 600, m: [100, 130, 155, 180, 210], f: [70, 90, 110, 130, 150], min: 30, max: 400,
  
-    istruzioni: 'Fai almeno 15 minuti di recupero dopo i burpee. Azzera il display e tieni il ritmo più alto che riesci a sostenere per 10 minuti. Scrivi le calorie.' },
+    istruzioni: 'Dopo almeno 10 minuti di recupero dai 10 secondi di bike. Azzera il display e tieni il ritmo più alto che riesci a sostenere per 10 minuti. Scrivi le calorie.' },
  
   // ---- AMT LONGEVITY (una sessione, anche a casa) ----
  
@@ -1536,11 +1536,11 @@ const AMT_TEST: AmtTestDef[] = [
  
   { k: 'aer_3k', prodotto: 'longevity', nome: '3 km di corsa', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 540, max: 3600,
  
-    istruzioni: 'Facoltativo, serve per stimare la tua capacità aerobica. Fallo in un giorno a parte o dopo almeno 15 minuti di recupero dagli altri test.\nCorri 3 km su un percorso misurato (pista o un giro che conosci) oppure con un\u2019app GPS, al ritmo più veloce che riesci a tenere fino alla fine. Scrivi il tempo finale. Se hai fatto l\u2019AMT Test puoi usare invece il tuo 2000 m remo qui sotto.' },
+    istruzioni: 'Facoltativo, serve per stimare la tua capacità aerobica. Fallo in un giorno a parte o dopo almeno 15 minuti di recupero dagli altri test.\nCorri 3 km su un percorso misurato (pista o un giro che conosci) oppure con un\u2019app GPS, al ritmo più veloce che riesci a tenere fino alla fine. Scrivi il tempo finale. Se hai fatto l\u2019AMT Performance Test puoi usare invece il tuo 2000 m remo qui sotto.' },
  
   { k: 'aer_row', prodotto: 'longevity', usaDa: 'row_2000', nome: 'oppure 2000 m remo', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 330, max: 1200,
  
-    istruzioni: 'Facoltativo, in alternativa ai 3 km. Il tuo tempo sui 2000 m al remoergometro, fatto a tutta (va bene anche quello dell\u2019AMT Test).' },
+    istruzioni: 'Facoltativo, in alternativa ai 3 km. Il tuo tempo sui 2000 m al remoergometro, fatto a tutta (va bene anche quello dell\u2019AMT Performance Test).' },
  
   { k: 'girovita', prodotto: 'longevity', nome: 'Girovita (cm)', q: 'longevita', giorno: 1, tipo: 'cm', facoltativo: true, m: [], f: [], min: 40, max: 200,
  
@@ -1564,7 +1564,7 @@ const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
 const AMT_GIORNATE_LONGEVITY: { n: number; titolo: string }[] = [{ n: 1, titolo: 'Sessione unica' }];
  
-const AMT_NOMI: { [k: string]: string } = { test: 'AMT Test', longevity: 'AMT Longevity', completo: 'AMT Test + Longevity' };
+const AMT_NOMI: { [k: string]: string } = { test: 'AMT Performance Test', longevity: 'AMT Longevity', completo: 'AMT Performance Test + Longevity' };
  
 const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7, completo: 14 };
  
@@ -1572,11 +1572,11 @@ type AmtProdotto = 'test' | 'longevity' | 'completo';
  
 const amtProdottoDi = (s: any): AmtProdotto => (s?.prodotto === 'longevity' ? 'longevity' : s?.prodotto === 'completo' ? 'completo' : 'test');
  
-// "AMT Test + Longevity" è un unico test: le prove di Longevity entrano nelle 5 giornate
+// "AMT Performance Test + Longevity" è un unico test: le prove di Longevity entrano nelle 5 giornate
  
 // (mobilità ed equilibrio all'inizio della giornata 1, dead hang all'inizio della 4);
  
-// push up e capacità aerobica si prendono da quelli dell'AMT Test, senza ripeterli.
+// push up e capacità aerobica si prendono da quelli dell'AMT Performance Test, senza ripeterli.
  
 const AMT_DOPPIONI_LONGEVITY = ['push_up_l', 'aer_3k', 'aer_row'];
  
@@ -1636,7 +1636,7 @@ const AMT_DESCRIZIONI: { [k: string]: string } = {
  
   longevity: 'Una sessione di 20-30 minuti, anche a casa: mobilità, equilibrio e indicatori di longevità, con semafori facili da leggere.',
  
-  bundle: 'Un unico test che unisce tutto: le 5 giornate dell\u2019AMT Test con dentro le prove di mobilità, equilibrio e longevità. Ragnatela e semafori in un solo percorso.',
+  bundle: 'Un unico test che unisce tutto: le 5 giornate dell\u2019AMT Performance Test con dentro le prove di mobilità, equilibrio e longevità. Ragnatela e semafori in un solo percorso.',
  
 };
  
@@ -1666,7 +1666,7 @@ const AMT_INTRO_TEST = `Scopri che atleta sei davvero.
 Ti alleni con costanza, ma sai qual è il tuo vero punto forte? E quello che ti sta frenando?
  
  
-L'AMT Test misura 7 qualità fondamentali dell'atleta completo: Forza, Potenza, Velocità, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
+L'AMT Performance Test misura 7 qualità fondamentali dell'atleta completo: Forza, Potenza, Velocità, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
  
  
 Alla fine ottieni il tuo profilo a ragnatela: un grafico che mostra a colpo d'occhio dove sei forte e dove puoi crescere, confrontato con i livelli da Principiante a Elite e rapportato al tuo peso corporeo.
@@ -1721,7 +1721,7 @@ const AMT_INTRO_BUNDLE = `Il test completo.
 Prestazione, mobilità, equilibrio e longevità: tutto in un unico test.
  
  
-Le 5 giornate dell'AMT Test con dentro tutte le prove di AMT Longevity, organizzate per farle nel momento giusto, senza ripetere nulla.
+Le 5 giornate dell'AMT Performance Test con dentro tutte le prove di AMT Longevity, organizzate per farle nel momento giusto, senza ripetere nulla.
  
  
 Cosa ottieni
@@ -2023,7 +2023,7 @@ function amtLongevity(s: any): { mobilita: AmtSemaforo[]; longevita: AmtSemaforo
  
   const base = s?.results || {};
  
-  // nel test completo push up e 2000 m remo sono quelli dell'AMT Test
+  // nel test completo push up e 2000 m remo sono quelli dell'AMT Performance Test
  
   const ris = { ...base, push_up_l: base.push_up_l ?? base.push_up, aer_row: base.aer_row ?? base.row_2000 };
  
@@ -7251,7 +7251,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente minorenne.</p>
  
-        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
         <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7275,7 +7275,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente minorenne nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
         <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente minorenne e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente minorenne e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente minorenne.</p>
  
@@ -7437,7 +7437,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
  
-      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7461,7 +7461,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
       <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente.</p>
  
@@ -12707,19 +12707,27 @@ const [notificationError, setNotificationError] = useState('');
  
     const extra: any = {};
  
-    if (amtProdottoDi(s) !== 'test') {
+    // Data di nascita: se manca negli anagrafici la chiedo qui e la salvo anche nel profilo
  
-      const eta = amtEtaDa(personalData.birth_date) || parseInt(String((amtAvvio as any).eta || ''), 10) || null;
+    let nascita = String(personalData.birth_date || '').slice(0, 10);
  
-      if (!eta) { alert('Scrivi la tua età: alcuni valori di riferimento cambiano con l’età.'); return; }
+    if (!amtEtaDa(nascita)) {
  
-      extra.__eta = eta;
+      nascita = String((amtAvvio as any).nascita || '').slice(0, 10);
  
-      const alt = parseFloat(String(personalData.height || '').replace(',', '.'));
+      if (!amtEtaDa(nascita)) { alert('Inserisci la tua data di nascita: alcuni valori di riferimento cambiano con l\u2019età.'); return; }
  
-      if (alt > 0) extra.__altezza = alt;
+      const { error: errN } = await supabase.from('profiles').update({ birth_date: nascita }).eq('id', session.user.id);
+ 
+      if (!errN) { setPersonalData({ ...personalData, birth_date: nascita }); setSavedBirthDate(nascita); }
  
     }
+ 
+    extra.__eta = amtEtaDa(nascita);
+ 
+    const alt = parseFloat(String(personalData.height || '').replace(',', '.'));
+ 
+    if (alt > 0) extra.__altezza = alt;
  
     const nuova = await amtAggiorna(s, { started_at: new Date().toISOString(), weight_kg: peso, sex: sesso, results: { ...(s.results || {}), ...extra } });
  
@@ -12955,7 +12963,7 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
-  // Un valore da un'altra sessione dell'AMT (es. i push up o il 2000 m dell'AMT Test, negli ultimi 60 giorni)
+  // Un valore da un'altra sessione dell'AMT (es. i push up o il 2000 m dell'AMT Performance Test, negli ultimi 60 giorni)
  
   const amtValoreDaAltro = (athleteId: string, chiave: string) => {
  
@@ -13067,7 +13075,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
  
-                  {`Hai ${AMT_DURATA[p]} giorni per completarle. ${p === 'completo' ? 'Nella giornata 1 comincia dalle prove di mobilità ed equilibrio, prima del riscaldamento pesante. ' : ''}In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
+                  {`Hai ${AMT_DURATA[p]} giorni per completarle. ${p === 'completo' ? 'Nella giornata 1 comincia dalle prove di mobilità ed equilibrio, prima del riscaldamento pesante. ' : ''}In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto. Se di qualche prova conosci già il risultato perché l\u2019hai testata di recente (indicativamente negli ultimi 2-3 mesi), non serve rifarla: inserisci direttamente quel risultato.`}
  
                 </span>
  
@@ -13077,7 +13085,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>
  
-                {`Una sola sessione di 20-30 minuti, nell’ordine: mobilità (squat, spalle, piegamento in avanti), equilibrio, Sitting-Rising Test, push up e i test facoltativi. Fai 5 minuti di riscaldamento leggero (camminata, mobilità articolare) e niente allenamento intenso prima. Ogni prova ha istruzioni passo passo: leggile tutte prima di cominciare. Puoi salvare e continuare più tardi, entro ${AMT_DURATA.longevity} giorni.`}
+                {`Una sola sessione di 20-30 minuti, nell’ordine: mobilità (squat, spalle, piegamento in avanti), equilibrio, Sitting-Rising Test, push up e i test facoltativi. Fai 5 minuti di riscaldamento leggero (camminata, mobilità articolare) e niente allenamento intenso prima. Ogni prova ha istruzioni passo passo: leggile tutte prima di cominciare. Puoi salvare e continuare più tardi, entro ${AMT_DURATA.longevity} giorni. Se di qualche prova conosci già il risultato perché l\u2019hai testata di recente (indicativamente negli ultimi 2-3 mesi), non serve rifarla: inserisci direttamente quel risultato.`}
  
               </span>
  
@@ -13107,13 +13115,15 @@ const [notificationError, setNotificationError] = useState('');
  
             )}
  
-            {p !== 'test' && !etaNota && (
+            {!etaNota && (
  
               <>
  
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '12px 0 6px 0' }}>Quanti anni hai?</label>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '12px 0 6px 0' }}>Data di nascita</label>
  
-                <input autoComplete="off" type="text" inputMode="numeric" value={(amtAvvio as any).eta || ''} onChange={(e) => setAmtAvvio({ ...amtAvvio, eta: e.target.value } as any)} style={campo} />
+                <input autoComplete="off" type="date" value={(amtAvvio as any).nascita || ''} onChange={(e) => setAmtAvvio({ ...amtAvvio, nascita: e.target.value } as any)} style={campo} />
+ 
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '5px' }}>La salviamo anche nei tuoi dati anagrafici.</span>
  
               </>
  
@@ -13154,6 +13164,12 @@ const [notificationError, setNotificationError] = useState('');
         <div>
  
           {testa}
+ 
+          <div style={{ background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '10px', padding: '10px 12px', marginBottom: '12px', fontSize: '12.5px', color: 'var(--fg-1e40af)', lineHeight: 1.45 }}>
+ 
+            {'\u{1F4A1} '}{"Se di qualche prova conosci già il risultato perché l’hai testata di recente (indicativamente negli ultimi 2-3 mesi), non serve rifarla: inserisci direttamente quel risultato."}
+ 
+          </div>
  
           {amtDefs(p).filter((d) => d.giorno === amtGiornata).map((d) => {
  
@@ -13221,7 +13237,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: daAltro })} style={{ padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-bfdbfe)', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', alignSelf: 'center' }}>
  
-                      {`Usa il risultato dell’AMT Test: ${daAltro}`}
+                      {`Usa il risultato dell’AMT Performance Test: ${daAltro}`}
  
                     </button>
  
@@ -13359,7 +13375,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    // 3) Elenco delle giornate (AMT Test)
+    // 3) Elenco delle giornate (AMT Performance Test)
  
     const fatte = gg.filter((g) => (s.giorni || {})[g.n]).length;
  
@@ -13448,6 +13464,10 @@ const [notificationError, setNotificationError] = useState('');
       if (s) return sessioneAmt(s);
  
     }
+ 
+    const prof = amtProfilo(sessioni);
+ 
+    const lon = amtProfiloLong(sessioni);
  
     const descrizioneAmt = (k: string) => k === 'longevity' ? (String(amtConfig.introLong || '').trim() || AMT_INTRO_LONG)
  
@@ -13679,7 +13699,53 @@ const [notificationError, setNotificationError] = useState('');
  
         <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={17} style={{ marginRight: '6px', verticalAlign: '-3px' }} />AMT</h3>
  
-        {([['test', 'test', 'AMT Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity', 'foglia'], ['bundle', 'completo', 'AMT Test + Longevity', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
+        {(prof || lon) && (
+ 
+          // Risultati tutti insieme: una sola ragnatela (AMT Performance Test o Performance Test + Longevity, il più recente)
+ 
+          // e un solo quadro di mobilità e longevità (Longevity o Test + Longevity, il più recente)
+ 
+          <div style={scheda}>
+ 
+            {titoletto(perCoach ? 'RISULTATI' : 'I TUOI RISULTATI')}
+ 
+            {prof ? (
+ 
+              <>
+ 
+                <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', margin: '0 0 4px 0' }}>{`PRESTAZIONE \u00b7 ${amtDataIT(prof.ultima.completed_at)}`}</span>
+ 
+                {vistaRagnatela(prof, 'r')}
+ 
+              </>
+ 
+            ) : (
+ 
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', padding: '4px 0 8px 0' }}>Ragnatela: si ottiene con AMT Performance Test o AMT Performance Test + Longevity.</span>
+ 
+            )}
+ 
+            {lon ? (
+ 
+              <div style={{ marginTop: prof ? '16px' : 0, paddingTop: prof ? '10px' : 0, borderTop: prof ? '1px solid var(--bd-e2e8f0)' : 'none' }}>
+ 
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-94a3b8)', marginBottom: '2px' }}>{`Mobilità e longevità \u00b7 ${amtDataIT(lon.ultima.completed_at)}`}</span>
+ 
+                {vistaLongevity(lon)}
+ 
+              </div>
+ 
+            ) : (
+ 
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>Mobilità, equilibrio e longevità: si ottengono con AMT Longevity o AMT Performance Test + Longevity.</span>
+ 
+            )}
+ 
+          </div>
+ 
+        )}
+ 
+        {([['test', 'test', 'AMT Performance Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity', 'foglia'], ['bundle', 'completo', 'AMT Performance Test + Longevity', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
  
           // Un blocco per prodotto: descrizione, sblocco, test in corso e risultati, tutto insieme
  
@@ -13761,11 +13827,7 @@ const [notificationError, setNotificationError] = useState('');
  
               )}
  
-              {profK && vistaRagnatela(profK, k)}
- 
-              {lonK && <div style={{ marginTop: profK ? '14px' : 0 }}>{vistaLongevity(lonK)}</div>}
- 
-              {!profK && !lonK && !aperta && bloccato(anteprima, perCoach ? 'Non ancora fatto' : 'Tocca per scoprirlo', k)}
+              {!ultimo && !aperta && bloccato(anteprima, perCoach ? 'Non ancora fatto' : 'Tocca per scoprirlo', k)}
  
               {!aperta && (perCoach ? (
  
@@ -13783,7 +13845,7 @@ const [notificationError, setNotificationError] = useState('');
  
         })}
  
-        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity: ${AMT_DURATA.longevity} giorni \u00b7 AMT Test + Longevity: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
+        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Performance Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity: ${AMT_DURATA.longevity} giorni \u00b7 AMT Performance Test + Longevity: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
  
         {amtLucchetto && !perCoach && (
  
@@ -13797,7 +13859,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 const k = typeof amtLucchetto === 'string' ? amtLucchetto : 'test';
  
-                const titolo = k === 'bundle' ? 'AMT Test + Longevity' : AMT_NOMI[k];
+                const titolo = k === 'bundle' ? 'AMT Performance Test + Longevity' : AMT_NOMI[k];
  
                 const link = k === 'longevity' ? amtConfig.shopUrlLong : k === 'bundle' ? amtConfig.shopUrlBundle : amtConfig.shopUrl;
  
@@ -20890,7 +20952,7 @@ fetchAllAthleteResultsForCoach();
                   .sort((x: any, y: any) => x.info.giorni - y.info.giorni);
  
  
-                // 5c) AMT Test: passati 4 mesi dall'ultimo (e nessun test aperto)
+                // 5c) AMT Performance Test: passati 4 mesi dall'ultimo (e nessun test aperto)
  
                 const amtDaRifare = athletes
  
@@ -21343,7 +21405,7 @@ fetchAllAthleteResultsForCoach();
  
                     {gruppoB('FUNZIONI A PAGAMENTO', [
  
-                      voceB('amt', 'medaglia', 'AMT Test e Longevity', 'Presentazione, link allo shop, WhatsApp e annuncio', amtConfig.shopUrl || amtConfig.whatsapp ? acceso : { t: 'Da completare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }),
+                      voceB('amt', 'medaglia', 'Test AMT', 'Presentazione, link allo shop, WhatsApp e annuncio', amtConfig.shopUrl || amtConfig.whatsapp ? acceso : { t: 'Da completare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }),
  
                     ])}
  
@@ -21869,7 +21931,7 @@ fetchAllAthleteResultsForCoach();
  
               <div>
  
-                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test e Longevity</h4>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Test AMT</h4>
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
@@ -21881,7 +21943,7 @@ fetchAllAthleteResultsForCoach();
  
                 <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Test</span>
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Performance Test</span>
  
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
  
@@ -21921,7 +21983,7 @@ fetchAllAthleteResultsForCoach();
  
                 <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Test + Longevity</span>
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Performance Test + Longevity</span>
  
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
  
@@ -21967,7 +22029,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.45 }}>Manda a tutti una notifica (anche push) per far conoscere i test AMT. Toccandola si apre la pagina AMT.</span>
  
-                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT \u{1F3C5}', testo: 'Scopri che atleta sei davvero: AMT Test (7 qualità e il tuo profilo a ragnatela) e AMT Longevity (mobilità, equilibrio e longevità, anche a casa). Li trovi in Profilo > AMT.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT \u{1F3C5}', testo: 'Scopri che atleta sei davvero: AMT Performance Test (7 qualità e il tuo profilo a ragnatela) e AMT Longevity (mobilità, equilibrio e longevità, anche a casa). Li trovi in Profilo > AMT.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                     {'\u{1F4E3}'} Annuncia a tutti gli atleti
  
