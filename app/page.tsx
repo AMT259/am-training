@@ -1398,7 +1398,7 @@ type AmtTestDef = {
  
   k: string; nome: string; q: string; giorno: number; tipo: 'kg' | 'rep' | 'cal' | 'tempo' | 'sec' | 'scelta' | 'sino' | 'srt' | 'cm';
  
-  rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string; video?: string[];
+  rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string; video?: string[]; videoTutti?: string[];
  
   m: number[]; f: number[]; min: number; max: number; istruzioni: string;
  
@@ -1440,7 +1440,7 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Ricezione sopra il parallelo. Servono dischi in gomma (bumper): in caso di errore lascia cadere il bilanciere. Riscaldamento a salire, poi 3-4 tentativi singoli.' },
  
-  { k: 'kipping_pull_up', massimale: { tipo: 'gym', nomi: ['Pull up'] }, video: ['Kipping pull up', 'Butterfly pull up', 'Pull up'], nome: 'Pull up · kipping o butterfly (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
+  { k: 'kipping_pull_up', massimale: { tipo: 'gym', nomi: ['Pull up'] }, video: ['Kipping pull up', 'Butterfly pull up', 'Pull up'], videoTutti: ['Kipping pull up', 'Butterfly pull up'], nome: 'Pull up · kipping o butterfly (max)', q: 'ginnastica', giorno: 3, tipo: 'rep', facoltativo: true, m: [10, 20, 30, 40, 50], f: [5, 12, 20, 28, 36], min: 0, max: 120,
  
     istruzioni: 'Facoltativo, solo se li sai fare. Vanno fatti kipping o butterfly (non strict), come preferisci: puoi anche mixare gli stili nella stessa serie (es. partire butterfly e finire kipping). Mento sopra la sbarra, braccia tese in basso. Una sola serie unbroken: appena scendi dalla sbarra il test finisce.' },
  
@@ -1572,11 +1572,11 @@ type AmtProdotto = 'test' | 'longevity' | 'completo';
  
 const amtProdottoDi = (s: any): AmtProdotto => (s?.prodotto === 'longevity' ? 'longevity' : s?.prodotto === 'completo' ? 'completo' : 'test');
  
-// "AMT Performance Test + Longevity Test" è un unico test: le prove di Longevity entrano nelle 5 giornate
+// "AMT Performance Test + Longevity Test": la giornata 1 è il Longevity Test (seduta a parte),
  
-// (mobilità ed equilibrio all'inizio della giornata 1, dead hang all'inizio della 4);
+// le giornate 2-6 sono le 5 giornate del Performance Test.
  
-// push up e capacità aerobica si prendono da quelli dell'AMT Performance Test, senza ripeterli.
+// Push up e capacità aerobica si prendono da quelli del Performance Test, senza ripeterli.
  
 const AMT_DOPPIONI_LONGEVITY = ['push_up_l', 'aer_3k', 'aer_row'];
  
@@ -1588,31 +1588,23 @@ const amtDefs = (p: string): AmtTestDef[] => {
  
   const lon = AMT_TEST.filter((d) => d.prodotto === 'longevity' && !AMT_DOPPIONI_LONGEVITY.includes(d.k));
  
-  const out: AmtTestDef[] = [];
+  return [
  
-  [1, 2, 3, 4, 5].forEach((n) => {
+    ...lon.map((d) => ({ ...d, giorno: 1 })),
  
-    if (n === 1) lon.filter((d) => d.k !== 'dead_hang').forEach((d) => out.push({ ...d, giorno: 1 }));
+    ...test.map((d) => ({ ...d, giorno: d.giorno + 1 })),
  
-    // dead hang a inizio giornata 4: lontano dai test di trazione e di presa
- 
-    if (n === 4) lon.filter((x) => x.k === 'dead_hang').forEach((x) => out.push({ ...x, giorno: 4 }));
- 
-    test.filter((d) => d.giorno === n).forEach((d) => out.push(d));
- 
-  });
- 
-  return out;
+  ];
  
 };
  
-const AMT_GIORNATE_COMPLETO: { n: number; titolo: string }[] = AMT_GIORNATE.map((g) => (
+const AMT_GIORNATE_COMPLETO: { n: number; titolo: string }[] = [
  
-  g.n === 1 ? { n: 1, titolo: 'Mobilità ed equilibrio, squat, pull up, 500mt Row' }
+  { n: 1, titolo: 'Longevity: mobilità, equilibrio e longevità' },
  
-  : g.n === 4 ? { n: 4, titolo: 'Dead hang, press, HSPU, 100mt e 2000mt Row' } : g
+  ...AMT_GIORNATE.map((g) => ({ n: g.n + 1, titolo: g.titolo })),
  
-));
+];
  
 const amtGiornate = (p: string) => (p === 'longevity' ? AMT_GIORNATE_LONGEVITY : p === 'completo' ? AMT_GIORNATE_COMPLETO : AMT_GIORNATE);
  
@@ -1636,7 +1628,7 @@ const AMT_DESCRIZIONI: { [k: string]: string } = {
  
   longevity: 'Una sessione di 20-30 minuti, anche a casa: mobilità, equilibrio e indicatori di longevità, con semafori facili da leggere.',
  
-  bundle: 'Un unico test che unisce tutto: le 5 giornate dell\u2019AMT Performance Test con dentro le prove di mobilità, equilibrio e longevità. Ragnatela e semafori in un solo percorso.',
+  bundle: 'Entrambi i test in un solo pacchetto: una prima seduta dedicata al Longevity Test, poi le 5 giornate del Performance Test. Ragnatela e semafori in un solo percorso.',
  
 };
  
@@ -1718,10 +1710,10 @@ Stime a scopo sportivo, non una valutazione medica.`;
 const AMT_INTRO_BUNDLE = `Il test completo.
  
  
-Prestazione, mobilità, equilibrio e longevità: tutto in un unico test.
+Prestazione, mobilità, equilibrio e longevità: tutto in un solo pacchetto.
  
  
-Le 5 giornate dell'AMT Performance Test con dentro tutte le prove di AMT Longevity Test, organizzate per farle nel momento giusto, senza ripetere nulla.
+Si comincia con una seduta dedicata all'AMT Longevity Test, poi si fanno le 5 giornate dell'AMT Performance Test. Push up e capacità aerobica si misurano una volta sola, senza ripetere nulla.
  
  
 Cosa ottieni
@@ -1737,7 +1729,7 @@ Cosa ottieni
  
 Come funziona
  
-5 giornate da completare in 14 giorni, con istruzioni, video e timer. Ti serve una palestra attrezzata.`;
+6 giornate (1 Longevity + 5 Performance) da completare in 14 giorni, con istruzioni, video e timer. Ti serve una palestra attrezzata.`;
  
 const AMT_INTRO_PREDEFINITA = AMT_INTRO_TEST;
  
@@ -8689,8 +8681,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    if (t.startsWith('anamnesi_reminder')) { setActiveTab('profile'); setAthleteProfileTab('anamnesi'); return vai(true); }
- 
+    if (t.startsWith('anamnesi_reminder')) { setActiveTab('profile'); setAthleteProfileTab('anamnesi'); return vai(true); } 
     if (t.startsWith('comp_')) { setActiveTab('profile'); setAthleteProfileTab('gare'); return vai(true); }
  
     if (t.startsWith('amt_')) { setActiveTab('profile'); setAthleteProfileTab('amt'); return vai(true); }
@@ -12020,7 +12011,8 @@ const [notificationError, setNotificationError] = useState('');
     // Confronto con i massimali aggiornati del database, non con quelli in memoria (magari vecchi)
  
     const locali = isCoachEditing ? (coachAthleteMaxes[athleteId] || {}) : athleteMaxes;
-     const { data: rigaMax, error: errMax } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', athleteId).maybeSingle();
+ 
+    const { data: rigaMax, error: errMax } = await supabase.from('athlete_maxes').select('maxes').eq('athlete_id', athleteId).maybeSingle();
  
     const currentAll = errMax ? locali : (rigaMax?.maxes || {});
  
@@ -13230,7 +13222,7 @@ const [notificationError, setNotificationError] = useState('');
  
         <button type="button" onClick={torna} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '12px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
-          <Icona nome="sinistra" size={14} /> {amtGiornata !== null && !unaSola ? 'Le giornate' : 'AMT'}
+          <Icona nome="sinistra" size={14} /> Indietro
  
         </button>
  
@@ -13296,7 +13288,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
  
-                  {`Hai ${AMT_DURATA[p]} giorni per completarle. ${p === 'completo' ? 'Nella giornata 1 comincia dalle prove di mobilità ed equilibrio, prima del riscaldamento pesante. ' : ''}In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto. Se di qualche prova conosci già il risultato perché l\u2019hai testata di recente (indicativamente negli ultimi 2-3 mesi), non serve rifarla: inserisci direttamente quel risultato.`}
+                  {`Hai ${AMT_DURATA[p]} giorni per completarle. ${p === 'completo' ? 'La giornata 1 è il Longevity Test, una seduta a parte a corpo libero (mobilità, equilibrio e longevità); dalla giornata 2 iniziano i test di prestazione. ' : ''}${p === 'completo' ? 'Nelle giornate di prestazione' : 'In ogni giornata'} fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto. Se di qualche prova conosci già il risultato perché l\u2019hai testata di recente (indicativamente negli ultimi 2-3 mesi), non serve rifarla: inserisci direttamente quel risultato.`}
  
                 </span>
  
@@ -13422,6 +13414,18 @@ const [notificationError, setNotificationError] = useState('');
  
             }
  
+            // Alcune prove mostrano più video insieme (es. pull up: kipping e butterfly)
+ 
+            const videoExtra: string[] = [];
+ 
+            (d.videoTutti || []).forEach((c) => {
+ 
+              const ex = conVideo.find((e: any) => sameName(e.name, c) || String(e.aliases || '').split(',').some((al: string) => al.trim() && sameName(al, c)));
+ 
+              if (ex && ex.video_url !== video && !videoExtra.includes(ex.video_url)) videoExtra.push(ex.video_url);
+ 
+            });
+ 
             const recente = d.tipo === 'kg' && d.esercizio ? amtMaxRecenti[d.esercizio.toLowerCase().replace(/[^a-z0-9]/g, '')] : null;
  
             const daAltro = d.usaDa ? amtValoreDaAltro(s.athlete_id, d.usaDa) : '';
@@ -13467,6 +13471,8 @@ const [notificationError, setNotificationError] = useState('');
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '9px' }}>
  
                   {video && <AnteprimaVideo url={video} larghezza={96} altezza={54} />}
+ 
+                  {videoExtra.map((u) => <span key={u} style={{ display: 'inline-flex' }}><AnteprimaVideo url={u} larghezza={96} altezza={54} /></span>)}
  
                   {d.secondi && (
  
@@ -18466,7 +18472,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
   };
  
-  const addBlockToFreeDay = (wIdx: number, dayIndex: number) => { 
+  const addBlockToFreeDay = (wIdx: number, dayIndex: number) => {
+ 
     const updated = JSON.parse(JSON.stringify(programWeeks));
  
     updated[wIdx].days[dayIndex].blocks.push({
@@ -19656,8 +19663,7 @@ fetchAllAthleteResultsForCoach();
       } catch (e) {
  
         // niente
- 
-      }
+       }
  
     }, 150);
  
@@ -23618,8 +23624,7 @@ tempo={blk.scoreUnit === 'tempo' && !scoreMisto(blk)}
 items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               />
- 
-{comeSuperserie(blk.type) && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
+ {comeSuperserie(blk.type) && (<CampoNote valore={dato?.notes} onSalva={(v: string) => handleResultChange(prog.id, resultKey, 'notes', v, selectedCoachAthlete.id)} />)}
  
                                               </>
  
