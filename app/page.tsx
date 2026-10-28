@@ -1374,7 +1374,7 @@ function elencoPercentuali(txt: string): string[] {
  
 // - AMT Performance Test: 5 giornate in palestra (14 giorni), ragnatela con 7 qualità da 0 a 100, rapportate a peso e sesso;
  
-// - AMT Longevity: una sessione anche a casa (7 giorni), mobilità, equilibrio e indicatori di longevità a semaforo.
+// - AMT Longevity Test: una sessione anche a casa (7 giorni), mobilità, equilibrio e indicatori di longevità a semaforo.
  
 const AMT_QUALITA: { k: string; nome: string; icona: string }[] = [
  
@@ -1564,7 +1564,7 @@ const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
 const AMT_GIORNATE_LONGEVITY: { n: number; titolo: string }[] = [{ n: 1, titolo: 'Sessione unica' }];
  
-const AMT_NOMI: { [k: string]: string } = { test: 'AMT Performance Test', longevity: 'AMT Longevity', completo: 'AMT Performance Test + Longevity' };
+const AMT_NOMI: { [k: string]: string } = { test: 'AMT Performance Test', longevity: 'AMT Longevity Test', completo: 'AMT Performance Test + Longevity' };
  
 const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7, completo: 14 };
  
@@ -1691,7 +1691,7 @@ const AMT_INTRO_LONG = `Muoviti bene, oggi e domani.
 Quanto si muove bene il tuo corpo? Che equilibrio hai? E come stai sugli indicatori che la ricerca collega alla salute nel tempo?
  
  
-AMT Longevity unisce in un'unica valutazione mobilità, equilibrio e longevità.
+AMT Longevity Test unisce in un'unica valutazione mobilità, equilibrio e longevità.
  
  
 Cosa valuti
@@ -1721,7 +1721,7 @@ const AMT_INTRO_BUNDLE = `Il test completo.
 Prestazione, mobilità, equilibrio e longevità: tutto in un unico test.
  
  
-Le 5 giornate dell'AMT Performance Test con dentro tutte le prove di AMT Longevity, organizzate per farle nel momento giusto, senza ripetere nulla.
+Le 5 giornate dell'AMT Performance Test con dentro tutte le prove di AMT Longevity Test, organizzate per farle nel momento giusto, senza ripetere nulla.
  
  
 Cosa ottieni
@@ -1943,7 +1943,7 @@ function amtDataIT(iso: any): string {
  
 }
  
-// ---- AMT Longevity: semafori ----
+// ---- AMT Longevity Test: semafori ----
  
 type AmtSemaforo = { k: string; nome: string; colore: 'verde' | 'giallo' | 'rosso' | null; testo: string; nota?: string };
  
@@ -7251,7 +7251,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente minorenne.</p>
  
-        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
         <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7275,7 +7275,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente minorenne nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
         <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente minorenne e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente minorenne e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente minorenne.</p>
  
@@ -7437,7 +7437,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
  
-      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7461,7 +7461,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
       <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente.</p>
  
@@ -10931,8 +10931,7 @@ const [notificationError, setNotificationError] = useState('');
  
     return true;
  
-  };
- 
+  }; 
   // Aggiorna solo a schermo mentre si digita (nessun salvataggio, nessun record)
  
   // Legge/scrive i massimali dell'atleta giusto: se stesso oppure quello aperto dal coach
@@ -13737,7 +13736,7 @@ const [notificationError, setNotificationError] = useState('');
  
             ) : (
  
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>Mobilità, equilibrio e longevità: si ottengono con AMT Longevity o AMT Performance Test + Longevity.</span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>Mobilità, equilibrio e longevità: si ottengono con AMT Longevity Test o AMT Performance Test + Longevity.</span>
  
             )}
  
@@ -13745,7 +13744,7 @@ const [notificationError, setNotificationError] = useState('');
  
         )}
  
-        {([['test', 'test', 'AMT Performance Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity', 'foglia'], ['bundle', 'completo', 'AMT Performance Test + Longevity', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
+        {([['test', 'test', 'AMT Performance Test', 'grafico'], ['longevity', 'longevity', 'AMT Longevity Test', 'foglia'], ['bundle', 'completo', 'AMT Performance Test + Longevity', 'medaglia']] as [string, AmtProdotto, string, string][]).map(([k, pk, titolo, icona]) => {
  
           // Un blocco per prodotto: descrizione, sblocco, test in corso e risultati, tutto insieme
  
@@ -13849,7 +13848,7 @@ const [notificationError, setNotificationError] = useState('');
  
         })}
  
-        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Performance Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity: ${AMT_DURATA.longevity} giorni \u00b7 AMT Performance Test + Longevity: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
+        {perCoach && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`Sbloccando, l\u2019atleta riceve una notifica. AMT Performance Test: ${AMT_DURATA.test} giorni \u00b7 AMT Longevity Test: ${AMT_DURATA.longevity} giorni \u00b7 AMT Performance Test + Longevity: ${AMT_DURATA.completo} giorni. Si sblocca un test alla volta; quando finisce si richiude da solo.`}</span>}
  
         {amtLucchetto && !perCoach && (
  
@@ -18864,8 +18863,7 @@ fetchAllAthleteResultsForCoach();
                 <span style={{ fontSize: '11px', color: 'var(--fg-71717a)', display: 'block', marginTop: '5px' }}>Serve per assegnarti la scheda di prova corretta.</span>
  
               </div>
- 
-              <div style={{ display: 'flex', gap: '12px' }}>
+               <div style={{ display: 'flex', gap: '12px' }}>
  
                 <input autoComplete="off" type="number" step="0.1" min="0" placeholder="Peso (kg)" value={signupWeight} onChange={(e) => setSignupWeight(e.target.value)} required style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--bg-26262a)', border: '1px solid var(--bd-3a3a40)', color: '#fff', width: '100%', boxSizing: 'border-box' }} />
  
@@ -21967,7 +21965,7 @@ fetchAllAthleteResultsForCoach();
  
                 <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Longevity</span>
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Longevity Test</span>
  
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
  
@@ -22033,7 +22031,7 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.45 }}>Manda a tutti una notifica (anche push) per far conoscere i test AMT. Toccandola si apre la pagina AMT.</span>
  
-                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT \u{1F3C5}', testo: 'Scopri che atleta sei davvero: AMT Performance Test (7 qualità e il tuo profilo a ragnatela) e AMT Longevity (mobilità, equilibrio e longevità, anche a casa). Li trovi in Profilo > AMT.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT \u{1F3C5}', testo: 'Scopri che atleta sei davvero: AMT Performance Test (7 qualità e il tuo profilo a ragnatela) e AMT Longevity Test (mobilità, equilibrio e longevità, anche a casa). Li trovi in Profilo > AMT.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                     {'\u{1F4E3}'} Annuncia a tutti gli atleti
  
@@ -23630,8 +23628,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                             <span style={{ fontWeight: 'bold', color: 'var(--fg-000000)', fontSize: '15px' }}>{b.name}</span>
  
                             <div style={{ display: 'flex', gap: '4px' }}>
- 
-                              {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
+                               {[['rx', 'RX'], ['int', 'INT'], ['beg', 'BEG']].map(([k, label]) => (
  
                                 <button key={k} onClick={() => setBenchLevel({ ...benchLevel, [b.name]: k as any })} style={{ padding: '4px 9px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>{label}</button>
  
