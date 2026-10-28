@@ -1564,15 +1564,57 @@ const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
 const AMT_GIORNATE_LONGEVITY: { n: number; titolo: string }[] = [{ n: 1, titolo: 'Sessione unica' }];
  
-const AMT_NOMI: { [k: string]: string } = { test: 'AMT Test', longevity: 'AMT Longevity' };
+const AMT_NOMI: { [k: string]: string } = { test: 'AMT Test', longevity: 'AMT Longevity', completo: 'AMT Test + Longevity' };
  
-const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7 };
+const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7, completo: 14 };
  
-const amtProdottoDi = (s: any): 'test' | 'longevity' => (s?.prodotto === 'longevity' ? 'longevity' : 'test');
+type AmtProdotto = 'test' | 'longevity' | 'completo';
  
-const amtDefs = (p: string) => AMT_TEST.filter((d) => (d.prodotto || 'test') === p);
+const amtProdottoDi = (s: any): AmtProdotto => (s?.prodotto === 'longevity' ? 'longevity' : s?.prodotto === 'completo' ? 'completo' : 'test');
  
-const amtGiornate = (p: string) => (p === 'longevity' ? AMT_GIORNATE_LONGEVITY : AMT_GIORNATE);
+// "AMT Test + Longevity" è un unico test: le prove di Longevity entrano nelle 5 giornate
+ 
+// (mobilità ed equilibrio all'inizio della giornata 1, dead hang all'inizio della 4);
+ 
+// push up e capacità aerobica si prendono da quelli dell'AMT Test, senza ripeterli.
+ 
+const AMT_DOPPIONI_LONGEVITY = ['push_up_l', 'aer_3k', 'aer_row'];
+ 
+const amtDefs = (p: string): AmtTestDef[] => {
+ 
+  if (p !== 'completo') return AMT_TEST.filter((d) => (d.prodotto || 'test') === p);
+ 
+  const test = AMT_TEST.filter((d) => (d.prodotto || 'test') === 'test');
+ 
+  const lon = AMT_TEST.filter((d) => d.prodotto === 'longevity' && !AMT_DOPPIONI_LONGEVITY.includes(d.k));
+ 
+  const out: AmtTestDef[] = [];
+ 
+  [1, 2, 3, 4, 5].forEach((n) => {
+ 
+    if (n === 1) lon.filter((d) => d.k !== 'dead_hang').forEach((d) => out.push({ ...d, giorno: 1 }));
+ 
+    // dead hang a inizio giornata 4: lontano dai test di trazione e di presa
+ 
+    if (n === 4) lon.filter((x) => x.k === 'dead_hang').forEach((x) => out.push({ ...x, giorno: 4 }));
+ 
+    test.filter((d) => d.giorno === n).forEach((d) => out.push(d));
+ 
+  });
+ 
+  return out;
+ 
+};
+ 
+const AMT_GIORNATE_COMPLETO: { n: number; titolo: string }[] = AMT_GIORNATE.map((g) => (
+ 
+  g.n === 1 ? { n: 1, titolo: 'Mobilità ed equilibrio, squat, pull up, remo 500 m' }
+ 
+  : g.n === 4 ? { n: 4, titolo: 'Dead hang, press, HSPU, remo 100 e 2000 m' } : g
+ 
+));
+ 
+const amtGiornate = (p: string) => (p === 'longevity' ? AMT_GIORNATE_LONGEVITY : p === 'completo' ? AMT_GIORNATE_COMPLETO : AMT_GIORNATE);
  
 const AMT_ATTREZZI_LONGEVITY = [
  
@@ -1594,7 +1636,7 @@ const AMT_DESCRIZIONI: { [k: string]: string } = {
  
   longevity: 'Una sessione di 20-30 minuti, anche a casa: mobilità, equilibrio e indicatori di longevità, con semafori facili da leggere.',
  
-  bundle: 'Entrambi i test, per il quadro completo: prestazione, mobilità e longevità.',
+  bundle: 'Un unico test che unisce tutto: le 5 giornate dell\u2019AMT Test con dentro le prove di mobilità, equilibrio e longevità. Ragnatela e semafori in un solo percorso.',
  
 };
  
@@ -1651,7 +1693,7 @@ AMT Longevity
 Una sessione di 20-30 minuti, anche a casa: mobilità (squat, spalle, catena posteriore), equilibrio e indicatori di longevità come il Sitting-Rising Test. Risultati a semaforo, con le differenze tra lato destro e sinistro.
  
  
-Puoi scegliere AMT Test, AMT Longevity o entrambi insieme.`;
+Puoi scegliere AMT Test, AMT Longevity oppure AMT Test + Longevity, che li unisce in un unico test.`;
  
 // "m:ss" -> secondi
  
@@ -1807,7 +1849,7 @@ function amtCalcola(sessione: any): { test: { [k: string]: number }; qualita: { 
  
 function amtProfilo(sessioni: any[]) {
  
-  const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) === 'test')
+  const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) !== 'longevity')
  
     .sort((a: any, b: any) => String(a.completed_at).localeCompare(String(b.completed_at)));
  
@@ -1933,7 +1975,11 @@ const amtColore3 = (v: number | null, giallo: number, verde: number, meno?: bool
  
 function amtLongevity(s: any): { mobilita: AmtSemaforo[]; longevita: AmtSemaforo[]; fastidi: string[]; asimmetrie: string[] } {
  
-  const ris = s?.results || {};
+  const base = s?.results || {};
+ 
+  // nel test completo push up e 2000 m remo sono quelli dell'AMT Test
+ 
+  const ris = { ...base, push_up_l: base.push_up_l ?? base.push_up, aer_row: base.aer_row ?? base.row_2000 };
  
   const sesso = s?.sex === 'f' ? 'f' : 'm';
  
@@ -12545,27 +12591,19 @@ const [notificationError, setNotificationError] = useState('');
  
   // Coach: sblocca uno o tutti e due i prodotti
  
-  const amtSblocca = async (atleta: any, prodotti: ('test' | 'longevity')[]) => {
+  const amtSblocca = async (atleta: any, p: AmtProdotto) => {
  
-    const insieme = prodotti.length > 1;
+    const deadline = isoPiuGiorni(amtOggi(), AMT_DURATA[p]);
  
-    const righe = prodotti.map((p) => ({
+    const { data, error } = await supabase.from('amt_test_sessions').insert([{
  
-      athlete_id: atleta.id, prodotto: p, status: 'aperta', results: {}, giorni: {}, created_by: session.user.id,
+      athlete_id: atleta.id, prodotto: p, status: 'aperta', results: {}, giorni: {}, created_by: session.user.id, deadline,
  
-      deadline: isoPiuGiorni(amtOggi(), insieme ? AMT_DURATA.test : AMT_DURATA[p]),
+    }]).select().maybeSingle();
  
-    }));
+    if (error) { alert('Errore: ' + error.message + '\n\nSe dice che manca la tabella amt_test_sessions o la colonna prodotto, va prima eseguito l\u2019SQL su Supabase (vedi istruzioni).'); return; }
  
-    const { data, error } = await supabase.from('amt_test_sessions').insert(righe).select();
- 
-    if (error) { alert('Errore: ' + error.message + '\n\nSe dice che manca la tabella amt_test_sessions o la colonna prodotto, va prima eseguito l’SQL su Supabase (vedi istruzioni).'); return; }
- 
-    (data || []).forEach((r: any) => amtSostituisci(r));
- 
-    const nome = insieme ? 'AMT Test + Longevity' : AMT_NOMI[prodotti[0]];
- 
-    const scad = righe[0].deadline;
+    if (data) amtSostituisci(data);
  
     fetch('/api/notify-user', {
  
@@ -12573,11 +12611,11 @@ const [notificationError, setNotificationError] = useState('');
  
       headers: { 'Content-Type': 'application/json' },
  
-      body: JSON.stringify({ user_id: atleta.id, type: `amt_sbloccato_${(data || [])[0]?.id || ''}`, title: `${nome} ${insieme ? 'sbloccati' : 'sbloccato'}! \u{1F3C5}`, message: `${insieme ? 'I tuoi test sono pronti' : 'Il tuo test è pronto'}: hai tempo fino al ${itDaIso(scad)}. Lo trovi in Profilo > AMT.` }),
+      body: JSON.stringify({ user_id: atleta.id, type: `amt_sbloccato_${data?.id || ''}`, title: `${AMT_NOMI[p]} sbloccato! \u{1F3C5}`, message: `Il tuo ${AMT_NOMI[p]} è pronto: hai tempo fino al ${itDaIso(deadline)}. Lo trovi in Profilo > AMT.` }),
  
     }).catch(() => {});
  
-    avvisa(`${nome} ${insieme ? 'sbloccati' : 'sbloccato'}`);
+    avvisa(`${AMT_NOMI[p]} sbloccato`);
  
   };
  
@@ -12623,7 +12661,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const extra: any = {};
  
-    if (amtProdottoDi(s) === 'longevity') {
+    if (amtProdottoDi(s) !== 'test') {
  
       const eta = amtEtaDa(personalData.birth_date) || parseInt(String((amtAvvio as any).eta || ''), 10) || null;
  
@@ -12779,13 +12817,15 @@ const [notificationError, setNotificationError] = useState('');
  
       : 'Concludere il test? Dopo non potrai più modificare i risultati.')) return;
  
-    const punteggi: any = p === 'test' ? amtCalcola(s) : amtLongevity(s);
+    const lonDati = p !== 'test' ? amtLongevity(s) : null;
+ 
+    const punteggi: any = p === 'test' ? amtCalcola(s) : p === 'longevity' ? lonDati : { test: amtCalcola(s), longevity: lonDati };
  
     const nuova = await amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: punteggi });
  
     if (!nuova) return;
  
-    if (p === 'test') {
+    if (p !== 'longevity') {
  
       // I massimali del test aggiornano anche i massimali dell'atleta (solo se più alti)
  
@@ -12803,11 +12843,9 @@ const [notificationError, setNotificationError] = useState('');
  
       const chi = personalData.full_name || session.user.email;
  
-      const extra = p === 'test'
+      const media = p !== 'longevity' ? amtCalcola(s).media : null;
  
-        ? (punteggi.media !== null ? ` (media ${punteggi.media})` : '')
- 
-        : `${punteggi.fastidi.length ? `. ⚠️ Fastidio segnalato in: ${punteggi.fastidi.join(', ')}` : ''}${punteggi.asimmetrie.length ? `. Differenza tra i lati: ${punteggi.asimmetrie.join(', ')}` : ''}`;
+      const extra = `${media !== null ? ` (media ${media})` : ''}${lonDati && lonDati.fastidi.length ? `. \u26A0\uFE0F Fastidio segnalato in: ${lonDati.fastidi.join(', ')}` : ''}${lonDati && lonDati.asimmetrie.length ? `. Differenza tra i lati: ${lonDati.asimmetrie.join(', ')}` : ''}`;
  
       fetch('/api/notify-coach', {
  
@@ -12849,7 +12887,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const conRisultati = Object.entries(s.results || {}).some(([k, v]: any) => !k.startsWith('__') && !k.endsWith('__f') && String(v || '').trim() && v !== 'salta');
  
-      if (conRisultati) amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: amtProdottoDi(s) === 'test' ? amtCalcola(s) : amtLongevity(s), parziale: true });
+      if (conRisultati) amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: amtProdottoDi(s) === 'test' ? amtCalcola(s) : amtProdottoDi(s) === 'longevity' ? amtLongevity(s) : { test: amtCalcola(s), longevity: amtLongevity(s) }, parziale: true });
  
       else amtAggiorna(s, { status: 'scaduta' });
  
@@ -12877,7 +12915,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const limite = Date.now() - 60 * 86400000;
  
-    const sess = (amtSessioni[athleteId] || []).filter((x: any) => amtProdottoDi(x) === 'test' && x.status !== 'scaduta')
+    const sess = (amtSessioni[athleteId] || []).filter((x: any) => amtProdottoDi(x) !== 'longevity' && x.status !== 'scaduta')
  
       .filter((x: any) => new Date(x.completed_at || x.unlocked_at).getTime() >= limite)
  
@@ -12947,7 +12985,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Ti serve</span>
  
-            {(p === 'test' ? AMT_ATTREZZI : AMT_ATTREZZI_LONGEVITY).map((a) => (
+            {(p === 'longevity' ? AMT_ATTREZZI_LONGEVITY : AMT_ATTREZZI).map((a) => (
  
               <span key={a} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}><span style={{ color: 'var(--fg-10b981)' }}>{'•'}</span>{a}</span>
  
@@ -12967,7 +13005,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Come funziona</span>
  
-            {p === 'test' ? (
+            {p !== 'longevity' ? (
  
               <>
  
@@ -12975,7 +13013,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   <span key={g.n} style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}>
  
-                    <strong>{`Giornata ${g.n}: `}</strong>{amtDefs('test').filter((d) => d.giorno === g.n).map((d) => d.nome + (d.facoltativo ? ' (facoltativo)' : '')).join(', ')}
+                    <strong>{`Giornata ${g.n}: `}</strong>{amtDefs(p).filter((d) => d.giorno === g.n).map((d) => d.nome + (d.facoltativo ? ' (facoltativo)' : '')).join(', ')}
  
                   </span>
  
@@ -12983,7 +13021,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
  
-                  {`Hai ${AMT_DURATA.test} giorni per completarle. In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
+                  {`Hai ${AMT_DURATA[p]} giorni per completarle. ${p === 'completo' ? 'Nella giornata 1 comincia dalle prove di mobilità ed equilibrio, prima del riscaldamento pesante. ' : ''}In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
  
                 </span>
  
@@ -13023,7 +13061,7 @@ const [notificationError, setNotificationError] = useState('');
  
             )}
  
-            {p === 'longevity' && !etaNota && (
+            {p !== 'test' && !etaNota && (
  
               <>
  
@@ -13335,7 +13373,7 @@ const [notificationError, setNotificationError] = useState('');
  
   const amtProfiloLong = (sessioni: any[]) => {
  
-    const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) === 'longevity')
+    const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) !== 'test')
  
       .sort((a: any, b: any) => String(a.completed_at).localeCompare(String(b.completed_at)));
  
@@ -13655,11 +13693,11 @@ const [notificationError, setNotificationError] = useState('');
  
         {perCoach ? (() => {
  
-          const haTest = aperte.some((a: any) => amtProdottoDi(a) === 'test');
+          const haTest = aperte.some((a: any) => amtProdottoDi(a) !== 'longevity');
  
-          const haLon = aperte.some((a: any) => amtProdottoDi(a) === 'longevity');
+          const haLon = aperte.some((a: any) => amtProdottoDi(a) !== 'test');
  
-          const btn = (t: string, prodotti: ('test' | 'longevity')[], dis: boolean) => (
+          const btn = (t: string, prodotti: AmtProdotto, dis: boolean) => (
  
             <button type="button" disabled={dis} onClick={() => atleta && amtSblocca(atleta, prodotti)} style={{ ...bottone, padding: '12px', fontSize: '14px', opacity: dis ? 0.4 : 1, cursor: dis ? 'default' : 'pointer' }}><Icona nome="chiave" size={15} /> {t}</button>
  
@@ -13669,13 +13707,13 @@ const [notificationError, setNotificationError] = useState('');
  
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
  
-              {btn('Sblocca AMT Test', ['test'], haTest)}
+              {btn('Sblocca AMT Test', 'test', haTest)}
  
-              {btn('Sblocca AMT Longevity', ['longevity'], haLon)}
+              {btn('Sblocca AMT Longevity', 'longevity', haLon)}
  
-              {btn('Sblocca AMT Test + Longevity', ['test', 'longevity'], haTest || haLon)}
+              {btn('Sblocca AMT Test + Longevity', 'completo', haTest || haLon)}
  
-              <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`L’atleta riceve una notifica. AMT Test: ${AMT_DURATA.test} giorni · AMT Longevity: ${AMT_DURATA.longevity} giorni · insieme: ${AMT_DURATA.test} giorni. Quando finisce, il test si richiude da solo.`}</span>
+              <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`L’atleta riceve una notifica. AMT Test: ${AMT_DURATA.test} giorni · AMT Longevity: ${AMT_DURATA.longevity} giorni · AMT Test + Longevity, un unico test in 5 giornate: ${AMT_DURATA.completo} giorni. Quando finisce, il test si richiude da solo.`}</span>
  
             </div>
  
