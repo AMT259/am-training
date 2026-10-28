@@ -1184,7 +1184,7 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
-const PRIVACY_VERSION = '3.0';
+const PRIVACY_VERSION = '3.1';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -1370,15 +1370,19 @@ function elencoPercentuali(txt: string): string[] {
  
 // ======================= AMT TEST =======================
  
-// Batteria di test a pagamento: lo sblocca il coach, l'atleta lo fa da solo in 5 giornate (14 giorni),
+// Due prodotti a pagamento, sbloccati dal coach:
  
-// il risultato è una ragnatela con 6 qualità da 0 a 100, rapportate a peso corporeo e sesso.
+// - AMT Test: 5 giornate in palestra (14 giorni), ragnatela con 7 qualità da 0 a 100, rapportate a peso e sesso;
+ 
+// - AMT Longevity: una sessione anche a casa (7 giorni), mobilità, equilibrio e indicatori di longevità a semaforo.
  
 const AMT_QUALITA: { k: string; nome: string; icona: string }[] = [
  
   { k: 'forza', nome: 'Forza', icona: '\u{1F4AA}' },
  
   { k: 'potenza', nome: 'Potenza', icona: '⚡' },
+ 
+  { k: 'velocita', nome: 'Velocità', icona: '\u{1F3C3}' },
  
   { k: 'anaerobica', nome: 'Capacità anaerobica', icona: '\u{1F525}' },
  
@@ -1392,11 +1396,13 @@ const AMT_QUALITA: { k: string; nome: string; icona: string }[] = [
  
 type AmtTestDef = {
  
-  k: string; nome: string; q: string; giorno: number; tipo: 'kg' | 'rep' | 'cal' | 'tempo';
+  k: string; nome: string; q: string; giorno: number; tipo: 'kg' | 'rep' | 'cal' | 'tempo' | 'sec' | 'scelta' | 'sino' | 'srt' | 'cm';
  
   rel?: boolean; meno?: boolean; facoltativo?: boolean; secondi?: number; esercizio?: string; video?: string[];
  
   m: number[]; f: number[]; min: number; max: number; istruzioni: string;
+ 
+  prodotto?: 'test' | 'longevity'; scelte?: string[]; cronometro?: boolean; fastidio?: boolean; usaDa?: string; domanda?: string;
  
 };
  
@@ -1450,6 +1456,10 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Facoltativo, solo se li sai fare. Verticale al muro, testa a terra (o sul cuscino) e braccia tese in alto. Una sola serie unbroken.' },
  
+  { k: 'row_100', video: ['Row', 'Remoergometro'], nome: '100 m remo (sprint)', q: 'velocita', giorno: 4, tipo: 'sec', meno: true, m: [22, 19, 17.5, 16.5, 15.5], f: [26, 23, 21, 19.8, 18.8], min: 12, max: 60,
+ 
+    istruzioni: 'Prima del 2000 m. Damper a tua scelta (consigliato 8-10). Partenza da fermo, a tutta per 100 m. Scrivi il tempo in secondi con i decimali che vedi sul display (es. 17,8). Poi recupera almeno 10 minuti prima del 2000 m.' },
+ 
   { k: 'row_2000', video: ['Row', 'Remoergometro'], nome: '2000 m remo', q: 'aerobica', giorno: 4, tipo: 'tempo', meno: true, m: [510, 465, 435, 410, 385], f: [585, 530, 495, 470, 445], min: 330, max: 1200,
  
     istruzioni: 'Parti controllato e tieni un ritmo costante, accelera negli ultimi 500 m. Scrivi il tempo finale (minuti e secondi).' },
@@ -1462,9 +1472,79 @@ const AMT_TEST: AmtTestDef[] = [
  
     istruzioni: 'Petto e cosce a terra, in piedi con un piccolo salto e battito delle mani sopra la testa. Più ripetizioni possibili in 3 minuti.' },
  
+  { k: 'assault_10s', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 10\u2033 (calorie)', q: 'velocita', giorno: 5, tipo: 'cal', secondi: 10, m: [5, 7, 9, 11, 13], f: [3, 4.5, 6, 7.5, 9], min: 1, max: 25,
+ 
+    istruzioni: 'Prima dei 10 minuti. Azzera il display, parti da fermo e vai al massimo per 10 secondi. Scrivi le calorie (anche con i decimali se il display li mostra). Poi recupera almeno 10 minuti prima dei 10 minuti di bike.' },
+ 
   { k: 'assault_10', video: ['Assault bike', 'Assault Bike'], nome: 'Assault bike 10′ (calorie)', q: 'aerobica', giorno: 5, tipo: 'cal', secondi: 600, m: [100, 130, 155, 180, 210], f: [70, 90, 110, 130, 150], min: 30, max: 400,
  
     istruzioni: 'Fai almeno 15 minuti di recupero dopo i burpee. Azzera il display e tieni il ritmo più alto che riesci a sostenere per 10 minuti. Scrivi le calorie.' },
+ 
+  // ---- AMT LONGEVITY (una sessione, anche a casa) ----
+ 
+  { k: 'deep_squat', prodotto: 'longevity', nome: 'Deep Squat Test', q: 'mobilita', giorno: 1, tipo: 'scelta', fastidio: true, m: [], f: [], min: 0, max: 0,
+ 
+    scelte: ['Scendi oltre il parallelo (cosce sotto le ginocchia) con i talloni ben piantati a terra e il busto abbastanza dritto', 'Arrivi fino al parallelo, ma senti che il busto si inclina molto in avanti', 'I talloni si alzano da terra oppure perdi l\u2019equilibrio all\u2019indietro'],
+ 
+    istruzioni: 'Valuta insieme anche, ginocchia e caviglie.\n1. Scalzo, in piedi, piedi alla larghezza delle spalle con le punte leggermente aperte. Braccia tese in avanti per bilanciarti.\n2. Appoggia il telefono a terra o su una sedia, a 2-3 metri, di lato, e fai un video.\n3. Scendi lentamente (contando fino a 3) nello squat più profondo possibile, senza staccare i talloni. Resta giù 2 secondi e risali.\n4. Ripeti 2 volte.\n5. Riguarda il video e scegli la descrizione che ti somiglia di più. Guarda soprattutto: le cosce arrivano sotto la linea delle ginocchia? I talloni restano a terra?' },
+ 
+  { k: 'apley_dx', prodotto: 'longevity', nome: 'Apley Scratch Test \u00b7 braccio destro in alto', q: 'mobilita', giorno: 1, tipo: 'scelta', fastidio: true, m: [], f: [], min: 0, max: 0,
+ 
+    scelte: ['Le dita delle due mani si toccano o si sovrappongono', 'Le dita restano a meno di 5 cm (circa la larghezza di 3 dita)', 'Le dita restano a più di 5 cm'],
+ 
+    istruzioni: 'Valuta la mobilità delle spalle.\n1. In piedi, schiena dritta, davanti a uno specchio oppure chiedi a qualcuno di farti una foto della schiena.\n2. Porta la mano DESTRA dietro la nuca, palmo verso la schiena, e scendi lungo la colonna più che puoi.\n3. Contemporaneamente porta la mano SINISTRA dietro la schiena dal basso, dorso verso la schiena, e risali.\n4. Avvicina le dita lentamente, senza strappi, e tieni 2 secondi.\n5. Guarda la distanza tra le dita: 5 cm sono circa la larghezza di 3 dita.\nSe senti dolore fermati e segna la spunta qui sotto.' },
+ 
+  { k: 'apley_sx', prodotto: 'longevity', nome: 'Apley Scratch Test \u00b7 braccio sinistro in alto', q: 'mobilita', giorno: 1, tipo: 'scelta', fastidio: true, m: [], f: [], min: 0, max: 0,
+ 
+    scelte: ['Le dita delle due mani si toccano o si sovrappongono', 'Le dita restano a meno di 5 cm (circa la larghezza di 3 dita)', 'Le dita restano a più di 5 cm'],
+ 
+    istruzioni: 'Come il test precedente, ma invertendo le braccia.\n1. Porta la mano SINISTRA dietro la nuca e scendi lungo la schiena.\n2. Porta la mano DESTRA dietro la schiena dal basso e risali.\n3. Avvicina le dita lentamente e tieni 2 secondi.\nSe il risultato è diverso dall\u2019altro lato è normale: l\u2019app ti segnalerà la differenza tra i lati.' },
+ 
+  { k: 'toe_touch', prodotto: 'longevity', nome: 'Toe Touch', q: 'mobilita', giorno: 1, tipo: 'scelta', fastidio: true, m: [], f: [], min: 0, max: 0,
+ 
+    scelte: ['Tocchi le punte dei piedi o appoggi i palmi a terra', 'Arrivi alle caviglie o ai primi centimetri delle scarpe', 'Le mani si fermano alle tibie o sopra le ginocchia'],
+ 
+    istruzioni: 'Valuta la flessibilità della bassa schiena e dei muscoli dietro la coscia.\n1. Scalzo, in piedi, piedi uniti.\n2. Ginocchia completamente tese e bloccate per tutta la prova: se si piegano, il test non vale.\n3. Piegati in avanti lentamente, buttando fuori l\u2019aria, e porta le mani verso i piedi. Niente molleggi né slanci.\n4. Tieni la posizione più bassa per 2 secondi e guarda (o fatti fotografare) dove arrivano le mani.' },
+ 
+  { k: 'eq_chiusi_dx', prodotto: 'longevity', nome: 'Equilibrio a occhi chiusi \u00b7 gamba destra', q: 'mobilita', giorno: 1, tipo: 'sec', cronometro: true, m: [], f: [], min: 0, max: 60,
+ 
+    istruzioni: 'Valuta l\u2019equilibrio.\n1. Scalzo, su un pavimento duro, vicino a un muro o a una sedia per sicurezza.\n2. Mani sui fianchi. Sollevi il piede SINISTRO e stai in appoggio sulla gamba DESTRA.\n3. Premi Avvia sul cronometro qui sotto e chiudi gli occhi.\n4. Il test finisce quando: apri gli occhi, appoggi il piede sollevato, sposti il piede di appoggio o togli le mani dai fianchi. A quel punto premi Stop (o fallo premere a qualcuno).\n5. Massimo 60 secondi. Fai 2 tentativi e scrivi il migliore.' },
+ 
+  { k: 'eq_chiusi_sx', prodotto: 'longevity', nome: 'Equilibrio a occhi chiusi \u00b7 gamba sinistra', q: 'mobilita', giorno: 1, tipo: 'sec', cronometro: true, m: [], f: [], min: 0, max: 60,
+ 
+    istruzioni: 'Come il test precedente, ma in appoggio sulla gamba SINISTRA (sollevi il piede destro). Mani sui fianchi, occhi chiusi, massimo 60 secondi, 2 tentativi: scrivi il migliore.' },
+ 
+  { k: 'eq_aperti', prodotto: 'longevity', nome: 'Equilibrio 10 secondi a occhi aperti', q: 'longevita', giorno: 1, tipo: 'sino', m: [], f: [], min: 0, max: 0,
+ 
+    domanda: 'Sei riuscito a stare 10 secondi su ENTRAMBE le gambe (una alla volta)?',
+ 
+    scelte: ['Sì, su tutte e due', 'Solo su una', 'No, su nessuna'],
+ 
+    istruzioni: 'Un test semplice ma molto studiato.\n1. Scalzo, braccia lungo i fianchi, sguardo avanti, occhi aperti.\n2. Appoggia la punta di un piede dietro il polpaccio dell\u2019altra gamba.\n3. Resta così 10 secondi senza appoggiarti e senza spostare il piede.\n4. Hai 3 tentativi per gamba. Prova con la destra e con la sinistra.' },
+ 
+  { k: 'sitting_rising', prodotto: 'longevity', nome: 'Sitting-Rising Test', q: 'longevita', giorno: 1, tipo: 'srt', m: [], f: [], min: 0, max: 10,
+ 
+    istruzioni: 'Valuta insieme mobilità, equilibrio e forza.\n1. Scalzo, su un pavimento libero (meglio su un tappetino).\n2. Incrocia le gambe e scendi a sederti a terra SENZA usare mani, braccia, ginocchia o il lato della gamba come appoggio.\n3. Da seduto, rialzati in piedi, sempre senza appoggi.\n4. Si parte da 10 punti: 5 per scendere e 5 per salire. Togli 1 punto per ogni appoggio (mano, ginocchio, gomito, avambraccio, lato della gamba) e 0,5 punti se perdi l\u2019equilibrio.\n5. Puoi riprovare: conta il tentativo migliore.\nUsa i pulsanti qui sotto per togliere i punti.' },
+ 
+  { k: 'push_up_l', prodotto: 'longevity', usaDa: 'push_up', nome: 'Push up (max)', q: 'longevita', giorno: 1, tipo: 'rep', m: [], f: [], min: 0, max: 150,
+ 
+    istruzioni: 'Mani poco più larghe delle spalle, corpo in linea dalla testa ai talloni. Petto a terra (o a un pugno da terra) in basso e braccia tese in alto. Più ripetizioni possibili in una sola serie: se appoggi le ginocchia o ti fermi più di 2 secondi, il test finisce.' },
+ 
+  { k: 'dead_hang', prodotto: 'longevity', nome: 'Dead hang (presa)', q: 'longevita', giorno: 1, tipo: 'sec', cronometro: true, facoltativo: true, m: [], f: [], min: 0, max: 400,
+ 
+    istruzioni: 'Facoltativo, serve una sbarra. Misura la forza della presa.\n1. Presa con i palmi in avanti, alla larghezza delle spalle.\n2. Braccia completamente tese, piedi staccati da terra, corpo fermo.\n3. Premi Avvia appena sei appeso e Stop quando lasci la sbarra.' },
+ 
+  { k: 'aer_3k', prodotto: 'longevity', nome: '3 km di corsa', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 540, max: 3600,
+ 
+    istruzioni: 'Facoltativo, serve per stimare la tua capacità aerobica. Fallo in un giorno a parte o dopo almeno 15 minuti di recupero dagli altri test.\nCorri 3 km su un percorso misurato (pista o un giro che conosci) oppure con un\u2019app GPS, al ritmo più veloce che riesci a tenere fino alla fine. Scrivi il tempo finale. Se hai fatto l\u2019AMT Test puoi usare invece il tuo 2000 m remo qui sotto.' },
+ 
+  { k: 'aer_row', prodotto: 'longevity', usaDa: 'row_2000', nome: 'oppure 2000 m remo', q: 'longevita', giorno: 1, tipo: 'tempo', facoltativo: true, m: [], f: [], min: 330, max: 1200,
+ 
+    istruzioni: 'Facoltativo, in alternativa ai 3 km. Il tuo tempo sui 2000 m al remoergometro, fatto a tutta (va bene anche quello dell\u2019AMT Test).' },
+ 
+  { k: 'girovita', prodotto: 'longevity', nome: 'Girovita (cm)', q: 'longevita', giorno: 1, tipo: 'cm', facoltativo: true, m: [], f: [], min: 40, max: 200,
+ 
+    istruzioni: 'Facoltativo, serve un metro da sarta. In piedi, rilassato, misura all\u2019altezza dell\u2019ombelico dopo aver buttato fuori l\u2019aria, senza stringere. Lo vedete solo tu e il coach.' },
  
 ];
  
@@ -1476,11 +1556,47 @@ const AMT_GIORNATE: { n: number; titolo: string }[] = [
  
   { n: 3, titolo: 'Clean, kipping, wall ball' },
  
-  { n: 4, titolo: 'Press, HSPU, remo 2000 m' },
+  { n: 4, titolo: 'Press, HSPU, remo 100 e 2000 m' },
  
-  { n: 5, titolo: 'Snatch, burpee, bike 10\u2032' },
+  { n: 5, titolo: 'Snatch, burpee, bike 10\u2033 e 10\u2032' },
  
 ];
+ 
+const AMT_GIORNATE_LONGEVITY: { n: number; titolo: string }[] = [{ n: 1, titolo: 'Sessione unica' }];
+ 
+const AMT_NOMI: { [k: string]: string } = { test: 'AMT Test', longevity: 'AMT Longevity' };
+ 
+const AMT_DURATA: { [k: string]: number } = { test: 14, longevity: 7 };
+ 
+const amtProdottoDi = (s: any): 'test' | 'longevity' => (s?.prodotto === 'longevity' ? 'longevity' : 'test');
+ 
+const amtDefs = (p: string) => AMT_TEST.filter((d) => (d.prodotto || 'test') === p);
+ 
+const amtGiornate = (p: string) => (p === 'longevity' ? AMT_GIORNATE_LONGEVITY : AMT_GIORNATE);
+ 
+const AMT_ATTREZZI_LONGEVITY = [
+ 
+  'Un pavimento libero e un muro (anche a casa)',
+ 
+  'Un tappetino (consigliato)',
+ 
+  'Il telefono, per filmarti e per il cronometro',
+ 
+  'Uno specchio o qualcuno che ti faccia una foto (per le spalle)',
+ 
+  'Facoltativi: una sbarra (dead hang), un metro da sarta (girovita), un percorso da 3 km o un remoergometro',
+ 
+];
+ 
+const AMT_DESCRIZIONI: { [k: string]: string } = {
+ 
+  test: '7 qualità in 5 giornate, in palestra: forza, potenza, velocità, capacità anaerobica, motore aerobico, resistenza muscolare e ginnastica. Ottieni la tua ragnatela.',
+ 
+  longevity: 'Una sessione di 20-30 minuti, anche a casa: mobilità, equilibrio e indicatori di longevità, con semafori facili da leggere.',
+ 
+  bundle: 'Entrambi i test, per il quadro completo: prestazione, mobilità e longevità.',
+ 
+};
  
 const AMT_ATTREZZI = [
  
@@ -1508,7 +1624,7 @@ const AMT_INTRO_PREDEFINITA = `Scopri che atleta sei davvero.
 Ti alleni con costanza, ma sai qual è il tuo vero punto forte? E quello che ti sta frenando?
  
  
-L'AMT Test misura 6 qualità fondamentali dell'atleta completo: Forza, Potenza, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
+L'AMT Test misura 7 qualità fondamentali dell'atleta completo: Forza, Potenza, Velocità, Capacità anaerobica, Motore aerobico, Resistenza muscolare e Ginnastica.
  
  
 Alla fine ottieni il tuo profilo a ragnatela: un grafico che mostra a colpo d'occhio dove sei forte e dove puoi crescere, confrontato con i livelli da Principiante a Elite e rapportato al tuo peso corporeo.
@@ -1527,7 +1643,15 @@ Perché farlo
  
 Come funziona
  
-5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.`;
+5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.
+ 
+ 
+AMT Longevity
+ 
+Una sessione di 20-30 minuti, anche a casa: mobilità (squat, spalle, catena posteriore), equilibrio e indicatori di longevità come il Sitting-Rising Test. Risultati a semaforo, con le differenze tra lato destro e sinistro.
+ 
+ 
+Puoi scegliere AMT Test, AMT Longevity o entrambi insieme.`;
  
 // "m:ss" -> secondi
  
@@ -1570,6 +1694,8 @@ function amtValore(def: AmtTestDef, grezzo: any, peso: number | null): number | 
   if (grezzo === null || grezzo === undefined || String(grezzo).trim() === '' || grezzo === 'salta') return null;
  
   if (def.tipo === 'tempo') return amtSecondi(grezzo);
+ 
+  if (def.tipo === 'scelta' || def.tipo === 'sino') return null;
  
   const n = parseFloat(String(grezzo).replace(',', '.'));
  
@@ -1651,7 +1777,7 @@ function amtCalcola(sessione: any): { test: { [k: string]: number }; qualita: { 
  
   const test: { [k: string]: number } = {};
  
-  AMT_TEST.forEach((d) => {
+  amtDefs('test').forEach((d) => {
  
     const p = amtPunteggio(d, amtValore(d, ris[d.k], peso), sesso);
  
@@ -1663,7 +1789,7 @@ function amtCalcola(sessione: any): { test: { [k: string]: number }; qualita: { 
  
   AMT_QUALITA.forEach((q) => {
  
-    const v = AMT_TEST.filter((d) => d.q === q.k && test[d.k] !== undefined).map((d) => test[d.k]);
+    const v = amtDefs('test').filter((d) => d.q === q.k && test[d.k] !== undefined).map((d) => test[d.k]);
  
     if (v.length > 0) qualita[q.k] = Math.round(v.reduce((a, b) => a + b, 0) / v.length);
  
@@ -1681,7 +1807,7 @@ function amtCalcola(sessione: any): { test: { [k: string]: number }; qualita: { 
  
 function amtProfilo(sessioni: any[]) {
  
-  const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at)
+  const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) === 'test')
  
     .sort((a: any, b: any) => String(a.completed_at).localeCompare(String(b.completed_at)));
  
@@ -1729,6 +1855,226 @@ function amtDataIT(iso: any): string {
  
 }
  
+// ---- AMT Longevity: semafori ----
+ 
+type AmtSemaforo = { k: string; nome: string; colore: 'verde' | 'giallo' | 'rosso' | null; testo: string; nota?: string };
+ 
+function amtEtaDa(nascita: any): number | null {
+ 
+  const t = String(nascita || '').slice(0, 10);
+ 
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) return null;
+ 
+  const [a, m, g] = t.split('-').map(Number);
+ 
+  const oggi = new Date();
+ 
+  let eta = oggi.getFullYear() - a;
+ 
+  if (oggi.getMonth() + 1 < m || (oggi.getMonth() + 1 === m && oggi.getDate() < g)) eta -= 1;
+ 
+  return eta > 0 && eta < 110 ? eta : null;
+ 
+}
+ 
+// Capacità aerobica stimata (ml/kg/min): dai 3 km di corsa o dal 2000 m remo
+ 
+function amtVo2(ris: any, peso: number | null, sesso: string): { v: number; da: string } | null {
+ 
+  const run = amtSecondi(ris?.aer_3k);
+ 
+  if (run && run > 0) {
+ 
+    const vel = 3000 / (run / 60);
+ 
+    return { v: Math.round((0.2 * vel + 3.5) * 10) / 10, da: 'dai 3 km di corsa' };
+ 
+  }
+ 
+  const row = amtSecondi(ris?.aer_row);
+ 
+  if (row && row > 0 && peso && peso > 0) {
+ 
+    const min = row / 60;
+ 
+    const litri = sesso === 'f' ? 14.9 - 1.44 * min : 15.7 - 1.5 * min;
+ 
+    if (litri > 0) return { v: Math.round(((litri * 1000) / peso) * 10) / 10, da: 'dal 2000 m remo' };
+ 
+  }
+ 
+  return null;
+ 
+}
+ 
+function amtSogliaVo2(eta: number | null, sesso: string): [number, number] {
+ 
+  const e = eta || 35;
+ 
+  const m: [number, number][] = [[42, 49], [41, 48], [39, 45], [36, 42], [33, 39]];
+ 
+  const f: [number, number][] = [[36, 42], [34, 40], [32, 37], [29, 34], [27, 31]];
+ 
+  const i = e < 30 ? 0 : e < 40 ? 1 : e < 50 ? 2 : e < 60 ? 3 : 4;
+ 
+  return sesso === 'f' ? f[i] : m[i];
+ 
+}
+ 
+const amtColore3 = (v: number | null, giallo: number, verde: number, meno?: boolean): 'verde' | 'giallo' | 'rosso' | null => {
+ 
+  if (v === null || !isFinite(v)) return null;
+ 
+  if (meno) return v < verde ? 'verde' : v < giallo ? 'giallo' : 'rosso';
+ 
+  return v >= verde ? 'verde' : v >= giallo ? 'giallo' : 'rosso';
+ 
+};
+ 
+function amtLongevity(s: any): { mobilita: AmtSemaforo[]; longevita: AmtSemaforo[]; fastidi: string[]; asimmetrie: string[] } {
+ 
+  const ris = s?.results || {};
+ 
+  const sesso = s?.sex === 'f' ? 'f' : 'm';
+ 
+  const peso = parseFloat(String(s?.weight_kg ?? '').replace(',', '.')) || null;
+ 
+  const eta = parseInt(String(ris.__eta ?? ''), 10) || null;
+ 
+  const colScelta = (v: any) => (v === '2' ? 'verde' : v === '1' ? 'giallo' : v === '0' ? 'rosso' : null) as any;
+ 
+  const parole: { [k: string]: string[] } = {
+ 
+    deep_squat: ['Da migliorare', 'Sufficiente', 'Ottimo'],
+ 
+    apley_dx: ['Da migliorare', 'Buono', 'Ottimo'],
+ 
+    apley_sx: ['Da migliorare', 'Buono', 'Ottimo'],
+ 
+    toe_touch: ['Da migliorare', 'Sufficiente', 'Ottimo'],
+ 
+  };
+ 
+  const mobilita: AmtSemaforo[] = [];
+ 
+  ['deep_squat', 'apley_dx', 'apley_sx', 'toe_touch'].forEach((k) => {
+ 
+    const d = AMT_TEST.find((x) => x.k === k)!;
+ 
+    const v = String(ris[k] ?? '');
+ 
+    mobilita.push({ k, nome: k === 'apley_dx' ? 'Spalle (Apley) \u00b7 destro' : k === 'apley_sx' ? 'Spalle (Apley) \u00b7 sinistro' : d.nome, colore: colScelta(v), testo: v === '' ? 'non fatto' : parole[k][parseInt(v, 10)] || '' });
+ 
+  });
+ 
+  ['eq_chiusi_dx', 'eq_chiusi_sx'].forEach((k) => {
+ 
+    const n = parseFloat(String(ris[k] ?? '').replace(',', '.'));
+ 
+    const ok = isFinite(n) && String(ris[k] ?? '').trim() !== '';
+ 
+    mobilita.push({ k, nome: k === 'eq_chiusi_dx' ? 'Equilibrio occhi chiusi \u00b7 destra' : 'Equilibrio occhi chiusi \u00b7 sinistra', colore: ok ? amtColore3(n, 10, 25) : null, testo: ok ? `${String(Math.round(n * 10) / 10).replace('.', ',')}\u2033` : 'non fatto' });
+ 
+  });
+ 
+  const asimmetrie: string[] = [];
+ 
+  const c = (k: string) => mobilita.find((x) => x.k === k)?.colore;
+ 
+  if (c('apley_dx') && c('apley_sx') && c('apley_dx') !== c('apley_sx')) asimmetrie.push('Spalle');
+ 
+  if (c('eq_chiusi_dx') && c('eq_chiusi_sx') && c('eq_chiusi_dx') !== c('eq_chiusi_sx')) asimmetrie.push('Equilibrio');
+ 
+  const longevita: AmtSemaforo[] = [];
+ 
+  const vo2 = amtVo2(ris, peso, sesso);
+ 
+  const [g1, v1] = amtSogliaVo2(eta, sesso);
+ 
+  longevita.push({ k: 'vo2', nome: 'Capacità aerobica', colore: vo2 ? amtColore3(vo2.v, g1, v1) : null, testo: vo2 ? `${String(vo2.v).replace('.', ',')} ml/kg/min` : 'non misurata', nota: vo2 ? `stimata ${vo2.da}${eta ? `, per la tua età (${eta} anni)` : ''}` : undefined });
+ 
+  const pu = parseInt(String(ris.push_up_l ?? ''), 10);
+ 
+  longevita.push({ k: 'push_up_l', nome: 'Push up', colore: isFinite(pu) ? amtColore3(pu, sesso === 'f' ? 10 : 20, sesso === 'f' ? 25 : 40) : null, testo: isFinite(pu) ? String(pu) : 'non fatto' });
+ 
+  const eq = String(ris.eq_aperti ?? '');
+ 
+  longevita.push({ k: 'eq_aperti', nome: 'Equilibrio 10\u2033', colore: eq === '2' ? 'verde' : eq === '1' ? 'giallo' : eq === '0' ? 'rosso' : null, testo: eq === '2' ? 'superato su entrambe le gambe' : eq === '1' ? 'superato su una gamba' : eq === '0' ? 'non superato' : 'non fatto' });
+ 
+  const srt = parseFloat(String(ris.sitting_rising ?? '').replace(',', '.'));
+ 
+  const srtOk = isFinite(srt) && String(ris.sitting_rising ?? '').trim() !== '';
+ 
+  longevita.push({ k: 'sitting_rising', nome: 'Sitting-Rising Test', colore: srtOk ? amtColore3(srt, 6, 8) : null, testo: srtOk ? `${String(srt).replace('.', ',')} / 10` : 'non fatto' });
+ 
+  const dh = parseFloat(String(ris.dead_hang ?? '').replace(',', '.'));
+ 
+  const dhOk = isFinite(dh) && String(ris.dead_hang ?? '').trim() !== '' && ris.dead_hang !== 'salta';
+ 
+  longevita.push({ k: 'dead_hang', nome: 'Presa (dead hang)', colore: dhOk ? amtColore3(dh, sesso === 'f' ? 20 : 30, sesso === 'f' ? 45 : 60) : null, testo: dhOk ? `${Math.round(dh)}\u2033` : 'non fatto' });
+ 
+  const gv = parseFloat(String(ris.girovita ?? '').replace(',', '.'));
+ 
+  const alt = parseFloat(String(ris.__altezza ?? '').replace(',', '.'));
+ 
+  if (isFinite(gv) && gv > 0 && ris.girovita !== 'salta') {
+ 
+    const r = isFinite(alt) && alt > 0 ? gv / alt : null;
+ 
+    longevita.push({ k: 'girovita', nome: 'Girovita \u00f7 altezza', colore: r ? amtColore3(r, 0.6, 0.5, true) : null, testo: r ? String(Math.round(r * 100) / 100).replace('.', ',') : `${gv} cm`, nota: r ? 'sotto 0,5 è un buon valore' : 'manca l\u2019altezza negli anagrafici' });
+ 
+  }
+ 
+  const fastidi = AMT_TEST.filter((d) => d.fastidio && ris[`${d.k}__f`] === '1').map((d) => d.nome);
+ 
+  return { mobilita, longevita, fastidi, asimmetrie };
+ 
+}
+ 
+const AMT_PALLINO: { [k: string]: string } = { verde: '\u{1F7E2}', giallo: '\u{1F7E1}', rosso: '\u{1F534}' };
+ 
+// Cronometro per i test a tempo libero (equilibrio, dead hang): Avvia / Stop
+ 
+function CronometroAmt({ onStop }: { onStop: (sec: number) => void }) {
+ 
+  const [inizio, setInizio] = useState<number | null>(null);
+ 
+  const [ora, setOra] = useState(0);
+ 
+  useEffect(() => {
+ 
+    if (inizio === null) return;
+ 
+    const id = setInterval(() => setOra(Date.now()), 100);
+ 
+    return () => clearInterval(id);
+ 
+  }, [inizio]);
+ 
+  const sec = inizio === null ? 0 : Math.max(0, (ora - inizio) / 1000);
+ 
+  return (
+ 
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+ 
+      <span style={{ minWidth: '74px', fontSize: '22px', fontWeight: 'bold', color: 'var(--fg-000000)', fontVariantNumeric: 'tabular-nums' }}>{`${sec.toFixed(1).replace('.', ',')}\u2033`}</span>
+ 
+      {inizio === null ? (
+ 
+        <button type="button" onClick={() => { const t = Date.now(); setInizio(t); setOra(t); }} style={{ padding: '9px 18px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Avvia</button>
+ 
+      ) : (
+ 
+        <button type="button" onClick={() => { const fine = Math.round(((Date.now() - inizio) / 1000) * 10) / 10; setInizio(null); setOra(0); onStop(fine); }} style={{ padding: '9px 18px', borderRadius: '999px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>Stop</button>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 // Grafico a ragnatela (SVG): 6 assi, il test attuale pieno e il precedente tratteggiato
  
 function RagnatelaAmt({ valori, precedenti, dim = 280 }: { valori: { [k: string]: number }; precedenti?: { [k: string]: number } | null; dim?: number }) {
@@ -1749,7 +2095,7 @@ function RagnatelaAmt({ valori, precedenti, dim = 280 }: { valori: { [k: string]
  
   const forma = (vals: { [k: string]: number }) => AMT_QUALITA.map((q, i) => punto(i, Math.max(0, Math.min(100, vals[q.k] ?? 0))).join(',')).join(' ');
  
-  const etichette: { [k: string]: string } = { forza: 'Forza', potenza: 'Potenza', anaerobica: 'Anaerobica', aerobica: 'Aerobica', resistenza: 'Resistenza', ginnastica: 'Ginnastica' };
+  const etichette: { [k: string]: string } = { forza: 'Forza', potenza: 'Potenza', velocita: 'Velocità', anaerobica: 'Anaerobica', aerobica: 'Aerobica', resistenza: 'Resistenza', ginnastica: 'Ginnastica' };
  
   return (
  
@@ -2814,7 +3160,8 @@ function FinestraProgressi({ dati, titolo, perAtleta, onClose }: any) {
         <div style={{ padding: '12px 18px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
           <button onClick={onClose} style={{ width: '100%', boxSizing: 'border-box', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
-             Chiudi
+ 
+            Chiudi
  
           </button>
  
@@ -6812,6 +7159,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente minorenne.</p>
  
+        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+ 
         <p style={sStyle}>D) Dati tecnici</p>
  
         <p style={pStyle}>Per garantire il corretto funzionamento dell’applicazione, nonché per finalità connesse alla sicurezza, alla gestione e alla manutenzione dell’infrastruttura tecnologica, potranno essere trattati anche alcuni dati di natura tecnica.</p>
@@ -6833,6 +7182,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
         <p style={sStyle}>B) Trattamento dei dati relativi alla salute</p>
  
         <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente minorenne nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
+ 
+        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
         <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente minorenne e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente minorenne e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente minorenne.</p>
  
@@ -6994,6 +7345,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
  
+      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+ 
       <p style={sStyle}>D) Dati tecnici</p>
  
       <p style={pStyle}>Per garantire il corretto funzionamento dell’applicazione, nonché per finalità connesse alla sicurezza, alla gestione e alla manutenzione dell’infrastruttura tecnologica, potranno essere trattati anche alcuni dati di natura tecnica.</p>
@@ -7015,6 +7368,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <p style={sStyle}>B) Trattamento dei dati relativi alla salute</p>
  
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
+ 
+      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Test e AMT Longevity). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
       <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente.</p>
  
@@ -7514,9 +7869,11 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [amtSessioni, setAmtSessioni] = useState<{ [athleteId: string]: any[] }>({});
  
-  const [amtConfig, setAmtConfig] = useState<{ intro: string; shopUrl: string; whatsapp: string }>({ intro: '', shopUrl: '', whatsapp: '' });
+  const [amtConfig, setAmtConfig] = useState<{ intro: string; shopUrl: string; whatsapp: string; shopUrlLong?: string; shopUrlBundle?: string; ultimoAnnuncio?: any }>({ intro: '', shopUrl: '', whatsapp: '' });
  
   const [amtInCorso, setAmtInCorso] = useState(false);
+ 
+  const [amtSessioneId, setAmtSessioneId] = useState<string | null>(null);
  
   const [amtGiornata, setAmtGiornata] = useState<number | null>(null);
  
@@ -11129,7 +11486,8 @@ const [notificationError, setNotificationError] = useState('');
     const cur = getMaxesOf(aid);
  
     setMaxesOf(aid, { ...cur, [name]: { ...(cur[name] || {}), result: raw, level } });
-   };
+ 
+  };
  
   const handleBenchSave = async (name: string, raw: string, level: string, type: string, athleteId?: string) => {
  
@@ -12071,7 +12429,7 @@ const [notificationError, setNotificationError] = useState('');
  
     } catch (e) {
  
-      // tabella non ancora creata: AMT Test semplicemente non compare
+      // tabella non ancora creata: AMT semplicemente non compare
  
     }
  
@@ -12099,7 +12457,7 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
-    alert(error ? 'Errore: ' + error.message : 'AMT Test salvato!');
+    alert(error ? 'Errore: ' + error.message : 'AMT salvato!');
  
   };
  
@@ -12111,7 +12469,7 @@ const [notificationError, setNotificationError] = useState('');
  
     if (destinatari.length === 0) { alert('Nessun atleta a cui mandarlo.'); return; }
  
-    if (!window.confirm(`Mandare l\u2019annuncio a ${destinatari.length} atleti?`)) return;
+    if (!window.confirm(`Mandare l’annuncio a ${destinatari.length} atleti?`)) return;
  
     setAmtInvio(true);
  
@@ -12185,21 +12543,29 @@ const [notificationError, setNotificationError] = useState('');
  
   const amtGiorniRimasti = (s: any) => (s?.deadline ? giorniFraIso(amtOggi(), String(s.deadline).slice(0, 10)) : null);
  
-  // Coach: sblocca una sessione (14 giorni)
+  // Coach: sblocca uno o tutti e due i prodotti
  
-  const amtSblocca = async (atleta: any) => {
+  const amtSblocca = async (atleta: any, prodotti: ('test' | 'longevity')[]) => {
  
-    const deadline = isoPiuGiorni(amtOggi(), AMT_GIORNI_DURATA);
+    const insieme = prodotti.length > 1;
  
-    const { data, error } = await supabase.from('amt_test_sessions').insert([{
+    const righe = prodotti.map((p) => ({
  
-      athlete_id: atleta.id, status: 'aperta', deadline, results: {}, giorni: {}, created_by: session.user.id,
+      athlete_id: atleta.id, prodotto: p, status: 'aperta', results: {}, giorni: {}, created_by: session.user.id,
  
-    }]).select().maybeSingle();
+      deadline: isoPiuGiorni(amtOggi(), insieme ? AMT_DURATA.test : AMT_DURATA[p]),
  
-    if (error) { alert('Errore: ' + error.message + '\n\nSe dice che la tabella amt_test_sessions non esiste, va prima creata su Supabase (vedi istruzioni).'); return; }
+    }));
  
-    if (data) amtSostituisci(data);
+    const { data, error } = await supabase.from('amt_test_sessions').insert(righe).select();
+ 
+    if (error) { alert('Errore: ' + error.message + '\n\nSe dice che manca la tabella amt_test_sessions o la colonna prodotto, va prima eseguito l’SQL su Supabase (vedi istruzioni).'); return; }
+ 
+    (data || []).forEach((r: any) => amtSostituisci(r));
+ 
+    const nome = insieme ? 'AMT Test + Longevity' : AMT_NOMI[prodotti[0]];
+ 
+    const scad = righe[0].deadline;
  
     fetch('/api/notify-user', {
  
@@ -12207,11 +12573,11 @@ const [notificationError, setNotificationError] = useState('');
  
       headers: { 'Content-Type': 'application/json' },
  
-      body: JSON.stringify({ user_id: atleta.id, type: `amt_sbloccato_${data?.id || ''}`, title: 'AMT Test sbloccato! \u{1F3C5}', message: `Il tuo AMT Test è pronto: hai ${AMT_GIORNI_DURATA} giorni, fino al ${itDaIso(deadline)}, per completare le ${AMT_GIORNATE.length} giornate. Lo trovi in Profilo > AMT Test.` }),
+      body: JSON.stringify({ user_id: atleta.id, type: `amt_sbloccato_${(data || [])[0]?.id || ''}`, title: `${nome} ${insieme ? 'sbloccati' : 'sbloccato'}! \u{1F3C5}`, message: `${insieme ? 'I tuoi test sono pronti' : 'Il tuo test è pronto'}: hai tempo fino al ${itDaIso(scad)}. Lo trovi in Profilo > AMT.` }),
  
     }).catch(() => {});
  
-    avvisa('AMT Test sbloccato');
+    avvisa(`${nome} ${insieme ? 'sbloccati' : 'sbloccato'}`);
  
   };
  
@@ -12229,9 +12595,9 @@ const [notificationError, setNotificationError] = useState('');
  
   const amtAnnulla = async (s: any) => {
  
-    const conRisultati = Object.keys(s.results || {}).length > 0;
+    const conRisultati = Object.keys(s.results || {}).some((k) => !k.startsWith('__'));
  
-    if (!window.confirm(conRisultati ? 'L’atleta ha già inserito dei risultati: annullando si perdono. Vuoi annullare lo sblocco?' : 'Annullare lo sblocco dell’AMT Test?')) return;
+    if (!window.confirm(conRisultati ? 'L’atleta ha già inserito dei risultati: annullando si perdono. Vuoi annullare lo sblocco?' : `Annullare lo sblocco di ${AMT_NOMI[amtProdottoDi(s)]}?`)) return;
  
     const { error } = await supabase.from('amt_test_sessions').delete().eq('id', s.id);
  
@@ -12241,21 +12607,39 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
-  // Atleta: inizio (attrezzatura, peso, sesso)
+  // Atleta: inizio (attrezzatura, peso, sesso, età)
  
   const amtInizia = async (s: any) => {
  
     const peso = parseFloat(String(amtAvvio.peso).replace(',', '.'));
  
-    if (!amtAvvio.hoTutto) { alert('Prima conferma di avere tutta l’attrezzatura.'); return; }
+    if (!amtAvvio.hoTutto) { alert('Prima conferma di avere tutto il necessario.'); return; }
  
     if (!(peso >= 30 && peso <= 250)) { alert('Scrivi il tuo peso di oggi in kg (es. 72,5).'); return; }
  
     const sesso = amtAvvio.sesso || (personalData.gender === 'f' || personalData.gender === 'm' ? personalData.gender : '');
  
-    if (sesso !== 'm' && sesso !== 'f') { alert('Indica se sei uomo o donna: le tabelle dei livelli sono diverse.'); return; }
+    if (sesso !== 'm' && sesso !== 'f') { alert('Indica se sei uomo o donna: i valori di riferimento sono diversi.'); return; }
  
-    await amtAggiorna(s, { started_at: new Date().toISOString(), weight_kg: peso, sex: sesso });
+    const extra: any = {};
+ 
+    if (amtProdottoDi(s) === 'longevity') {
+ 
+      const eta = amtEtaDa(personalData.birth_date) || parseInt(String((amtAvvio as any).eta || ''), 10) || null;
+ 
+      if (!eta) { alert('Scrivi la tua età: alcuni valori di riferimento cambiano con l’età.'); return; }
+ 
+      extra.__eta = eta;
+ 
+      const alt = parseFloat(String(personalData.height || '').replace(',', '.'));
+ 
+      if (alt > 0) extra.__altezza = alt;
+ 
+    }
+ 
+    const nuova = await amtAggiorna(s, { started_at: new Date().toISOString(), weight_kg: peso, sex: sesso, results: { ...(s.results || {}), ...extra } });
+ 
+    if (nuova && amtProdottoDi(nuova) === 'longevity') amtApriGiornata(nuova, 1);
  
   };
  
@@ -12283,11 +12667,39 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const amtApriSessione = (s: any) => {
+ 
+    setAmtSessioneId(s.id);
+ 
+    setAmtInCorso(true);
+ 
+    setAmtGiornata(null);
+ 
+    setAmtAvvio({ hoTutto: false, peso: '', sesso: '' });
+ 
+    amtCaricaMaxRecenti(s.athlete_id);
+ 
+    window.scrollTo(0, 0);
+ 
+    // Longevity ha una sola giornata: si apre direttamente
+ 
+    if (amtProdottoDi(s) === 'longevity' && s.started_at) amtApriGiornata(s, 1);
+ 
+  };
+ 
   const amtApriGiornata = (s: any, n: number) => {
  
     const bozza: { [k: string]: string } = {};
  
-    AMT_TEST.filter((d) => d.giorno === n).forEach((d) => { bozza[d.k] = String((s.results || {})[d.k] ?? ''); });
+    const ris = s.results || {};
+ 
+    amtDefs(amtProdottoDi(s)).filter((d) => d.giorno === n).forEach((d) => {
+ 
+      bozza[d.k] = String(ris[d.k] ?? (d.tipo === 'srt' ? '' : ''));
+ 
+      if (d.fastidio) bozza[`${d.k}__f`] = String(ris[`${d.k}__f`] ?? '');
+ 
+    });
  
     setAmtBozza(bozza);
  
@@ -12299,29 +12711,35 @@ const [notificationError, setNotificationError] = useState('');
  
   const amtSalvaGiornata = async (s: any, n: number) => {
  
+    const p = amtProdottoDi(s);
+ 
     const peso = parseFloat(String(s.weight_kg ?? '').replace(',', '.')) || null;
  
     const strani: string[] = [];
  
     const nuovi: { [k: string]: string } = {};
  
-    AMT_TEST.filter((d) => d.giorno === n).forEach((d) => {
+    const defs = amtDefs(p).filter((d) => d.giorno === n);
+ 
+    defs.forEach((d) => {
  
       const grezzo = String(amtBozza[d.k] ?? '').trim();
  
       nuovi[d.k] = grezzo;
  
-      if (!grezzo || grezzo === 'salta') return;
+      if (d.fastidio) nuovi[`${d.k}__f`] = amtBozza[`${d.k}__f`] === '1' ? '1' : '';
  
-      const v = amtValore(d, grezzo, peso);
+      if (!grezzo || grezzo === 'salta' || d.tipo === 'scelta' || d.tipo === 'sino' || d.tipo === 'srt') return;
  
-      if (v === null || v < d.min || v > d.max) strani.push(d.nome);
+      const v = d.tipo === 'tempo' ? amtSecondi(grezzo) : d.rel ? amtValore(d, grezzo, peso) : parseFloat(grezzo.replace(',', '.'));
+ 
+      if (v === null || !isFinite(v) || v < d.min || v > d.max) strani.push(d.nome);
  
     });
  
     if (strani.length > 0 && !window.confirm(`Controlla questi valori, sembrano strani:\n• ${strani.join('\n• ')}\n\nSei sicuro di volerli salvare?`)) return;
  
-    const mancanti = AMT_TEST.filter((d) => d.giorno === n && !d.facoltativo && !nuovi[d.k]).map((d) => d.nome);
+    const mancanti = defs.filter((d) => !d.facoltativo && !nuovi[d.k]).map((d) => d.nome);
  
     if (mancanti.length > 0 && !window.confirm(`Non hai inserito:\n• ${mancanti.join('\n• ')}\n\nQuesti test non verranno conteggiati. Salvare lo stesso?`)) return;
  
@@ -12337,41 +12755,59 @@ const [notificationError, setNotificationError] = useState('');
  
     window.scrollTo(0, 0);
  
-    const fatte = AMT_GIORNATE.filter((g) => (nuova.giorni || {})[g.n]).length;
+    const gg = amtGiornate(p);
  
-    if (fatte === AMT_GIORNATE.length && window.confirm('Hai completato tutte le giornate! Vuoi concludere il test e vedere il tuo profilo?')) await amtConcludi(nuova, true);
+    const fatte = gg.filter((g) => (nuova.giorni || {})[g.n]).length;
  
-    else avvisa(`Giornata ${n} salvata`);
+    if (fatte === gg.length && window.confirm(gg.length === 1 ? 'Test salvato! Vuoi concluderlo e vedere i tuoi risultati?' : 'Hai completato tutte le giornate! Vuoi concludere il test e vedere il tuo profilo?')) await amtConcludi(nuova, true);
+ 
+    else avvisa(gg.length === 1 ? 'Test salvato' : `Giornata ${n} salvata`);
  
   };
  
   const amtConcludi = async (s: any, conferma?: boolean) => {
  
-    const fatte = AMT_GIORNATE.filter((g) => (s.giorni || {})[g.n]).length;
+    const p = amtProdottoDi(s);
  
-    if (!conferma && !window.confirm(fatte < AMT_GIORNATE.length
+    const gg = amtGiornate(p);
  
-      ? `Hai fatto ${fatte} giornate su ${AMT_GIORNATE.length}. Le qualità non misurate resteranno quelle del test precedente. Concludere il test adesso?`
+    const fatte = gg.filter((g) => (s.giorni || {})[g.n]).length;
+ 
+    if (!conferma && !window.confirm(fatte < gg.length
+ 
+      ? `Hai fatto ${fatte} giornate su ${gg.length}. Le qualità non misurate resteranno quelle del test precedente. Concludere il test adesso?`
  
       : 'Concludere il test? Dopo non potrai più modificare i risultati.')) return;
  
-    const calc = amtCalcola(s);
+    const punteggi: any = p === 'test' ? amtCalcola(s) : amtLongevity(s);
  
-    const nuova = await amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: calc });
+    const nuova = await amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: punteggi });
  
     if (!nuova) return;
  
-    // I massimali del test aggiornano anche i massimali dell'atleta (solo se più alti)
+    if (p === 'test') {
  
-    for (const d of AMT_TEST.filter((x) => x.tipo === 'kg' && x.esercizio)) {
+      // I massimali del test aggiornano anche i massimali dell'atleta (solo se più alti)
  
-      const v = String((s.results || {})[d.k] ?? '').trim();
+      for (const d of amtDefs('test').filter((x) => x.tipo === 'kg' && x.esercizio)) {
  
-      if (v && v !== 'salta') await maybeUpdateMaxFromScore(s.athlete_id, d.esercizio as string, '1', v, s.athlete_id !== session.user.id, 'forza');
+        const v = String((s.results || {})[d.k] ?? '').trim();
+ 
+        if (v && v !== 'salta') await maybeUpdateMaxFromScore(s.athlete_id, d.esercizio as string, '1', v, s.athlete_id !== session.user.id, 'forza');
+ 
+      }
  
     }
  
     if (s.athlete_id === session.user.id) {
+ 
+      const chi = personalData.full_name || session.user.email;
+ 
+      const extra = p === 'test'
+ 
+        ? (punteggi.media !== null ? ` (media ${punteggi.media})` : '')
+ 
+        : `${punteggi.fastidi.length ? `. ⚠️ Fastidio segnalato in: ${punteggi.fastidi.join(', ')}` : ''}${punteggi.asimmetrie.length ? `. Differenza tra i lati: ${punteggi.asimmetrie.join(', ')}` : ''}`;
  
       fetch('/api/notify-coach', {
  
@@ -12379,7 +12815,7 @@ const [notificationError, setNotificationError] = useState('');
  
         headers: { 'Content-Type': 'application/json' },
  
-        body: JSON.stringify({ type: `amt_completato_${s.id}`, title: 'AMT Test completato', message: `${personalData.full_name || session.user.email} ha completato l’AMT Test${calc.media !== null ? ` (media ${calc.media})` : ''}.` }),
+        body: JSON.stringify({ type: `amt_completato_${s.id}`, title: `${AMT_NOMI[p]} completato`, message: `${chi} ha completato ${AMT_NOMI[p]}${extra}.` }),
  
       }).catch(() => {});
  
@@ -12389,9 +12825,11 @@ const [notificationError, setNotificationError] = useState('');
  
     setAmtGiornata(null);
  
+    setAmtSessioneId(null);
+ 
     window.scrollTo(0, 0);
  
-    avvisa('AMT Test completato! \u{1F3C5}');
+    avvisa(`${AMT_NOMI[p]} completato! \u{1F3C5}`);
  
   };
  
@@ -12409,9 +12847,9 @@ const [notificationError, setNotificationError] = useState('');
  
       if (role === 'athlete' && s.athlete_id !== session.user.id) return;
  
-      const conRisultati = Object.values(s.results || {}).some((v: any) => String(v || '').trim() && v !== 'salta');
+      const conRisultati = Object.entries(s.results || {}).some(([k, v]: any) => !k.startsWith('__') && !k.endsWith('__f') && String(v || '').trim() && v !== 'salta');
  
-      if (conRisultati) amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: amtCalcola(s), parziale: true });
+      if (conRisultati) amtAggiorna(s, { status: 'completata', completed_at: new Date().toISOString(), scores: amtProdottoDi(s) === 'test' ? amtCalcola(s) : amtLongevity(s), parziale: true });
  
       else amtAggiorna(s, { status: 'scaduta' });
  
@@ -12429,29 +12867,61 @@ const [notificationError, setNotificationError] = useState('');
  
     const completo = n.length <= 10 ? `39${n}` : n;
  
-    return `https://wa.me/${completo}?text=${encodeURIComponent('Ciao! Vorrei sbloccare l’AMT Test.')}`;
+    return `https://wa.me/${completo}?text=${encodeURIComponent('Ciao! Vorrei sbloccare l’AMT.')}`;
  
   };
  
-  // Schermata delle singole giornate (atleta)
+  // Un valore da un'altra sessione dell'AMT (es. i push up o il 2000 m dell'AMT Test, negli ultimi 60 giorni)
+ 
+  const amtValoreDaAltro = (athleteId: string, chiave: string) => {
+ 
+    const limite = Date.now() - 60 * 86400000;
+ 
+    const sess = (amtSessioni[athleteId] || []).filter((x: any) => amtProdottoDi(x) === 'test' && x.status !== 'scaduta')
+ 
+      .filter((x: any) => new Date(x.completed_at || x.unlocked_at).getTime() >= limite)
+ 
+      .sort((a: any, b: any) => String(b.unlocked_at).localeCompare(String(a.unlocked_at)));
+ 
+    for (const x of sess) {
+ 
+      const v = String((x.results || {})[chiave] ?? '').trim();
+ 
+      if (v && v !== 'salta') return v;
+ 
+    }
+ 
+    return '';
+ 
+  };
+ 
+  // Schermata di una sessione (atleta)
  
   const sessioneAmt = (s: any) => {
+ 
+    const p = amtProdottoDi(s);
+ 
+    const gg = amtGiornate(p);
  
     const rimasti = amtGiorniRimasti(s);
  
     const campo: React.CSSProperties = { width: '100%', boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '16px', fontWeight: 'bold', textAlign: 'center' };
  
+    const unaSola = gg.length === 1;
+ 
+    const torna = () => { if (amtGiornata !== null && !unaSola) setAmtGiornata(null); else { setAmtInCorso(false); setAmtGiornata(null); } window.scrollTo(0, 0); };
+ 
     const testa = (
  
       <div style={{ marginBottom: '14px' }}>
  
-        <button type="button" onClick={() => { if (amtGiornata !== null) setAmtGiornata(null); else setAmtInCorso(false); window.scrollTo(0, 0); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '12px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+        <button type="button" onClick={torna} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '12px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', padding: '7px 14px', borderRadius: '999px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
-          <Icona nome="sinistra" size={14} /> {amtGiornata !== null ? 'Le giornate' : 'AMT Test'}
+          <Icona nome="sinistra" size={14} /> {amtGiornata !== null && !unaSola ? 'Le giornate' : 'AMT'}
  
         </button>
  
-        <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{amtGiornata !== null ? `Giornata ${amtGiornata} · ${AMT_GIORNATE.find((g) => g.n === amtGiornata)?.titolo || ''}` : 'AMT Test in corso'}</h3>
+        <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}>{amtGiornata !== null && !unaSola ? `Giornata ${amtGiornata} · ${gg.find((g) => g.n === amtGiornata)?.titolo || ''}` : `${AMT_NOMI[p]}${s.started_at ? ' in corso' : ''}`}</h3>
  
         {rimasti !== null && <span style={{ display: 'block', fontSize: '12px', color: rimasti <= 2 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)', marginTop: '3px' }}>{`Da completare entro il ${itDaIso(String(s.deadline).slice(0, 10))} · ${rimasti <= 0 ? 'ultimo giorno' : rimasti === 1 ? 'manca 1 giorno' : `mancano ${rimasti} giorni`}`}</span>}
  
@@ -12459,11 +12929,13 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
-    // 1) Prima di iniziare: attrezzatura, peso, sesso
+    // 1) Prima di iniziare: attrezzatura, peso, sesso (ed età per Longevity)
  
     if (!s.started_at) {
  
       const sessoNoto = personalData.gender === 'f' || personalData.gender === 'm';
+ 
+      const etaNota = !!amtEtaDa(personalData.birth_date);
  
       return (
  
@@ -12475,7 +12947,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Ti serve</span>
  
-            {AMT_ATTREZZI.map((a) => (
+            {(p === 'test' ? AMT_ATTREZZI : AMT_ATTREZZI_LONGEVITY).map((a) => (
  
               <span key={a} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}><span style={{ color: 'var(--fg-10b981)' }}>{'•'}</span>{a}</span>
  
@@ -12485,7 +12957,7 @@ const [notificationError, setNotificationError] = useState('');
  
               <input type="checkbox" checked={amtAvvio.hoTutto} onChange={(e) => setAmtAvvio({ ...amtAvvio, hoTutto: e.target.checked })} style={{ width: '18px', height: '18px' }} />
  
-              Ho tutta l&apos;attrezzatura
+              Ho tutto il necessario
  
             </label>
  
@@ -12495,21 +12967,37 @@ const [notificationError, setNotificationError] = useState('');
  
             <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '8px' }}>Come funziona</span>
  
-            {AMT_GIORNATE.map((g) => (
+            {p === 'test' ? (
  
-              <span key={g.n} style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}>
+              <>
  
-                <strong>{`Giornata ${g.n} · ${g.titolo}: `}</strong>{AMT_TEST.filter((d) => d.giorno === g.n).map((d) => d.nome + (d.facoltativo ? ' (facoltativo)' : '')).join(', ')}
+                {gg.map((g) => (
+ 
+                  <span key={g.n} style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginBottom: '5px', lineHeight: 1.4 }}>
+ 
+                    <strong>{`Giornata ${g.n}: `}</strong>{amtDefs('test').filter((d) => d.giorno === g.n).map((d) => d.nome + (d.facoltativo ? ' (facoltativo)' : '')).join(', ')}
+ 
+                  </span>
+ 
+                ))}
+ 
+                <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
+ 
+                  {`Hai ${AMT_DURATA.test} giorni per completarle. In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
+ 
+                </span>
+ 
+              </>
+ 
+            ) : (
+ 
+              <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>
+ 
+                {`Una sola sessione di 20-30 minuti, nell’ordine: mobilità (squat, spalle, piegamento in avanti), equilibrio, Sitting-Rising Test, push up e i test facoltativi. Fai 5 minuti di riscaldamento leggero (camminata, mobilità articolare) e niente allenamento intenso prima. Ogni prova ha istruzioni passo passo: leggile tutte prima di cominciare. Puoi salvare e continuare più tardi, entro ${AMT_DURATA.longevity} giorni.`}
  
               </span>
  
-            ))}
- 
-            <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '6px', lineHeight: 1.45 }}>
- 
-              {`Hai ${AMT_GIORNI_DURATA} giorni per completarle. In ogni giornata fai i test in quest’ordine: prima il massimale, poi la ginnastica, per ultimo il cardio. Lascia almeno un giorno di riposo tra una giornata e l’altra e fai ogni volta lo stesso riscaldamento. Ogni test ha le sue istruzioni: seguile alla lettera, così il confronto con il prossimo test sarà corretto.`}
- 
-            </span>
+            )}
  
           </div>
  
@@ -12519,7 +13007,7 @@ const [notificationError, setNotificationError] = useState('');
  
             <input autoComplete="off" type="text" inputMode="decimal" placeholder={String(personalData.weight || 'kg')} value={amtAvvio.peso} onChange={(e) => setAmtAvvio({ ...amtAvvio, peso: e.target.value })} style={campo} />
  
-            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '5px' }}>Serve per rapportare la forza al tuo peso: pesati la mattina, a digiuno.</span>
+            <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '5px' }}>Pesati la mattina, a digiuno.</span>
  
             {!sessoNoto && (
  
@@ -12532,6 +13020,18 @@ const [notificationError, setNotificationError] = useState('');
                 ))}
  
               </div>
+ 
+            )}
+ 
+            {p === 'longevity' && !etaNota && (
+ 
+              <>
+ 
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', margin: '12px 0 6px 0' }}>Quanti anni hai?</label>
+ 
+                <input autoComplete="off" type="text" inputMode="numeric" value={(amtAvvio as any).eta || ''} onChange={(e) => setAmtAvvio({ ...amtAvvio, eta: e.target.value } as any)} style={campo} />
+ 
+              </>
  
             )}
  
@@ -12549,11 +13049,21 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    // 3) Una giornata aperta: i suoi test
+    // 2) Una giornata aperta: i suoi test (Longevity: la sessione unica)
  
     if (amtGiornata !== null) {
  
       const giaFatta = !!(s.giorni || {})[amtGiornata];
+ 
+      const colori: { [k: string]: { bg: string; bd: string; fg: string } } = {
+ 
+        '2': { bg: 'var(--bg-dcfce7)', bd: '#4ade80', fg: 'var(--fg-166534)' },
+ 
+        '1': { bg: 'var(--bg-fef9c3)', bd: '#facc15', fg: 'var(--fg-854d0e)' },
+ 
+        '0': { bg: 'var(--bg-fee2e2)', bd: '#f87171', fg: 'var(--fg-991b1b)' },
+ 
+      };
  
       return (
  
@@ -12561,13 +13071,11 @@ const [notificationError, setNotificationError] = useState('');
  
           {testa}
  
-          {AMT_TEST.filter((d) => d.giorno === amtGiornata).map((d) => {
- 
-            // Video dalla libreria esercizi: cerco i nomi del test, anche tra le abbreviazioni dell'esercizio
+          {amtDefs(p).filter((d) => d.giorno === amtGiornata).map((d) => {
  
             const conVideo = exerciseLibrary.filter((ex: any) => !ex.dismissed && ex.video_url);
  
-            const candidati = [...(d.video || []), d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '')];
+            const candidati = d.prodotto === 'longevity' ? [] : [...(d.video || []), d.esercizio || d.nome.replace(/\s*\(.*\)$/, '').replace(/\s*1RM$/, '')];
  
             let video: string | undefined;
  
@@ -12581,7 +13089,11 @@ const [notificationError, setNotificationError] = useState('');
  
             const recente = d.tipo === 'kg' && d.esercizio ? amtMaxRecenti[d.esercizio.toLowerCase().replace(/[^a-z0-9]/g, '')] : null;
  
+            const daAltro = d.usaDa ? amtValoreDaAltro(s.athlete_id, d.usaDa) : '';
+ 
             const saltato = amtBozza[d.k] === 'salta';
+ 
+            const val = amtBozza[d.k] || '';
  
             return (
  
@@ -12595,7 +13107,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 </div>
  
-                <p style={{ margin: '0 0 9px 0', fontSize: '12.5px', color: 'var(--fg-475569)', lineHeight: 1.5 }}>{d.istruzioni}</p>
+                <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: 'var(--fg-475569)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{d.istruzioni}</p>
  
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px', marginBottom: '9px' }}>
  
@@ -12605,7 +13117,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     <button type="button" onClick={() => { preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: d.secondi }); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '12.5px', cursor: 'pointer', alignSelf: 'center' }}>
  
-                      <Icona nome="timer" size={14} /> {`Avvia timer ${amtTempoTesto(d.secondi)}`}
+                      <Icona nome="timer" size={14} /> {`Avvia timer ${d.secondi < 60 ? `${d.secondi}″` : amtTempoTesto(d.secondi)}`}
  
                     </button>
  
@@ -12613,7 +13125,7 @@ const [notificationError, setNotificationError] = useState('');
  
                   {recente && !saltato && (
  
-                    <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: String(recente.kg).replace('.', ',') })} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-bfdbfe)', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', alignSelf: 'center' }}>
+                    <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: String(recente.kg).replace('.', ',') })} style={{ padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-bfdbfe)', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', alignSelf: 'center' }}>
  
                       {`Usa il tuo 1RM: ${String(recente.kg).replace('.', ',')} kg (${amtDataIT(recente.data)})`}
  
@@ -12621,29 +13133,115 @@ const [notificationError, setNotificationError] = useState('');
  
                   )}
  
+                  {daAltro && !saltato && (
+ 
+                    <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: daAltro })} style={{ padding: '8px 13px', borderRadius: '999px', border: '1px solid var(--bd-bfdbfe)', background: 'var(--bg-eff6ff)', color: 'var(--fg-1d4ed8)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer', alignSelf: 'center' }}>
+ 
+                      {`Usa il risultato dell’AMT Test: ${daAltro}`}
+ 
+                    </button>
+ 
+                  )}
+ 
                 </div>
  
-                {!saltato && (d.tipo === 'tempo' ? (
+                {d.domanda && <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '7px' }}>{d.domanda}</span>}
  
-                  <CaselleDoppie tipo="tempo" valore={amtBozza[d.k] || ''} onChange={(v: string) => setAmtBozza({ ...amtBozza, [d.k]: v })} />
+                {!saltato && ((d.tipo === 'scelta' || d.tipo === 'sino') ? (
+ 
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+ 
+                    {(d.scelte || []).map((testo, i) => {
+ 
+                      const v = String(2 - i);
+ 
+                      const sel = val === v;
+ 
+                      const col = colori[v];
+ 
+                      return (
+ 
+                        <button key={v} type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: sel ? '' : v })} style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', padding: '11px 12px', borderRadius: '10px', cursor: 'pointer', background: sel ? col.bg : 'var(--bg-ffffff)', border: sel ? `2px solid ${col.bd}` : '1px solid var(--bd-cbd5e1)' }}>
+ 
+                          <span style={{ fontSize: '15px', flexShrink: 0 }}>{v === '2' ? '\u{1F7E2}' : v === '1' ? '\u{1F7E1}' : '\u{1F534}'}</span>
+ 
+                          <span style={{ fontSize: '13px', color: sel ? col.fg : 'var(--fg-334155)', fontWeight: sel ? 'bold' : 'normal', lineHeight: 1.4 }}>{testo}</span>
+ 
+                        </button>
+ 
+                      );
+ 
+                    })}
+ 
+                  </div>
+ 
+                ) : d.tipo === 'srt' ? (() => {
+ 
+                  const punti = val === '' ? 10 : parseFloat(val.replace(',', '.'));
+ 
+                  const togli = (x: number) => setAmtBozza({ ...amtBozza, [d.k]: String(Math.max(0, Math.round((punti - x) * 10) / 10)) });
+ 
+                  return (
+ 
+                    <div>
+ 
+                      <div style={{ textAlign: 'center', fontSize: '28px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>{`${String(punti).replace('.', ',')} / 10`}</div>
+ 
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+ 
+                        <button type="button" onClick={() => togli(1)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), flex: '1 1 120px' }}>{'−1 · un appoggio'}</button>
+ 
+                        <button type="button" onClick={() => togli(0.5)} style={{ ...pillola(false, 'var(--fg-10b981)', 'piccolo'), flex: '1 1 120px' }}>{'−0,5 · equilibrio perso'}</button>
+ 
+                        <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: '10' })} style={{ ...pillola(false, 'var(--fg-94a3b8)', 'piccolo'), flex: '1 1 80px' }}>Ricomincia</button>
+ 
+                      </div>
+ 
+                      {val === '' && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '6px', textAlign: 'center' }}>Se non hai usato nessun appoggio tocca &quot;Ricomincia&quot; per confermare 10.</span>}
+ 
+                    </div>
+ 
+                  );
+ 
+                })() : d.tipo === 'tempo' ? (
+ 
+                  <CaselleDoppie tipo="tempo" valore={val} onChange={(v: string) => setAmtBozza({ ...amtBozza, [d.k]: v })} />
  
                 ) : (
  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div>
  
-                    <input autoComplete="off" type="text" inputMode={d.tipo === 'kg' ? 'decimal' : 'numeric'} value={amtBozza[d.k] || ''} onChange={(e) => setAmtBozza({ ...amtBozza, [d.k]: e.target.value })} style={{ ...campo, flex: 1 }} />
+                    {d.cronometro && <CronometroAmt onStop={(sec: number) => setAmtBozza((b) => ({ ...b, [d.k]: String(sec).replace('.', ',') }))} />}
  
-                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-64748b)', width: '40px' }}>{d.tipo === 'kg' ? 'kg' : d.tipo === 'cal' ? 'cal' : 'rip'}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+ 
+                      <input autoComplete="off" type="text" inputMode={d.tipo === 'rep' ? 'numeric' : 'decimal'} value={val} onChange={(e) => setAmtBozza({ ...amtBozza, [d.k]: e.target.value })} style={{ ...campo, flex: 1 }} />
+ 
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-64748b)', width: '40px' }}>{d.tipo === 'kg' ? 'kg' : d.tipo === 'cal' ? 'cal' : d.tipo === 'sec' ? 'sec' : d.tipo === 'cm' ? 'cm' : 'rip'}</span>
+ 
+                    </div>
  
                   </div>
  
                 ))}
  
+                {d.fastidio && !saltato && (
+ 
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '9px', fontSize: '12.5px', color: 'var(--fg-b45309)', cursor: 'pointer' }}>
+ 
+                    <input type="checkbox" checked={amtBozza[`${d.k}__f`] === '1'} onChange={(e) => setAmtBozza({ ...amtBozza, [`${d.k}__f`]: e.target.checked ? '1' : '' })} />
+ 
+                    Ho sentito fastidio o dolore
+ 
+                  </label>
+ 
+                )}
+ 
                 {d.facoltativo && (
  
                   <button type="button" onClick={() => setAmtBozza({ ...amtBozza, [d.k]: saltato ? '' : 'salta' })} style={{ marginTop: '8px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
  
-                    {saltato ? 'Lo faccio' : 'Non lo so fare / Salta'}
+                    {saltato ? 'Lo faccio' : 'Salta'}
  
                   </button>
  
@@ -12657,9 +13255,19 @@ const [notificationError, setNotificationError] = useState('');
  
           <button type="button" onClick={() => amtSalvaGiornata(s, amtGiornata)} style={{ width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
  
-            {giaFatta ? 'Salva le modifiche' : 'Salva la giornata'}
+            {unaSola ? 'Salva i risultati' : giaFatta ? 'Salva le modifiche' : 'Salva la giornata'}
  
           </button>
+ 
+          {unaSola && giaFatta && (
+ 
+            <button type="button" onClick={() => amtConcludi(s)} style={{ width: '100%', marginTop: '10px', padding: '13px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+ 
+              Concludi e guarda i risultati
+ 
+            </button>
+ 
+          )}
  
         </div>
  
@@ -12667,9 +13275,9 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    // 2) Elenco delle giornate
+    // 3) Elenco delle giornate (AMT Test)
  
-    const fatte = AMT_GIORNATE.filter((g) => (s.giorni || {})[g.n]).length;
+    const fatte = gg.filter((g) => (s.giorni || {})[g.n]).length;
  
     return (
  
@@ -12679,13 +13287,13 @@ const [notificationError, setNotificationError] = useState('');
  
         <span style={{ display: 'block', height: '8px', borderRadius: '999px', background: 'var(--bg-e2e8f0)', overflow: 'hidden', marginBottom: '6px' }}>
  
-          <span style={{ display: 'block', height: '100%', width: `${(fatte / AMT_GIORNATE.length) * 100}%`, background: 'var(--bg-10b981)', borderRadius: '999px' }} />
+          <span style={{ display: 'block', height: '100%', width: `${(fatte / gg.length) * 100}%`, background: 'var(--bg-10b981)', borderRadius: '999px' }} />
  
         </span>
  
-        <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '14px' }}>{`${fatte} giornate su ${AMT_GIORNATE.length} · peso ${String(s.weight_kg).replace('.', ',')} kg`}</span>
+        <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '14px' }}>{`${fatte} giornate su ${gg.length} · peso ${String(s.weight_kg).replace('.', ',')} kg`}</span>
  
-        {AMT_GIORNATE.map((g) => {
+        {gg.map((g) => {
  
           const fatta = (s.giorni || {})[g.n];
  
@@ -12699,7 +13307,7 @@ const [notificationError, setNotificationError] = useState('');
  
                 <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{`Giornata ${g.n} · ${g.titolo}`}</span>
  
-                <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{fatta ? `Fatta il ${itDaIso(String(fatta))}` : AMT_TEST.filter((d) => d.giorno === g.n).map((d) => d.nome).join(' · ')}</span>
+                <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{fatta ? `Fatta il ${itDaIso(String(fatta))}` : amtDefs(p).filter((d) => d.giorno === g.n).map((d) => d.nome).join(' · ')}</span>
  
               </span>
  
@@ -12713,7 +13321,7 @@ const [notificationError, setNotificationError] = useState('');
  
         <button type="button" disabled={fatte === 0} onClick={() => amtConcludi(s)} style={{ width: '100%', marginTop: '6px', padding: '14px', borderRadius: '999px', border: 'none', background: fatte === 0 ? 'var(--bg-e2e8f0)' : 'var(--bg-10b981)', color: fatte === 0 ? 'var(--fg-94a3b8)' : 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: fatte === 0 ? 'default' : 'pointer' }}>
  
-          {fatte === AMT_GIORNATE.length ? 'Concludi il test e guarda il risultato' : 'Concludi il test con le giornate fatte'}
+          {fatte === gg.length ? 'Concludi il test e guarda il risultato' : 'Concludi il test con le giornate fatte'}
  
         </button>
  
@@ -12723,17 +13331,43 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
-  // Pagina AMT Test: ragnatela, risultati, sblocco (coach) o lucchetto (atleta)
+  // Risultati di Longevity: ultima sessione completata e la precedente
+ 
+  const amtProfiloLong = (sessioni: any[]) => {
+ 
+    const fatte = (sessioni || []).filter((s: any) => s.status === 'completata' && s.completed_at && amtProdottoDi(s) === 'longevity')
+ 
+      .sort((a: any, b: any) => String(a.completed_at).localeCompare(String(b.completed_at)));
+ 
+    if (fatte.length === 0) return null;
+ 
+    const ultima = fatte[fatte.length - 1];
+ 
+    const prec = fatte.length > 1 ? fatte[fatte.length - 2] : null;
+ 
+    return { ultima, dati: amtLongevity(ultima), prec: prec ? amtLongevity(prec) : null };
+ 
+  };
+ 
+  // Pagina AMT: ragnatela, mobilità ed equilibrio, longevità, sblocco (coach) o lucchetto (atleta)
  
   const pannelloAmt = (athleteId: string, perCoach: boolean, atleta?: any) => {
  
     const sessioni = amtSessioni[athleteId] || [];
  
-    const aperta = sessioni.find((s: any) => s.status === 'aperta');
+    const aperte = sessioni.filter((s: any) => s.status === 'aperta');
  
-    if (!perCoach && amtInCorso && aperta) return sessioneAmt(aperta);
+    if (!perCoach && amtInCorso) {
+ 
+      const s = aperte.find((x: any) => x.id === amtSessioneId) || aperte[0];
+ 
+      if (s) return sessioneAmt(s);
+ 
+    }
  
     const prof = amtProfilo(sessioni);
+ 
+    const lon = amtProfiloLong(sessioni);
  
     const intro = String(amtConfig.intro || '').trim() || AMT_INTRO_PREDEFINITA;
  
@@ -12741,11 +13375,93 @@ const [notificationError, setNotificationError] = useState('');
  
     if (prof) Object.keys(prof.qualita).forEach((k) => { valori[k] = prof.qualita[k].v; });
  
-    const bottone: React.CSSProperties = { width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' };
+    const bottone: React.CSSProperties = { width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', textDecoration: 'none' };
  
-    const testoIntro = (
+    const scheda: React.CSSProperties = { background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px' };
  
-      <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{intro}</p>
+    const titoletto = (t: string, dx?: string) => (
+ 
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+ 
+        <span style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)' }}>{t}</span>
+ 
+        {dx && <span style={{ fontSize: '11px', color: 'var(--fg-94a3b8)' }}>{dx}</span>}
+ 
+      </div>
+ 
+    );
+ 
+    // Anteprima sfocata con lucchetto, per le parti non ancora fatte
+ 
+    const bloccato = (contenuto: any, testo: string) => (
+ 
+      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '10px' }}>
+ 
+        <div style={{ filter: 'blur(4px)', opacity: 0.45, pointerEvents: 'none' }}>{contenuto}</div>
+ 
+        <div onClick={() => !perCoach && setAmtLucchetto(true)} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: perCoach ? 'default' : 'pointer', textAlign: 'center', padding: '10px' }}>
+ 
+          <span style={{ fontSize: '26px' }}>{'\u{1F512}'}</span>
+ 
+          <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{testo}</span>
+ 
+        </div>
+ 
+      </div>
+ 
+    );
+ 
+    const righeSemaforo = (righe: AmtSemaforo[], prima?: AmtSemaforo[] | null) => righe.map((r) => {
+ 
+      const p = prima?.find((x) => x.k === r.k);
+ 
+      const cambio = p && p.colore && r.colore && p.colore !== r.colore ? `${AMT_PALLINO[p.colore]}→${AMT_PALLINO[r.colore]}` : '';
+ 
+      return (
+ 
+        <div key={r.k} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '7px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+          <span style={{ width: '20px', flexShrink: 0 }}>{r.colore ? AMT_PALLINO[r.colore] : '⚪'}</span>
+ 
+          <span style={{ flex: 1, minWidth: 0 }}>
+ 
+            <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{r.nome}</span>
+ 
+            {r.nota && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', marginTop: '1px' }}>{r.nota}</span>}
+ 
+          </span>
+ 
+          <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)', textAlign: 'right', maxWidth: '45%' }}>{r.testo}{cambio && <span style={{ display: 'block', fontSize: '11px' }}>{cambio}</span>}</span>
+ 
+        </div>
+ 
+      );
+ 
+    });
+ 
+    const esempioMob: AmtSemaforo[] = [
+ 
+      { k: 'a', nome: 'Deep Squat Test', colore: 'verde', testo: 'Ottimo' },
+ 
+      { k: 'b', nome: 'Spalle (Apley)', colore: 'giallo', testo: 'Buono' },
+ 
+      { k: 'c', nome: 'Toe Touch', colore: 'rosso', testo: 'Da migliorare' },
+ 
+    ];
+ 
+    const esempioLon: AmtSemaforo[] = [
+ 
+      { k: 'a', nome: 'Capacità aerobica', colore: 'verde', testo: '45 ml/kg/min' },
+ 
+      { k: 'b', nome: 'Sitting-Rising Test', colore: 'giallo', testo: '8 / 10' },
+ 
+      { k: 'c', nome: 'Equilibrio 10″', colore: 'verde', testo: 'superato' },
+ 
+    ];
+ 
+    const finalita = (
+ 
+      <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)', margin: '-4px 0 8px 0', lineHeight: 1.4 }}>Indicatori che la ricerca collega alla salute nel tempo. Sono stime a scopo sportivo, non una valutazione medica.</span>
  
     );
  
@@ -12753,219 +13469,269 @@ const [notificationError, setNotificationError] = useState('');
  
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
  
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
+        <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={17} style={{ marginRight: '6px', verticalAlign: '-3px' }} />AMT</h3>
  
-          <h3 style={{ fontSize: '18px', margin: 0, color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={17} style={{ marginRight: '6px', verticalAlign: '-3px' }} />AMT Test</h3>
+        {/* Sessioni aperte */}
  
-          {prof && <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)' }}>{`ultimo: ${amtDataIT(prof.ultima.completed_at)}`}</span>}
+        {aperte.map((a: any) => {
  
-        </div>
+          const pa = amtProdottoDi(a);
  
-        {prof && (
+          const gga = amtGiornate(pa);
  
-          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px' }}>
+          const fatteA = gga.filter((g) => (a.giorni || {})[g.n]).length;
  
-            <RagnatelaAmt valori={valori} precedenti={prof.prec ? prof.prec.qualita : null} />
+          const rimasti = amtGiorniRimasti(a);
  
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '11px', color: 'var(--fg-64748b)', margin: '4px 0 10px 0' }}>
+          return (
  
-              <span><span style={{ display: 'inline-block', width: '14px', height: '3px', background: 'var(--bg-10b981)', verticalAlign: 'middle', marginRight: '5px' }} />{`Ora (${amtDataIT(prof.ultima.completed_at)})`}</span>
+            <div key={a.id} style={{ ...scheda, border: '1.5px solid var(--bd-10b981)' }}>
  
-              {prof.precedente && <span><span style={{ display: 'inline-block', width: '14px', borderTop: '2px dashed var(--fg-94a3b8)', verticalAlign: 'middle', marginRight: '5px' }} />{`Precedente (${amtDataIT(prof.precedente.completed_at)})`}</span>}
+              <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{perCoach ? `${AMT_NOMI[pa]} · ${a.started_at ? 'in corso' : 'sbloccato, non ancora iniziato'}` : a.started_at ? `${AMT_NOMI[pa]} in corso` : `${AMT_NOMI[pa]} sbloccato! \u{1F3C5}`}</span>
  
-            </div>
+              <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-64748b)', margin: '4px 0 12px 0' }}>{`${gga.length > 1 ? `Giornate fatte: ${fatteA} di ${gga.length} · ` : ''}da completare entro il ${itDaIso(String(a.deadline).slice(0, 10))}${rimasti !== null ? ` (${rimasti <= 0 ? 'oggi' : rimasti === 1 ? 'domani' : `tra ${rimasti} giorni`})` : ''}`}</span>
  
-            {prof.media !== null && <span style={{ display: 'block', textAlign: 'center', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '10px' }}>Punteggio medio <strong style={{ color: 'var(--fg-10b981)', fontSize: '16px' }}>{prof.media}</strong> {`· ${amtLivello(prof.media)}`}</span>}
+              {perCoach ? (
  
-            {AMT_QUALITA.map((q) => {
+                <div style={{ display: 'flex', gap: '8px' }}>
  
-              const x = prof.qualita[q.k];
+                  <button type="button" onClick={() => amtProroga(a, 7)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Proroga +7 giorni</button>
  
-              const prima = prof.prec?.qualita?.[q.k];
- 
-              const diff = x && !x.vecchio && prima !== undefined ? x.v - prima : null;
- 
-              const aperto = amtQualitaAperta === q.k;
- 
-              return (
- 
-                <div key={q.k} style={{ borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                  <button type="button" onClick={() => setAmtQualitaAperta(aperto ? null : q.k)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
- 
-                    <span style={{ width: '22px', flexShrink: 0 }}>{q.icona}</span>
- 
-                    <span style={{ flex: 1, minWidth: 0, fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{q.nome}</span>
- 
-                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', minWidth: '26px', textAlign: 'right' }}>{x ? x.v : '–'}</span>
- 
-                    <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', width: '78px' }}>{x ? (x.vecchio ? 'non aggiornato' : amtLivello(x.v)) : 'non misurato'}</span>
- 
-                    <span style={{ fontSize: '11.5px', fontWeight: 'bold', width: '38px', textAlign: 'right', color: diff === null ? 'var(--fg-94a3b8)' : diff > 0 ? 'var(--fg-16a34a)' : diff < 0 ? 'var(--fg-dc2626)' : 'var(--fg-64748b)' }}>{diff === null ? '' : diff > 0 ? `▲ ${diff}` : diff < 0 ? `▼ ${-diff}` : '='}</span>
- 
-                  </button>
- 
-                  {aperto && (
- 
-                    <div style={{ padding: '0 0 10px 30px' }}>
- 
-                      {AMT_TEST.filter((d) => d.q === q.k).map((d) => {
- 
-                        const grezzo = (prof.ultima.results || {})[d.k];
- 
-                        const p = prof.calc.test[d.k];
- 
-                        const peso = parseFloat(String(prof.ultima.weight_kg ?? '').replace(',', '.')) || null;
- 
-                        const v = amtValore(d, grezzo, peso);
- 
-                        const testo = !grezzo || grezzo === 'salta' ? (grezzo === 'salta' ? 'saltato' : 'non fatto')
- 
-                          : d.tipo === 'tempo' ? amtTempoTesto(v || 0)
- 
-                          : d.tipo === 'kg' ? `${String(grezzo).replace('.', ',')} kg${v ? ` · ${String(Math.round(v * 100) / 100).replace('.', ',')}× peso` : ''}`
- 
-                          : `${grezzo} ${d.tipo === 'cal' ? 'cal' : 'rip'}`;
- 
-                        return (
- 
-                          <div key={d.k} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '3px 0' }}>
- 
-                            <span style={{ color: 'var(--fg-475569)', minWidth: 0 }}>{d.nome}</span>
- 
-                            <span style={{ color: 'var(--fg-334155)', fontWeight: 'bold', textAlign: 'right' }}>{testo}{p !== undefined ? ` · ${amtLivello(p)}` : ''}</span>
- 
-                          </div>
- 
-                        );
- 
-                      })}
- 
-                    </div>
- 
-                  )}
+                  <button type="button" onClick={() => amtAnnulla(a)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla sblocco</button>
  
                 </div>
  
-              );
+              ) : (
  
-            })}
- 
-            {prof.ultima.parziale && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-b45309)', marginTop: '6px' }}>Test chiuso alla scadenza: alcune giornate non sono state fatte.</span>}
- 
-          </div>
- 
-        )}
- 
-        {perCoach ? (
- 
-          aperta ? (() => {
- 
-            const fatte = AMT_GIORNATE.filter((g) => (aperta.giorni || {})[g.n]).length;
- 
-            const rimasti = amtGiorniRimasti(aperta);
- 
-            return (
- 
-              <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '12px', padding: '14px' }}>
- 
-                <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{aperta.started_at ? 'Test in corso' : 'Test sbloccato, non ancora iniziato'}</span>
- 
-                <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-64748b)', marginTop: '4px' }}>{`Giornate fatte: ${fatte} di ${AMT_GIORNATE.length} · scade il ${itDaIso(String(aperta.deadline).slice(0, 10))}${rimasti !== null ? ` (${rimasti <= 0 ? 'oggi' : rimasti === 1 ? 'domani' : `tra ${rimasti} giorni`})` : ''}`}</span>
- 
-                {aperta.weight_kg && <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{`Peso al test: ${String(aperta.weight_kg).replace('.', ',')} kg`}</span>}
- 
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
- 
-                  <button type="button" onClick={() => amtProroga(aperta, 7)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Proroga +7 giorni</button>
- 
-                  <button type="button" onClick={() => amtAnnulla(aperta)} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-fecaca)', background: 'var(--bg-fef2f2)', color: 'var(--fg-b91c1c)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla sblocco</button>
- 
-                </div>
- 
-              </div>
- 
-            );
- 
-          })() : (
- 
-            <>
- 
-              <button type="button" onClick={() => atleta && amtSblocca(atleta)} style={bottone}><Icona nome="chiave" size={16} /> Sblocca AMT Test</button>
- 
-              <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '-6px', lineHeight: 1.45 }}>{`L’atleta riceve una notifica e ha ${AMT_GIORNI_DURATA} giorni per completare le ${AMT_GIORNATE.length} giornate. Quando finisce, il test si richiude da solo.`}</span>
- 
-            </>
- 
-          )
- 
-        ) : aperta ? (
- 
-          <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '12px', padding: '14px' }}>
- 
-            <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{aperta.started_at ? 'Il tuo test è in corso' : 'Il tuo AMT Test è sbloccato! \u{1F3C5}'}</span>
- 
-            <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-64748b)', margin: '4px 0 12px 0' }}>{`Giornate fatte: ${AMT_GIORNATE.filter((g) => (aperta.giorni || {})[g.n]).length} di ${AMT_GIORNATE.length} · da completare entro il ${itDaIso(String(aperta.deadline).slice(0, 10))}`}</span>
- 
-            <button type="button" onClick={() => { setAmtInCorso(true); setAmtGiornata(null); setAmtAvvio({ hoTutto: false, peso: '', sesso: '' }); amtCaricaMaxRecenti(athleteId); window.scrollTo(0, 0); }} style={bottone}>
- 
-              {aperta.started_at ? 'Continua il test' : 'Inizia il test'}
- 
-            </button>
- 
-          </div>
- 
-        ) : (
- 
-          <button type="button" onClick={() => setAmtLucchetto(true)} style={{ ...bottone, background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)' }}>
- 
-            <Icona nome="lucchetto" size={16} /> {prof ? 'Rifai l’AMT Test' : 'Sblocca AMT Test'}
- 
-          </button>
- 
-        )}
- 
-        {prof ? (
- 
-          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '12px 14px' }}>
- 
-            <button type="button" onClick={() => setAmtIntroAperta(!amtIntroAperta)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>
- 
-              Cos&apos;è l&apos;AMT Test? <span style={{ color: 'var(--fg-10b981)' }}>{amtIntroAperta ? '▲' : '▼'}</span>
- 
-            </button>
- 
-            {amtIntroAperta && <div style={{ marginTop: '10px' }}>{testoIntro}</div>}
- 
-          </div>
- 
-        ) : (
- 
-          <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px' }}>{testoIntro}</div>
- 
-        )}
- 
-        {amtLucchetto && !perCoach && (
- 
-          <div onClick={() => setAmtLucchetto(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 4600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
- 
-            <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '24px 20px', maxWidth: '360px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
- 
-              <div style={{ fontSize: '34px', marginBottom: '6px' }}>{'\u{1F512}'}</div>
- 
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: 'var(--fg-10b981)' }}>AMT Test</h3>
- 
-              <p style={{ margin: '0 0 18px 0', fontSize: '14px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>L&apos;AMT Test è una funzione a pagamento. Contatta il tuo coach per sbloccarlo.</p>
- 
-              {amtConfig.shopUrl && (
- 
-                <a href={amtConfig.shopUrl} target="_blank" rel="noopener noreferrer" style={{ ...bottone, textDecoration: 'none', marginBottom: '9px' }}>{'\u{1F6D2}'} Acquista il test</a>
+                <button type="button" onClick={() => amtApriSessione(a)} style={bottone}>{a.started_at ? 'Continua il test' : 'Inizia il test'}</button>
  
               )}
  
+            </div>
+ 
+          );
+ 
+        })}
+ 
+        {/* 1) Ragnatela (AMT Test) */}
+ 
+        <div style={scheda}>
+ 
+          {titoletto('AMT TEST · PRESTAZIONE', prof ? `ultimo: ${amtDataIT(prof.ultima.completed_at)}` : undefined)}
+ 
+          {prof ? (
+ 
+            <>
+ 
+              <RagnatelaAmt valori={valori} precedenti={prof.prec ? prof.prec.qualita : null} />
+ 
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '11px', color: 'var(--fg-64748b)', margin: '4px 0 10px 0' }}>
+ 
+                <span><span style={{ display: 'inline-block', width: '14px', height: '3px', background: 'var(--bg-10b981)', verticalAlign: 'middle', marginRight: '5px' }} />{`Ora (${amtDataIT(prof.ultima.completed_at)})`}</span>
+ 
+                {prof.precedente && <span><span style={{ display: 'inline-block', width: '14px', borderTop: '2px dashed var(--fg-94a3b8)', verticalAlign: 'middle', marginRight: '5px' }} />{`Precedente (${amtDataIT(prof.precedente.completed_at)})`}</span>}
+ 
+              </div>
+ 
+              {prof.media !== null && <span style={{ display: 'block', textAlign: 'center', fontSize: '13px', color: 'var(--fg-334155)', marginBottom: '10px' }}>Punteggio medio <strong style={{ color: 'var(--fg-10b981)', fontSize: '16px' }}>{prof.media}</strong> {`· ${amtLivello(prof.media)}`}</span>}
+ 
+              {AMT_QUALITA.map((q) => {
+ 
+                const x = prof.qualita[q.k];
+ 
+                const prima = prof.prec?.qualita?.[q.k];
+ 
+                const diff = x && !x.vecchio && prima !== undefined ? x.v - prima : null;
+ 
+                const aperto = amtQualitaAperta === q.k;
+ 
+                return (
+ 
+                  <div key={q.k} style={{ borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                    <button type="button" onClick={() => setAmtQualitaAperta(aperto ? null : q.k)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+ 
+                      <span style={{ width: '22px', flexShrink: 0 }}>{q.icona}</span>
+ 
+                      <span style={{ flex: 1, minWidth: 0, fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{q.nome}</span>
+ 
+                      <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', minWidth: '26px', textAlign: 'right' }}>{x ? x.v : '–'}</span>
+ 
+                      <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', width: '78px' }}>{x ? (x.vecchio ? 'non aggiornato' : amtLivello(x.v)) : 'non misurato'}</span>
+ 
+                      <span style={{ fontSize: '11.5px', fontWeight: 'bold', width: '38px', textAlign: 'right', color: diff === null ? 'var(--fg-94a3b8)' : diff > 0 ? 'var(--fg-16a34a)' : diff < 0 ? 'var(--fg-dc2626)' : 'var(--fg-64748b)' }}>{diff === null ? '' : diff > 0 ? `▲ ${diff}` : diff < 0 ? `▼ ${-diff}` : '='}</span>
+ 
+                    </button>
+ 
+                    {aperto && (
+ 
+                      <div style={{ padding: '0 0 10px 30px' }}>
+ 
+                        {amtDefs('test').filter((d) => d.q === q.k).map((d) => {
+ 
+                          const grezzo = (prof.ultima.results || {})[d.k];
+ 
+                          const pt = prof.calc.test[d.k];
+ 
+                          const peso = parseFloat(String(prof.ultima.weight_kg ?? '').replace(',', '.')) || null;
+ 
+                          const v = amtValore(d, grezzo, peso);
+ 
+                          const testo = !grezzo || grezzo === 'salta' ? (grezzo === 'salta' ? 'saltato' : 'non fatto')
+ 
+                            : d.tipo === 'tempo' ? amtTempoTesto(v || 0)
+ 
+                            : d.tipo === 'sec' ? `${String(grezzo).replace('.', ',')} s`
+ 
+                            : d.tipo === 'kg' ? `${String(grezzo).replace('.', ',')} kg${v ? ` · ${String(Math.round(v * 100) / 100).replace('.', ',')}× peso` : ''}`
+ 
+                            : `${grezzo} ${d.tipo === 'cal' ? 'cal' : 'rip'}`;
+ 
+                          return (
+ 
+                            <div key={d.k} style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', fontSize: '12px', padding: '3px 0' }}>
+ 
+                              <span style={{ color: 'var(--fg-475569)', minWidth: 0 }}>{d.nome}</span>
+ 
+                              <span style={{ color: 'var(--fg-334155)', fontWeight: 'bold', textAlign: 'right' }}>{testo}{pt !== undefined ? ` · ${amtLivello(pt)}` : ''}</span>
+ 
+                            </div>
+ 
+                          );
+ 
+                        })}
+ 
+                      </div>
+ 
+                    )}
+ 
+                  </div>
+ 
+                );
+ 
+              })}
+ 
+              {prof.ultima.parziale && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-b45309)', marginTop: '6px' }}>Test chiuso alla scadenza: alcune giornate non sono state fatte.</span>}
+ 
+            </>
+ 
+          ) : bloccato(<RagnatelaAmt valori={{ forza: 62, potenza: 55, velocita: 48, anaerobica: 58, aerobica: 66, resistenza: 52, ginnastica: 44 }} />, perCoach ? 'AMT Test non ancora fatto' : 'Sblocca AMT Test per vedere la tua ragnatela')}
+ 
+        </div>
+ 
+        {/* 2) Mobilità ed equilibrio + 3) Longevità (AMT Longevity) */}
+ 
+        <div style={scheda}>
+ 
+          {titoletto('MOBILITÀ ED EQUILIBRIO', lon ? `ultimo: ${amtDataIT(lon.ultima.completed_at)}` : undefined)}
+ 
+          {lon ? (
+ 
+            <>
+ 
+              {righeSemaforo(lon.dati.mobilita, lon.prec?.mobilita)}
+ 
+              {lon.dati.asimmetrie.length > 0 && <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-b45309)', marginTop: '6px' }}>{`⚠️ Differenza tra lato destro e sinistro: ${lon.dati.asimmetrie.join(', ')}`}</span>}
+ 
+              {lon.dati.fastidi.length > 0 && <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-b91c1c)', marginTop: '4px' }}>{`Fastidio segnalato in: ${lon.dati.fastidi.join(', ')}`}</span>}
+ 
+            </>
+ 
+          ) : bloccato(<div>{righeSemaforo(esempioMob)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity')}
+ 
+        </div>
+ 
+        <div style={scheda}>
+ 
+          {titoletto('LONGEVITÀ', lon ? `ultimo: ${amtDataIT(lon.ultima.completed_at)}` : undefined)}
+ 
+          {finalita}
+ 
+          {lon ? righeSemaforo(lon.dati.longevita, lon.prec?.longevita) : bloccato(<div>{righeSemaforo(esempioLon)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity')}
+ 
+        </div>
+ 
+        {/* Sblocco (coach) o lucchetto (atleta) */}
+ 
+        {perCoach ? (() => {
+ 
+          const haTest = aperte.some((a: any) => amtProdottoDi(a) === 'test');
+ 
+          const haLon = aperte.some((a: any) => amtProdottoDi(a) === 'longevity');
+ 
+          const btn = (t: string, prodotti: ('test' | 'longevity')[], dis: boolean) => (
+ 
+            <button type="button" disabled={dis} onClick={() => atleta && amtSblocca(atleta, prodotti)} style={{ ...bottone, padding: '12px', fontSize: '14px', opacity: dis ? 0.4 : 1, cursor: dis ? 'default' : 'pointer' }}><Icona nome="chiave" size={15} /> {t}</button>
+ 
+          );
+ 
+          return (
+ 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+ 
+              {btn('Sblocca AMT Test', ['test'], haTest)}
+ 
+              {btn('Sblocca AMT Longevity', ['longevity'], haLon)}
+ 
+              {btn('Sblocca AMT Test + Longevity', ['test', 'longevity'], haTest || haLon)}
+ 
+              <span style={{ fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45 }}>{`L’atleta riceve una notifica. AMT Test: ${AMT_DURATA.test} giorni · AMT Longevity: ${AMT_DURATA.longevity} giorni · insieme: ${AMT_DURATA.test} giorni. Quando finisce, il test si richiude da solo.`}</span>
+ 
+            </div>
+ 
+          );
+ 
+        })() : (aperte.length < 2 && (
+ 
+          <button type="button" onClick={() => setAmtLucchetto(true)} style={{ ...bottone, background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)' }}>
+ 
+            <Icona nome="lucchetto" size={16} /> {prof || lon ? 'Rifai o sblocca un test AMT' : 'Sblocca AMT'}
+ 
+          </button>
+ 
+        ))}
+ 
+        <div style={scheda}>
+ 
+          <button type="button" onClick={() => setAmtIntroAperta(!amtIntroAperta)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>
+ 
+            Cos&apos;è l&apos;AMT? <span style={{ color: 'var(--fg-10b981)' }}>{amtIntroAperta || (!prof && !lon) ? '▲' : '▼'}</span>
+ 
+          </button>
+ 
+          {(amtIntroAperta || (!prof && !lon)) && <p style={{ margin: '10px 0 0 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{intro}</p>}
+ 
+        </div>
+ 
+        {amtLucchetto && !perCoach && (
+ 
+          <div onClick={() => setAmtLucchetto(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 4600, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', overflowY: 'auto' }}>
+ 
+            <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '22px 18px', maxWidth: '380px', width: '100%', boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }}>
+ 
+              <div style={{ fontSize: '32px', textAlign: 'center', marginBottom: '4px' }}>{'\u{1F512}'}</div>
+ 
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', color: 'var(--fg-10b981)', textAlign: 'center' }}>AMT</h3>
+ 
+              <p style={{ margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.5, textAlign: 'center' }}>I test AMT sono funzioni a pagamento. Scegli quello che fa per te e contatta il tuo coach per sbloccarlo.</p>
+ 
+              {([['test', 'AMT Test', amtConfig.shopUrl], ['longevity', 'AMT Longevity', (amtConfig as any).shopUrlLong], ['bundle', 'AMT Test + Longevity', (amtConfig as any).shopUrlBundle]] as [string, string, string][]).map(([k, t, link]) => (
+ 
+                <div key={k} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '12px', marginBottom: '10px' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{t}</span>
+ 
+                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', margin: '3px 0 9px 0', lineHeight: 1.4 }}>{AMT_DESCRIZIONI[k]}</span>
+ 
+                  {link && <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...bottone, padding: '10px', fontSize: '13.5px' }}>{'\u{1F6D2}'} Acquista</a>}
+ 
+                </div>
+ 
+              ))}
+ 
               {amtLinkWhatsapp() && (
  
-                <a href={amtLinkWhatsapp()} target="_blank" rel="noopener noreferrer" style={{ ...bottone, textDecoration: 'none', marginBottom: '9px', background: '#25D366', color: '#fff' }}>{'\u{1F4AC}'} Scrivi al coach</a>
+                <a href={amtLinkWhatsapp()} target="_blank" rel="noopener noreferrer" style={{ ...bottone, marginBottom: '9px', background: '#25D366', color: '#fff' }}>{'\u{1F4AC}'} Scrivi al coach</a>
  
               )}
  
@@ -13719,7 +14485,8 @@ const [notificationError, setNotificationError] = useState('');
  
     // Scrivendo un esercizio già in libreria, ne recupero il video
  
-    if (campo === 'name') { 
+    if (campo === 'name') {
+ 
       const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, valore));
  
       if (inLibreria?.video_url && !copia[i].videoUrl) copia[i].videoUrl = inLibreria.video_url;
@@ -20045,11 +20812,13 @@ fetchAllAthleteResultsForCoach();
  
                     if (sess.some((x: any) => x.status === 'aperta')) return null;
  
-                    const pr = amtProfilo(sess);
+                    const fatte = sess.filter((x: any) => x.status === 'completata' && x.completed_at).sort((x: any, y: any) => String(x.completed_at).localeCompare(String(y.completed_at)));
  
-                    if (!pr || periodiDa4Mesi(pr.ultima.completed_at) < 1) return null;
+                    const ultima = fatte[fatte.length - 1];
  
-                    return { a, quando: pr.ultima.completed_at };
+                    if (!ultima || periodiDa4Mesi(ultima.completed_at) < 1) return null;
+ 
+                    return { a, quando: ultima.completed_at };
  
                   })
  
@@ -20330,7 +21099,7 @@ fetchAllAthleteResultsForCoach();
  
                     )), 'Pacchetti che finiscono nei prossimi 30 giorni o finiti da meno di 30. Lo stato (attivo/scaduto) lo cambi tu dal profilo.')}
  
-                    {sezione('amt', 'medaglia', 'AMT Test da rifare', amtDaRifare.length, amtDaRifare.map(({ a, quando }: any) => riga(
+                    {sezione('amt', 'medaglia', 'AMT da rifare', amtDaRifare.length, amtDaRifare.map(({ a, quando }: any) => riga(
  
                       `amt${a.id}`,
  
@@ -20340,7 +21109,7 @@ fetchAllAthleteResultsForCoach();
  
                       etichetta(`ultimo ${amtDataIT(quando)}`, giallo)
  
-                    )), 'Sono passati almeno 4 mesi dall\u2019ultimo AMT Test: è il momento di proporglielo di nuovo.')}
+                    )), 'Sono passati almeno 4 mesi dall\u2019ultimo test AMT: è il momento di proporglielo di nuovo.')}
  
                     {sezione('senza', 'avviso', 'Attivi senza programma', senzaProgramma.length, senzaProgramma.map((a: any) => riga(
  
@@ -20484,7 +21253,7 @@ fetchAllAthleteResultsForCoach();
  
                     {gruppoB('FUNZIONI A PAGAMENTO', [
  
-                      voceB('amt', 'medaglia', 'AMT Test', 'Presentazione, link allo shop, WhatsApp e annuncio', amtConfig.shopUrl || amtConfig.whatsapp ? acceso : { t: 'Da completare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }),
+                      voceB('amt', 'medaglia', 'AMT Test e Longevity', 'Presentazione, link allo shop, WhatsApp e annuncio', amtConfig.shopUrl || amtConfig.whatsapp ? acceso : { t: 'Da completare', bg: 'var(--bg-fef3c7)', fg: 'var(--fg-b45309)' }),
  
                     ])}
  
@@ -21010,11 +21779,11 @@ fetchAllAthleteResultsForCoach();
  
               <div>
  
-                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test</h4>
+                <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test e Longevity</h4>
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
-                  La presentazione che gli atleti vedono aprendo AMT Test, e dove li mandano i pulsanti del lucchetto. Se lasci la presentazione vuota si usa il testo predefinito.
+                  La presentazione che gli atleti vedono aprendo AMT, e dove li mandano i pulsanti del lucchetto (un link per ogni prodotto). Se lasci la presentazione vuota si usa il testo predefinito.
  
                 </p>
  
@@ -21030,9 +21799,17 @@ fetchAllAthleteResultsForCoach();
  
                 )}
  
-                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link al prodotto sullo shop</label>
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Test</label>
  
                 <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test" value={amtConfig.shopUrl || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrl: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+ 
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Longevity</label>
+ 
+                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-longevity" value={amtConfig.shopUrlLong || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlLong: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+ 
+                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Test + Longevity</label>
+ 
+                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test-longevity" value={amtConfig.shopUrlBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlBundle: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
  
                 <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Numero WhatsApp</label>
  
@@ -21060,9 +21837,9 @@ fetchAllAthleteResultsForCoach();
  
                   <span style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', marginBottom: '4px' }}>Annuncio</span>
  
-                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.45 }}>Manda a tutti una notifica (anche push) per far conoscere l&apos;AMT Test. Toccandola si apre la pagina del test.</span>
+                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.45 }}>Manda a tutti una notifica (anche push) per far conoscere i test AMT. Toccandola si apre la pagina AMT.</span>
  
-                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT Test \u{1F3C5}', testo: 'Scopri che atleta sei davvero: 15 test, 6 qualità e il tuo profilo a ragnatela. Lo trovi in Profilo > AMT Test.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+                  <button type="button" onClick={() => setAmtAnnuncio({ titolo: 'Novità: AMT \u{1F3C5}', testo: 'Scopri che atleta sei davvero: AMT Test (7 qualità e il tuo profilo a ragnatela) e AMT Longevity (mobilità, equilibrio e longevità, anche a casa). Li trovi in Profilo > AMT.', chi: 'attivi' })} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
  
                     {'\u{1F4E3}'} Annuncia a tutti gli atleti
  
@@ -21082,7 +21859,7 @@ fetchAllAthleteResultsForCoach();
  
                     <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '20px', maxWidth: '420px', width: '100%', boxSizing: 'border-box' }}>
  
-                      <h3 style={{ margin: '0 0 12px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Annuncia AMT Test</h3>
+                      <h3 style={{ margin: '0 0 12px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Annuncia AMT</h3>
  
                       <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Titolo</label>
  
@@ -21230,7 +22007,7 @@ fetchAllAthleteResultsForCoach();
  
                     <button onClick={() => setCoachAthleteDetailTab('progressi')} style={{ ...pillola(coachAthleteDetailTab === 'progressi', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="razzo" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Percorso</button>
  
-                    <button onClick={() => setCoachAthleteDetailTab('amt')} style={{ ...pillola(coachAthleteDetailTab === 'amt', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="medaglia" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT Test</button>
+                    <button onClick={() => setCoachAthleteDetailTab('amt')} style={{ ...pillola(coachAthleteDetailTab === 'amt', 'var(--fg-10b981)', 'piccolo'), flex: '1 1 auto', minWidth: 0 }}><Icona nome="medaglia" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />AMT</button>
  
                   </div>
  
@@ -21753,7 +22530,8 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                                     <button
  
                                                       onClick={(e) => { e.stopPropagation(); preparaAudio(); setTimerConfig({ tipo: 'recupero', secondi: secRecEx }); }}
-                                                       title="Avvia questo recupero"
+ 
+                                                      title="Avvia questo recupero"
  
                                                       style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', flexShrink: 0, padding: '3px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)', fontSize: '10.5px', fontWeight: 'bold', cursor: 'pointer' }}
  
@@ -26823,7 +27601,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         const pr = amtProfilo(mie);
  
-                        return voce('amt', 'medaglia', 'AMT Test', ap
+                        return voce('amt', 'medaglia', 'AMT', ap
  
                           ? { t: ap.started_at ? 'In corso' : 'Sbloccato!', bg: 'var(--bg-dcfce7)', fg: 'var(--fg-166534)' }
  
@@ -26831,7 +27609,11 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             ? { t: `${pr.media} \u00b7 ${amtLivello(pr.media)}`, bg: 'var(--bg-ecfdf5)', fg: 'var(--fg-047857)' }
  
-                            : { t: '\u{1F512}', bg: 'var(--bg-f1f5f9)', fg: 'var(--fg-64748b)' });
+                            : mie.some((x: any) => x.status === 'completata')
+ 
+                              ? null
+ 
+                              : { t: '\u{1F512}', bg: 'var(--bg-f1f5f9)', fg: 'var(--fg-64748b)' });
  
                       })(),
  
@@ -27653,37 +28435,37 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
             <div>
  
-              {(() => {
+              {(amtSessioni[session.user.id] || []).filter((x: any) => x.status === 'aperta').map((ap: any) => {
  
-                // AMT Test sbloccato: promemoria in cima agli allenamenti per tutta la durata
+                // Test AMT sbloccato: promemoria in cima agli allenamenti per tutta la durata
  
-                const ap = (amtSessioni[session.user.id] || []).find((x: any) => x.status === 'aperta');
+                const gga = amtGiornate(amtProdottoDi(ap));
  
-                if (!ap) return null;
- 
-                const fatte = AMT_GIORNATE.filter((g) => (ap.giorni || {})[g.n]).length;
+                const fatte = gga.filter((g) => (ap.giorni || {})[g.n]).length;
  
                 const rimasti = amtGiorniRimasti(ap);
  
+                const nome = AMT_NOMI[amtProdottoDi(ap)];
+ 
                 return (
  
-                  <div style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '14px', padding: '13px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div key={ap.id} style={{ background: 'var(--bg-ffffff)', border: '1.5px solid var(--bd-10b981)', borderRadius: '14px', padding: '13px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}>
  
                     <span style={{ width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--acc-rgb), 0.15)', color: 'var(--fg-10b981)' }}><Icona nome="medaglia" size={19} /></span>
  
                     <span style={{ flex: 1, minWidth: 0 }}>
  
-                      <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{ap.started_at ? 'AMT Test in corso' : 'AMT Test sbloccato! \u{1F3C5}'}</span>
+                      <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{ap.started_at ? `${nome} in corso` : `${nome} sbloccato! \u{1F3C5}`}</span>
  
                       <span style={{ display: 'block', fontSize: '12px', color: rimasti !== null && rimasti <= 2 ? 'var(--fg-b91c1c)' : 'var(--fg-64748b)', marginTop: '2px' }}>
  
-                        {`Giornate ${fatte}/${AMT_GIORNATE.length} \u00b7 ${rimasti === null ? '' : rimasti <= 0 ? 'ultimo giorno' : rimasti === 1 ? 'manca 1 giorno' : `mancano ${rimasti} giorni`}`}
+                        {`${gga.length > 1 ? `Giornate ${fatte}/${gga.length} \u00b7 ` : ''}${rimasti === null ? '' : rimasti <= 0 ? 'ultimo giorno' : rimasti === 1 ? 'manca 1 giorno' : `mancano ${rimasti} giorni`}`}
  
                       </span>
  
                     </span>
  
-                    <button type="button" onClick={() => { setActiveTab('profile'); setAthleteProfileTab('amt'); setAmtInCorso(true); setAmtGiornata(null); setAmtAvvio({ hoTutto: false, peso: '', sesso: '' }); amtCaricaMaxRecenti(session.user.id); window.scrollTo(0, 0); }} style={{ flexShrink: 0, padding: '9px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => { setActiveTab('profile'); setAthleteProfileTab('amt'); amtApriSessione(ap); }} style={{ flexShrink: 0, padding: '9px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
  
                       {ap.started_at ? 'Continua' : 'Inizia'}
  
@@ -27693,7 +28475,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 );
  
-              })()}
+              })}
  
               <CompetitionCountdown gare={competitions} />
  
@@ -27973,7 +28755,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                             onClick={() => apriConsigli(prog.id, aperto)}
  
-                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-fde68a)', background: 'var(--bg-fffbeb)', cursor: 'pointer' }} 
+                            style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '12px 14px', borderRadius: '999px', border: '1px solid var(--bd-fde68a)', background: 'var(--bg-fffbeb)', cursor: 'pointer' }}
+ 
                           >
  
                             <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
