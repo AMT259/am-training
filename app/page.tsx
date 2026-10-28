@@ -1660,7 +1660,7 @@ const AMT_ATTREZZI = [
  
 const AMT_GIORNI_DURATA = 14;
  
-const AMT_INTRO_PREDEFINITA = `Scopri che atleta sei davvero.
+const AMT_INTRO_TEST = `Scopri che atleta sei davvero.
  
  
 Ti alleni con costanza, ma sai qual è il tuo vero punto forte? E quello che ti sta frenando?
@@ -1678,22 +1678,68 @@ Perché farlo
  
 • Allenamenti più mirati: il coach usa i risultati per costruire i tuoi prossimi programmi sui tuoi punti deboli.
  
-• Vedi i tuoi progressi: rifacendolo ogni 4-6 mesi, la nuova ragnatela si sovrappone alla vecchia e vedi dove sei migliorato.
- 
-• Motivazione vera: salire da "Intermedio" ad "Avanzato" in una qualità dà soddisfazione.
+• Vedi i tuoi progressi: rifacendolo ogni 4-6 mesi, la nuova ragnatela si sovrappone alla vecchia.
  
  
 Come funziona
  
-5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.
+5 giornate di test da completare in 14 giorni, con istruzioni, video e timer in ogni prova. Ti serve una palestra attrezzata.`;
+ 
+const AMT_INTRO_LONG = `Muoviti bene, oggi e domani.
  
  
-AMT Longevity
- 
-Una sessione di 20-30 minuti, anche a casa: mobilità (squat, spalle, catena posteriore), equilibrio e indicatori di longevità come il Sitting-Rising Test. Risultati a semaforo, con le differenze tra lato destro e sinistro.
+Quanto si muove bene il tuo corpo? Che equilibrio hai? E come stai sugli indicatori che la ricerca collega alla salute nel tempo?
  
  
-Puoi scegliere AMT Test, AMT Longevity oppure AMT Test + Longevity, che li unisce in un unico test.`;
+AMT Longevity unisce in un'unica valutazione mobilità, equilibrio e longevità.
+ 
+ 
+Cosa valuti
+ 
+• Mobilità: anche, caviglie, spalle e catena posteriore.
+ 
+• Equilibrio: su ogni gamba, con le differenze tra destra e sinistra.
+ 
+• Longevità: Sitting-Rising Test, push up, presa e capacità aerobica.
+ 
+ 
+Cosa ottieni
+ 
+Risultati a semaforo facili da leggere, il confronto con il test precedente e programmi con il lavoro che ti serve davvero.
+ 
+ 
+Come funziona
+ 
+Una sola sessione di 20-30 minuti, anche a casa, da fare entro 7 giorni. Ti servono un muro, un tappetino e il telefono.
+ 
+ 
+Stime a scopo sportivo, non una valutazione medica.`;
+ 
+const AMT_INTRO_BUNDLE = `Il test completo.
+ 
+ 
+Prestazione, mobilità, equilibrio e longevità: tutto in un unico test.
+ 
+ 
+Le 5 giornate dell'AMT Test con dentro tutte le prove di AMT Longevity, organizzate per farle nel momento giusto, senza ripetere nulla.
+ 
+ 
+Cosa ottieni
+ 
+• La tua ragnatela con 7 qualità, da Principiante a Elite.
+ 
+• Il quadro di mobilità ed equilibrio, con le differenze tra lato destro e sinistro.
+ 
+• Gli indicatori di longevità a semaforo.
+ 
+• Il confronto con i test precedenti e programmi sui tuoi punti deboli.
+ 
+ 
+Come funziona
+ 
+5 giornate da completare in 14 giorni, con istruzioni, video e timer. Ti serve una palestra attrezzata.`;
+ 
+const AMT_INTRO_PREDEFINITA = AMT_INTRO_TEST;
  
 // "m:ss" -> secondi
  
@@ -7915,7 +7961,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [amtSessioni, setAmtSessioni] = useState<{ [athleteId: string]: any[] }>({});
  
-  const [amtConfig, setAmtConfig] = useState<{ intro: string; shopUrl: string; whatsapp: string; shopUrlLong?: string; shopUrlBundle?: string; ultimoAnnuncio?: any }>({ intro: '', shopUrl: '', whatsapp: '' });
+  const [amtConfig, setAmtConfig] = useState<{ intro: string; shopUrl: string; whatsapp: string; shopUrlLong?: string; shopUrlBundle?: string; introLong?: string; introBundle?: string; ultimoAnnuncio?: any }>({ intro: '', shopUrl: '', whatsapp: '' });
  
   const [amtInCorso, setAmtInCorso] = useState(false);
  
@@ -7927,7 +7973,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [amtAvvio, setAmtAvvio] = useState<{ hoTutto: boolean; peso: string; sesso: string }>({ hoTutto: false, peso: '', sesso: '' });
  
-  const [amtLucchetto, setAmtLucchetto] = useState(false);
+  const [amtLucchetto, setAmtLucchetto] = useState<any>(false);
  
   const [amtIntroAperta, setAmtIntroAperta] = useState(false);
  
@@ -13407,7 +13453,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const lon = amtProfiloLong(sessioni);
  
-    const intro = String(amtConfig.intro || '').trim() || AMT_INTRO_PREDEFINITA;
+    const descrizioneAmt = (k: string) => k === 'longevity' ? (String(amtConfig.introLong || '').trim() || AMT_INTRO_LONG)
+ 
+      : k === 'bundle' ? (String(amtConfig.introBundle || '').trim() || AMT_INTRO_BUNDLE)
+ 
+      : (String(amtConfig.intro || '').trim() || AMT_INTRO_TEST);
  
     const valori: { [k: string]: number } = {};
  
@@ -13431,13 +13481,13 @@ const [notificationError, setNotificationError] = useState('');
  
     // Anteprima sfocata con lucchetto, per le parti non ancora fatte
  
-    const bloccato = (contenuto: any, testo: string) => (
+    const bloccato = (contenuto: any, testo: string, prodotto?: string) => (
  
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '10px' }}>
  
         <div style={{ filter: 'blur(4px)', opacity: 0.45, pointerEvents: 'none' }}>{contenuto}</div>
  
-        <div onClick={() => !perCoach && setAmtLucchetto(true)} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: perCoach ? 'default' : 'pointer', textAlign: 'center', padding: '10px' }}>
+        <div onClick={() => !perCoach && setAmtLucchetto(prodotto || true)} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '6px', cursor: perCoach ? 'default' : 'pointer', textAlign: 'center', padding: '10px' }}>
  
           <span style={{ fontSize: '26px' }}>{'\u{1F512}'}</span>
  
@@ -13503,6 +13553,50 @@ const [notificationError, setNotificationError] = useState('');
  
     );
  
+    // I tre prodotti, sempre visibili all'atleta: ognuno con la sua descrizione e il suo lucchetto
+ 
+    const prodottiAmt = perCoach ? null : (
+ 
+      <div style={scheda}>
+ 
+        {titoletto('I TEST AMT')}
+ 
+        {([['test', 'AMT Test', 'grafico'], ['longevity', 'AMT Longevity', 'foglia'], ['bundle', 'AMT Test + Longevity', 'medaglia']] as [string, string, string][]).map(([k, t, ic], i) => {
+ 
+          const pk = k === 'bundle' ? 'completo' : k;
+ 
+          const inCorso = aperte.find((a: any) => amtProdottoDi(a) === pk);
+ 
+          return (
+ 
+            <button key={k} type="button" onClick={() => (inCorso ? amtApriSessione(inCorso) : setAmtLucchetto(k))} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: '12px', textAlign: 'left', padding: '12px 0', background: 'none', border: 'none', borderTop: i === 0 ? 'none' : '1px solid var(--bd-e2e8f0)', cursor: 'pointer' }}>
+ 
+              <span style={{ width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--acc-rgb), 0.12)', color: 'var(--fg-10b981)' }}><Icona nome={ic} size={18} /></span>
+ 
+              <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{t}</span>
+ 
+                <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '2px', lineHeight: 1.4 }}>{AMT_DESCRIZIONI[k]}</span>
+ 
+              </span>
+ 
+              {inCorso
+ 
+                ? <span style={{ flexShrink: 0, fontSize: '11px', fontWeight: 'bold', padding: '3px 9px', borderRadius: '999px', background: 'var(--bg-dcfce7)', color: 'var(--fg-166534)' }}>{inCorso.started_at ? 'In corso' : 'Sbloccato'}</span>
+ 
+                : <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}><Icona nome="lucchetto" size={15} /> Scopri</span>}
+ 
+            </button>
+ 
+          );
+ 
+        })}
+ 
+      </div>
+ 
+    );
+ 
     return (
  
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -13550,6 +13644,8 @@ const [notificationError, setNotificationError] = useState('');
           );
  
         })}
+ 
+        {!prof && !lon && prodottiAmt}
  
         {/* 1) Ragnatela (AMT Test) */}
  
@@ -13653,7 +13749,7 @@ const [notificationError, setNotificationError] = useState('');
  
             </>
  
-          ) : bloccato(<RagnatelaAmt valori={{ forza: 62, potenza: 55, velocita: 48, anaerobica: 58, aerobica: 66, resistenza: 52, ginnastica: 44 }} />, perCoach ? 'AMT Test non ancora fatto' : 'Sblocca AMT Test per vedere la tua ragnatela')}
+          ) : bloccato(<RagnatelaAmt valori={{ forza: 62, potenza: 55, velocita: 48, anaerobica: 58, aerobica: 66, resistenza: 52, ginnastica: 44 }} />, perCoach ? 'AMT Test non ancora fatto' : 'Sblocca AMT Test per vedere la tua ragnatela', 'test')}
  
         </div>
  
@@ -13675,7 +13771,7 @@ const [notificationError, setNotificationError] = useState('');
  
             </>
  
-          ) : bloccato(<div>{righeSemaforo(esempioMob)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity')}
+          ) : bloccato(<div>{righeSemaforo(esempioMob)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity', 'longevity')}
  
         </div>
  
@@ -13685,7 +13781,7 @@ const [notificationError, setNotificationError] = useState('');
  
           {finalita}
  
-          {lon ? righeSemaforo(lon.dati.longevita, lon.prec?.longevita) : bloccato(<div>{righeSemaforo(esempioLon)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity')}
+          {lon ? righeSemaforo(lon.dati.longevita, lon.prec?.longevita) : bloccato(<div>{righeSemaforo(esempioLon)}</div>, perCoach ? 'AMT Longevity non ancora fatto' : 'Sblocca AMT Longevity', 'longevity')}
  
         </div>
  
@@ -13719,27 +13815,7 @@ const [notificationError, setNotificationError] = useState('');
  
           );
  
-        })() : (aperte.length < 2 && (
- 
-          <button type="button" onClick={() => setAmtLucchetto(true)} style={{ ...bottone, background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', border: '1px solid var(--bd-cbd5e1)' }}>
- 
-            <Icona nome="lucchetto" size={16} /> {prof || lon ? 'Rifai o sblocca un test AMT' : 'Sblocca AMT'}
- 
-          </button>
- 
-        ))}
- 
-        <div style={scheda}>
- 
-          <button type="button" onClick={() => setAmtIntroAperta(!amtIntroAperta)} style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '13.5px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>
- 
-            Cos&apos;è l&apos;AMT? <span style={{ color: 'var(--fg-10b981)' }}>{amtIntroAperta || (!prof && !lon) ? '▲' : '▼'}</span>
- 
-          </button>
- 
-          {(amtIntroAperta || (!prof && !lon)) && <p style={{ margin: '10px 0 0 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{intro}</p>}
- 
-        </div>
+        })() : (prof || lon ? prodottiAmt : null)}
  
         {amtLucchetto && !perCoach && (
  
@@ -13749,23 +13825,31 @@ const [notificationError, setNotificationError] = useState('');
  
               <div style={{ fontSize: '32px', textAlign: 'center', marginBottom: '4px' }}>{'\u{1F512}'}</div>
  
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', color: 'var(--fg-10b981)', textAlign: 'center' }}>AMT</h3>
+              {(() => {
  
-              <p style={{ margin: '0 0 16px 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.5, textAlign: 'center' }}>I test AMT sono funzioni a pagamento. Scegli quello che fa per te e contatta il tuo coach per sbloccarlo.</p>
+                const k = typeof amtLucchetto === 'string' ? amtLucchetto : 'test';
  
-              {([['test', 'AMT Test', amtConfig.shopUrl], ['longevity', 'AMT Longevity', (amtConfig as any).shopUrlLong], ['bundle', 'AMT Test + Longevity', (amtConfig as any).shopUrlBundle]] as [string, string, string][]).map(([k, t, link]) => (
+                const titolo = k === 'bundle' ? 'AMT Test + Longevity' : AMT_NOMI[k];
  
-                <div key={k} style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '12px', marginBottom: '10px' }}>
+                const link = k === 'longevity' ? amtConfig.shopUrlLong : k === 'bundle' ? amtConfig.shopUrlBundle : amtConfig.shopUrl;
  
-                  <span style={{ display: 'block', fontSize: '14.5px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{t}</span>
+                return (
  
-                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', margin: '3px 0 9px 0', lineHeight: 1.4 }}>{AMT_DESCRIZIONI[k]}</span>
+                  <>
  
-                  {link && <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...bottone, padding: '10px', fontSize: '13.5px' }}>{'\u{1F6D2}'} Acquista</a>}
+                    <h3 style={{ margin: '0 0 10px 0', fontSize: '19px', color: 'var(--fg-10b981)', textAlign: 'center' }}>{titolo}</h3>
  
-                </div>
+                    <p style={{ margin: '0 0 14px 0', fontSize: '13.5px', color: 'var(--fg-334155)', lineHeight: 1.55, whiteSpace: 'pre-line' }}>{descrizioneAmt(k)}</p>
  
-              ))}
+                    <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, textAlign: 'center' }}>È una funzione a pagamento: acquistalo o contatta il tuo coach per sbloccarlo.</p>
+ 
+                    {link && <a href={link} target="_blank" rel="noopener noreferrer" style={{ ...bottone, marginBottom: '9px' }}>{'\u{1F6D2}'} Acquista {titolo}</a>}
+ 
+                  </>
+ 
+                );
+ 
+              })()}
  
               {amtLinkWhatsapp() && (
  
@@ -21821,33 +21905,71 @@ fetchAllAthleteResultsForCoach();
  
                 <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
  
-                  La presentazione che gli atleti vedono aprendo AMT, e dove li mandano i pulsanti del lucchetto (un link per ogni prodotto). Se lasci la presentazione vuota si usa il testo predefinito.
+                  Per ogni test: la descrizione che l\u2019atleta vede toccandolo nella pagina AMT, e il link allo shop del pulsante Acquista. Se lasci una descrizione vuota si usa il testo predefinito.
  
                 </p>
  
                 <fieldset disabled={sezioneBanner !== 'amt'} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0 }}>
  
-                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Presentazione</label>
+                <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
  
-                <textarea autoComplete="off" rows={10} placeholder={AMT_INTRO_PREDEFINITA} value={amtConfig.intro || ''} onChange={(e) => setAmtConfig({ ...amtConfig, intro: e.target.value })} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.45 }} />
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Test</span>
  
-                {!amtConfig.intro && sezioneBanner === 'amt' && (
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
  
-                  <button type="button" onClick={() => setAmtConfig({ ...amtConfig, intro: AMT_INTRO_PREDEFINITA })} style={{ marginTop: '-4px', marginBottom: '10px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Parti dal testo predefinito</button>
+                  <textarea autoComplete="off" rows={8} placeholder={AMT_INTRO_TEST} value={(amtConfig as any).intro || ''} onChange={(e) => setAmtConfig({ ...amtConfig, intro: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.45 }} />
  
-                )}
+                  {!(amtConfig as any).intro && sezioneBanner === 'amt' && (
  
-                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Test</label>
+                    <button type="button" onClick={() => setAmtConfig({ ...amtConfig, intro: AMT_INTRO_TEST } as any)} style={{ marginTop: '-4px', marginBottom: '10px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Parti dal testo predefinito</button>
  
-                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test" value={amtConfig.shopUrl || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrl: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+                  )}
  
-                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Longevity</label>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Link allo shop</label>
  
-                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-longevity" value={amtConfig.shopUrlLong || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlLong: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+                  <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test" value={(amtConfig as any).shopUrl || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrl: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, marginBottom: 0 }} />
  
-                <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Link shop · AMT Test + Longevity</label>
+                </div>
  
-                <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test-longevity" value={amtConfig.shopUrlBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlBundle: e.target.value })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} />
+                <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Longevity</span>
+ 
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
+ 
+                  <textarea autoComplete="off" rows={8} placeholder={AMT_INTRO_LONG} value={(amtConfig as any).introLong || ''} onChange={(e) => setAmtConfig({ ...amtConfig, introLong: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.45 }} />
+ 
+                  {!(amtConfig as any).introLong && sezioneBanner === 'amt' && (
+ 
+                    <button type="button" onClick={() => setAmtConfig({ ...amtConfig, introLong: AMT_INTRO_LONG } as any)} style={{ marginTop: '-4px', marginBottom: '10px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Parti dal testo predefinito</button>
+ 
+                  )}
+ 
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Link allo shop</label>
+ 
+                  <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-longevity" value={(amtConfig as any).shopUrlLong || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlLong: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, marginBottom: 0 }} />
+ 
+                </div>
+ 
+                <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '8px' }}>AMT Test + Longevity</span>
+ 
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Descrizione</label>
+ 
+                  <textarea autoComplete="off" rows={8} placeholder={AMT_INTRO_BUNDLE} value={(amtConfig as any).introBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, introBundle: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.45 }} />
+ 
+                  {!(amtConfig as any).introBundle && sezioneBanner === 'amt' && (
+ 
+                    <button type="button" onClick={() => setAmtConfig({ ...amtConfig, introBundle: AMT_INTRO_BUNDLE } as any)} style={{ marginTop: '-4px', marginBottom: '10px', padding: '6px 12px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'transparent', color: 'var(--fg-475569)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Parti dal testo predefinito</button>
+ 
+                  )}
+ 
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Link allo shop</label>
+ 
+                  <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test-longevity" value={(amtConfig as any).shopUrlBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlBundle: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, marginBottom: 0 }} />
+ 
+                </div>
  
                 <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '4px' }}>Numero WhatsApp</label>
  
