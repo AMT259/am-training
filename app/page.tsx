@@ -1184,7 +1184,7 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
-const PRIVACY_VERSION = '3.1';
+const PRIVACY_VERSION = '3.2';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -2242,6 +2242,132 @@ function RagnatelaAmt({ valori, precedenti, dim = 280 }: { valori: { [k: string]
     </svg>
  
   );
+ 
+}
+ 
+// ---- Dopo il test: tipo di atleta, consigli ed età fitness (tutto a scopo sportivo) ----
+ 
+const AMT_TIPI: { [k: string]: { nome: string; icona: string; testo: string } } = {
+ 
+  forza: { nome: 'Atleta di forza', icona: '\u{1F3CB}\uFE0F', testo: 'Il tuo punto forte è spostare carichi: forza e potenza sono sopra le altre qualità. Lavorare sul motore e sulla resistenza ti renderà ancora più completo.' },
+ 
+  esplosivo: { nome: 'Atleta esplosivo', icona: '\u26A1', testo: 'Velocità e potenza sono le tue armi: sei rapido e reattivo. Per durare di più nei workout lunghi lavora su motore aerobico e resistenza.' },
+ 
+  motore: { nome: 'Atleta con buone capacità aerobiche e anaerobiche', icona: '\u{1FAC0}', testo: 'Hai un buon motore: reggi bene gli sforzi lunghi e quelli intensi. Aggiungere forza e potenza ti farà fare il salto di qualità.' },
+ 
+  ginnasta: { nome: 'Atleta ginnasta', icona: '\u{1F938}', testo: 'Controlli bene il tuo corpo: ginnastica e resistenza muscolare sono il tuo punto forte. Più forza con il bilanciere ti renderà ancora più completo.' },
+ 
+  completo: { nome: 'Atleta abbastanza completo', icona: '\u2696\uFE0F', testo: 'Le tue qualità sono equilibrate, senza grossi punti deboli. Per crescere ancora conviene spingere su una o due qualità alla volta.' },
+ 
+  costruzione: { nome: 'Atleta in costruzione', icona: '\u{1F331}', testo: 'Sei all\u2019inizio del percorso ed è il momento più bello: ogni settimana di allenamento si vedrà nella prossima ragnatela.' },
+ 
+};
+ 
+function amtTipoAtleta(q: { [k: string]: number }): string | null {
+ 
+  const v = (k: string) => q[k];
+ 
+  const presenti = Object.values(q).filter((x) => typeof x === 'number');
+ 
+  if (presenti.length < 4) return null;
+ 
+  const media = presenti.reduce((a, b) => a + b, 0) / presenti.length;
+ 
+  if (media < 30) return 'costruzione';
+ 
+  if (Math.max(...presenti) - Math.min(...presenti) <= 15) return 'completo';
+ 
+  const coppia = (a: string, b: string) => (v(a) !== undefined && v(b) !== undefined ? (v(a) + v(b)) / 2 : v(a) ?? v(b) ?? -1);
+ 
+  const punti: [string, number][] = [
+ 
+    ['forza', coppia('forza', 'potenza')],
+ 
+    ['esplosivo', coppia('velocita', 'potenza')],
+ 
+    ['motore', coppia('aerobica', 'anaerobica')],
+ 
+    ['ginnasta', coppia('ginnastica', 'resistenza')],
+ 
+  ];
+ 
+  punti.sort((a, b) => b[1] - a[1]);
+ 
+  return punti[0][1] - media < 4 ? 'completo' : punti[0][0];
+ 
+}
+ 
+// Consigli predefiniti per le qualità più basse (il coach li può modificare dal Banner)
+ 
+const AMT_CONSIGLI_PERF: { [k: string]: string } = {
+ 
+  forza: 'Inserisci 2-3 sedute a settimana con i fondamentali (squat, stacco, press) su serie basse (3-6 ripetizioni) e carichi alti, con recuperi completi.',
+ 
+  potenza: 'Lavora sulle alzate olimpiche e le loro varianti (power clean, power snatch, high pull) e sui salti, con poche ripetizioni veloci e ben recuperate.',
+ 
+  velocita: 'Aggiungi sprint brevi (8-15 secondi) a remo, bike o corsa, con recuperi lunghi: la qualità conta più della quantità.',
+ 
+  anaerobica: 'Inserisci intervalli intensi da 30 secondi a 2 minuti (remo, bike, corsa) con recuperi uguali o doppi rispetto al lavoro.',
+ 
+  aerobica: 'Inserisci 2 sedute a settimana di lavoro aerobico lungo a ritmo moderato (30-45 minuti), più una seduta di intervalli medi (3-5 minuti).',
+ 
+  resistenza: 'Allena il volume: circuiti con wall ball, burpee, kettlebell e corpo libero, con ripetizioni medio-alte e poche pause.',
+ 
+  ginnastica: 'Lavora sulla tecnica e sulla forza a corpo libero: trazioni (anche con elastico), push up, hollow e verticale al muro, più volte a settimana.',
+ 
+};
+ 
+const AMT_CONSIGLI_LON: { [k: string]: string } = {
+ 
+  deep_squat: 'Dedica 5 minuti al giorno allo squat profondo: resta giù tenendoti a un appoggio e lavora sulla mobilità di caviglie e anche.',
+ 
+  apley_dx: 'Lavora sulla mobilità delle spalle: dislocazioni con il bastone, allungamenti del pettorale e rotazioni con l\u2019elastico.',
+ 
+  apley_sx: 'Lavora sulla mobilità delle spalle: dislocazioni con il bastone, allungamenti del pettorale e rotazioni con l\u2019elastico.',
+ 
+  toe_touch: 'Allunga ogni giorno la catena posteriore (femorali e bassa schiena), con piegamenti lenti e controllati e respirazione profonda.',
+ 
+  eq_chiusi_dx: 'Allena l\u2019equilibrio su una gamba: inizia a occhi aperti, poi su superfici instabili e infine a occhi chiusi.',
+ 
+  eq_chiusi_sx: 'Allena l\u2019equilibrio su una gamba: inizia a occhi aperti, poi su superfici instabili e infine a occhi chiusi.',
+ 
+  vo2: 'Aumenta il lavoro aerobico: 2-3 sedute a settimana di 30-45 minuti a ritmo moderato migliorano la capacità aerobica in poche settimane.',
+ 
+  push_up_l: 'Allena i push up più volte a settimana: tante serie sotto lo sfinimento, anche con le mani rialzate per iniziare.',
+ 
+  eq_aperti: 'Pratica ogni giorno l\u2019equilibrio su una gamba, anche mentre ti lavi i denti: bastano pochi minuti.',
+ 
+  sitting_rising: 'Allena forza delle gambe e mobilità delle anche: squat profondi, affondi e il gesto di sederti e rialzarti da terra.',
+ 
+  dead_hang: 'Allena la presa: appenditi alla sbarra più volte a settimana, sommando 1-2 minuti per seduta.',
+ 
+  girovita: 'Il girovita dipende soprattutto da alimentazione e movimento quotidiano: parlane con il tuo coach.',
+ 
+};
+ 
+// Età fitness: l'età in cui la capacità aerobica stimata è quella tipica (valori medi indicativi)
+ 
+function amtEtaFitness(vo2: number | null, sesso: string): number | null {
+ 
+  if (!vo2 || !(vo2 > 0)) return null;
+ 
+  const [a, b] = sesso === 'f' ? [48, 0.31] : [57, 0.37];
+ 
+  const eta = Math.round((a - vo2) / b);
+ 
+  return Math.max(18, Math.min(90, eta));
+ 
+}
+ 
+function amtVo2Sessione(s: any): number | null {
+ 
+  const base = s?.results || {};
+ 
+  const ris = { ...base, aer_row: base.aer_row ?? base.row_2000 };
+ 
+  const peso = parseFloat(String(s?.weight_kg ?? '').replace(',', '.')) || null;
+ 
+  return amtVo2(ris, peso, s?.sex === 'f' ? 'f' : 'm')?.v ?? null;
  
 }
  
@@ -7247,11 +7373,10 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={sStyle}>C) Dati relativi alla salute</p>
  
-        <p style={pStyle}>Nel corso dell’anamnesi, l’utente minorenne potrà fornire informazioni che, in considerazione della loro natura e delle finalità per le quali vengono trattate, possono qualificarsi come dati relativi alla salute ai sensi dell’art. 4, n. 15, del GDPR e rientrare, pertanto, tra le categorie particolari di dati personali disciplinate dall’art. 9 del GDPR.</p>
- 
+        <p style={pStyle}>Nel corso dell’anamnesi, l’utente minorenne potrà fornire informazioni che, in considerazione della loro natura e delle finalità per le quali vengono trattate, possono qualificarsi come dati relativi alla salute ai sensi dell’art. 4, n. 15, del GDPR e rientrare, pertanto, tra le categorie particolari di dati personali disciplinate dall’art. 9 del GDPR.</p> 
         <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente minorenne.</p>
  
-        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+        <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
         <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7275,7 +7400,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente minorenne nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+        <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità, l’età fitness, il profilo atletico e i consigli proposti sono elaborati automaticamente a scopo esclusivamente sportivo: non producono effetti giuridici né incidono in modo significativo sull’utente e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
         <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente minorenne e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente minorenne e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente minorenne.</p>
  
@@ -7437,7 +7562,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
  
-      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove e gli indicatori di mobilità, equilibrio e longevità elaborati a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+      <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -7461,7 +7586,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>Le informazioni relative alla salute e le eventuali altre categorie particolari di dati personali fornite dall’utente nell’ambito dell’anamnesi saranno trattate esclusivamente previo consenso esplicito dell’interessato, ai sensi dell’art. 9, par. 2, lett. a), del GDPR.</p>
  
-      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità sono stime elaborate a scopo esclusivamente sportivo e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
+      <p style={pStyle}>Lo stesso consenso esplicito si applica alle informazioni relative alla salute raccolte nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test). Gli indicatori di mobilità, equilibrio e longevità, l’età fitness, il profilo atletico e i consigli proposti sono elaborati automaticamente a scopo esclusivamente sportivo: non producono effetti giuridici né incidono in modo significativo sull’utente e non costituiscono valutazioni, diagnosi o prescrizioni mediche.</p>
  
       <p style={pStyle}>Tali informazioni saranno utilizzate esclusivamente nella misura necessaria a consentire al Titolare, in qualità di coach, di conoscere eventuali condizioni fisiche rilevanti comunicate dall’utente e di tenerne conto nell’ambito della programmazione dell’attività sportiva. In particolare, le informazioni fornite potranno essere considerate al fine di tenere conto di eventuali patologie, infortuni, limitazioni funzionali o altre problematiche dichiarate dall’utente e, ove opportuno, di adattare i programmi di allenamento alle condizioni comunicate, così da favorire una programmazione dell’attività fisica maggiormente adeguata alle caratteristiche e alle condizioni dichiarate dall’utente.</p>
  
@@ -11452,8 +11577,7 @@ const [notificationError, setNotificationError] = useState('');
     const cur = getMaxesOf(aid);
  
     const updatedAll = { ...cur, [exercise]: { ...(cur[exercise] || {}), ...nuovi } };
- 
-    setMaxesOf(aid, updatedAll);
+     setMaxesOf(aid, updatedAll);
  
     const { merged: salvato, error } = await salvaMaxDiff(aid, {}, { [exercise]: { ...nuovi } });
  
@@ -13737,7 +13861,85 @@ const [notificationError, setNotificationError] = useState('');
  
         {finalita}
  
+        {(() => {
+ 
+          const vo2 = amtVo2Sessione(lon.ultima);
+ 
+          const etaF = amtEtaFitness(vo2, lon.ultima.sex === 'f' ? 'f' : 'm');
+ 
+          const eta = parseInt(String(lon.ultima.results?.__eta ?? ''), 10) || null;
+ 
+          if (etaF === null) return null;
+ 
+          const meglio = eta !== null && etaF < eta;
+ 
+          return (
+ 
+            <div style={{ background: 'rgba(var(--acc-rgb), 0.10)', border: '1px solid rgba(var(--acc-rgb), 0.35)', borderRadius: '10px', padding: '11px 12px', margin: '4px 0 10px 0', textAlign: 'center' }}>
+ 
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)' }}>ETÀ FITNESS</span>
+ 
+              <span style={{ display: 'block', fontSize: '26px', fontWeight: 'bold', color: 'var(--fg-10b981)', margin: '2px 0' }}>{`${etaF} anni`}</span>
+ 
+              {eta !== null && <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)' }}>{`La tua età: ${eta} anni${meglio ? ' \u00b7 sei più giovane della tua età! \u{1F389}' : ''}`}</span>}
+ 
+              <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '4px' }}>Stimata dalla capacità aerobica: l\u2019età in cui il tuo livello è quello tipico. Non è una valutazione medica.</span>
+ 
+            </div>
+ 
+          );
+ 
+        })()}
+ 
         {righeSemaforo(lon.dati.longevita, lon.prec?.longevita)}
+ 
+        {(() => {
+ 
+          const daMigliorare = [...lon.dati.mobilita, ...lon.dati.longevita].filter((r: any) => r.colore === 'rosso' || r.colore === 'giallo');
+ 
+          const visti = new Set<string>();
+ 
+          const lista = daMigliorare.map((r: any) => ({ r, t: AMT_CONSIGLI_LON[r.k] })).filter((x: any) => x.t && !visti.has(x.t) && (visti.add(x.t), true));
+ 
+          if (lista.length === 0 && lon.dati.asimmetrie.length === 0) return null;
+ 
+          return (
+ 
+            <div style={{ marginTop: '12px' }}>
+ 
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>COSA MIGLIORARE</span>
+ 
+              {lista.map(({ r, t }: any) => (
+ 
+                <div key={r.k} style={{ display: 'flex', gap: '8px', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                  <span style={{ width: '20px', flexShrink: 0 }}>{AMT_PALLINO[r.colore]}</span>
+ 
+                  <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.45 }}><strong style={{ color: 'var(--fg-000000)' }}>{r.nome.replace(/ \u00b7 (destro|sinistro|destra|sinistra)$/, '')}: </strong>{t}</span>
+ 
+                </div>
+ 
+              ))}
+ 
+              {lon.dati.asimmetrie.length > 0 && (
+ 
+                <div style={{ display: 'flex', gap: '8px', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                  <span style={{ width: '20px', flexShrink: 0 }}>{'\u26A0\uFE0F'}</span>
+ 
+                  <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.45 }}><strong style={{ color: 'var(--fg-000000)' }}>Differenza tra i lati: </strong>dedica più lavoro al lato più debole, con esercizi su un braccio o una gamba alla volta.</span>
+ 
+                </div>
+ 
+              )}
+ 
+              <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginTop: '8px' }}>{perCoach ? '' : 'Il tuo coach userà questi risultati per i tuoi prossimi programmi.'}</span>
+ 
+            </div>
+ 
+          );
+ 
+        })()}
  
       </>
  
@@ -13766,6 +13968,64 @@ const [notificationError, setNotificationError] = useState('');
                 <span style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', margin: '0 0 4px 0' }}>{`PRESTAZIONE \u00b7 ${amtDataIT(prof.ultima.completed_at)}`}</span>
  
                 {vistaRagnatela(prof, 'r')}
+ 
+                {(() => {
+ 
+                  const vals: { [k: string]: number } = {};
+ 
+                  Object.keys(prof.qualita).forEach((k) => { vals[k] = prof.qualita[k].v; });
+ 
+                  const tipo = amtTipoAtleta(vals);
+ 
+                  const deboli = AMT_QUALITA.filter((q) => vals[q.k] !== undefined).sort((a, b) => vals[a.k] - vals[b.k]).slice(0, 2);
+ 
+                  const consiglio = (k: string) => String((amtConfig as any).consigli?.[k] || '').trim() || AMT_CONSIGLI_PERF[k];
+ 
+                  return (
+ 
+                    <div style={{ marginTop: '12px' }}>
+ 
+                      {tipo && (
+ 
+                        <div style={{ background: 'rgba(var(--acc-rgb), 0.10)', border: '1px solid rgba(var(--acc-rgb), 0.35)', borderRadius: '10px', padding: '11px 12px', marginBottom: '10px' }}>
+ 
+                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)' }}>{perCoach ? 'PROFILO' : 'IL TUO PROFILO'}</span>
+ 
+                          <span style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', margin: '3px 0 4px 0' }}>{`${AMT_TIPI[tipo].icona} ${AMT_TIPI[tipo].nome}`}</span>
+ 
+                          <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.45 }}>{AMT_TIPI[tipo].testo}</span>
+ 
+                        </div>
+ 
+                      )}
+ 
+                      {deboli.length > 0 && (
+ 
+                        <div>
+ 
+                          <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px', color: 'var(--fg-64748b)', marginBottom: '6px' }}>COSA MIGLIORARE</span>
+ 
+                          {deboli.map((q) => (
+ 
+                            <div key={q.k} style={{ display: 'flex', gap: '8px', padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                              <span style={{ width: '22px', flexShrink: 0 }}>{q.icona}</span>
+ 
+                              <span style={{ fontSize: '12.5px', color: 'var(--fg-334155)', lineHeight: 1.45 }}><strong style={{ color: 'var(--fg-000000)' }}>{q.nome}: </strong>{consiglio(q.k)}</span>
+ 
+                            </div>
+ 
+                          ))}
+ 
+                        </div>
+ 
+                      )}
+ 
+                    </div>
+ 
+                  );
+ 
+                })()}
  
               </>
  
@@ -13885,7 +14145,7 @@ const [notificationError, setNotificationError] = useState('');
  
               {!aperta && (perCoach ? (
  
-                <button type="button" disabled={aperte.length > 0} onClick={() => atleta && amtSblocca(atleta, pk)} style={{ ...bottone, marginTop: '12px', padding: '12px', fontSize: '14px', opacity: aperte.length > 0 ? 0.4 : 1, cursor: aperte.length > 0 ? 'default' : 'pointer' }}><Icona nome="chiave" size={15} /> {`Sblocca ${titolo}`}</button>
+                <button type="button" disabled={aperte.length > 0} onClick={() => atleta && amtSblocca(atleta, pk)} style={{ ...bottone, marginTop: '12px', padding: '12px', fontSize: '14px', opacity: aperte.length > 0 ? 0.4 : 1, cursor: aperte.length > 0 ? 'default' : 'pointer' }}><Icona nome="chiave" size={15} /> Sblocca</button>
  
               ) : (
  
@@ -20761,8 +21021,7 @@ fetchAllAthleteResultsForCoach();
  
                         color: notification.is_read ? 'var(--fg-334155)' : 'var(--fg-047857)',
  
-                        marginBottom: '4px'
- 
+                        marginBottom: '4px' 
                       }}>
  
                         {notification.title}
@@ -22084,6 +22343,26 @@ fetchAllAthleteResultsForCoach();
                   <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Link allo shop</label>
  
                   <input autoComplete="off" type="url" placeholder="https://tuosito.com/prodotto/amt-test-longevity" value={(amtConfig as any).shopUrlBundle || ''} onChange={(e) => setAmtConfig({ ...amtConfig, shopUrlBundle: e.target.value } as any)} style={{ ...{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }, marginBottom: 0 }} />
+ 
+                </div>
+ 
+                <div style={{ border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px', marginBottom: '12px', background: 'var(--bg-ffffff)' }}>
+ 
+                  <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-10b981)', marginBottom: '4px' }}>Consigli "Cosa migliorare"</span>
+ 
+                  <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--fg-64748b)', marginBottom: '10px', lineHeight: 1.4 }}>Dopo il Performance Test l&apos;atleta vede il consiglio delle sue 2 qualità più basse. Se lasci vuoto si usa il testo predefinito.</span>
+ 
+                  {AMT_QUALITA.map((q) => (
+ 
+                    <div key={q.k}>
+ 
+                      <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '3px' }}>{`${q.icona} ${q.nome}`}</label>
+ 
+                      <textarea autoComplete="off" rows={3} placeholder={AMT_CONSIGLI_PERF[q.k]} value={(amtConfig as any).consigli?.[q.k] || ''} onChange={(e) => setAmtConfig({ ...amtConfig, consigli: { ...((amtConfig as any).consigli || {}), [q.k]: e.target.value } } as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '9px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '12.5px', marginBottom: '8px', fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.4 }} />
+ 
+                    </div>
+ 
+                  ))}
  
                 </div>
  
@@ -25339,8 +25618,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                                 type="text"
  
-                                                placeholder="rec. 1:30"
- 
+                                                placeholder="rec. 1:30" 
                                                 title="Recupero dopo questo esercizio. Vuoto = vale quello della sezione."
  
                                                 value={it.rest || ''}
