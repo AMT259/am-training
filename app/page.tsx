@@ -8878,7 +8878,8 @@ const [notificationError, setNotificationError] = useState('');
  
   `Ti è stato assegnato il programma "${prog.title}"${prog.startDate ? `, dal ${formatDateToIT(prog.startDate)}` : ''}.`,
  
-  `program_assigned_${prog.id}`, 
+  `program_assigned_${prog.id}`,
+ 
   prog.id
  
 );
@@ -13131,8 +13132,7 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    if (s.athlete_id === session.user.id) {
- 
+    if (s.athlete_id === session.user.id) { 
       const chi = personalData.full_name || session.user.email;
  
       const media = p !== 'longevity' ? amtCalcola(s).media : null;
@@ -16909,8 +16909,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         }}
  
-      >
- 
+      > 
         {etichetta}
  
       </button>
@@ -18854,8 +18853,7 @@ for (const r of righeRis || []) {
 const vecchi = r.results || {};
  
 const nuovi: { [k: string]: any } = {};
- 
-Object.keys(vecchi).forEach((k) => {
+ Object.keys(vecchi).forEach((k) => {
  
 if (/^\d+_\d+_\d+$/.test(k)) { if (mappaRisultati[k] !== undefined) nuovi[mappaRisultati[k]] = vecchi[k]; } else { nuovi[k] = vecchi[k]; }
  
@@ -21080,8 +21078,7 @@ fetchAllAthleteResultsForCoach();
                         }}
  
                       >
- 
-                        Segna tutte come lette
+                         Segna tutte come lette
  
                       </button>
  
@@ -22691,8 +22688,7 @@ fetchAllAthleteResultsForCoach();
  
           ) : coachSubView === 'athletes' ? (
  
-            <div>
- 
+            <div> 
               {selectedCoachAthlete ? (
  
                 <div style={coachAthleteDetailTab === 'personal' ? {} : { color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
@@ -22911,7 +22907,7 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -10px 16px -10px', padding: '18px 14px', border: '1.5px solid rgba(var(--acc-rgb), 0.55)', borderRadius: '18px' }}>
  
                             <div
  
@@ -23277,7 +23273,8 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                   <span style={{ flex: 1, height: '1px', background: linea }} />
  
-                                                </div> 
+                                                </div>
+ 
                                               );
  
                                             })()}
@@ -27371,7 +27368,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                                                     style={{ flex: '1 1 78px', minWidth: 0, boxSizing: 'border-box', padding: '10px 6px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', textAlign: 'center' }}
  
                                                   />
-                                                   )}
+ 
+                                                  )}
  
                                                 </div>
  
@@ -29385,7 +29383,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   return (
  
-                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -10px 16px -10px', padding: '18px 14px', border: '1.5px solid rgba(var(--acc-rgb), 0.55)', borderRadius: '18px' }}>
  
                       {scaduto && (
  
