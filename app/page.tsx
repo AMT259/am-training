@@ -3536,7 +3536,8 @@ function RiepilogoScore({ punteggio, note, rip, tempo, items }: { punteggio: str
  
   const totRip = totRipNum ? { testo: `Totale ${totRipNum.totale} rip`, n: totRipNum.n } : totTempo ? { testo: `Totale ${totTempo.totale}`, n: totTempo.n } : null;
  
-  const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep'); 
+  const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep');
+ 
   const tempoDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'tempo');
  
   // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
@@ -5957,7 +5958,8 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), width: '100%', boxSizing: 'border-box' }}>Chiudi</button>
  
-          </div> 
+          </div>
+ 
         </div>
  
       </div>
@@ -10584,8 +10586,7 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
-  const fetchScadutoCta = async () => {
- 
+  const fetchScadutoCta = async () => { 
     const { data } = await supabase.from('settings').select('value').eq('key', 'expired_cta').maybeSingle();
  
     if (data?.value) setScadutoCta({ title: '', text: '', link_url: '', button: '', ...data.value });
@@ -14258,7 +14259,8 @@ const [notificationError, setNotificationError] = useState('');
  
                     <button type="button" onClick={() => amtApriSessione(aperta)} style={{ ...bottone, padding: '12px', fontSize: '14px' }}>{aperta.started_at ? 'Continua il test' : 'Inizia il test'}</button>
  
-                  )} 
+                  )}
+ 
                 </div>
  
               )}
@@ -17289,8 +17291,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           .filter(Boolean)
  
-          .forEach((a: string) => forme.push(a));
- 
+          .forEach((a: string) => forme.push(a)); 
         // cerco la forma come parola intera, non dentro un'altra parola
  
         const presente = forme.some((f) => testoPulito.includes(' ' + f + ' '));
@@ -22382,7 +22383,8 @@ fetchAllAthleteResultsForCoach();
                   Salva messaggi
  
                 </button>
-                   </div>
+ 
+                  </div>
  
                 ) : (
  
@@ -29832,7 +29834,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0, gridColumn: '1 / -1' }}>
+                                                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere', minWidth: 0, gridColumn: '1 / -1' }}>
  
                                                           {blk.type === 'emom' && (blk.items || []).length > 1 && (<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', height: '22px', padding: '0 6px', boxSizing: 'border-box', borderRadius: '999px', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', marginRight: '7px', verticalAlign: '1px' }}>{i + 1}</span>)}
  
@@ -29840,7 +29842,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                         </span>
  
-                                                        <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'anywhere', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere', minWidth: 0 }}>
  
                                                           {it.value}
  
@@ -29850,7 +29852,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                             return (
  
-                                                              <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
+                                                              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
                                                                 {`(${caricoLeggibile(it.load)})`}
  
@@ -30066,7 +30068,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                     {blk.notes && (
  
-                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                                      <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                                         {blk.notes}
  
@@ -30084,7 +30086,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                       <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                                        <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                                        <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '14px', color: 'var(--fg-000000)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                                       </div>
  
@@ -30198,7 +30200,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                 ) : (
  
-                                                  <p style={{ overflowWrap: 'anywhere', margin: '0 0 8px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
+                                                  <p style={{ overflowWrap: 'anywhere', margin: '0 0 8px 0', fontSize: '14px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{blk.wodNotes}</p>
  
                                                 )}
  
