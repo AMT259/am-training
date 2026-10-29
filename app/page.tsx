@@ -3536,8 +3536,7 @@ function RiepilogoScore({ punteggio, note, rip, tempo, items }: { punteggio: str
  
   const totRip = totRipNum ? { testo: `Totale ${totRipNum.totale} rip`, n: totRipNum.n } : totTempo ? { testo: `Totale ${totTempo.totale}`, n: totTempo.n } : null;
  
-  const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep');
- 
+  const ripDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'rep'); 
   const tempoDi = (nome: string) => (items || []).some((it: any) => String(it?.name || '').trim() === String(nome || '').trim() && it?.scoreUnit === 'tempo');
  
   // Se il timer ha salvato "12:30 (0:45 / 0:52 ...)", mostro il totale in
@@ -5958,8 +5957,7 @@ color: testoSu(bg), fontWeight: 'bold', fontSize: '15px', cursor: 'pointer',
  
             <button onClick={onClose} style={{ ...btn('var(--btn-neutro)'), width: '100%', boxSizing: 'border-box' }}>Chiudi</button>
  
-          </div>
- 
+          </div> 
         </div>
  
       </div>
@@ -13132,7 +13130,8 @@ const [notificationError, setNotificationError] = useState('');
  
     }
  
-    if (s.athlete_id === session.user.id) { 
+    if (s.athlete_id === session.user.id) {
+ 
       const chi = personalData.full_name || session.user.email;
  
       const media = p !== 'longevity' ? amtCalcola(s).media : null;
@@ -14259,8 +14258,7 @@ const [notificationError, setNotificationError] = useState('');
  
                     <button type="button" onClick={() => amtApriSessione(aperta)} style={{ ...bottone, padding: '12px', fontSize: '14px' }}>{aperta.started_at ? 'Continua il test' : 'Inizia il test'}</button>
  
-                  )}
- 
+                  )} 
                 </div>
  
               )}
@@ -16909,7 +16907,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         }}
  
-      > 
+      >
+ 
         {etichetta}
  
       </button>
@@ -18853,7 +18852,8 @@ for (const r of righeRis || []) {
 const vecchi = r.results || {};
  
 const nuovi: { [k: string]: any } = {};
- Object.keys(vecchi).forEach((k) => {
+ 
+Object.keys(vecchi).forEach((k) => {
  
 if (/^\d+_\d+_\d+$/.test(k)) { if (mappaRisultati[k] !== undefined) nuovi[mappaRisultati[k]] = vecchi[k]; } else { nuovi[k] = vecchi[k]; }
  
@@ -21078,7 +21078,8 @@ fetchAllAthleteResultsForCoach();
                         }}
  
                       >
-                         Segna tutte come lette
+ 
+                        Segna tutte come lette
  
                       </button>
  
@@ -22381,8 +22382,7 @@ fetchAllAthleteResultsForCoach();
                   Salva messaggi
  
                 </button>
- 
-                  </div>
+                   </div>
  
                 ) : (
  
@@ -22688,7 +22688,8 @@ fetchAllAthleteResultsForCoach();
  
           ) : coachSubView === 'athletes' ? (
  
-            <div> 
+            <div>
+ 
               {selectedCoachAthlete ? (
  
                 <div style={coachAthleteDetailTab === 'personal' ? {} : { color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
@@ -22907,7 +22908,7 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -10px 16px -10px', padding: '18px 14px', border: '1.5px solid rgba(var(--acc-rgb), 0.55)', borderRadius: '18px' }}>
+                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                             <div
  
@@ -29383,7 +29384,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   return (
  
-                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -10px 16px -10px', padding: '18px 14px', border: '1.5px solid rgba(var(--acc-rgb), 0.55)', borderRadius: '18px' }}>
+                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                       {scaduto && (
  
