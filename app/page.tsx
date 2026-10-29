@@ -10586,7 +10586,8 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
-  const fetchScadutoCta = async () => { 
+  const fetchScadutoCta = async () => {
+ 
     const { data } = await supabase.from('settings').select('value').eq('key', 'expired_cta').maybeSingle();
  
     if (data?.value) setScadutoCta({ title: '', text: '', link_url: '', button: '', ...data.value });
@@ -10651,8 +10652,7 @@ const [notificationError, setNotificationError] = useState('');
  
     : k === 'motivazioni' ? { motivazioni }
  
-    : k === 'amt' ? { amtConfig }
- 
+    : k === 'amt' ? { amtConfig } 
     : { linkLogoBozza }
  
   );
@@ -14143,8 +14143,7 @@ const [notificationError, setNotificationError] = useState('');
  
                         </div>
  
-                      )}
- 
+                      )} 
                     </div>
  
                   );
@@ -17291,7 +17290,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           .filter(Boolean)
  
-          .forEach((a: string) => forme.push(a)); 
+          .forEach((a: string) => forme.push(a));
+ 
         // cerco la forma come parola intera, non dentro un'altra parola
  
         const presente = forme.some((f) => testoPulito.includes(' ' + f + ' '));
@@ -17552,8 +17552,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
-        {ordinate.map((g: any) => {
- 
+        {ordinate.map((g: any) => { 
           const m = giorniAlla(g.event_date);
  
           const passata = m !== null && m < 0;
@@ -22910,7 +22909,7 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 12px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                             <div
  
@@ -23078,7 +23077,7 @@ const bloccoAperto = coachAperti[chiaveBlocco] === true;
  
                                 return (
  
-                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: bloccoAperto ? '14px' : '10px 14px', marginBottom: '12px' }}>
+                                  <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: bloccoAperto ? '14px 12px' : '10px 12px', marginBottom: '12px' }}>
  
 <div style={{ marginBottom: bloccoAperto ? '8px' : '0' }}>
  
@@ -23164,7 +23163,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto 26px', alignItems: 'center', columnGap: '8px', rowGap: '4px', padding: '7px 0', borderBottom: 'none' }}>
  
-                                            <span style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
+                                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'break-word', minWidth: 0, gridColumn: '1 / -1' }}>
  
                                               {blk.type === 'emom' && (blk.items || []).length > 1 && (<span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '22px', height: '22px', padding: '0 6px', boxSizing: 'border-box', borderRadius: '999px', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', marginRight: '7px', verticalAlign: '1px' }}>{i + 1}</span>)}
  
@@ -23172,7 +23171,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                             </span>
  
-                                            <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', overflowWrap: 'break-word', minWidth: 0 }}>
+                                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'break-word', minWidth: 0 }}>
  
                                               {it.value}
  
@@ -23182,7 +23181,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                                 return (
  
-                                                  <span style={{ display: 'block', fontSize: '10.5px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
+                                                  <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px' }}>
  
                                                     {`(${caricoLeggibile(it.load)})`}
  
@@ -23396,7 +23395,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                         {blk.notes && (
  
-                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '11.5px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
+                                          <p style={{ overflowWrap: 'anywhere', margin: '9px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5, fontStyle: 'italic', background: 'var(--bg-f8fafc)', borderRadius: '6px', padding: '8px 10px', whiteSpace: 'pre-line' }}>
  
                                             {blk.notes}
  
@@ -23414,7 +23413,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                           <div style={{ background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-ddd6fe)', borderRadius: '8px', padding: '12px', marginBottom: '10px' }}>
  
-                                            <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
+                                            <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '14px', color: 'var(--fg-000000)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{blk.wodNotes}</p>
  
                                           </div>
  
@@ -23534,7 +23533,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                     ) : (
  
-                                      <p style={{ overflowWrap: 'anywhere', margin: '0 0 10px 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{blk.wodNotes}</p>
+                                      <p style={{ overflowWrap: 'anywhere', margin: '0 0 10px 0', fontSize: '14px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{blk.wodNotes}</p>
  
                                     )}
  
@@ -25970,8 +25969,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                           })()}
  
-                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
- 
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} /> 
                                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
  
                                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -29386,7 +29384,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   return (
  
-                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 24px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 12px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
  
                       {scaduto && (
  
@@ -29748,7 +29746,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                         return (
  
-                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: isClosed ? '10px 14px' : '14px', marginBottom: '12px' }}>
+                                          <div key={bIdx} style={{ background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', boxShadow: '0 6px 22px rgba(0,0,0,0.45)', borderRadius: '14px', border: '1px solid var(--bd-d8dde3)', borderLeft: '4px solid var(--bd-10b981)', padding: isClosed ? '10px 12px' : '14px 12px', marginBottom: '12px' }}>
  
                                             <div style={{ marginBottom: isClosed ? 0 : '8px' }}>
  
