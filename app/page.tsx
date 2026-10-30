@@ -15258,6 +15258,24 @@ const [notificationError, setNotificationError] = useState('');
  
   // Esercizi del riscaldamento: elenco dentro il blocco
  
+  // Video che segue il nome: se il nuovo nome e' in libreria prendo il suo link (anche vuoto);
+ 
+  // se non lo e', tolgo solo il link che veniva dalla libreria col nome vecchio e tengo quello scritto a mano
+ 
+  const videoPerNome = (nomeVecchio: string, linkAttuale: string, nomeNuovo: string) => {
+ 
+    const nuovo = exerciseLibrary.find((ex: any) => sameName(ex.name, nomeNuovo));
+ 
+    if (nuovo) return nuovo.video_url || '';
+ 
+    const vecchio = exerciseLibrary.find((ex: any) => sameName(ex.name, nomeVecchio));
+ 
+    if (linkAttuale && vecchio && vecchio.video_url && vecchio.video_url === linkAttuale) return '';
+ 
+    return linkAttuale || '';
+ 
+  };
+ 
   const aggiornaWarmItems = (contesto: 'edit' | 'free', wIdx: number, dIdx: number, bIdx: number, nuovi: any[]) => {
  
     if (contesto === 'edit') updateEditingBlock(wIdx, dIdx, bIdx, 'items', nuovi);
@@ -15276,17 +15294,13 @@ const [notificationError, setNotificationError] = useState('');
  
     const copia = [...(attuali || [])];
  
-    copia[i] = { ...copia[i], [campo]: valore };
+    const prima = copia[i] || {};
  
-    // Scrivendo un esercizio già in libreria, ne recupero il video
+    copia[i] = { ...prima, [campo]: valore };
  
-    if (campo === 'name') {
+    // Cambiando il nome, il video segue l'esercizio scelto
  
-      const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, valore));
- 
-      if (inLibreria?.video_url && !copia[i].videoUrl) copia[i].videoUrl = inLibreria.video_url;
- 
-    }
+    if (campo === 'name') copia[i].videoUrl = videoPerNome(prima.name || '', prima.videoUrl || '', valore);
  
     aggiornaWarmItems(contesto, wIdx, dIdx, bIdx, copia);
  
@@ -25656,11 +25670,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                           const b = updated.weeks[actualWIdx].days[actualDIdx].blocks[bIdx];
  
+                                          b.videoUrl = videoPerNome(b.name || '', b.videoUrl || '', v);
+ 
                                           b.name = v;
- 
-                                          const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
- 
-                                          if (inLibreria && inLibreria.video_url) b.videoUrl = inLibreria.video_url;
  
                                           setEditingProgram(updated);
  
@@ -27230,11 +27242,9 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                               const target = upd[actualWIdx].days[actualDIdx].blocks[bIdx];
  
+                                              target.videoUrl = videoPerNome(target.name || '', target.videoUrl || '', v);
+ 
                                               target.name = v;
- 
-                                              const inLibreria = exerciseLibrary.find((ex: any) => sameName(ex.name, v));
- 
-                                              if (inLibreria && inLibreria.video_url) target.videoUrl = inLibreria.video_url;
  
                                               setProgramWeeks(upd);
  
