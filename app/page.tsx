@@ -4416,6 +4416,132 @@ function AnteprimaVideo({ url, larghezza, altezza }: { url: string; larghezza: n
  
 }
  
+// WOD: fino a 4 video restano le pillole blu; dal quinto c'e' un solo tasto
+ 
+// che apre una finestra con gli esercizi in colonna (anteprima + nome) e il testo del workout.
+ 
+function VideoWod({ items, testo, titolo }: { items: any[]; testo?: string; titolo?: string }) {
+ 
+  const [aperta, setAperta] = useState(false);
+ 
+  const [mostraTesto, setMostraTesto] = useState(false);
+ 
+  const video = (items || []).filter((it: any) => it && it.name && it.videoUrl);
+ 
+  if (video.length === 0) return null;
+ 
+  const pillola: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' };
+ 
+  const contenitore: React.CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px', paddingTop: '9px', borderTop: '1px solid var(--bd-e2e8f0)' };
+ 
+  if (video.length <= 4) {
+ 
+    return (
+ 
+      <div style={contenitore}>
+ 
+        {video.map((it: any, i: number) => (
+ 
+          <a key={i} href={it.videoUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={pillola}>
+ 
+            <Icona nome="video" size={12} /> {it.name}
+ 
+          </a>
+ 
+        ))}
+ 
+      </div>
+ 
+    );
+ 
+  }
+ 
+  const haTesto = !!String(testo || '').trim();
+ 
+  return (
+ 
+    <div style={contenitore}>
+ 
+      <button type="button" onClick={(e) => { e.stopPropagation(); setAperta(true); }} style={{ ...pillola, border: 'none', cursor: 'pointer', padding: '8px 14px', fontSize: '13px' }}>
+ 
+        <Icona nome="video" size={14} /> {`Video esercizi (${video.length})`}
+ 
+      </button>
+ 
+      {aperta && (
+ 
+        <div onClick={(e) => { e.stopPropagation(); setAperta(false); }} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
+ 
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '480px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', borderRadius: '18px', border: '1px solid var(--bd-e2e8f0)', boxShadow: '0 14px 40px rgba(0,0,0,0.6)', overflow: 'hidden' }}>
+ 
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', borderBottom: '1px solid var(--bd-e2e8f0)' }}>
+ 
+              <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '17px', fontWeight: 'bold', color: 'var(--fg-10b981)' }}>Video esercizi</span>
+ 
+                {titolo ? <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px', overflowWrap: 'anywhere' }}>{titolo}</span> : null}
+ 
+              </span>
+ 
+              <button type="button" aria-label="Chiudi" onClick={() => setAperta(false)} style={{ width: '34px', height: '34px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+ 
+                <Icona nome="chiudi" size={14} />
+ 
+              </button>
+ 
+            </div>
+ 
+            <div style={{ overflowY: 'auto', padding: '12px 16px 16px 16px' }}>
+ 
+              {haTesto && (
+ 
+                <div style={{ marginBottom: '12px' }}>
+ 
+                  <button type="button" onClick={() => setMostraTesto(!mostraTesto)} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-f8fafc)', color: 'var(--fg-000000)', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+ 
+                    <span>{'\u{1F4C4} Testo del workout'}</span>
+ 
+                    <span style={{ color: 'var(--fg-10b981)' }}>{mostraTesto ? '▲' : '▼'}</span>
+ 
+                  </button>
+ 
+                  {mostraTesto && (
+ 
+                    <p style={{ overflowWrap: 'anywhere', margin: '10px 2px 0 2px', fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{testo}</p>
+ 
+                  )}
+ 
+                </div>
+ 
+              )}
+ 
+              {video.map((it: any, i: number) => (
+ 
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '9px 0', borderTop: i > 0 ? '1px solid var(--bd-e2e8f0)' : 'none' }}>
+ 
+                  <AnteprimaVideo url={it.videoUrl} larghezza={96} altezza={54} />
+ 
+                  <a href={it.videoUrl} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-000000)', textDecoration: 'none', overflowWrap: 'anywhere' }}>{it.name}</a>
+ 
+                </div>
+ 
+              ))}
+ 
+            </div>
+ 
+          </div>
+ 
+        </div>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 function FinestraModificaBlocco({ blk, nAtleti, onSalva, onClose }: any) {
  
   const CAMPI = ['sets', 'reps', 'load', 'loadSerie', 'rest', 'restSerie', 'notes'];
@@ -12563,6 +12689,52 @@ const [notificationError, setNotificationError] = useState('');
   };
  
   // Quando si apre la scheda Progressi, carico lo storico dei test di quell'atleta
+ 
+  // Schermo sempre acceso mentre l'atleta e' nella pagina Allenamenti:
+ 
+  // tra una serie e l'altra il telefono non si blocca da solo
+ 
+  const schermoAcceso = role === 'athlete' && activeTab === 'create' && !!session?.user?.id;
+ 
+  useEffect(() => {
+ 
+    if (!schermoAcceso) return;
+ 
+    let blocco: any = null;
+ 
+    let vivo = true;
+ 
+    const attiva = async () => {
+ 
+      try {
+ 
+        if (!vivo || document.visibilityState !== 'visible' || !(navigator as any).wakeLock) return;
+ 
+        if (blocco && !blocco.released) return;
+ 
+        blocco = await (navigator as any).wakeLock.request('screen');
+ 
+      } catch (e) { /* non supportato o negato: pazienza */ }
+ 
+    };
+ 
+    attiva();
+ 
+    const alRientro = () => { if (document.visibilityState === 'visible') attiva(); };
+ 
+    document.addEventListener('visibilitychange', alRientro);
+ 
+    return () => {
+ 
+      vivo = false;
+ 
+      document.removeEventListener('visibilitychange', alRientro);
+ 
+      try { if (blocco) blocco.release(); } catch (e) { /* niente */ }
+ 
+    };
+ 
+  }, [schermoAcceso]);
  
   useEffect(() => {
  
@@ -23562,37 +23734,7 @@ style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '
  
                                     )}
  
-                                    {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
- 
-                                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px', paddingTop: '9px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                        {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
- 
-                                          <a
- 
-                                            key={i}
- 
-                                            href={it.videoUrl}
- 
-                                            target="_blank"
- 
-                                            rel="noopener noreferrer"
- 
-                                            onClick={(e) => e.stopPropagation()}
- 
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '6px 11px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
- 
-                                          >
- 
-                                            <Icona nome="video" size={12} /> {it.name}
- 
-                                          </a>
- 
-                                        ))}
- 
-                                      </div>
- 
-                                    )}
+                                    {blk.type === 'wod' && (<VideoWod items={blk.items} testo={blk.wodNotes} titolo={blk.name} />)}
  
                                     {blk.type === 'forza' && blk.notes && (
  
@@ -30228,37 +30370,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                 )}
  
-                                                {blk.type === 'wod' && (blk.items || []).some((it: any) => it.name && it.videoUrl) && (
- 
-                                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '9px', marginBottom: '2px', paddingTop: '9px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
- 
-                                                    {(blk.items || []).filter((it: any) => it.name && it.videoUrl).map((it: any, i: number) => (
- 
-                                                      <a
- 
-                                                        key={i}
- 
-                                                        href={it.videoUrl}
- 
-                                                        target="_blank"
- 
-                                                        rel="noopener noreferrer"
- 
-                                                        onClick={(e) => e.stopPropagation()}
- 
-                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(160deg, #3b82f6 0%, #2563eb 100%)', color: '#fff', padding: '5px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 'bold', textDecoration: 'none', boxShadow: '0 2px 5px rgba(37,99,235,0.3)' }}
- 
-                                                      >
- 
-                                                        <Icona nome="video" size={12} /> {it.name}
- 
-                                                      </a>
- 
-                                                    ))}
- 
-                                                  </div>
- 
-                                                )}
+                                                {blk.type === 'wod' && (<VideoWod items={blk.items} testo={blk.wodNotes} titolo={blk.name} />)}
  
 {blk.type !== 'forza' && (() => { const ds = settimanaScorsaDato(athleteResults[prog.id], resultKey); const sc = ds.score; const nt = ds.notes; const doppio = !!sc && giaNelUltimoCarico(sc, blk, athleteMaxes, ultimoCaricoUsato(blk.name, blk.reps)); const mostraSc = sc && !doppio; if (!mostraSc && !nt) return null; return (<div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '10px', padding: '8px 11px', borderRadius: '8px', background: 'var(--bg-eff6ff)', border: '1px solid var(--bd-bfdbfe)' }}><Icona nome="grafico" size={14} style={{ color: 'var(--fg-1d4ed8)', marginTop: '2px' }} /><span style={{ fontSize: '12.5px', color: 'var(--fg-1e40af)', overflowWrap: 'anywhere', minWidth: 0 }}>La settimana scorsa{mostraSc ? ': ' : ''}{mostraSc && <strong>{sc}</strong>}{nt && <span style={{ display: 'block', fontStyle: 'italic', marginTop: '3px', whiteSpace: 'pre-line' }}><span style={{ fontStyle: 'normal', fontWeight: 'bold' }}>Note:</span> {`\u201c${nt}\u201d`}</span>}</span></div>); })()}
  
