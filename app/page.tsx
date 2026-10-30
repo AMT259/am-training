@@ -1359,8 +1359,7 @@ function elencoPercentuali(txt: string): string[] {
   const trovate: string[] = [];
  
   const re = /(\d+(?:[.,]\d+)?)\s*%/g;
- 
-  let m: RegExpExecArray | null;
+   let m: RegExpExecArray | null;
  
   while ((m = re.exec(t)) !== null) trovate.push(m[1]);
  
@@ -4672,8 +4671,7 @@ function FinestraScore({ blk, valore, note, onSalva, onClose, precedente }: any)
  
         });
  
-        while (pezzi.length > 0 && pezzi[pezzi.length - 1] === '\u2014') pezzi.pop();
- 
+        while (pezzi.length > 0 && pezzi[pezzi.length - 1] === '\u2014') pezzi.pop(); 
         return pezzi.join(' / ');
  
       })()
@@ -7178,8 +7176,7 @@ function Icona({ nome, size = 15, style }: { nome: string; size?: number; style?
  
       return <svg {...comuni}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
  
-    case 'utenti':
- 
+    case 'utenti': 
       return <svg {...comuni}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
  
     case 'megafono':
@@ -10652,7 +10649,8 @@ const [notificationError, setNotificationError] = useState('');
  
     : k === 'motivazioni' ? { motivazioni }
  
-    : k === 'amt' ? { amtConfig } 
+    : k === 'amt' ? { amtConfig }
+ 
     : { linkLogoBozza }
  
   );
@@ -14143,7 +14141,8 @@ const [notificationError, setNotificationError] = useState('');
  
                         </div>
  
-                      )} 
+                      )}
+ 
                     </div>
  
                   );
@@ -14958,8 +14957,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const barra = document.getElementById('barra-sotto');
  
-      if (!barra) return;
- 
+      if (!barra) return; 
       const vv: any = (window as any).visualViewport;
  
       const scarto = vv ? Math.round(window.innerHeight - vv.height - vv.offsetTop) : 0;
@@ -17552,7 +17550,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
-        {ordinate.map((g: any) => { 
+        {ordinate.map((g: any) => {
+ 
           const m = giorniAlla(g.event_date);
  
           const passata = m !== null && m < 0;
@@ -22066,8 +22065,7 @@ fetchAllAthleteResultsForCoach();
                 </div>
  
                 <div style={{ marginBottom: '10px' }}>
- 
-                  <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>All&apos;atleta, 2 giorni dopo la fine</label>
+                   <label style={{ fontSize: '12.5px', fontWeight: 'bold', color: 'var(--fg-334155)', display: 'block', marginBottom: '2px' }}>All&apos;atleta, 2 giorni dopo la fine</label>
  
                   <span style={{ fontSize: '11px', color: 'var(--fg-64748b)', display: 'block', marginBottom: '4px' }}>Titolo: Com&apos;è andata la prova?</span>
  
@@ -22909,7 +22907,7 @@ fetchAllAthleteResultsForCoach();
  
                         return (
  
-                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 12px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                          <div key={prog.id} style={{ background: 'rgba(255,255,255,0.045)', margin: '0 -24px 14px -24px', padding: '18px 12px', border: '1.5px solid rgba(var(--acc-rgb), 0.6)', borderRadius: '16px' }}>
  
                             <div
  
@@ -25969,7 +25967,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                           })()}
  
-                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} /> 
+                                        <SelettoreScore valore={block.scoreUnit} onChange={(v: string) => updateEditingBlock(actualWIdx, actualDIdx, bIdx, 'scoreUnit', v)} />
+ 
                                         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '9px', margin: '10px 0 4px 0' }}>
  
                                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -29384,7 +29383,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                   return (
  
-                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 22px -24px', padding: '18px 12px', ...(progIdx > 0 ? { borderTop: '6px double var(--bd-10b981)' } : {}) }}>
+                    <div key={prog.id} id={`programma-${prog.id}`} style={{ scrollMarginTop: '80px', background: 'rgba(255,255,255,0.045)', margin: '0 -24px 14px -24px', padding: '18px 12px', border: '1.5px solid rgba(var(--acc-rgb), 0.6)', borderRadius: '16px' }}>
  
                       {scaduto && (
  
@@ -29798,8 +29797,7 @@ color: attivo || completo ? 'var(--onacc)' : fatti > 0 ? '#101214' : 'var(--fg-3
  
                                                 {haElenco(blk.type) ? (
  
-                                                  <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}>
- 
+                                                  <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px', padding: '12px' }}> 
                                                     {blk.type === 'emom' && (
  
                                                       <span style={{ display: 'inline-block', background: '#0e7490', color: '#fff', fontSize: '11px', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', marginBottom: '9px' }}>
