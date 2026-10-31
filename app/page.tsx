@@ -2,6 +2,8 @@
  
 import React, { useState, useEffect } from 'react';
  
+import { createPortal } from 'react-dom';
+ 
 import { createClient } from '@supabase/supabase-js';
  
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -2806,7 +2808,7 @@ function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop, n
  
       )}
  
-      {garaAperta && athleteId && (
+      {garaAperta && athleteId && typeof document !== 'undefined' && createPortal(
  
         <div onClick={() => setGaraAperta(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
  
@@ -2834,7 +2836,9 @@ function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop, n
  
           </div>
  
-        </div>
+        </div>,
+ 
+        document.body
  
       )}
  
@@ -4824,7 +4828,9 @@ function FinestraScoreGara({ titolo, tipo, iniziale, onSalva, onClose, piazzamen
  
   );
  
-  return (
+  if (typeof document === 'undefined') return null;
+ 
+  return createPortal(
  
     <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6100, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
  
@@ -4872,7 +4878,9 @@ function FinestraScoreGara({ titolo, tipo, iniziale, onSalva, onClose, piazzamen
  
       </div>
  
-    </div>
+    </div>,
+ 
+    document.body
  
   );
  
@@ -5743,7 +5751,8 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
               <div>
  
                 <ContenutoWorkoutGara w={w} />
-                 <div style={{ display: 'flex', gap: '14px', marginTop: '10px', flexWrap: 'wrap' }}>
+ 
+                <div style={{ display: 'flex', gap: '14px', marginTop: '10px', flexWrap: 'wrap' }}>
  
                   <button type="button" onClick={() => setBozza({ indice: i, dati: { ...WORKOUT_GARA_VUOTO, ...w } })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
  
@@ -13365,8 +13374,7 @@ const [notificationError, setNotificationError] = useState('');
  
       setSavedOf(aid, salvato);
  
-      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
- 
+      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima); 
       if (migliore) {
  
         setPrBadge({
@@ -19235,7 +19243,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
           return (
  
-            <div key={g.id} style={{ background: passata ? 'var(--bg-f8fafc)' : 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px 12px', opacity: passata ? 0.65 : 1, boxSizing: 'border-box', width: '100%', maxWidth: '100%', minWidth: 0 }}>
+            <div key={g.id} style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px', padding: '10px 12px', opacity: 1, boxSizing: 'border-box', width: '100%', maxWidth: '100%', minWidth: 0 }}>
  
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
  
@@ -20774,7 +20782,8 @@ fetchAllAthleteResultsForCoach();
             36%  { transform: scale(1); }
  
             100% { transform: scale(1); }
-           }
+ 
+          }
  
           @keyframes splashFade {
  
@@ -20830,8 +20839,7 @@ fetchAllAthleteResultsForCoach();
  
             100% { opacity: 1; transform: translateY(0); }
  
-          }
- 
+          } 
           @keyframes logoHeartbeat {
  
             0%   { opacity: 1; transform: scale(1); }
@@ -21194,7 +21202,8 @@ fetchAllAthleteResultsForCoach();
  
                 >
  
-                  {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'} 
+                  {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'}
+ 
                 </button>
  
               </div>
@@ -21824,7 +21833,8 @@ fetchAllAthleteResultsForCoach();
                             {(dSorg.blocks || []).map((b: any, i: number) => {
  
                               const sel = (imp.scelti || []).includes(i);
-                               return (
+ 
+                              return (
  
                                 <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', marginBottom: '6px', borderRadius: '10px', border: sel ? '1px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)', background: sel ? 'rgba(var(--acc-rgb), 0.10)' : 'var(--bg-f8fafc)', cursor: 'pointer' }}>
  
@@ -21939,8 +21949,7 @@ fetchAllAthleteResultsForCoach();
           />
  
         ) : (
- 
-        <FinestraScore
+         <FinestraScore
  
           blk={scoreAperto.blk}
  
@@ -23059,8 +23068,7 @@ fetchAllAthleteResultsForCoach();
                     return !(scad !== null && scad > 0);
  
                   });
- 
-                });
+                 });
  
  
                 // 5) Prove: in corso e finite senza abbonamento attivo
@@ -26122,8 +26130,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   {[['singolo', 'Programma singolo'], ['pacchetto', 'Pacchetto']].map(([k, t]) => (
  
-                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button>
- 
+                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button> 
                                   ))}
  
                                 </div>
@@ -26760,7 +26767,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
-                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}> 
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
+ 
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
  
                     const isSelected = selectedWeekView === week.weekName;
