@@ -4744,6 +4744,34 @@ function testoPiazzamento(r: any): string {
  
 }
  
+// Prova e gara: la prova si salva con questo suffisso; un risultato salvato prima del giorno
+ 
+// della gara (prima che esistesse la prova) conta anch'esso come prova
+ 
+const SUFFISSO_PROVA = '__prova';
+ 
+function dataLocaleGara(iso: any): string {
+ 
+  const d = new Date(iso);
+ 
+  if (isNaN(d.getTime())) return '';
+ 
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+ 
+}
+ 
+function provaEGara(trova: (id: string) => any, wid: string, dataGara?: string): { gara: any; prova: any; implicita: boolean } {
+ 
+  const diretto = trova(wid);
+ 
+  const esplicita = trova(wid + SUFFISSO_PROVA);
+ 
+  const primaDellaGara = !!(diretto && dataGara && diretto.updated_at && dataLocaleGara(diretto.updated_at) < String(dataGara).slice(0, 10));
+ 
+  return { gara: primaDellaGara ? null : diretto, prova: esplicita || (primaDellaGara ? diretto : null), implicita: primaDellaGara && !esplicita };
+ 
+}
+ 
 // Finestra per segnare lo score di un workout di gara (o il piazzamento finale)
  
 function FinestraScoreGara({ titolo, tipo, iniziale, onSalva, onClose, piazzamento }: { titolo: string; tipo: string; iniziale: any; onSalva: (dati: any) => Promise<void>; onClose: () => void; piazzamento?: boolean }) {
@@ -4992,7 +5020,15 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
   const puoSegnare = !isCoach && !bloccata;
  
-  const salvaRisultato = async (workoutId: string, etichetta: string, dati: any) => {
+  const salvaRisultato = async (workoutId: string, etichetta: string, dati: any, provaDaSpostare?: any) => {
+ 
+    // Il vecchio risultato salvato prima della gara diventa la prova, poi salvo quello di gara
+ 
+    if (provaDaSpostare) {
+ 
+      await supabase.from('gare_risultati').upsert({ gara_id: garaId, athlete_id: athleteId, workout_id: workoutId + SUFFISSO_PROVA, score: provaDaSpostare.score || '', note: provaDaSpostare.note || '', updated_at: provaDaSpostare.updated_at || new Date().toISOString() }, { onConflict: 'gara_id,athlete_id,workout_id' });
+ 
+    }
  
     const { error } = await supabase.from('gare_risultati').upsert({ gara_id: garaId, athlete_id: athleteId, workout_id: workoutId, score: dati.score || '', note: dati.note || '', posizione: dati.posizione ?? null, totale: dati.totale ?? null, updated_at: new Date().toISOString() }, { onConflict: 'gara_id,athlete_id,workout_id' });
  
@@ -5026,7 +5062,25 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
   // Riepilogo per lo storico: piazzamento e score dei workout
  
+  const dataRif = dataGara || gara?.event_date;
+ 
   const scoreSegnati = Object.values(risultati).filter((r: any) => r.workout_id !== PIAZZAMENTO_GARA && String(r.score || '').trim());
+ 
+  const vociRiepilogo: string[] = workouts.length
+ 
+    ? workouts.map((w: any, i: number) => {
+ 
+        const pg = provaEGara((id) => risultati[id], w.id, dataRif);
+ 
+        if (pg.gara?.score) return `W${i + 1}: ${pg.gara.score}${pg.prova?.score ? ` (prova ${pg.prova.score})` : ''}`;
+ 
+        if (pg.prova?.score) return `W${i + 1}: prova ${pg.prova.score}`;
+ 
+        return '';
+ 
+      }).filter(Boolean)
+ 
+    : scoreSegnati.map((r: any) => (String(r.workout_id).endsWith(SUFFISSO_PROVA) ? `prova ${r.score}` : r.score));
  
   const riepilogo = (piazz?.posizione || scoreSegnati.length > 0) ? (
  
@@ -5038,7 +5092,7 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
         <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginTop: piazz?.posizione ? '3px' : 0, overflowWrap: 'anywhere' }}>
  
-          {(workouts.length ? workouts.map((w: any, i: number) => (risultati[w.id]?.score ? `W${i + 1}: ${risultati[w.id].score}` : '')).filter(Boolean) : scoreSegnati.map((r: any) => r.score)).join(' · ')}
+          {vociRiepilogo.join(' · ')}
  
         </span>
  
@@ -5080,11 +5134,11 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
       piazzamento={scoreAperto.workoutId === PIAZZAMENTO_GARA}
  
-      iniziale={risultati[scoreAperto.workoutId]}
+      iniziale={'iniziale' in scoreAperto ? scoreAperto.iniziale : risultati[scoreAperto.workoutId]}
  
       onClose={() => setScoreAperto(null)}
  
-      onSalva={(dati: any) => salvaRisultato(scoreAperto.workoutId, scoreAperto.titolo, dati)}
+      onSalva={(dati: any) => salvaRisultato(scoreAperto.workoutId, scoreAperto.titolo, dati, scoreAperto.provaDaSpostare)}
  
     />
  
@@ -5142,7 +5196,13 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
         const aperto = !!aperti[k];
  
-        const r = risultati[w.id];
+        const pg = provaEGara((id) => risultati[id], w.id, dataRif);
+ 
+        const r = pg.gara;
+ 
+        const rp = pg.prova;
+ 
+        const primaDellaGara = giorno !== null && giorno > 0;
  
         return (
  
@@ -5152,7 +5212,7 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
               <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{titoloW(w, i)}</span>
  
-              {r?.score && !aperto && <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-047857)', whiteSpace: 'nowrap' }}>{r.score}</span>}
+              {(r?.score || rp?.score) && !aperto && <span style={{ fontSize: '12px', fontWeight: 'bold', color: r?.score ? 'var(--fg-047857)' : 'var(--fg-64748b)', whiteSpace: 'nowrap' }}>{r?.score ? r.score : `prova ${rp.score}`}</span>}
  
               <span style={{ color: 'var(--fg-64748b)', fontSize: '13px' }}>{aperto ? '▲' : '▼'}</span>
  
@@ -5164,15 +5224,37 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
                 <ContenutoWorkoutGara w={w} consiglio={consigli[w.id]} etichettaConsiglio={isCoach ? '\u{1F3AF} CONSIGLI PER QUESTO ATLETA' : undefined} />
  
-                <RisultatoGara r={r} etichetta={isCoach ? '\u{1F4CA} RISULTATO' : undefined} />
+                <RisultatoGara r={r} etichetta={isCoach ? '\u{1F4CA} RISULTATO DI GARA' : '\u{1F4CA} IL TUO RISULTATO DI GARA'} />
  
-                {puoSegnare && (
+                <RisultatoGara r={rp} etichetta={'\u{1F9EA} PROVA'} />
  
-                  <button type="button" onClick={() => setScoreAperto({ workoutId: w.id, titolo: titoloW(w, i), tipo: w.tipoScore || 'libero' })} style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                {puoSegnare && primaDellaGara && (
  
-                    <Icona nome="modifica" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />{r ? 'Modifica il risultato' : 'Segna il risultato'}
+                  <button type="button" onClick={() => setScoreAperto({ workoutId: w.id + SUFFISSO_PROVA, titolo: `${titoloW(w, i)} \u00b7 Prova`, tipo: w.tipoScore || 'libero', iniziale: rp })} style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                    <Icona nome="modifica" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />{rp ? 'Modifica la prova' : 'Segna la prova'}
  
                   </button>
+ 
+                )}
+ 
+                {puoSegnare && !primaDellaGara && (
+ 
+                  <>
+ 
+                    <button type="button" onClick={() => setScoreAperto({ workoutId: w.id, titolo: titoloW(w, i), tipo: w.tipoScore || 'libero', iniziale: r, provaDaSpostare: pg.implicita ? risultati[w.id] : undefined })} style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                      <Icona nome="modifica" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />{r ? 'Modifica il risultato di gara' : 'Segna il risultato di gara'}
+ 
+                    </button>
+ 
+                    {rp && !pg.implicita && (
+ 
+                      <button type="button" onClick={() => setScoreAperto({ workoutId: w.id + SUFFISSO_PROVA, titolo: `${titoloW(w, i)} \u00b7 Prova`, tipo: w.tipoScore || 'libero', iniziale: rp })} style={{ display: 'block', margin: '8px auto 0 auto', background: 'none', border: 'none', color: 'var(--fg-0284c7)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>Modifica la prova</button>
+ 
+                    )}
+ 
+                  </>
  
                 )}
  
@@ -5300,9 +5382,15 @@ function PercorsoGare({ gare, athleteId, dal, al }: { gare: any[]; athleteId: st
  
         const righe = ws.length
  
-          ? ws.map((w: any, i: number) => ({ titolo: `W${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`, corto: `W${i + 1}`, r: suoi.find((x: any) => x.workout_id === w.id) })).filter((x: any) => x.r)
+          ? ws.map((w: any, i: number) => {
  
-          : suoi.map((r: any, i: number) => ({ titolo: `Workout ${i + 1}`, corto: `W${i + 1}`, r }));
+              const pg = provaEGara((id) => suoi.find((x: any) => x.workout_id === id), w.id, g.event_date);
+ 
+              return { titolo: `W${i + 1}${String(w.titolo || '').trim() ? ` \u00b7 ${w.titolo}` : ''}`, corto: `W${i + 1}`, r: pg.gara || (pg.prova ? { ...pg.prova, score: pg.prova.score ? `prova ${pg.prova.score}` : '' } : null), prova: pg.gara ? pg.prova : null };
+ 
+            }).filter((x: any) => x.r)
+ 
+          : suoi.filter((r: any) => !String(r.workout_id).endsWith(SUFFISSO_PROVA)).map((r: any, i: number) => ({ titolo: `Workout ${i + 1}`, corto: `W${i + 1}`, r, prova: null }));
  
         const isAperta = aperta === g.id;
  
@@ -5322,7 +5410,7 @@ function PercorsoGare({ gare, athleteId, dal, al }: { gare: any[]; athleteId: st
  
               <span style={{ display: 'block', fontSize: '13px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px', overflowWrap: 'anywhere' }}>
  
-                {[p?.posizione ? `\u{1F3C5} ${testoPiazzamento(p)}` : '', ...righe.map((x: any) => (x.r.score ? `${x.corto}: ${x.r.score}` : ''))].filter(Boolean).join(' · ')}
+                {[p?.posizione ? `\u{1F3C5} ${testoPiazzamento(p)}` : '', ...righe.map((x: any) => (x.r.score ? `${x.corto}: ${x.r.score}${x.prova?.score ? ` (prova ${x.prova.score})` : ''}` : ''))].filter(Boolean).join(' · ')}
  
               </span>
  
@@ -5345,6 +5433,8 @@ function PercorsoGare({ gare, athleteId, dal, al }: { gare: any[]; athleteId: st
                     </div>
  
                     {String(x.r.note || '').trim() && <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', fontStyle: 'italic', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{x.r.note}</p>}
+ 
+                    {x.prova && <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{`\u{1F9EA} Prova: ${x.prova.score || '\u2013'}${String(x.prova.note || '').trim() ? ` \u00b7 ${x.prova.note}` : ''}`}</p>}
  
                   </div>
  
@@ -5932,7 +6022,11 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
  
                     {chi.map((r: any) => {
  
-                      const ris = risultatiGare.find((x: any) => x.gara_id === gara.id && x.athlete_id === r.athlete_id && x.workout_id === w.id);
+                      const pg = provaEGara((id) => risultatiGare.find((x: any) => x.gara_id === gara.id && x.athlete_id === r.athlete_id && x.workout_id === id), w.id, gara.event_date);
+ 
+                      const ris = pg.gara;
+ 
+                      const pr = pg.prova;
  
                       return (
  
@@ -5947,6 +6041,12 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
                           </div>
  
                           {String(ris?.note || '').trim() && <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', fontStyle: 'italic', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{ris.note}</p>}
+ 
+                          {pr && (String(pr.score || '').trim() || String(pr.note || '').trim()) && (
+ 
+                            <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{'\u{1F9EA} Prova: '}<strong>{pr.score || '\u2013'}</strong>{String(pr.note || '').trim() ? <span style={{ fontStyle: 'italic' }}>{` \u00b7 ${pr.note}`}</span> : null}</p>
+ 
+                          )}
  
                         </div>
  
@@ -10930,7 +11030,8 @@ const [notificationError, setNotificationError] = useState('');
  
         p256dh: subJson.keys?.p256dh,
  
-        auth: subJson.keys?.auth, 
+        auth: subJson.keys?.auth,
+ 
       },
  
       { onConflict: 'endpoint' }
@@ -13705,8 +13806,7 @@ const [notificationError, setNotificationError] = useState('');
  
                       ) : (
  
-                        <>
- 
+                        <> 
                           <span style={{ display: 'block', minWidth: '70px', padding: '6px 8px', boxSizing: 'border-box', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'var(--fg-000000)', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '6px' }}>{mx?.[chiave]?.time || '\u2013'}</span>
  
                           <button type="button" onClick={() => apriMaxInModifica({ tipo: 'nuoto', nome: chiave, etichetta: `${g.stile} ${d} m \u00b7 vasca ${vascaNuoto} m`, bozza: { valore: String(mx?.[chiave]?.time || '') } })} style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}>
@@ -16901,8 +17001,7 @@ const [notificationError, setNotificationError] = useState('');
  
     const vecchio = exerciseLibrary.find((ex: any) => sameName(ex.name, nomeVecchio));
  
-    if (linkAttuale && vecchio && vecchio.video_url && vecchio.video_url === linkAttuale) return '';
- 
+    if (linkAttuale && vecchio && vecchio.video_url && vecchio.video_url === linkAttuale) return ''; 
     return linkAttuale || '';
  
   };
@@ -17013,7 +17112,8 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
-    }; 
+    };
+ 
     if (contesto === 'edit') {
  
       if (!editingProgram) return;
@@ -17873,8 +17973,7 @@ const [notificationError, setNotificationError] = useState('');
                               )}
  
                             </div>
- 
-                          )}
+                           )}
  
                         </div>
  
@@ -19482,8 +19581,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               onChange={(e) => setNewComp({ ...newComp, event_date: e.target.value })}
  
-              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }}
- 
+              style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '13px', marginBottom: '10px' }} 
             />
  
             <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>
@@ -21830,7 +21928,8 @@ fetchAllAthleteResultsForCoach();
  
           }}
  
-        > 
+        >
+ 
           <Icona nome="spunta" size={16} /> {messaggio}
  
         </div>
@@ -23802,7 +23901,8 @@ fetchAllAthleteResultsForCoach();
                   <button type="button" onClick={() => apriSezioneBanner('banner')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
  
                 )}
-               </form>
+ 
+              </form>
  
               </>)}
  
@@ -25847,8 +25947,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
                   </div>
  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
- 
-                    {metconPRNames.map((exName) => (
+                     {metconPRNames.map((exName) => (
  
                       <div key={exName} style={{ padding: '12px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
