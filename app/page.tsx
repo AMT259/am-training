@@ -1184,7 +1184,7 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
-const PRIVACY_VERSION = '3.4';
+const PRIVACY_VERSION = '3.5';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -2716,7 +2716,7 @@ function giorniAlla(data: any): number | null {
  
 // Conto alla rovescia verso la prossima gara, con le successive in coda
  
-function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop }: { gare: any[]; perCoach?: boolean; athleteId?: string; bloccata?: boolean; linkShop?: string }) {
+function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop, nomeAtleta }: { gare: any[]; perCoach?: boolean; athleteId?: string; bloccata?: boolean; linkShop?: string; nomeAtleta?: string }) {
  
   const [garaAperta, setGaraAperta] = useState<any>(null);
  
@@ -2830,7 +2830,7 @@ function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop }:
  
             </div>
  
-            <GaraCollegata garaId={garaAperta.gara_id} athleteId={athleteId} isCoach={false} bloccata={bloccata} linkShop={linkShop} mostraVuoto />
+            <GaraCollegata garaId={garaAperta.gara_id} athleteId={athleteId} isCoach={false} bloccata={bloccata} linkShop={linkShop} mostraVuoto dataGara={garaAperta.event_date} nomeGara={garaAperta.name} nomeAtleta={nomeAtleta} />
  
           </div>
  
@@ -4648,7 +4648,7 @@ async function caricaImmagineGara(file: File): Promise<string> {
  
 const nuovoIdWorkoutGara = () => `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
  
-const WORKOUT_GARA_VUOTO = { id: '', titolo: '', immagine: '', testo: '', standardImmagine: '', standardTesto: '', strategie: '' };
+const WORKOUT_GARA_VUOTO = { id: '', titolo: '', tipoScore: 'libero', immagine: '', testo: '', standardImmagine: '', standardTesto: '', strategie: '' };
  
 const stileTestoGara: React.CSSProperties = { overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 };
  
@@ -4724,41 +4724,245 @@ function ContenutoWorkoutGara({ w, consiglio, etichettaConsiglio }: { w: any; co
  
 }
  
-// Nella gara dell'atleta: workout e consigli presi dall'area Gare del coach
+// Tipi di score dei workout di gara
  
-function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraVuoto }: { garaId: string; athleteId: string; isCoach: boolean; bloccata?: boolean; linkShop?: string; mostraVuoto?: boolean }) {
+const TIPI_SCORE_GARA: [string, string][] = [['libero', 'Libero'], ['tempo', 'Tempo'], ['rep', 'Ripetizioni'], ['roundrep', 'Round + rep'], ['kg', 'Kg']];
+ 
+const PIAZZAMENTO_GARA = '__piazzamento';
+ 
+// Testo del piazzamento: "12° su 40"
+ 
+function testoPiazzamento(r: any): string {
+ 
+  if (!r || !r.posizione) return '';
+ 
+  return `${r.posizione}°${r.totale ? ` su ${r.totale}` : ''}`;
+ 
+}
+ 
+// Finestra per segnare lo score di un workout di gara (o il piazzamento finale)
+ 
+function FinestraScoreGara({ titolo, tipo, iniziale, onSalva, onClose, piazzamento }: { titolo: string; tipo: string; iniziale: any; onSalva: (dati: any) => Promise<void>; onClose: () => void; piazzamento?: boolean }) {
+ 
+  const ini = iniziale || {};
+ 
+  const mTempo = String(ini.score || '').match(/^(\d+):(\d{2})$/);
+ 
+  const mCap = String(ini.score || '').match(/^CAP \+ (\d+)/);
+ 
+  const mRound = String(ini.score || '').match(/^(\d+) round(?: \+ (\d+) rep)?/);
+ 
+  const mNum = String(ini.score || '').match(/^([\d.,]+)/);
+ 
+  const [min, setMin] = useState(mTempo ? mTempo[1] : '');
+ 
+  const [sec, setSec] = useState(mTempo ? mTempo[2] : '');
+ 
+  const [cap, setCap] = useState(!!mCap);
+ 
+  const [repCap, setRepCap] = useState(mCap ? mCap[1] : '');
+ 
+  const [round, setRound] = useState(mRound ? mRound[1] : '');
+ 
+  const [rep, setRep] = useState(mRound ? (mRound[2] || '') : '');
+ 
+  const [numero, setNumero] = useState(tipo === 'rep' || tipo === 'kg' ? (mNum ? mNum[1] : '') : '');
+ 
+  const [libero, setLibero] = useState(tipo === 'libero' ? String(ini.score || '') : '');
+ 
+  const [posizione, setPosizione] = useState(ini.posizione ? String(ini.posizione) : '');
+ 
+  const [totale, setTotale] = useState(ini.totale ? String(ini.totale) : '');
+ 
+  const [note, setNote] = useState(String(ini.note || ''));
+ 
+  const [salvando, setSalvando] = useState(false);
+ 
+  const componi = (): string => {
+ 
+    if (tipo === 'tempo') {
+ 
+      if (cap) return repCap ? `CAP + ${repCap} rep` : 'CAP';
+ 
+      if (!min && !sec) return '';
+ 
+      return `${parseInt(min || '0', 10)}:${String(parseInt(sec || '0', 10)).padStart(2, '0')}`;
+ 
+    }
+ 
+    if (tipo === 'rep') return numero ? `${numero} rep` : '';
+ 
+    if (tipo === 'kg') return numero ? `${numero} kg` : '';
+ 
+    if (tipo === 'roundrep') return round ? `${round} round${rep ? ` + ${rep} rep` : ''}` : '';
+ 
+    return libero.trim();
+ 
+  };
+ 
+  const salva = async () => {
+ 
+    setSalvando(true);
+ 
+    if (piazzamento) await onSalva({ score: '', posizione: parseInt(posizione, 10) || null, totale: parseInt(totale, 10) || null, note: note.trim() });
+ 
+    else await onSalva({ score: componi(), note: note.trim() });
+ 
+    setSalvando(false);
+ 
+  };
+ 
+  const campo: React.CSSProperties = { width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '11px', borderRadius: '8px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '16px', fontFamily: 'inherit', textAlign: 'center' };
+ 
+  const etichetta: React.CSSProperties = { fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' };
+ 
+  const coppia = (a: React.ReactNode, b: React.ReactNode) => <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>{a}{b}</div>;
+ 
+  const numCampo = (lab: string, val: string, set: (v: string) => void, ph?: string) => (
+ 
+    <div><label style={etichetta}>{lab}</label><input autoComplete="off" inputMode="numeric" value={val} placeholder={ph} onChange={(e) => set(e.target.value.replace(/[^\d.,]/g, ''))} style={campo} /></div>
+ 
+  );
+ 
+  return (
+ 
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6100, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+ 
+      <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', margin: '40px auto 0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>
+ 
+        <h4 style={{ margin: '0 0 14px 0', fontSize: '17px', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{titolo}</h4>
+ 
+        {piazzamento ? coppia(numCampo('Posizione', posizione, setPosizione, 'es. 12'), numCampo('Su quanti (facoltativo)', totale, setTotale, 'es. 40')) : tipo === 'tempo' ? (
+ 
+          <>
+ 
+            {!cap && coppia(numCampo('Minuti', min, setMin), numCampo('Secondi', sec, setSec))}
+ 
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '12px', cursor: 'pointer' }}>
+ 
+              <input type="checkbox" checked={cap} onChange={() => setCap(!cap)} /> Non finito entro il time cap
+ 
+            </label>
+ 
+            {cap && <div style={{ marginBottom: '12px' }}>{numCampo('Ripetizioni fatte', repCap, setRepCap)}</div>}
+ 
+          </>
+ 
+        ) : tipo === 'roundrep' ? coppia(numCampo('Round', round, setRound), numCampo('Rep in più', rep, setRep)) : tipo === 'rep' || tipo === 'kg' ? (
+ 
+          <div style={{ marginBottom: '12px' }}>{numCampo(tipo === 'rep' ? 'Ripetizioni' : 'Kg', numero, setNumero)}</div>
+ 
+        ) : (
+ 
+          <div style={{ marginBottom: '12px' }}><label style={etichetta}>Score</label><input autoComplete="off" value={libero} onChange={(e) => setLibero(e.target.value)} style={{ ...campo, textAlign: 'left' }} /></div>
+ 
+        )}
+ 
+        <label style={etichetta}>Note <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltative)</span></label>
+ 
+        <textarea autoComplete="off" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={piazzamento ? 'Com’è andata la gara...' : 'Sensazioni, cosa è andato bene o male...'} style={{ ...campo, textAlign: 'left', fontSize: '14px', resize: 'vertical', marginBottom: '14px' }} />
+ 
+        <div style={{ display: 'flex', gap: '7px' }}>
+ 
+          <button type="button" onClick={salva} disabled={salvando} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: salvando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
+ 
+          <button type="button" onClick={onClose} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
+ 
+        </div>
+ 
+      </div>
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// Risultato gia' segnato (score + note) sotto un workout
+ 
+function RisultatoGara({ r, etichetta }: { r: any; etichetta?: string }) {
+ 
+  if (!r || (!String(r.score || '').trim() && !String(r.note || '').trim() && !r.posizione)) return null;
+ 
+  const principale = r.posizione ? testoPiazzamento(r) : r.score;
+ 
+  return (
+ 
+    <div style={{ marginTop: '10px', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)' }}>
+ 
+      <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-047857)', letterSpacing: '0.5px' }}>{etichetta || '\u{1F4CA} IL TUO RISULTATO'}</span>
+ 
+      {String(principale || '').trim() && <span style={{ display: 'block', fontSize: '17px', fontWeight: 'bold', color: 'var(--fg-047857)', marginTop: '2px', overflowWrap: 'anywhere' }}>{principale}</span>}
+ 
+      {String(r.note || '').trim() && <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', fontStyle: 'italic', lineHeight: 1.45, whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{r.note}</p>}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// Nella gara dell'atleta: workout e consigli presi dall'area Gare del coach, con score, note e piazzamento
+ 
+function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraVuoto, dataGara, nomeGara, nomeAtleta, passata }: { garaId: string; athleteId: string; isCoach: boolean; bloccata?: boolean; linkShop?: string; mostraVuoto?: boolean; dataGara?: string; nomeGara?: string; nomeAtleta?: string; passata?: boolean }) {
  
   const [gara, setGara] = useState<any>(null);
  
   const [consigli, setConsigli] = useState<{ [k: string]: string }>({});
  
+  const [risultati, setRisultati] = useState<{ [k: string]: any }>({});
+ 
   const [aperti, setAperti] = useState<{ [k: string]: boolean }>({});
  
   const [letta, setLetta] = useState(false);
+ 
+  const [dettagli, setDettagli] = useState(false);
+ 
+  const [scoreAperto, setScoreAperto] = useState<any>(null); // { workoutId, titolo, tipo } oppure piazzamento
+ 
+  const leggiRisultati = async () => {
+ 
+    try {
+ 
+      const { data: ris } = await supabase.from('gare_risultati').select('*').eq('gara_id', garaId).eq('athlete_id', athleteId);
+ 
+      const m: { [k: string]: any } = {};
+ 
+      (ris || []).forEach((r: any) => { m[r.workout_id] = r; });
+ 
+      setRisultati(m);
+ 
+    } catch (e) { /* tabella non ancora creata */ }
+ 
+  };
  
   useEffect(() => {
  
     let vivo = true;
  
-    if (bloccata) return;
- 
     (async () => {
  
       try {
  
-        const { data } = await supabase.from('gare_coach').select('*').eq('id', garaId).maybeSingle();
+        if (!bloccata) {
  
-        const { data: cons } = await supabase.from('gare_consigli').select('workout_id, testo').eq('gara_id', garaId).eq('athlete_id', athleteId);
+          const { data } = await supabase.from('gare_coach').select('*').eq('id', garaId).maybeSingle();
  
-        if (!vivo) return;
+          const { data: cons } = await supabase.from('gare_consigli').select('workout_id, testo').eq('gara_id', garaId).eq('athlete_id', athleteId);
  
-        setGara(data || null);
+          if (!vivo) return;
  
-        const m: { [k: string]: string } = {};
+          setGara(data || null);
  
-        (cons || []).forEach((c: any) => { m[c.workout_id] = c.testo || ''; });
+          const m: { [k: string]: string } = {};
  
-        setConsigli(m);
+          (cons || []).forEach((c: any) => { m[c.workout_id] = c.testo || ''; });
+ 
+          setConsigli(m);
+ 
+        }
+ 
+        await leggiRisultati();
  
       } catch (e) { /* tabella non ancora creata */ }
  
@@ -4768,25 +4972,137 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
     return () => { vivo = false; };
  
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
   }, [garaId, athleteId, bloccata]);
  
   const workouts: any[] = Array.isArray(gara?.workouts) ? gara.workouts : [];
  
-  // Atleta senza programma attivo: workout e consigli restano riservati
+  const giorno = giorniAlla(dataGara || gara?.event_date);
+ 
+  const giaFatta = giorno !== null && giorno <= 0; // dal giorno della gara si puo' segnare il piazzamento
+ 
+  const puoSegnare = !isCoach && !bloccata;
+ 
+  const salvaRisultato = async (workoutId: string, etichetta: string, dati: any) => {
+ 
+    const { error } = await supabase.from('gare_risultati').upsert({ gara_id: garaId, athlete_id: athleteId, workout_id: workoutId, score: dati.score || '', note: dati.note || '', posizione: dati.posizione ?? null, totale: dati.totale ?? null, updated_at: new Date().toISOString() }, { onConflict: 'gara_id,athlete_id,workout_id' });
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setScoreAperto(null);
+ 
+    await leggiRisultati();
+ 
+    const valore = workoutId === PIAZZAMENTO_GARA ? testoPiazzamento(dati) : dati.score;
+ 
+    if (valore || dati.note) {
+ 
+      fetch('/api/notify-coach', {
+ 
+        method: 'POST',
+ 
+        headers: { 'Content-Type': 'application/json' },
+ 
+        body: JSON.stringify({ type: 'gara_risultato', title: 'Risultato di gara', message: `${nomeAtleta || 'Un atleta'} · ${nomeGara || gara?.name || 'Gara'} · ${etichetta}${valore ? `: ${valore}` : ' (note)'}` }),
+ 
+      }).catch((err) => console.error('Errore notifica risultato gara:', err));
+ 
+    }
+ 
+  };
+ 
+  const titoloW = (w: any, i: number) => `Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`;
+ 
+  const piazz = risultati[PIAZZAMENTO_GARA];
+ 
+  // Riepilogo per lo storico: piazzamento e score dei workout
+ 
+  const scoreSegnati = Object.values(risultati).filter((r: any) => r.workout_id !== PIAZZAMENTO_GARA && String(r.score || '').trim());
+ 
+  const riepilogo = (piazz?.posizione || scoreSegnati.length > 0) ? (
+ 
+    <div style={{ marginTop: '8px', padding: '9px 12px', borderRadius: '8px', background: 'var(--bg-ecfdf5)', border: '1px solid var(--bd-a7f3d0)' }}>
+ 
+      {piazz?.posizione ? <span style={{ display: 'block', fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-047857)' }}>{`\u{1F3C5} ${testoPiazzamento(piazz)}`}</span> : null}
+ 
+      {scoreSegnati.length > 0 && (
+ 
+        <span style={{ display: 'block', fontSize: '12.5px', color: 'var(--fg-334155)', marginTop: piazz?.posizione ? '3px' : 0, overflowWrap: 'anywhere' }}>
+ 
+          {(workouts.length ? workouts.map((w: any, i: number) => (risultati[w.id]?.score ? `W${i + 1}: ${risultati[w.id].score}` : '')).filter(Boolean) : scoreSegnati.map((r: any) => r.score)).join(' · ')}
+ 
+        </span>
+ 
+      )}
+ 
+    </div>
+ 
+  ) : null;
+ 
+  const scatolaPiazzamento = giaFatta && (puoSegnare || piazz) ? (
+ 
+    <div style={{ marginTop: '12px', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-ffffff)' }}>
+ 
+      <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px' }}>{'\u{1F3C5} PIAZZAMENTO FINALE'}</span>
+ 
+      {piazz ? <RisultatoGara r={piazz} etichetta=" " /> : <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-94a3b8)', marginTop: '4px' }}>Non ancora segnato</span>}
+ 
+      {puoSegnare && (
+ 
+        <button type="button" onClick={() => setScoreAperto({ workoutId: PIAZZAMENTO_GARA, titolo: 'Piazzamento finale', tipo: 'piazzamento' })} style={{ width: '100%', boxSizing: 'border-box', marginTop: '9px', padding: '9px', borderRadius: '999px', border: '1.5px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+          {piazz ? 'Modifica piazzamento' : 'Segna il piazzamento'}
+ 
+        </button>
+ 
+      )}
+ 
+    </div>
+ 
+  ) : null;
+ 
+  const finestra = scoreAperto && (
+ 
+    <FinestraScoreGara
+ 
+      titolo={scoreAperto.titolo}
+ 
+      tipo={scoreAperto.tipo}
+ 
+      piazzamento={scoreAperto.workoutId === PIAZZAMENTO_GARA}
+ 
+      iniziale={risultati[scoreAperto.workoutId]}
+ 
+      onClose={() => setScoreAperto(null)}
+ 
+      onSalva={(dati: any) => salvaRisultato(scoreAperto.workoutId, scoreAperto.titolo, dati)}
+ 
+    />
+ 
+  );
+ 
+  // Atleta senza programma attivo: workout e consigli restano riservati, i suoi risultati li vede sempre
  
   if (bloccata) {
  
     return (
  
-      <div style={{ marginTop: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', textAlign: 'center' }}>
+      <div style={{ marginTop: '10px' }}>
  
-        <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>{'\u{1F512} Workout, standard e strategie della gara sono riservati agli atleti con un programma AMT attivo.'}</p>
+        {riepilogo}
  
-        {linkShop && (
+        <div style={{ marginTop: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', textAlign: 'center' }}>
  
-          <a href={linkShop} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '10px', padding: '9px 18px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', textDecoration: 'none' }}>Scopri i programmi</a>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>{'\u{1F512} Workout, standard e strategie della gara sono riservati agli atleti con un programma AMT attivo.'}</p>
  
-        )}
+          {linkShop && (
+ 
+            <a href={linkShop} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '10px', padding: '9px 18px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', textDecoration: 'none' }}>Scopri i programmi</a>
+ 
+          )}
+ 
+        </div>
  
       </div>
  
@@ -4796,13 +5112,15 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
   if (!gara || (workouts.length === 0 && !String(gara.notes || '').trim())) {
  
+    if (riepilogo || scatolaPiazzamento) return <div>{riepilogo}{scatolaPiazzamento}{finestra}</div>;
+ 
     if (mostraVuoto && letta) return <p style={{ margin: '14px 0 4px 0', fontSize: '13px', color: 'var(--fg-64748b)', textAlign: 'center' }}>Il coach non ha ancora inserito i workout di questa gara.</p>;
  
     return null;
  
   }
  
-  return (
+  const contenuto = (
  
     <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -4816,19 +5134,43 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
         const aperto = !!aperti[k];
  
+        const r = risultati[w.id];
+ 
         return (
  
           <div key={k} style={{ border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
  
             <div onClick={() => setAperti({ ...aperti, [k]: !aperto })} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
  
-              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{`Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{titoloW(w, i)}</span>
+ 
+              {r?.score && !aperto && <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-047857)', whiteSpace: 'nowrap' }}>{r.score}</span>}
  
               <span style={{ color: 'var(--fg-64748b)', fontSize: '13px' }}>{aperto ? '▲' : '▼'}</span>
  
             </div>
  
-            {aperto && <ContenutoWorkoutGara w={w} consiglio={consigli[w.id]} etichettaConsiglio={isCoach ? '\u{1F3AF} CONSIGLI PER QUESTO ATLETA' : undefined} />}
+            {aperto && (
+ 
+              <div>
+ 
+                <ContenutoWorkoutGara w={w} consiglio={consigli[w.id]} etichettaConsiglio={isCoach ? '\u{1F3AF} CONSIGLI PER QUESTO ATLETA' : undefined} />
+ 
+                <RisultatoGara r={r} etichetta={isCoach ? '\u{1F4CA} RISULTATO' : undefined} />
+ 
+                {puoSegnare && (
+ 
+                  <button type="button" onClick={() => setScoreAperto({ workoutId: w.id, titolo: titoloW(w, i), tipo: w.tipoScore || 'libero' })} style={{ width: '100%', boxSizing: 'border-box', marginTop: '10px', padding: '10px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+                    <Icona nome="modifica" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />{r ? 'Modifica il risultato' : 'Segna il risultato'}
+ 
+                  </button>
+ 
+                )}
+ 
+              </div>
+ 
+            )}
  
           </div>
  
@@ -4836,7 +5178,33 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
       })}
  
-      {isCoach && <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--fg-94a3b8)' }}>Workout e consigli si modificano dalla sezione Gare in basso.</p>}
+      {scatolaPiazzamento}
+ 
+      {isCoach && <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: 'var(--fg-94a3b8)' }}>Workout e consigli si modificano dalla sezione Gare in basso.</p>}
+ 
+    </div>
+ 
+  );
+ 
+  return (
+ 
+    <div>
+ 
+      {passata && riepilogo}
+ 
+      {passata ? (
+ 
+        <>
+ 
+          <button type="button" onClick={() => setDettagli(!dettagli)} style={{ marginTop: '8px', background: 'none', border: 'none', padding: 0, color: 'var(--fg-0284c7)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{dettagli ? 'Nascondi dettagli ▲' : 'Workout, risultati e note ▼'}</button>
+ 
+          {dettagli && contenuto}
+ 
+        </>
+ 
+      ) : contenuto}
+ 
+      {finestra}
  
     </div>
  
@@ -4853,6 +5221,8 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
   const [righe, setRighe] = useState<any[]>([]); // gare segnate nei calendari degli atleti
  
   const [consigli, setConsigli] = useState<any[]>([]);
+ 
+  const [risultatiGare, setRisultatiGare] = useState<any[]>([]);
  
   const [caricata, setCaricata] = useState(false);
  
@@ -4897,6 +5267,8 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
       const { data: r } = await supabase.from('competition_days').select('id, athlete_id, name, event_date, notes, gara_id');
  
       const { data: c } = await supabase.from('gare_consigli').select('*');
+ 
+      try { const { data: rs } = await supabase.from('gare_risultati').select('*'); setRisultatiGare(rs || []); } catch (e) { /* tabella non ancora creata */ }
  
       setGare(g || []);
  
@@ -5326,6 +5698,12 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
  
             {r.name && r.name !== gara.name && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)' }}>{`ha scritto: ${r.name}`}</span>}
  
+            {(() => { const p = risultatiGare.find((x: any) => x.gara_id === gara.id && x.athlete_id === r.athlete_id && x.workout_id === PIAZZAMENTO_GARA); return p && (p.posizione || String(p.note || '').trim()) ? (
+ 
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '2px' }}>{p.posizione ? `\u{1F3C5} ${testoPiazzamento(p)}` : ''}{String(p.note || '').trim() ? <span style={{ display: 'block', fontWeight: 'normal', fontStyle: 'italic', color: 'var(--fg-64748b)', whiteSpace: 'pre-line' }}>{p.note}</span> : null}</span>
+ 
+            ) : null; })()}
+ 
           </span>
  
           <button type="button" onClick={() => setSposta(r)} style={tastino('var(--fg-0284c7)')}>Separa</button>
@@ -5365,8 +5743,7 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
               <div>
  
                 <ContenutoWorkoutGara w={w} />
- 
-                <div style={{ display: 'flex', gap: '14px', marginTop: '10px', flexWrap: 'wrap' }}>
+                 <div style={{ display: 'flex', gap: '14px', marginTop: '10px', flexWrap: 'wrap' }}>
  
                   <button type="button" onClick={() => setBozza({ indice: i, dati: { ...WORKOUT_GARA_VUOTO, ...w } })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
  
@@ -5377,6 +5754,40 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
                   <button type="button" onClick={() => { if (confirm('Eliminare questo workout? Spariscono anche i consigli personali scritti per questo workout.')) salvaWorkouts(workouts.filter((_x, j) => j !== i)); }} style={tastino('var(--fg-ef4444)')}>Elimina</button>
  
                 </div>
+ 
+                {chi.length > 0 && (
+ 
+                  <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-047857)', letterSpacing: '0.5px', marginBottom: '6px' }}>{`\u{1F4CA} RISULTATI \u00b7 ${TIPI_SCORE_GARA.find(([k]) => k === (w.tipoScore || 'libero'))?.[1] || 'Libero'}`}</span>
+ 
+                    {chi.map((r: any) => {
+ 
+                      const ris = risultatiGare.find((x: any) => x.gara_id === gara.id && x.athlete_id === r.athlete_id && x.workout_id === w.id);
+ 
+                      return (
+ 
+                        <div key={r.id} style={{ padding: '7px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+ 
+                            <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{nomeAtleta(r.athlete_id)}</span>
+ 
+                            <span style={{ fontSize: '14px', fontWeight: 'bold', color: ris?.score ? 'var(--fg-047857)' : 'var(--fg-94a3b8)', whiteSpace: 'nowrap' }}>{ris?.score || '\u2013'}</span>
+ 
+                          </div>
+ 
+                          {String(ris?.note || '').trim() && <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', fontStyle: 'italic', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{ris.note}</p>}
+ 
+                        </div>
+ 
+                      );
+ 
+                    })}
+ 
+                  </div>
+ 
+                )}
  
                 <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
@@ -5433,6 +5844,20 @@ function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string
           <label style={etichetta}>Nome del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
  
           <input autoComplete="off" type="text" placeholder="es. Event 1 - Sprint" value={bozza.dati.titolo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, titolo: e.target.value } })} style={campo} />
+ 
+          <label style={etichetta}>Tipo di score</label>
+ 
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+ 
+            {TIPI_SCORE_GARA.map(([k, lab]) => {
+ 
+              const sel = (bozza.dati.tipoScore || 'libero') === k;
+ 
+              return <button key={k} type="button" onClick={() => setBozza({ ...bozza, dati: { ...bozza.dati, tipoScore: k } })} style={{ padding: '6px 12px', borderRadius: '999px', border: sel ? 'none' : '1px solid var(--bd-cbd5e1)', background: sel ? 'var(--bg-10b981)' : 'var(--bg-ffffff)', color: sel ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{lab}</button>;
+ 
+            })}
+ 
+          </div>
  
           <label style={etichetta}>Immagine del workout</label>
  
@@ -8566,7 +8991,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
-        <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
+        <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. L’utente può inoltre registrare per ogni workout di gara il proprio risultato e delle note, oltre al piazzamento finale: questi dati sono visibili solo all’utente e al coach, restano consultabili nello storico gare e sono conservati nell’area del coach anche se l’utente rimuove la gara dal proprio calendario. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali, i risultati né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
  
         <p style={sStyle}>D) Dati tecnici</p>
  
@@ -8754,7 +9179,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
-      <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
+      <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. L’utente può inoltre registrare per ogni workout di gara il proprio risultato e delle note, oltre al piazzamento finale: questi dati sono visibili solo all’utente e al coach, restano consultabili nello storico gare e sono conservati nell’area del coach anche se l’utente rimuove la gara dal proprio calendario. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali, i risultati né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -10721,7 +11146,8 @@ const [notificationError, setNotificationError] = useState('');
     if (promemoriaAnamnesiRef.current === chiave) return;
  
     promemoriaAnamnesiRef.current = chiave;
-     controllaPromemoriaAnamnesi(chiave, mesi, mancante);
+ 
+    controllaPromemoriaAnamnesi(chiave, mesi, mancante);
  
     // eslint-disable-next-line react-hooks/exhaustive-deps
  
@@ -18771,6 +19197,12 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     const ordinate = [...(gare || [])].sort((a, b) => String(a.event_date).localeCompare(String(b.event_date)));
  
+    // Prima le prossime, poi lo storico dalla piu' recente
+ 
+    const prossimeP = ordinate.filter((g: any) => { const m = giorniAlla(g.event_date); return m === null || m >= 0; });
+ 
+    const passateP = ordinate.filter((g: any) => { const m = giorniAlla(g.event_date); return m !== null && m < 0; }).reverse();
+ 
     return (
  
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '100%', minWidth: 0 }}>
@@ -18793,7 +19225,9 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
-        {ordinate.map((g: any) => {
+        {[...prossimeP, null, ...passateP].map((g: any) => {
+ 
+          if (g === null) return passateP.length ? <span key="storico" style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginTop: '8px' }}>{'\u{1F3C6} STORICO GARE'}</span> : null;
  
           const m = giorniAlla(g.event_date);
  
@@ -18817,7 +19251,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
  
-              {g.gara_id && <GaraCollegata garaId={g.gara_id} athleteId={athleteId} isCoach={isCoach} bloccata={!isCoach && subscriptionStatus !== 'attivo'} linkShop={linkLogo} />}
+              {g.gara_id && <GaraCollegata garaId={g.gara_id} athleteId={athleteId} isCoach={isCoach} bloccata={!isCoach && subscriptionStatus !== 'attivo'} linkShop={linkLogo} dataGara={g.event_date} nomeGara={g.name} nomeAtleta={isCoach ? '' : (personalData.full_name || session?.user?.email || '')} passata={passata} />}
  
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
  
@@ -20340,8 +20774,7 @@ fetchAllAthleteResultsForCoach();
             36%  { transform: scale(1); }
  
             100% { transform: scale(1); }
- 
-          }
+           }
  
           @keyframes splashFade {
  
@@ -20761,8 +21194,7 @@ fetchAllAthleteResultsForCoach();
  
                 >
  
-                  {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'}
- 
+                  {policyScrolledToEnd ? 'Accetta e chiudi' : 'Scorri fino in fondo e accetta'} 
                 </button>
  
               </div>
@@ -21392,8 +21824,7 @@ fetchAllAthleteResultsForCoach();
                             {(dSorg.blocks || []).map((b: any, i: number) => {
  
                               const sel = (imp.scelti || []).includes(i);
- 
-                              return (
+                               return (
  
                                 <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', marginBottom: '6px', borderRadius: '10px', border: sel ? '1px solid var(--bd-10b981)' : '1px solid var(--bd-e2e8f0)', background: sel ? 'rgba(var(--acc-rgb), 0.10)' : 'var(--bg-f8fafc)', cursor: 'pointer' }}>
  
@@ -23540,7 +23971,8 @@ fetchAllAthleteResultsForCoach();
                     <button type="button" onClick={async () => { await saveScadutoCta(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito scaduto
-                 </button>
+ 
+                </button>
  
                   </div>
  
@@ -26328,8 +26760,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                 <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '8px' }}><Icona nome="calendario" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />SETTIMANE</span>
  
-                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}>
- 
+                <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '6px' }}> 
                   {editingProgram.weeks?.map((week: any, wIdx: number) => {
  
                     const isSelected = selectedWeekView === week.weekName;
@@ -30432,7 +30863,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               })}
  
-              <CompetitionCountdown gare={competitions} athleteId={session.user.id} bloccata={subscriptionStatus !== 'attivo'} linkShop={linkLogo} />
+              <CompetitionCountdown gare={competitions} athleteId={session.user.id} bloccata={subscriptionStatus !== 'attivo'} linkShop={linkLogo} nomeAtleta={personalData.full_name || session.user.email || ''} />
  
               <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
  
