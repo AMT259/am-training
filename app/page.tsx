@@ -9921,8 +9921,7 @@ const [notificationError, setNotificationError] = useState('');
   const fetchAthleteResults = async () => {
  
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
- 
-    if (data) {
+     if (data) {
  
       const resultsMap: { [key: string]: any } = {};
  
@@ -11762,8 +11761,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const reps = parseInt(r, 10);
  
-      const w = parseWeightValue(nuovi[r]);
- 
+      const w = parseWeightValue(nuovi[r]); 
       if (!w) continue;
  
       const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
@@ -11894,7 +11892,8 @@ const [notificationError, setNotificationError] = useState('');
  
     if (numeric && numeric > 0) {
  
-      const prevRaw = getSavedOf(aid)[name]?.result; 
+      const prevRaw = getSavedOf(aid)[name]?.result;
+ 
       const prima = type === 'time' ? timeToSeconds(prevRaw) : type === 'rounds' ? roundsToNumber(prevRaw) : parseWeightValue(prevRaw);
  
       await recordMaxHistory(aid, name, -3, numeric, 'benchmark');
@@ -21068,8 +21067,7 @@ fetchAllAthleteResultsForCoach();
             <Icona nome="timer" size={19} />
  
           </button>
- 
-          <div style={{ position: 'relative' }}>
+           <div style={{ position: 'relative' }}>
  
             <button
  
@@ -22425,7 +22423,8 @@ fetchAllAthleteResultsForCoach();
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito abbonamento scaduto</h4>
  
-                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}> 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
+ 
                   Compare solo agli atleti con abbonamento &quot;Scaduto&quot;, al posto delle schede. Se lasci un campo vuoto si usa il testo predefinito.
  
                 </p>
@@ -23642,8 +23641,6 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                           </span>
  
-                                          {blk.target && <span style={{ overflowWrap: 'anywhere', fontSize: '15px', color: 'var(--fg-334155)', minWidth: 0 }}>{blk.target}</span>}
- 
                                         </div>
  
                                         {(() => {
@@ -23677,6 +23674,18 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                           );
  
                                         })()}
+ 
+                                        {blk.target && (
+ 
+                                          <div style={{ marginTop: '12px', background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                            <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</span>
+ 
+                                            <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line' }}>{blk.target}</p>
+ 
+                                          </div>
+ 
+                                        )}
  
                                       </div>
  
@@ -25384,8 +25393,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         return (
  
-                          <button
- 
+                          <button 
                             key={dIdx}
  
                             onClick={() => setSelectedDayView(day.dayName)}
@@ -29144,7 +29152,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     </select>
  
-                  </div> 
+                  </div>
+ 
                   <div>
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
@@ -30281,8 +30290,6 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                       </span>
  
-                                                      {blk.target && <span style={{ overflowWrap: 'anywhere', fontSize: '15px', color: 'var(--fg-334155)', minWidth: 0 }}>{blk.target}</span>}
- 
                                                     </div>
  
                                                     {(() => {
@@ -30316,6 +30323,18 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                                       );
  
                                                     })()}
+ 
+                                                    {blk.target && (
+ 
+                                                      <div style={{ marginTop: '12px', background: 'var(--bg-f8fafc)', padding: '8px', borderRadius: '6px', border: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                                                        <span style={{ fontSize: '10px', color: 'var(--fg-64748b)', display: 'block' }}>NOTE</span>
+ 
+                                                        <p style={{ overflowWrap: 'anywhere', margin: '2px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line' }}>{blk.target}</p>
+ 
+                                                      </div>
+ 
+                                                    )}
  
                                                   </div>
  
