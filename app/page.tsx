@@ -1184,7 +1184,7 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
-const PRIVACY_VERSION = '3.3';
+const PRIVACY_VERSION = '3.4';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -3472,7 +3472,8 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
     return pezzi.map((p) => ({ reps: p }));
  
-  } 
+  }
+ 
   // serie uguali
  
   if (nSerie > 0) {
@@ -4541,7 +4542,7 @@ function VideoWod({ items, testo, titolo }: { items: any[]; testo?: string; tito
  
 }
  
-// ---- Gare: workout di gara con immagine, testo, standard e strategie e consigli (li scrive solo il coach) ----
+// ---- Gare: area del coach con workout condivisi e consigli personali per atleta ----
  
 async function ridimensionaImmagineGara(file: File): Promise<Blob> {
  
@@ -4601,45 +4602,255 @@ async function caricaImmagineGara(file: File): Promise<string> {
  
 }
  
-const WORKOUT_GARA_VUOTO = { titolo: '', immagine: '', testo: '', standardImmagine: '', standardTesto: '', strategie: '' };
+const nuovoIdWorkoutGara = () => `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
  
-function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoach: boolean; atleti: any[]; onAggiornato: () => void }) {
+const WORKOUT_GARA_VUOTO = { id: '', titolo: '', immagine: '', testo: '', standardImmagine: '', standardTesto: '', strategie: '' };
+ 
+const stileTestoGara: React.CSSProperties = { overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 };
+ 
+function ImmagineGara({ url }: { url: string }) {
+ 
+  return (
+ 
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+ 
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+ 
+      <img src={url} alt="" loading="lazy" style={{ width: '100%', display: 'block', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }} />
+ 
+    </a>
+ 
+  );
+ 
+}
+ 
+// Contenuto di un workout di gara: immagine, testo, standard, strategie per tutti e consigli personali
+ 
+function ContenutoWorkoutGara({ w, consiglio, etichettaConsiglio }: { w: any; consiglio?: string; etichettaConsiglio?: string }) {
+ 
+  return (
+ 
+    <div>
+ 
+      {w.immagine && <div style={{ marginTop: '10px' }}><ImmagineGara url={w.immagine} /></div>}
+ 
+      {String(w.testo || '').trim() && <div style={{ marginTop: '10px' }}><p style={stileTestoGara}>{w.testo}</p></div>}
+ 
+      {(w.standardImmagine || String(w.standardTesto || '').trim()) && (
+ 
+        <div>
+ 
+          <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)', letterSpacing: '0.5px', margin: '12px 0 6px 0' }}>{'\u{1F4CF} STANDARD'}</span>
+ 
+          {w.standardImmagine && <div style={{ marginBottom: '8px' }}><ImmagineGara url={w.standardImmagine} /></div>}
+ 
+          {String(w.standardTesto || '').trim() && <p style={stileTestoGara}>{w.standardTesto}</p>}
+ 
+        </div>
+ 
+      )}
+ 
+      {String(w.strategie || '').trim() && (
+ 
+        <div style={{ marginTop: '12px', background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fde68a)', borderRadius: '8px', padding: '10px 12px' }}>
+ 
+          <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-92400e)', letterSpacing: '0.5px', marginBottom: '5px' }}>{'\u{1F4A1} STRATEGIE E CONSIGLI'}</span>
+ 
+          <p style={stileTestoGara}>{w.strategie}</p>
+ 
+        </div>
+ 
+      )}
+ 
+      {String(consiglio || '').trim() && (
+ 
+        <div style={{ marginTop: '10px', background: 'rgba(var(--acc-rgb), 0.1)', border: '1px solid rgba(var(--acc-rgb), 0.45)', borderRadius: '8px', padding: '10px 12px' }}>
+ 
+          <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.5px', marginBottom: '5px' }}>{etichettaConsiglio || '\u{1F3AF} I TUOI CONSIGLI'}</span>
+ 
+          <p style={stileTestoGara}>{consiglio}</p>
+ 
+        </div>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// Nella gara dell'atleta: workout e consigli presi dall'area Gare del coach
+ 
+function GaraCollegata({ garaId, athleteId, isCoach }: { garaId: string; athleteId: string; isCoach: boolean }) {
+ 
+  const [gara, setGara] = useState<any>(null);
+ 
+  const [consigli, setConsigli] = useState<{ [k: string]: string }>({});
+ 
+  const [aperti, setAperti] = useState<{ [k: string]: boolean }>({});
+ 
+  useEffect(() => {
+ 
+    let vivo = true;
+ 
+    (async () => {
+ 
+      try {
+ 
+        const { data } = await supabase.from('gare_coach').select('*').eq('id', garaId).maybeSingle();
+ 
+        const { data: cons } = await supabase.from('gare_consigli').select('workout_id, testo').eq('gara_id', garaId).eq('athlete_id', athleteId);
+ 
+        if (!vivo) return;
+ 
+        setGara(data || null);
+ 
+        const m: { [k: string]: string } = {};
+ 
+        (cons || []).forEach((c: any) => { m[c.workout_id] = c.testo || ''; });
+ 
+        setConsigli(m);
+ 
+      } catch (e) { /* tabella non ancora creata */ }
+ 
+    })();
+ 
+    return () => { vivo = false; };
+ 
+  }, [garaId, athleteId]);
  
   const workouts: any[] = Array.isArray(gara?.workouts) ? gara.workouts : [];
  
-  const [aperti, setAperti] = useState<{ [k: number]: boolean }>({});
+  if (!gara || (workouts.length === 0 && !String(gara.notes || '').trim())) return null;
  
-  const [bozza, setBozza] = useState<any>(null); // { indice: number | null, dati }
+  return (
+ 
+    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+      {String(gara.notes || '').trim() && <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{gara.notes}</p>}
+ 
+      {workouts.length > 0 && <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginBottom: '8px' }}>{`WORKOUT DELLA GARA (${workouts.length})`}</span>}
+ 
+      {workouts.map((w: any, i: number) => {
+ 
+        const k = w.id || String(i);
+ 
+        const aperto = !!aperti[k];
+ 
+        return (
+ 
+          <div key={k} style={{ border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
+ 
+            <div onClick={() => setAperti({ ...aperti, [k]: !aperto })} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+ 
+              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{`Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`}</span>
+ 
+              <span style={{ color: 'var(--fg-64748b)', fontSize: '13px' }}>{aperto ? '▲' : '▼'}</span>
+ 
+            </div>
+ 
+            {aperto && <ContenutoWorkoutGara w={w} consiglio={consigli[w.id]} etichettaConsiglio={isCoach ? '\u{1F3AF} CONSIGLI PER QUESTO ATLETA' : undefined} />}
+ 
+          </div>
+ 
+        );
+ 
+      })}
+ 
+      {isCoach && <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: 'var(--fg-94a3b8)' }}>Workout e consigli si modificano dalla sezione Gare in basso.</p>}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// Area Gare del coach
+ 
+function AreaGareCoach({ atleti }: { atleti: any[] }) {
+ 
+  const [gare, setGare] = useState<any[]>([]);
+ 
+  const [righe, setRighe] = useState<any[]>([]); // gare segnate nei calendari degli atleti
+ 
+  const [consigli, setConsigli] = useState<any[]>([]);
+ 
+  const [caricata, setCaricata] = useState(false);
+ 
+  const [mancaTabella, setMancaTabella] = useState(false);
+ 
+  const [apertaId, setApertaId] = useState<string | null>(null);
+ 
+  const [datiGara, setDatiGara] = useState<any>(null); // modifica nome/data/note, o nuova gara
+ 
+  const [bozza, setBozza] = useState<any>(null); // { indice, dati } workout in modifica
  
   const [caricando, setCaricando] = useState<string | null>(null);
  
   const [salvando, setSalvando] = useState(false);
  
-  const [copia, setCopia] = useState(false);
+  const [aperti, setAperti] = useState<{ [k: string]: boolean }>({});
+ 
+  const [assegna, setAssegna] = useState(false);
  
   const [scelti, setScelti] = useState<string[]>([]);
  
-  const [copiando, setCopiando] = useState(false);
+  const [consiglioInModifica, setConsiglioInModifica] = useState<any>(null); // { workoutId, athleteId, testo }
  
-  const [copiaStrategie, setCopiaStrategie] = useState(false);
+  const [sposta, setSposta] = useState<any>(null); // riga dell'atleta da spostare
  
-  const salva = async (nuovi: any[]) => {
+  const nomeAtleta = (id: string) => { const a = (atleti || []).find((x: any) => x.id === id); return a?.full_name || a?.email || 'Atleta'; };
+ 
+  const carica = async () => {
+ 
+    try {
+ 
+      const { data: g, error } = await supabase.from('gare_coach').select('*').order('event_date', { ascending: true });
+ 
+      if (error) { setMancaTabella(true); setCaricata(true); return; }
+ 
+      const { data: r } = await supabase.from('competition_days').select('id, athlete_id, name, event_date, notes, gara_id');
+ 
+      const { data: c } = await supabase.from('gare_consigli').select('*');
+ 
+      setGare(g || []);
+ 
+      setRighe(r || []);
+ 
+      setConsigli(c || []);
+ 
+    } catch (e) { setMancaTabella(true); }
+ 
+    setCaricata(true);
+ 
+  };
+ 
+  useEffect(() => { carica(); }, []);
+ 
+  const gara = apertaId ? gare.find((g: any) => g.id === apertaId) : null;
+ 
+  const atletiDi = (gid: string) => righe.filter((r: any) => r.gara_id === gid);
+ 
+  const salvaWorkouts = async (nuovi: any[]) => {
+ 
+    if (!gara) return false;
  
     setSalvando(true);
  
-    const { error } = await supabase.from('competition_days').update({ workouts: nuovi }).eq('id', gara.id);
+    const { error } = await supabase.from('gare_coach').update({ workouts: nuovi }).eq('id', gara.id);
  
     setSalvando(false);
  
     if (error) { alert('Errore: ' + error.message); return false; }
  
-    onAggiornato();
+    setGare(gare.map((g: any) => (g.id === gara.id ? { ...g, workouts: nuovi } : g)));
  
     return true;
  
   };
  
-  const carica = async (campo: 'immagine' | 'standardImmagine', file: File | null) => {
+  const caricaImg = async (campo: 'immagine' | 'standardImmagine', file: File | null) => {
  
     if (!file) return;
  
@@ -4667,119 +4878,185 @@ function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoa
  
   const salvaBozza = async () => {
  
-    const d = bozza.dati;
+    const d = { ...bozza.dati, id: bozza.dati.id || nuovoIdWorkoutGara() };
  
     if (!String(d.titolo || '').trim() && !d.immagine && !String(d.testo || '').trim()) { alert('Scrivi almeno il nome del workout, il testo o carica l’immagine.'); return; }
  
-    const nuovi = [...workouts];
+    const ws: any[] = Array.isArray(gara?.workouts) ? [...gara.workouts] : [];
  
-    if (bozza.indice === null) nuovi.push(d); else nuovi[bozza.indice] = d;
+    if (bozza.indice === null) ws.push(d); else ws[bozza.indice] = d;
  
-    if (await salva(nuovi)) setBozza(null);
- 
-  };
- 
-  const elimina = async (i: number) => {
- 
-    if (!confirm('Eliminare questo workout della gara?')) return;
- 
-    await salva(workouts.filter((_w, j) => j !== i));
+    if (await salvaWorkouts(ws)) setBozza(null);
  
   };
  
-  const sposta = async (i: number, verso: number) => {
+  const salvaDatiGara = async () => {
  
-    const j = i + verso;
+    const d = datiGara;
  
-    if (j < 0 || j >= workouts.length) return;
+    if (!String(d.name || '').trim() || !d.event_date) { alert('Servono il nome della gara e la data.'); return; }
  
-    const nuovi = [...workouts];
+    setSalvando(true);
  
-    [nuovi[i], nuovi[j]] = [nuovi[j], nuovi[i]];
+    if (d.id) {
  
-    await salva(nuovi);
+      const { error } = await supabase.from('gare_coach').update({ name: d.name.trim(), event_date: d.event_date, notes: String(d.notes || '').trim() || null }).eq('id', d.id);
+ 
+      setSalvando(false);
+ 
+      if (error) { alert('Errore: ' + error.message); return; }
+ 
+    } else {
+ 
+      const { data, error } = await supabase.from('gare_coach').insert([{ name: d.name.trim(), event_date: d.event_date, notes: String(d.notes || '').trim() || null }]).select('id').single();
+ 
+      setSalvando(false);
+ 
+      if (error) { alert('Errore: ' + error.message); return; }
+ 
+      if (data?.id) setApertaId(data.id);
+ 
+    }
+ 
+    setDatiGara(null);
+ 
+    carica();
  
   };
  
-  const copiaAgliAtleti = async () => {
+  const eliminaGara = async () => {
  
-    if (scelti.length === 0) return;
+    if (!gara) return;
  
-    setCopiando(true);
+    if (!confirm(`Eliminare "${gara.name}" con tutti i workout e i consigli? Gli atleti la tengono nel loro calendario, ma senza workout.`)) return;
+ 
+    const { error } = await supabase.from('gare_coach').delete().eq('id', gara.id);
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setApertaId(null);
+ 
+    carica();
+ 
+  };
+ 
+  const assegnaAtleti = async () => {
+ 
+    if (!gara || scelti.length === 0) return;
+ 
+    setSalvando(true);
  
     let errori = 0;
  
     for (const id of scelti) {
  
-      try {
+      const stessaData = righe.find((r: any) => r.athlete_id === id && r.event_date === gara.event_date && r.gara_id !== gara.id);
  
-        const { data: esistenti } = await supabase.from('competition_days').select('id, workouts').eq('athlete_id', id).eq('name', gara.name).eq('event_date', gara.event_date);
+      const res = stessaData
  
-        const suoi: any[] = esistenti && esistenti.length > 0 && Array.isArray(esistenti[0].workouts) ? esistenti[0].workouts : [];
+        ? await supabase.from('competition_days').update({ gara_id: gara.id, name: gara.name }).eq('id', stessaData.id)
  
-        // Workout e standard uguali per tutti; le strategie dell'atleta non si toccano mai,
+        : await supabase.from('competition_days').insert([{ athlete_id: id, name: gara.name, event_date: gara.event_date, gara_id: gara.id }]);
  
-        // quelle del coach si copiano solo con la spunta e solo dove l'atleta non ne ha
- 
-        const nuovi = workouts.map((w: any, i: number) => {
- 
-          const titolo = String(w.titolo || '').trim().toLowerCase();
- 
-          const suo = (titolo && suoi.find((x: any) => String(x?.titolo || '').trim().toLowerCase() === titolo)) || suoi[i] || null;
- 
-          const strategieSue = String(suo?.strategie || '').trim();
- 
-          return { ...w, strategie: strategieSue ? suo.strategie : (copiaStrategie ? (w.strategie || '') : '') };
- 
-        });
- 
-        const res = esistenti && esistenti.length > 0
- 
-          ? await supabase.from('competition_days').update({ workouts: nuovi }).eq('id', esistenti[0].id)
- 
-          : await supabase.from('competition_days').insert([{ athlete_id: id, name: gara.name, event_date: gara.event_date, notes: gara.notes || null, workouts: nuovi }]);
- 
-        if (res.error) errori++;
- 
-      } catch (e) { errori++; }
+      if (res.error) errori++;
  
     }
  
-    setCopiando(false);
+    setSalvando(false);
  
-    setCopia(false);
+    setAssegna(false);
  
     setScelti([]);
  
-    onAggiornato();
+    if (errori) alert(`Assegnata con ${errori} errori.`);
  
-    alert(errori ? `Copiata con ${errori} errori.` : `Gara copiata a ${scelti.length} ${scelti.length === 1 ? 'atleta' : 'atleti'}.`);
+    carica();
  
   };
  
-  const tastino = (colore: string): React.CSSProperties => ({ background: 'none', border: 'none', color: colore, fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 });
+  const togliAtleta = async (riga: any) => {
  
-  const titoletto = (testo: string) => <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)', letterSpacing: '0.5px', margin: '12px 0 6px 0' }}>{testo}</span>;
+    if (!confirm(`Togliere la gara dal calendario di ${nomeAtleta(riga.athlete_id)}? I consigli che hai scritto per lui restano qui.`)) return;
  
-  const immagine = (url: string) => (
+    const { error } = await supabase.from('competition_days').delete().eq('id', riga.id);
  
-    <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+    if (error) { alert('Errore: ' + error.message); return; }
  
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+    carica();
  
-      <img src={url} alt="" loading="lazy" style={{ width: '100%', display: 'block', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }} />
+  };
  
-    </a>
+  const spostaAtleta = async (riga: any, destinazione: string | null) => {
  
-  );
+    let dest = destinazione;
  
-  const testo = (t: string) => <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{t}</p>;
+    if (!dest) {
  
-  if (workouts.length === 0 && !isCoach) return null;
+      const { data, error } = await supabase.from('gare_coach').insert([{ name: riga.name || gara?.name || 'Gara', event_date: riga.event_date, notes: null }]).select('id').single();
+ 
+      if (error || !data) { alert('Errore: ' + (error?.message || '')); return; }
+ 
+      dest = data.id;
+ 
+    }
+ 
+    const { error } = await supabase.from('competition_days').update({ gara_id: dest }).eq('id', riga.id);
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setSposta(null);
+ 
+    carica();
+ 
+  };
+ 
+  const salvaConsiglio = async () => {
+ 
+    const c = consiglioInModifica;
+ 
+    if (!gara || !c) return;
+ 
+    setSalvando(true);
+ 
+    const testo = String(c.testo || '').trim();
+ 
+    const { error } = testo
+ 
+      ? await supabase.from('gare_consigli').upsert({ gara_id: gara.id, athlete_id: c.athleteId, workout_id: c.workoutId, testo, updated_at: new Date().toISOString() }, { onConflict: 'gara_id,athlete_id,workout_id' })
+ 
+      : await supabase.from('gare_consigli').delete().eq('gara_id', gara.id).eq('athlete_id', c.athleteId).eq('workout_id', c.workoutId);
+ 
+    setSalvando(false);
+ 
+    if (error) { alert('Errore: ' + error.message); return; }
+ 
+    setConsiglioInModifica(null);
+ 
+    const { data } = await supabase.from('gare_consigli').select('*');
+ 
+    setConsigli(data || []);
+ 
+  };
+ 
+  const tastino = (colore: string): React.CSSProperties => ({ background: 'none', border: 'none', color: colore, fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', padding: 0 });
  
   const campo: React.CSSProperties = { width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', fontFamily: 'inherit', marginBottom: '10px' };
  
   const etichetta: React.CSSProperties = { fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' };
+ 
+  const finestra = (contenuto: React.ReactNode, larghezza = 520) => (
+ 
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+ 
+      <div style={{ maxWidth: `${larghezza}px`, margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>{contenuto}</div>
+ 
+    </div>
+ 
+  );
+ 
+  const tastoPieno: React.CSSProperties = { flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' };
+ 
+  const tastoAnnulla: React.CSSProperties = { padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' };
  
   const caricatore = (campoImg: 'immagine' | 'standardImmagine', testoTasto: string) => (
  
@@ -4803,7 +5080,7 @@ function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoa
  
           {caricando === campoImg ? 'Caricamento…' : testoTasto}
  
-          <input type="file" accept="image/*" style={{ display: 'none' }} disabled={!!caricando} onChange={(e) => { carica(campoImg, e.target.files?.[0] || null); e.target.value = ''; }} />
+          <input type="file" accept="image/*" style={{ display: 'none' }} disabled={!!caricando} onChange={(e) => { caricaImg(campoImg, e.target.files?.[0] || null); e.target.value = ''; }} />
  
         </label>
  
@@ -4813,23 +5090,187 @@ function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoa
  
   );
  
+  const finestraDatiGara = datiGara && finestra(
+ 
+    <>
+ 
+      <h4 style={{ margin: '0 0 14px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{datiGara.id ? 'Modifica gara' : 'Nuova gara'}</h4>
+ 
+      <label style={etichetta}>Nome della gara</label>
+ 
+      <input autoComplete="off" type="text" value={datiGara.name} onChange={(e) => setDatiGara({ ...datiGara, name: e.target.value })} style={campo} />
+ 
+      <label style={etichetta}>Data</label>
+ 
+      <input autoComplete="off" type="date" value={datiGara.event_date} onChange={(e) => setDatiGara({ ...datiGara, event_date: e.target.value })} style={campo} />
+ 
+      <label style={etichetta}>Info per gli atleti <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltative: luogo, orari, categoria...)</span></label>
+ 
+      <textarea autoComplete="off" rows={3} value={datiGara.notes || ''} onChange={(e) => setDatiGara({ ...datiGara, notes: e.target.value })} style={{ ...campo, resize: 'vertical' }} />
+ 
+      <div style={{ display: 'flex', gap: '7px' }}>
+ 
+        <button type="button" onClick={salvaDatiGara} disabled={salvando} style={{ ...tastoPieno, opacity: salvando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
+ 
+        <button type="button" onClick={() => setDatiGara(null)} style={tastoAnnulla}>Annulla</button>
+ 
+      </div>
+ 
+    </>, 480);
+ 
+  if (!caricata) return <p style={{ color: 'var(--fg-94a3b8)', fontSize: '13px' }}>Caricamento…</p>;
+ 
+  if (mancaTabella) return <p style={{ color: 'var(--fg-94a3b8)', fontSize: '13px', lineHeight: 1.5 }}>Per usare la sezione Gare va prima lanciato l&apos;SQL delle gare in Supabase.</p>;
+ 
+  // ---------- elenco delle gare ----------
+ 
+  if (!gara) {
+ 
+    const prossime = gare.filter((g: any) => { const m = giorniAlla(g.event_date); return m === null || m >= 0; });
+ 
+    const passate = gare.filter((g: any) => { const m = giorniAlla(g.event_date); return m !== null && m < 0; }).reverse();
+ 
+    const riga = (g: any) => {
+ 
+      const m = giorniAlla(g.event_date);
+ 
+      const chi = atletiDi(g.id);
+ 
+      const nW = Array.isArray(g.workouts) ? g.workouts.length : 0;
+ 
+      const passata = m !== null && m < 0;
+ 
+      return (
+ 
+        <button key={g.id} type="button" onClick={() => { setApertaId(g.id); setAperti({}); window.scrollTo(0, 0); }} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', display: 'block', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px 14px', marginBottom: '10px', cursor: 'pointer', opacity: passata ? 0.6 : 1, color: 'var(--fg-000000)' }}>
+ 
+          <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+ 
+            <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{g.name}</span>
+ 
+            <span style={{ fontSize: '12px', fontWeight: 'bold', color: passata ? 'var(--fg-94a3b8)' : 'var(--fg-0284c7)', whiteSpace: 'nowrap' }}>{formatDateToIT(g.event_date)}{m !== null && m >= 0 ? ` · ${m === 0 ? 'oggi' : m === 1 ? 'domani' : `fra ${m} gg`}` : ''}</span>
+ 
+          </span>
+ 
+          <span style={{ display: 'block', fontSize: '13px', color: 'var(--fg-334155)', marginTop: '5px', overflowWrap: 'anywhere' }}>{chi.length ? chi.map((r: any) => nomeAtleta(r.athlete_id)).join(', ') : 'Nessun atleta'}</span>
+ 
+          <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '11px', fontWeight: 'bold', padding: '2px 9px', borderRadius: '999px', background: nW ? 'rgba(var(--acc-rgb), 0.15)' : 'var(--bg-fef9c3)', color: nW ? 'var(--fg-10b981)' : 'var(--fg-92400e)' }}>{nW ? `${nW} workout` : 'Da preparare'}</span>
+ 
+        </button>
+ 
+      );
+ 
+    };
+ 
+    return (
+ 
+      <div>
+ 
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+ 
+          <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--fg-10b981)' }}><Icona nome="trofeo" size={19} style={{ marginRight: '7px', verticalAlign: '-3px' }} />Gare</h3>
+ 
+          <button type="button" onClick={() => setDatiGara({ name: '', event_date: '', notes: '' })} style={{ padding: '8px 14px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}><Icona nome="piu" size={13} style={{ marginRight: '5px', verticalAlign: '-2px' }} />Nuova gara</button>
+ 
+        </div>
+ 
+        <p style={{ margin: '0 0 14px 0', fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.5 }}>Le gare che segnano gli atleti compaiono qui da sole; quelle nello stesso giorno vengono unite. Workout e standard valgono per tutti, i consigli li scrivi per ognuno.</p>
+ 
+        {gare.length === 0 && <p style={{ fontSize: '13px', color: 'var(--fg-94a3b8)' }}>Nessuna gara.</p>}
+ 
+        {prossime.map(riga)}
+ 
+        {passate.length > 0 && <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-94a3b8)', letterSpacing: '0.6px', margin: '16px 0 8px 0' }}>PASSATE</span>}
+ 
+        {passate.map(riga)}
+ 
+        {finestraDatiGara}
+ 
+      </div>
+ 
+    );
+ 
+  }
+ 
+  // ---------- dettaglio della gara ----------
+ 
+  const workouts: any[] = Array.isArray(gara.workouts) ? gara.workouts : [];
+ 
+  const chi = atletiDi(gara.id);
+ 
+  const m = giorniAlla(gara.event_date);
+ 
+  const altreStessaData = gare.filter((g: any) => g.id !== gara.id && g.event_date === gara.event_date);
+ 
   return (
  
-    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+    <div>
  
-      {workouts.length > 0 && <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginBottom: '8px' }}>{`WORKOUT DELLA GARA (${workouts.length})`}</span>}
+      <button type="button" onClick={() => { setApertaId(null); window.scrollTo(0, 0); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '14px', background: 'transparent', border: '1.5px solid var(--bd-10b981)', color: 'var(--fg-10b981)', borderRadius: '999px', padding: '7px 14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{'‹ Indietro'}</button>
+ 
+      <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '12px', padding: '14px', marginBottom: '14px' }}>
+ 
+        <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{gara.name}</h3>
+ 
+        <span style={{ display: 'block', marginTop: '4px', fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-0284c7)' }}>{formatDateToIT(gara.event_date)}{m !== null && m >= 0 ? ` · ${m === 0 ? 'oggi' : m === 1 ? 'domani' : `fra ${m} gg`}` : ' · passata'}</span>
+ 
+        {String(gara.notes || '').trim() && <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{gara.notes}</p>}
+ 
+        <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
+ 
+          <button type="button" onClick={() => setDatiGara({ id: gara.id, name: gara.name, event_date: gara.event_date, notes: gara.notes || '' })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
+ 
+          <button type="button" onClick={eliminaGara} style={tastino('var(--fg-ef4444)')}>Elimina gara</button>
+ 
+        </div>
+ 
+      </div>
+ 
+      {/* Atleti */}
+ 
+      <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginBottom: '8px' }}>{`ATLETI (${chi.length})`}</span>
+ 
+      {chi.length === 0 && <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--fg-94a3b8)' }}>Nessun atleta assegnato.</p>}
+ 
+      {chi.map((r: any) => (
+ 
+        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', marginBottom: '6px', background: 'var(--bg-ffffff)', border: '1px solid var(--bd-e2e8f0)', borderRadius: '10px' }}>
+ 
+          <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+ 
+            <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{nomeAtleta(r.athlete_id)}</span>
+ 
+            {r.name && r.name !== gara.name && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)' }}>{`ha scritto: ${r.name}`}</span>}
+ 
+          </span>
+ 
+          <button type="button" onClick={() => setSposta(r)} style={tastino('var(--fg-0284c7)')}>Separa</button>
+ 
+          <button type="button" onClick={() => togliAtleta(r)} style={tastino('var(--fg-ef4444)')}>Togli</button>
+ 
+        </div>
+ 
+      ))}
+ 
+      <button type="button" onClick={() => { setScelti([]); setAssegna(true); }} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', marginTop: '4px', marginBottom: '18px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}><Icona nome="piu" size={14} style={{ marginRight: '5px', verticalAlign: '-2px' }} />Assegna ad atleti</button>
+ 
+      {/* Workout */}
+ 
+      <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginBottom: '8px' }}>{`WORKOUT (${workouts.length})`}</span>
  
       {workouts.map((w: any, i: number) => {
  
-        const aperto = !!aperti[i];
+        const k = w.id || String(i);
+ 
+        const aperto = !!aperti[k];
  
         return (
  
-          <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
+          <div key={k} style={{ border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '12px', padding: '12px 14px', marginBottom: '10px', background: 'var(--bg-ffffff)' }}>
  
-            <div onClick={() => setAperti({ ...aperti, [i]: !aperto })} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+            <div onClick={() => setAperti({ ...aperti, [k]: !aperto })} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
  
-              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{`Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{`Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`}</span>
  
               <span style={{ color: 'var(--fg-64748b)', fontSize: '13px' }}>{aperto ? '▲' : '▼'}</span>
  
@@ -4839,51 +5280,51 @@ function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoa
  
               <div>
  
-                {w.immagine && <div style={{ marginTop: '10px' }}>{immagine(w.immagine)}</div>}
+                <ContenutoWorkoutGara w={w} />
  
-                {String(w.testo || '').trim() && <div style={{ marginTop: '10px' }}>{testo(w.testo)}</div>}
+                <div style={{ display: 'flex', gap: '14px', marginTop: '10px', flexWrap: 'wrap' }}>
  
-                {(w.standardImmagine || String(w.standardTesto || '').trim()) && (
+                  <button type="button" onClick={() => setBozza({ indice: i, dati: { ...WORKOUT_GARA_VUOTO, ...w } })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
  
-                  <div>
+                  <button type="button" disabled={i === 0 || salvando} onClick={() => { const ws = [...workouts]; [ws[i - 1], ws[i]] = [ws[i], ws[i - 1]]; salvaWorkouts(ws); }} style={tastino('var(--fg-64748b)')}>{'↑ Su'}</button>
  
-                    {titoletto('\u{1F4CF} STANDARD')}
+                  <button type="button" disabled={i === workouts.length - 1 || salvando} onClick={() => { const ws = [...workouts]; [ws[i + 1], ws[i]] = [ws[i], ws[i + 1]]; salvaWorkouts(ws); }} style={tastino('var(--fg-64748b)')}>{'↓ Giù'}</button>
  
-                    {w.standardImmagine && <div style={{ marginBottom: '8px' }}>{immagine(w.standardImmagine)}</div>}
+                  <button type="button" onClick={() => { if (confirm('Eliminare questo workout? Spariscono anche i consigli personali scritti per questo workout.')) salvaWorkouts(workouts.filter((_x, j) => j !== i)); }} style={tastino('var(--fg-ef4444)')}>Elimina</button>
  
-                    {String(w.standardTesto || '').trim() && testo(w.standardTesto)}
+                </div>
  
-                  </div>
+                <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-                )}
+                  <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.5px', marginBottom: '6px' }}>{'\u{1F3AF} CONSIGLI PERSONALI'}</span>
  
-                {String(w.strategie || '').trim() && (
+                  {chi.length === 0 && <p style={{ margin: 0, fontSize: '12px', color: 'var(--fg-94a3b8)' }}>Assegna la gara a un atleta per scrivergli i consigli.</p>}
  
-                  <div style={{ marginTop: '12px', background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fde68a)', borderRadius: '8px', padding: '10px 12px' }}>
+                  {chi.map((r: any) => {
  
-                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-92400e)', letterSpacing: '0.5px', marginBottom: '5px' }}>{'\u{1F4A1} STRATEGIE E CONSIGLI'}</span>
+                    const c = consigli.find((x: any) => x.gara_id === gara.id && x.athlete_id === r.athlete_id && x.workout_id === w.id);
  
-                    <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{w.strategie}</p>
+                    return (
  
-                  </div>
+                      <div key={r.id} style={{ padding: '8px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
  
-                )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
  
-                {isCoach && (
+                          <span style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{nomeAtleta(r.athlete_id)}</span>
  
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
+                          <button type="button" onClick={() => setConsiglioInModifica({ workoutId: w.id, athleteId: r.athlete_id, testo: c?.testo || '' })} style={tastino('var(--fg-0284c7)')}>{c?.testo ? 'Modifica' : 'Scrivi'}</button>
  
-                    <button type="button" onClick={() => setBozza({ indice: i, dati: { ...WORKOUT_GARA_VUOTO, ...w } })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
+                        </div>
  
-                    <button type="button" onClick={() => sposta(i, -1)} disabled={i === 0 || salvando} style={tastino('var(--fg-64748b)')}>{'↑ Su'}</button>
+                        {c?.testo ? <p style={{ ...stileTestoGara, fontSize: '14px', marginTop: '4px', color: 'var(--fg-334155)' }}>{c.testo}</p> : <span style={{ fontSize: '12px', color: 'var(--fg-94a3b8)' }}>Nessun consiglio</span>}
  
-                    <button type="button" onClick={() => sposta(i, 1)} disabled={i === workouts.length - 1 || salvando} style={tastino('var(--fg-64748b)')}>{'↓ Giù'}</button>
+                      </div>
  
-                    <button type="button" onClick={() => elimina(i)} style={tastino('var(--fg-ef4444)')}>Elimina</button>
+                    );
  
-                  </div>
+                  })}
  
-                )}
+                </div>
  
               </div>
  
@@ -4895,129 +5336,139 @@ function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoa
  
       })}
  
-      {isCoach && (
+      <button type="button" onClick={() => setBozza({ indice: null, dati: { ...WORKOUT_GARA_VUOTO } })} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}><Icona nome="piu" size={14} style={{ marginRight: '5px', verticalAlign: '-2px' }} />Aggiungi workout</button>
  
-        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+      {finestraDatiGara}
  
-          <button type="button" onClick={() => setBozza({ indice: null, dati: { ...WORKOUT_GARA_VUOTO } })} style={{ flex: 1, minWidth: '140px', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+      {bozza && finestra(
  
-            <Icona nome="piu" size={13} style={{ marginRight: '5px', verticalAlign: '-2px' }} />Aggiungi workout
+        <>
  
-          </button>
+          <h4 style={{ margin: '0 0 14px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{`Workout ${bozza.indice === null ? workouts.length + 1 : bozza.indice + 1}`}</h4>
  
-          {workouts.length > 0 && (
+          <label style={etichetta}>Nome del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
  
-            <button type="button" onClick={() => { setScelti([]); setCopiaStrategie(false); setCopia(true); }} style={{ flex: 1, minWidth: '140px', padding: '9px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+          <input autoComplete="off" type="text" placeholder="es. Event 1 - Sprint" value={bozza.dati.titolo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, titolo: e.target.value } })} style={campo} />
  
-              Copia ad altri atleti
+          <label style={etichetta}>Immagine del workout</label>
  
-            </button>
+          {caricatore('immagine', '\u{1F5BC}️ Carica immagine del workout')}
  
-          )}
+          <label style={etichetta}>Testo del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
  
-        </div>
+          <textarea autoComplete="off" rows={4} value={bozza.dati.testo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, testo: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
  
-      )}
+          <label style={etichetta}>Immagine degli standard</label>
  
-      {bozza && (
+          {caricatore('standardImmagine', '\u{1F4CF} Carica immagine degli standard')}
  
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+          <label style={etichetta}>Testo degli standard <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
  
-          <div style={{ maxWidth: '520px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>
+          <textarea autoComplete="off" rows={3} value={bozza.dati.standardTesto} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, standardTesto: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
  
-            <h4 style={{ margin: '0 0 14px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{bozza.indice === null ? `Workout ${workouts.length + 1}` : `Workout ${bozza.indice + 1}`}</h4>
+          <label style={etichetta}>Strategie e consigli per tutti <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativi: quelli personali li scrivi sotto il workout)</span></label>
  
-            <label style={etichetta}>Nome del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
+          <textarea autoComplete="off" rows={4} value={bozza.dati.strategie} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, strategie: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
  
-            <input autoComplete="off" type="text" placeholder="es. Event 1 - Sprint" value={bozza.dati.titolo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, titolo: e.target.value } })} style={campo} />
+          <div style={{ display: 'flex', gap: '7px', marginTop: '4px' }}>
  
-            <label style={etichetta}>Immagine del workout</label>
+            <button type="button" onClick={salvaBozza} disabled={salvando || !!caricando} style={{ ...tastoPieno, opacity: salvando || caricando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
  
-            {caricatore('immagine', '\u{1F5BC}️ Carica immagine del workout')}
- 
-            <label style={etichetta}>Testo del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
- 
-            <textarea autoComplete="off" rows={4} value={bozza.dati.testo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, testo: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
- 
-            <label style={etichetta}>Immagine degli standard</label>
- 
-            {caricatore('standardImmagine', '\u{1F4CF} Carica immagine degli standard')}
- 
-            <label style={etichetta}>Testo degli standard <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
- 
-            <textarea autoComplete="off" rows={3} value={bozza.dati.standardTesto} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, standardTesto: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
- 
-            <label style={etichetta}>Strategie e consigli</label>
- 
-            <textarea autoComplete="off" rows={5} placeholder="Ritmo, come spezzare le serie, transizioni..." value={bozza.dati.strategie} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, strategie: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
- 
-            <div style={{ display: 'flex', gap: '7px', marginTop: '4px' }}>
- 
-              <button type="button" onClick={salvaBozza} disabled={salvando || !!caricando} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: salvando || caricando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
- 
-              <button type="button" onClick={() => setBozza(null)} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
- 
-            </div>
+            <button type="button" onClick={() => setBozza(null)} style={tastoAnnulla}>Annulla</button>
  
           </div>
  
-        </div>
+        </>
  
       )}
  
-      {copia && (
+      {consiglioInModifica && finestra(
  
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+        <>
  
-          <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>
+          <h4 style={{ margin: '0 0 4px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{`Consigli per ${nomeAtleta(consiglioInModifica.athleteId)}`}</h4>
  
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Copia ad altri atleti</h4>
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)' }}>{(() => { const i = workouts.findIndex((x: any) => x.id === consiglioInModifica.workoutId); const w = workouts[i]; return `Workout ${i + 1}${w && String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''} · li vede solo questo atleta`; })()}</p>
  
-            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.5 }}>{`Copio "${gara.name}" (${formatDateToIT(gara.event_date)}) con workout e standard. Se l’atleta ha già questa gara, workout e standard vengono aggiornati; altrimenti la gara viene aggiunta al suo calendario. Le strategie e i consigli già scritti per l’atleta restano sempre.`}</p>
+          <textarea autoComplete="off" rows={6} value={consiglioInModifica.testo} onChange={(e) => setConsiglioInModifica({ ...consiglioInModifica, testo: e.target.value })} placeholder="Ritmo, come spezzare le serie, transizioni..." style={{ ...campo, resize: 'vertical' }} />
  
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fde68a)', fontSize: '13px', cursor: 'pointer' }}>
+          <div style={{ display: 'flex', gap: '7px' }}>
  
-              <input type="checkbox" checked={copiaStrategie} onChange={() => setCopiaStrategie(!copiaStrategie)} />
+            <button type="button" onClick={salvaConsiglio} disabled={salvando} style={{ ...tastoPieno, opacity: salvando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
  
-              <span>Copia anche strategie e consigli (solo dove l’atleta non ne ha)</span>
- 
-            </label>
- 
-            <div style={{ maxHeight: '50vh', overflowY: 'auto', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px' }}>
- 
-              {(atleti || []).filter((a: any) => a.id !== gara.athlete_id).map((a: any) => {
- 
-                const sel = scelti.includes(a.id);
- 
-                return (
- 
-                  <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderBottom: '1px solid var(--bd-e2e8f0)', cursor: 'pointer', fontSize: '14px' }}>
- 
-                    <input type="checkbox" checked={sel} onChange={() => setScelti(sel ? scelti.filter((x) => x !== a.id) : [...scelti, a.id])} />
- 
-                    <span style={{ overflowWrap: 'anywhere' }}>{a.full_name || a.email || 'Atleta'}</span>
- 
-                  </label>
- 
-                );
- 
-              })}
- 
-            </div>
- 
-            <div style={{ display: 'flex', gap: '7px', marginTop: '12px' }}>
- 
-              <button type="button" onClick={copiaAgliAtleti} disabled={copiando || scelti.length === 0} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: copiando || scelti.length === 0 ? 0.6 : 1 }}>{copiando ? 'Copio…' : `Copia${scelti.length ? ` (${scelti.length})` : ''}`}</button>
- 
-              <button type="button" onClick={() => setCopia(false)} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
- 
-            </div>
+            <button type="button" onClick={() => setConsiglioInModifica(null)} style={tastoAnnulla}>Annulla</button>
  
           </div>
  
-        </div>
+        </>, 480)}
  
-      )}
+      {assegna && finestra(
+ 
+        <>
+ 
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Assegna ad atleti</h4>
+ 
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.5 }}>Se l&apos;atleta ha già segnato una gara nello stesso giorno, la collego a questa invece di crearne un&apos;altra.</p>
+ 
+          <div style={{ maxHeight: '55vh', overflowY: 'auto', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px' }}>
+ 
+            {(atleti || []).filter((a: any) => !chi.some((r: any) => r.athlete_id === a.id)).map((a: any) => {
+ 
+              const sel = scelti.includes(a.id);
+ 
+              const gia = righe.find((r: any) => r.athlete_id === a.id && r.event_date === gara.event_date && r.gara_id !== gara.id);
+ 
+              return (
+ 
+                <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderBottom: '1px solid var(--bd-e2e8f0)', cursor: 'pointer' }}>
+ 
+                  <input type="checkbox" checked={sel} onChange={() => setScelti(sel ? scelti.filter((x) => x !== a.id) : [...scelti, a.id])} />
+ 
+                  <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '14px' }}>{a.full_name || a.email || 'Atleta'}</span>
+ 
+                    {gia && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-b45309)', fontWeight: 'bold' }}>{`ha già segnato: ${gia.name}`}</span>}
+ 
+                  </span>
+ 
+                </label>
+ 
+              );
+ 
+            })}
+ 
+          </div>
+ 
+          <div style={{ display: 'flex', gap: '7px', marginTop: '12px' }}>
+ 
+            <button type="button" onClick={assegnaAtleti} disabled={salvando || scelti.length === 0} style={{ ...tastoPieno, opacity: salvando || scelti.length === 0 ? 0.6 : 1 }}>{salvando ? 'Salvo…' : `Assegna${scelti.length ? ` (${scelti.length})` : ''}`}</button>
+ 
+            <button type="button" onClick={() => setAssegna(false)} style={tastoAnnulla}>Annulla</button>
+ 
+          </div>
+ 
+        </>, 480)}
+ 
+      {sposta && finestra(
+ 
+        <>
+ 
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{`Separa ${nomeAtleta(sposta.athlete_id)}`}</h4>
+ 
+          <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.5 }}>Se nello stesso giorno fa una gara diversa, spostalo in una gara sua.</p>
+ 
+          {altreStessaData.map((g: any) => (
+ 
+            <button key={g.id} type="button" onClick={() => spostaAtleta(sposta, g.id)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '11px 12px', marginBottom: '8px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', background: 'var(--bg-ffffff)', color: 'var(--fg-000000)', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>{`Sposta in: ${g.name}`}</button>
+ 
+          ))}
+ 
+          <button type="button" onClick={() => spostaAtleta(sposta, null)} style={{ ...tastoPieno, width: '100%', flex: 'none' }}>{`Nuova gara: ${sposta.name || gara.name}`}</button>
+ 
+          <button type="button" onClick={() => setSposta(null)} style={{ ...tastoAnnulla, width: '100%', marginTop: '8px' }}>Annulla</button>
+ 
+        </>, 480)}
  
     </div>
  
@@ -8031,7 +8482,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
-        <p style={pStyle}>Nella sezione Gare il coach può caricare, per ogni gara, immagini e testi dei workout e dei relativi standard, insieme a strategie e consigli su come affrontarli. Si tratta di contenuti tecnici di allenamento, salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e visibili all’atleta interessato e al coach; il coach può copiarli nel calendario di altri atleti iscritti alla stessa gara, senza condividere dati personali dell’uno con gli altri.</p>
+        <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
  
         <p style={sStyle}>D) Dati tecnici</p>
  
@@ -8219,7 +8670,7 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
       <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
-      <p style={pStyle}>Nella sezione Gare il coach può caricare, per ogni gara, immagini e testi dei workout e dei relativi standard, insieme a strategie e consigli su come affrontarli. Si tratta di contenuti tecnici di allenamento, salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e visibili all’atleta interessato e al coach; il coach può copiarli nel calendario di altri atleti iscritti alla stessa gara, senza condividere dati personali dell’uno con gli altri.</p>
+      <p style={pStyle}>Le gare che l’utente inserisce nel proprio calendario (nome e data) sono visibili al coach e vengono raccolte nell’area Gare del coach, dove le gare della stessa data sono unite in un’unica gara; al coach arriva una notifica quando l’utente aggiunge una gara. Per ogni gara il coach può caricare immagini e testi dei workout e dei relativi standard e strategie e consigli validi per tutti i partecipanti, oltre a consigli personali visibili solo all’atleta a cui sono rivolti. Gli atleti assegnati alla stessa gara vedono gli stessi workout ma non i dati personali né i consigli personali degli altri. Questi contenuti sono salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e restano nell’area del coach anche se l’utente rimuove la gara dal proprio calendario, fino alla cancellazione della gara da parte del coach o dell’account dell’utente.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -8717,7 +9168,7 @@ function TrainingApp({ tema, impostaTema }: any) {
  
   const [activeTab, setActiveTab] = useState<'create' | 'library' | 'exercises' | 'profile' | 'banner'>('create');
  
-  const [coachSubView, setCoachSubView] = useState<'home' | 'programs' | 'athletes' | 'banner'>('home');
+  const [coachSubView, setCoachSubView] = useState<'home' | 'programs' | 'athletes' | 'gare' | 'banner'>('home');
  
   const [homeAperti, setHomeAperti] = useState<{ [k: string]: boolean }>({ gare: true });
  
@@ -10503,6 +10954,8 @@ const [notificationError, setNotificationError] = useState('');
  
   };
  
+  const consensoAppenaDato = React.useRef<string | null>(null);
+ 
   const checkPrivacyConsent = async (userId: string) => {
  
     const { data } = await supabase.from('profiles').select('privacy_consent_at,privacy_version').eq('id', userId).maybeSingle();
@@ -10523,9 +10976,19 @@ const [notificationError, setNotificationError] = useState('');
  
     setPrivacyConsentAt(consent);
  
+    // Consenso appena dato in questa sessione: non lo richiedo di nuovo
+ 
+    // (l'aggiornamento dell'account fa ripartire questo controllo prima che il profilo sia salvato)
+ 
+    if (consensoAppenaDato.current === PRIVACY_VERSION) return;
+ 
+    // Basta che una delle due copie sia aggiornata alla versione attuale
+ 
+    const aggiornata = data?.privacy_version === PRIVACY_VERSION || metaVersion === PRIVACY_VERSION;
+ 
     // Serve il consenso se non è mai stato dato, oppure se l'informativa è cambiata
  
-    if (!consent || versione !== PRIVACY_VERSION) {
+    if (!consent || !aggiornata) {
  
       setShowConsentGate(true);
  
@@ -10557,13 +11020,11 @@ const [notificationError, setNotificationError] = useState('');
  
     const now = new Date().toISOString();
  
-    // Salvo il consenso nei dati dell'account: non dipende dai permessi della tabella
+    consensoAppenaDato.current = PRIVACY_VERSION;
  
-    // profiles, quindi resta memorizzato anche se quell'aggiornamento non va a buon fine.
+    // Prima il profilo, poi i dati dell'account: cosi' il controllo che riparte
  
-    const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now, privacy_version: PRIVACY_VERSION } });
- 
-    // Salvo anche sul profilo, verificando che la riga sia stata davvero aggiornata
+    // dopo l'aggiornamento dell'account trova gia' la versione nuova
  
     const { data: updated, error: profError } = await supabase
  
@@ -10575,9 +11036,15 @@ const [notificationError, setNotificationError] = useState('');
  
       .select('privacy_consent_at');
  
+    // Copia nei dati dell'account: resta anche se l'aggiornamento del profilo non è permesso
+ 
+    const { error: metaError } = await supabase.auth.updateUser({ data: { privacy_consent_at: now, privacy_version: PRIVACY_VERSION } });
+ 
     setConsentSaving(false);
  
     if (metaError && (profError || !updated || updated.length === 0)) {
+ 
+      consensoAppenaDato.current = null;
  
       alert('Non è stato possibile salvare il consenso. Riprova; se il problema persiste avvisa il coach.');
  
@@ -12823,8 +13290,7 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!(await saveMax(updatedAll))) return;
  
-      if (ripristino) await togliOggiDalloStorico(bench.name, -3);
- 
+      if (ripristino) await togliOggiDalloStorico(bench.name, -3); 
       else await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
  
       if (!isCorrection) {
@@ -15625,7 +16091,8 @@ const [notificationError, setNotificationError] = useState('');
  
       const scarto = vv ? Math.round(window.innerHeight - vv.height - vv.offsetTop) : 0;
  
-      // tastiera aperta: la barra si nasconde invece di salire sopra la tastiera 
+      // tastiera aperta: la barra si nasconde invece di salire sopra la tastiera
+ 
       if (scarto > 120) { barra.style.visibility = 'hidden'; return; }
  
       barra.style.visibility = 'visible';
@@ -18166,6 +18633,22 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
     if (error) { alert('Errore: ' + error.message); return; }
  
+    // Gara nuova segnata dall'atleta: avviso il coach
+ 
+    if (!isCoach && !editCompId) {
+ 
+      fetch('/api/notify-coach', {
+ 
+        method: 'POST',
+ 
+        headers: { 'Content-Type': 'application/json' },
+ 
+        body: JSON.stringify({ type: 'gara', title: 'Nuova gara', message: `${personalData.full_name || session?.user?.email || 'Un atleta'} ha aggiunto una gara: ${dati.name} (${formatDateToIT(dati.event_date)})` }),
+ 
+      }).catch((err) => console.error('Errore notifica gara:', err));
+ 
+    }
+ 
     setNewComp({ name: '', event_date: '', notes: '' });
  
     setEditCompId(null);
@@ -18250,7 +18733,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
  
-              <WorkoutGara gara={g} isCoach={isCoach} atleti={athletes} onAggiornato={() => { if (isCoach) fetchAllCompetitionsForCoach(); else fetchCompetitions(athleteId); }} />
+              {g.gara_id && <GaraCollegata garaId={g.gara_id} athleteId={athleteId} isCoach={isCoach} />}
  
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
  
@@ -19248,8 +19731,7 @@ setProgramWeeks(updated);
  
     if (!programTitle) {
  
-      alert('Inserisci un titolo per il programma');
- 
+      alert('Inserisci un titolo per il programma'); 
       return;
  
     }
@@ -20939,8 +21421,7 @@ fetchAllAthleteResultsForCoach();
             }}
  
           />
- 
-        ) : (
+         ) : (
  
         <FinestraScore
  
@@ -22466,6 +22947,14 @@ fetchAllAthleteResultsForCoach();
  
             </div>
  
+          ) : coachSubView === 'gare' ? (
+ 
+            <div style={{ color: 'var(--fg-000000)' }}>
+ 
+              <AreaGareCoach atleti={athletes} />
+ 
+            </div>
+ 
           ) : coachSubView === 'banner' ? (
  
             <div style={{ color: 'var(--fg-000000)', margin: '0 -24px', padding: '18px 24px' }}>
@@ -23941,7 +24430,8 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                                     >
  
                                                       <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
-                                                     </button>
+ 
+                                                    </button>
  
                                                   ) : (
  
@@ -25115,8 +25605,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   {[['singolo', 'Programma singolo'], ['pacchetto', 'Pacchetto']].map(([k, t]) => (
  
-                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button>
- 
+                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button> 
                                   ))}
  
                                 </div>
@@ -31168,6 +31657,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
               { key: 'programs', icon: 'appunti', label: 'Programmi' },
  
               { key: 'athletes', icon: 'utente', label: 'Profili' },
+ 
+              { key: 'gare', icon: 'trofeo', label: 'Gare' },
  
               { key: 'banner', icon: 'megafono', label: 'Banner' },
  
