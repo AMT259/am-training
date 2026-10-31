@@ -1184,7 +1184,7 @@ function isMinorenne(dataNascita: any): boolean {
  
 }
  
-const PRIVACY_VERSION = '3.2';
+const PRIVACY_VERSION = '3.3';
  
 // ---- Calcolo carichi: percentuali, RPE, stima 1RM ----
  
@@ -3472,8 +3472,7 @@ function serieDaBlocco(blk: any): { reps: string }[] {
  
     return pezzi.map((p) => ({ reps: p }));
  
-  }
- 
+  } 
   // serie uguali
  
   if (nSerie > 0) {
@@ -4527,6 +4526,490 @@ function VideoWod({ items, testo, titolo }: { items: any[]; testo?: string; tito
                 </div>
  
               ))}
+ 
+            </div>
+ 
+          </div>
+ 
+        </div>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
+// ---- Gare: workout di gara con immagine, testo, standard e strategie e consigli (li scrive solo il coach) ----
+ 
+async function ridimensionaImmagineGara(file: File): Promise<Blob> {
+ 
+  try {
+ 
+    const url = URL.createObjectURL(file);
+ 
+    const img: HTMLImageElement = await new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url; });
+ 
+    const max = 1600;
+ 
+    const scala = Math.min(1, max / Math.max(img.width, img.height));
+ 
+    const c = document.createElement('canvas');
+ 
+    c.width = Math.round(img.width * scala);
+ 
+    c.height = Math.round(img.height * scala);
+ 
+    const ctx = c.getContext('2d');
+ 
+    if (!ctx) return file;
+ 
+    ctx.fillStyle = '#ffffff';
+ 
+    ctx.fillRect(0, 0, c.width, c.height);
+ 
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+ 
+    URL.revokeObjectURL(url);
+ 
+    const blob: Blob | null = await new Promise((ok) => c.toBlob((b) => ok(b), 'image/jpeg', 0.85));
+ 
+    return blob || file;
+ 
+  } catch (e) {
+ 
+    return file;
+ 
+  }
+ 
+}
+ 
+async function caricaImmagineGara(file: File): Promise<string> {
+ 
+  const blob = await ridimensionaImmagineGara(file);
+ 
+  const percorso = `gara_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+ 
+  const { error } = await supabase.storage.from('banners').upload(percorso, blob, { contentType: 'image/jpeg' });
+ 
+  if (error) throw error;
+ 
+  const { data } = supabase.storage.from('banners').getPublicUrl(percorso);
+ 
+  return data.publicUrl;
+ 
+}
+ 
+const WORKOUT_GARA_VUOTO = { titolo: '', immagine: '', testo: '', standardImmagine: '', standardTesto: '', strategie: '' };
+ 
+function WorkoutGara({ gara, isCoach, atleti, onAggiornato }: { gara: any; isCoach: boolean; atleti: any[]; onAggiornato: () => void }) {
+ 
+  const workouts: any[] = Array.isArray(gara?.workouts) ? gara.workouts : [];
+ 
+  const [aperti, setAperti] = useState<{ [k: number]: boolean }>({});
+ 
+  const [bozza, setBozza] = useState<any>(null); // { indice: number | null, dati }
+ 
+  const [caricando, setCaricando] = useState<string | null>(null);
+ 
+  const [salvando, setSalvando] = useState(false);
+ 
+  const [copia, setCopia] = useState(false);
+ 
+  const [scelti, setScelti] = useState<string[]>([]);
+ 
+  const [copiando, setCopiando] = useState(false);
+ 
+  const [copiaStrategie, setCopiaStrategie] = useState(false);
+ 
+  const salva = async (nuovi: any[]) => {
+ 
+    setSalvando(true);
+ 
+    const { error } = await supabase.from('competition_days').update({ workouts: nuovi }).eq('id', gara.id);
+ 
+    setSalvando(false);
+ 
+    if (error) { alert('Errore: ' + error.message); return false; }
+ 
+    onAggiornato();
+ 
+    return true;
+ 
+  };
+ 
+  const carica = async (campo: 'immagine' | 'standardImmagine', file: File | null) => {
+ 
+    if (!file) return;
+ 
+    if (file.size > 15 * 1024 * 1024) { alert('L’immagine è troppo grande (massimo 15 MB).'); return; }
+ 
+    setCaricando(campo);
+ 
+    try {
+ 
+      const url = await caricaImmagineGara(file);
+ 
+      setBozza((b: any) => ({ ...b, dati: { ...b.dati, [campo]: url } }));
+ 
+    } catch (e: any) {
+ 
+      alert('Errore nel caricamento: ' + (e?.message || e));
+ 
+    } finally {
+ 
+      setCaricando(null);
+ 
+    }
+ 
+  };
+ 
+  const salvaBozza = async () => {
+ 
+    const d = bozza.dati;
+ 
+    if (!String(d.titolo || '').trim() && !d.immagine && !String(d.testo || '').trim()) { alert('Scrivi almeno il nome del workout, il testo o carica l’immagine.'); return; }
+ 
+    const nuovi = [...workouts];
+ 
+    if (bozza.indice === null) nuovi.push(d); else nuovi[bozza.indice] = d;
+ 
+    if (await salva(nuovi)) setBozza(null);
+ 
+  };
+ 
+  const elimina = async (i: number) => {
+ 
+    if (!confirm('Eliminare questo workout della gara?')) return;
+ 
+    await salva(workouts.filter((_w, j) => j !== i));
+ 
+  };
+ 
+  const sposta = async (i: number, verso: number) => {
+ 
+    const j = i + verso;
+ 
+    if (j < 0 || j >= workouts.length) return;
+ 
+    const nuovi = [...workouts];
+ 
+    [nuovi[i], nuovi[j]] = [nuovi[j], nuovi[i]];
+ 
+    await salva(nuovi);
+ 
+  };
+ 
+  const copiaAgliAtleti = async () => {
+ 
+    if (scelti.length === 0) return;
+ 
+    setCopiando(true);
+ 
+    let errori = 0;
+ 
+    for (const id of scelti) {
+ 
+      try {
+ 
+        const { data: esistenti } = await supabase.from('competition_days').select('id, workouts').eq('athlete_id', id).eq('name', gara.name).eq('event_date', gara.event_date);
+ 
+        const suoi: any[] = esistenti && esistenti.length > 0 && Array.isArray(esistenti[0].workouts) ? esistenti[0].workouts : [];
+ 
+        // Workout e standard uguali per tutti; le strategie dell'atleta non si toccano mai,
+ 
+        // quelle del coach si copiano solo con la spunta e solo dove l'atleta non ne ha
+ 
+        const nuovi = workouts.map((w: any, i: number) => {
+ 
+          const titolo = String(w.titolo || '').trim().toLowerCase();
+ 
+          const suo = (titolo && suoi.find((x: any) => String(x?.titolo || '').trim().toLowerCase() === titolo)) || suoi[i] || null;
+ 
+          const strategieSue = String(suo?.strategie || '').trim();
+ 
+          return { ...w, strategie: strategieSue ? suo.strategie : (copiaStrategie ? (w.strategie || '') : '') };
+ 
+        });
+ 
+        const res = esistenti && esistenti.length > 0
+ 
+          ? await supabase.from('competition_days').update({ workouts: nuovi }).eq('id', esistenti[0].id)
+ 
+          : await supabase.from('competition_days').insert([{ athlete_id: id, name: gara.name, event_date: gara.event_date, notes: gara.notes || null, workouts: nuovi }]);
+ 
+        if (res.error) errori++;
+ 
+      } catch (e) { errori++; }
+ 
+    }
+ 
+    setCopiando(false);
+ 
+    setCopia(false);
+ 
+    setScelti([]);
+ 
+    onAggiornato();
+ 
+    alert(errori ? `Copiata con ${errori} errori.` : `Gara copiata a ${scelti.length} ${scelti.length === 1 ? 'atleta' : 'atleti'}.`);
+ 
+  };
+ 
+  const tastino = (colore: string): React.CSSProperties => ({ background: 'none', border: 'none', color: colore, fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', padding: 0 });
+ 
+  const titoletto = (testo: string) => <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-64748b)', letterSpacing: '0.5px', margin: '12px 0 6px 0' }}>{testo}</span>;
+ 
+  const immagine = (url: string) => (
+ 
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+ 
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+ 
+      <img src={url} alt="" loading="lazy" style={{ width: '100%', display: 'block', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }} />
+ 
+    </a>
+ 
+  );
+ 
+  const testo = (t: string) => <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{t}</p>;
+ 
+  if (workouts.length === 0 && !isCoach) return null;
+ 
+  const campo: React.CSSProperties = { width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-cbd5e1)', color: 'var(--fg-000000)', fontSize: '14px', fontFamily: 'inherit', marginBottom: '10px' };
+ 
+  const etichetta: React.CSSProperties = { fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' };
+ 
+  const caricatore = (campoImg: 'immagine' | 'standardImmagine', testoTasto: string) => (
+ 
+    <div style={{ marginBottom: '10px' }}>
+ 
+      {bozza.dati[campoImg] ? (
+ 
+        <div style={{ position: 'relative' }}>
+ 
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+ 
+          <img src={bozza.dati[campoImg]} alt="" style={{ width: '100%', display: 'block', borderRadius: '8px', border: '1px solid var(--bd-e2e8f0)' }} />
+ 
+          <button type="button" onClick={() => setBozza((b: any) => ({ ...b, dati: { ...b.dati, [campoImg]: '' } }))} style={{ position: 'absolute', top: '6px', right: '6px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '999px', padding: '5px 10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Togli</button>
+ 
+        </div>
+ 
+      ) : (
+ 
+        <label style={{ display: 'block', textAlign: 'center', padding: '14px', borderRadius: '8px', border: '1px dashed var(--bd-10b981)', color: 'var(--fg-047857)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
+ 
+          {caricando === campoImg ? 'Caricamento…' : testoTasto}
+ 
+          <input type="file" accept="image/*" style={{ display: 'none' }} disabled={!!caricando} onChange={(e) => { carica(campoImg, e.target.files?.[0] || null); e.target.value = ''; }} />
+ 
+        </label>
+ 
+      )}
+ 
+    </div>
+ 
+  );
+ 
+  return (
+ 
+    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+      {workouts.length > 0 && <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-10b981)', letterSpacing: '0.6px', marginBottom: '8px' }}>{`WORKOUT DELLA GARA (${workouts.length})`}</span>}
+ 
+      {workouts.map((w: any, i: number) => {
+ 
+        const aperto = !!aperti[i];
+ 
+        return (
+ 
+          <div key={i} style={{ border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', background: 'var(--bg-ffffff)' }}>
+ 
+            <div onClick={() => setAperti({ ...aperti, [i]: !aperto })} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+ 
+              <span style={{ flex: 1, minWidth: 0, fontSize: '15px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{`Workout ${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`}</span>
+ 
+              <span style={{ color: 'var(--fg-64748b)', fontSize: '13px' }}>{aperto ? '▲' : '▼'}</span>
+ 
+            </div>
+ 
+            {aperto && (
+ 
+              <div>
+ 
+                {w.immagine && <div style={{ marginTop: '10px' }}>{immagine(w.immagine)}</div>}
+ 
+                {String(w.testo || '').trim() && <div style={{ marginTop: '10px' }}>{testo(w.testo)}</div>}
+ 
+                {(w.standardImmagine || String(w.standardTesto || '').trim()) && (
+ 
+                  <div>
+ 
+                    {titoletto('\u{1F4CF} STANDARD')}
+ 
+                    {w.standardImmagine && <div style={{ marginBottom: '8px' }}>{immagine(w.standardImmagine)}</div>}
+ 
+                    {String(w.standardTesto || '').trim() && testo(w.standardTesto)}
+ 
+                  </div>
+ 
+                )}
+ 
+                {String(w.strategie || '').trim() && (
+ 
+                  <div style={{ marginTop: '12px', background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fde68a)', borderRadius: '8px', padding: '10px 12px' }}>
+ 
+                    <span style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: 'var(--fg-92400e)', letterSpacing: '0.5px', marginBottom: '5px' }}>{'\u{1F4A1} STRATEGIE E CONSIGLI'}</span>
+ 
+                    <p style={{ overflowWrap: 'anywhere', margin: 0, fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{w.strategie}</p>
+ 
+                  </div>
+ 
+                )}
+ 
+                {isCoach && (
+ 
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '10px', flexWrap: 'wrap' }}>
+ 
+                    <button type="button" onClick={() => setBozza({ indice: i, dati: { ...WORKOUT_GARA_VUOTO, ...w } })} style={tastino('var(--fg-0284c7)')}>Modifica</button>
+ 
+                    <button type="button" onClick={() => sposta(i, -1)} disabled={i === 0 || salvando} style={tastino('var(--fg-64748b)')}>{'↑ Su'}</button>
+ 
+                    <button type="button" onClick={() => sposta(i, 1)} disabled={i === workouts.length - 1 || salvando} style={tastino('var(--fg-64748b)')}>{'↓ Giù'}</button>
+ 
+                    <button type="button" onClick={() => elimina(i)} style={tastino('var(--fg-ef4444)')}>Elimina</button>
+ 
+                  </div>
+ 
+                )}
+ 
+              </div>
+ 
+            )}
+ 
+          </div>
+ 
+        );
+ 
+      })}
+ 
+      {isCoach && (
+ 
+        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+ 
+          <button type="button" onClick={() => setBozza({ indice: null, dati: { ...WORKOUT_GARA_VUOTO } })} style={{ flex: 1, minWidth: '140px', padding: '9px', borderRadius: '999px', border: '1px dashed var(--bd-10b981)', background: 'var(--bg-ecfdf5)', color: 'var(--fg-047857)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+ 
+            <Icona nome="piu" size={13} style={{ marginRight: '5px', verticalAlign: '-2px' }} />Aggiungi workout
+ 
+          </button>
+ 
+          {workouts.length > 0 && (
+ 
+            <button type="button" onClick={() => { setScelti([]); setCopiaStrategie(false); setCopia(true); }} style={{ flex: 1, minWidth: '140px', padding: '9px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+ 
+              Copia ad altri atleti
+ 
+            </button>
+ 
+          )}
+ 
+        </div>
+ 
+      )}
+ 
+      {bozza && (
+ 
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+ 
+          <div style={{ maxWidth: '520px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>
+ 
+            <h4 style={{ margin: '0 0 14px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>{bozza.indice === null ? `Workout ${workouts.length + 1}` : `Workout ${bozza.indice + 1}`}</h4>
+ 
+            <label style={etichetta}>Nome del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
+ 
+            <input autoComplete="off" type="text" placeholder="es. Event 1 - Sprint" value={bozza.dati.titolo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, titolo: e.target.value } })} style={campo} />
+ 
+            <label style={etichetta}>Immagine del workout</label>
+ 
+            {caricatore('immagine', '\u{1F5BC}️ Carica immagine del workout')}
+ 
+            <label style={etichetta}>Testo del workout <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
+ 
+            <textarea autoComplete="off" rows={4} value={bozza.dati.testo} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, testo: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
+ 
+            <label style={etichetta}>Immagine degli standard</label>
+ 
+            {caricatore('standardImmagine', '\u{1F4CF} Carica immagine degli standard')}
+ 
+            <label style={etichetta}>Testo degli standard <span style={{ fontWeight: 'normal', color: 'var(--fg-94a3b8)' }}>(facoltativo)</span></label>
+ 
+            <textarea autoComplete="off" rows={3} value={bozza.dati.standardTesto} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, standardTesto: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
+ 
+            <label style={etichetta}>Strategie e consigli</label>
+ 
+            <textarea autoComplete="off" rows={5} placeholder="Ritmo, come spezzare le serie, transizioni..." value={bozza.dati.strategie} onChange={(e) => setBozza({ ...bozza, dati: { ...bozza.dati, strategie: e.target.value } })} style={{ ...campo, resize: 'vertical' }} />
+ 
+            <div style={{ display: 'flex', gap: '7px', marginTop: '4px' }}>
+ 
+              <button type="button" onClick={salvaBozza} disabled={salvando || !!caricando} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: salvando || caricando ? 0.6 : 1 }}>{salvando ? 'Salvo…' : 'Salva'}</button>
+ 
+              <button type="button" onClick={() => setBozza(null)} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
+ 
+            </div>
+ 
+          </div>
+ 
+        </div>
+ 
+      )}
+ 
+      {copia && (
+ 
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+ 
+          <div style={{ maxWidth: '480px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '18px', boxSizing: 'border-box' }}>
+ 
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '17px', color: 'var(--fg-10b981)' }}>Copia ad altri atleti</h4>
+ 
+            <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)', lineHeight: 1.5 }}>{`Copio "${gara.name}" (${formatDateToIT(gara.event_date)}) con workout e standard. Se l’atleta ha già questa gara, workout e standard vengono aggiornati; altrimenti la gara viene aggiunta al suo calendario. Le strategie e i consigli già scritti per l’atleta restano sempre.`}</p>
+ 
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 12px 0', padding: '10px 12px', borderRadius: '8px', background: 'var(--bg-fffbeb)', border: '1px solid var(--bd-fde68a)', fontSize: '13px', cursor: 'pointer' }}>
+ 
+              <input type="checkbox" checked={copiaStrategie} onChange={() => setCopiaStrategie(!copiaStrategie)} />
+ 
+              <span>Copia anche strategie e consigli (solo dove l’atleta non ne ha)</span>
+ 
+            </label>
+ 
+            <div style={{ maxHeight: '50vh', overflowY: 'auto', border: '1px solid var(--bd-e2e8f0)', borderRadius: '8px' }}>
+ 
+              {(atleti || []).filter((a: any) => a.id !== gara.athlete_id).map((a: any) => {
+ 
+                const sel = scelti.includes(a.id);
+ 
+                return (
+ 
+                  <label key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderBottom: '1px solid var(--bd-e2e8f0)', cursor: 'pointer', fontSize: '14px' }}>
+ 
+                    <input type="checkbox" checked={sel} onChange={() => setScelti(sel ? scelti.filter((x) => x !== a.id) : [...scelti, a.id])} />
+ 
+                    <span style={{ overflowWrap: 'anywhere' }}>{a.full_name || a.email || 'Atleta'}</span>
+ 
+                  </label>
+ 
+                );
+ 
+              })}
+ 
+            </div>
+ 
+            <div style={{ display: 'flex', gap: '7px', marginTop: '12px' }}>
+ 
+              <button type="button" onClick={copiaAgliAtleti} disabled={copiando || scelti.length === 0} style={{ flex: 1, padding: '11px', borderRadius: '999px', border: 'none', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', opacity: copiando || scelti.length === 0 ? 0.6 : 1 }}>{copiando ? 'Copio…' : `Copia${scelti.length ? ` (${scelti.length})` : ''}`}</button>
+ 
+              <button type="button" onClick={() => setCopia(false)} style={{ padding: '11px 16px', borderRadius: '999px', border: 'none', background: 'var(--bg-e2e8f0)', color: 'var(--fg-334155)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>Annulla</button>
  
             </div>
  
@@ -7548,6 +8031,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
  
         <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
  
+        <p style={pStyle}>Nella sezione Gare il coach può caricare, per ogni gara, immagini e testi dei workout e dei relativi standard, insieme a strategie e consigli su come affrontarli. Si tratta di contenuti tecnici di allenamento, salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e visibili all’atleta interessato e al coach; il coach può copiarli nel calendario di altri atleti iscritti alla stessa gara, senza condividere dati personali dell’uno con gli altri.</p>
+ 
         <p style={sStyle}>D) Dati tecnici</p>
  
         <p style={pStyle}>Per garantire il corretto funzionamento dell’applicazione, nonché per finalità connesse alla sicurezza, alla gestione e alla manutenzione dell’infrastruttura tecnologica, potranno essere trattati anche alcuni dati di natura tecnica.</p>
@@ -7733,6 +8218,8 @@ function PrivacyPolicyContent({ minor }: { minor?: boolean }) {
       <p style={pStyle}>A titolo esemplificativo, potranno essere raccolte informazioni riguardanti eventuali patologie o condizioni di salute, infortuni, limitazioni funzionali, problematiche di natura fisica o sistemica ed eventuali terapie in corso. Potranno inoltre essere trattati dati quali il peso e l’altezza qualora, in relazione al contesto e alle specifiche finalità del trattamento, tali informazioni siano utilizzate per valutare o ricavare indicazioni relative alla condizione fisica o allo stato di salute dell’utente.</p>
  
       <p style={pStyle}>Analogamente, nell’ambito dei test di valutazione AMT (AMT Performance Test e AMT Longevity Test), potranno essere raccolte informazioni quali il peso corporeo, l’età, la circonferenza della vita (facoltativa), l’eventuale presenza di fastidio o dolore durante le prove gli indicatori di mobilità, equilibrio e longevità, l’età fitness stimata e il profilo atletico elaborati automaticamente a partire dai risultati. Tali informazioni possono qualificarsi come dati relativi alla salute e sono trattate con le stesse garanzie previste per i dati dell’anamnesi.</p>
+ 
+      <p style={pStyle}>Nella sezione Gare il coach può caricare, per ogni gara, immagini e testi dei workout e dei relativi standard, insieme a strategie e consigli su come affrontarli. Si tratta di contenuti tecnici di allenamento, salvati sull’infrastruttura tecnologica utilizzata dal Titolare (Supabase) e visibili all’atleta interessato e al coach; il coach può copiarli nel calendario di altri atleti iscritti alla stessa gara, senza condividere dati personali dell’uno con gli altri.</p>
  
       <p style={sStyle}>D) Dati tecnici</p>
  
@@ -9921,7 +10408,8 @@ const [notificationError, setNotificationError] = useState('');
   const fetchAthleteResults = async () => {
  
     const { data } = await supabase.from('program_results').select('*').eq('athlete_id', session.user.id);
-     if (data) {
+ 
+    if (data) {
  
       const resultsMap: { [key: string]: any } = {};
  
@@ -11761,7 +12249,8 @@ const [notificationError, setNotificationError] = useState('');
  
       const reps = parseInt(r, 10);
  
-      const w = parseWeightValue(nuovi[r]); 
+      const w = parseWeightValue(nuovi[r]);
+ 
       if (!w) continue;
  
       const prima = parseWeightValue(getSavedOf(aid)[exercise]?.[reps]);
@@ -15136,8 +15625,7 @@ const [notificationError, setNotificationError] = useState('');
  
       const scarto = vv ? Math.round(window.innerHeight - vv.height - vv.offsetTop) : 0;
  
-      // tastiera aperta: la barra si nasconde invece di salire sopra la tastiera
- 
+      // tastiera aperta: la barra si nasconde invece di salire sopra la tastiera 
       if (scarto > 120) { barra.style.visibility = 'hidden'; return; }
  
       barra.style.visibility = 'visible';
@@ -17761,6 +18249,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
               </div>
  
               {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
+ 
+              <WorkoutGara gara={g} isCoach={isCoach} atleti={athletes} onAggiornato={() => { if (isCoach) fetchAllCompetitionsForCoach(); else fetchCompetitions(athleteId); }} />
  
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
  
@@ -21067,7 +21557,8 @@ fetchAllAthleteResultsForCoach();
             <Icona nome="timer" size={19} />
  
           </button>
-           <div style={{ position: 'relative' }}>
+ 
+          <div style={{ position: 'relative' }}>
  
             <button
  
@@ -23450,8 +23941,7 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
                                                     >
  
                                                       <Icona nome="timer" size={11} /> {`rec. ${it.rest}`}
- 
-                                                    </button>
+                                                     </button>
  
                                                   ) : (
  
@@ -25393,7 +25883,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                         return (
  
-                          <button 
+                          <button
+ 
                             key={dIdx}
  
                             onClick={() => setSelectedDayView(day.dayName)}
