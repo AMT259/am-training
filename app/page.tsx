@@ -5220,6 +5220,166 @@ function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraV
  
 }
  
+// Nel Percorso: le gare concluse nel periodo scelto, con piazzamento e score
+ 
+function PercorsoGare({ gare, athleteId, dal, al }: { gare: any[]; athleteId: string; dal: string | null; al: string | null }) {
+ 
+  const [risultati, setRisultati] = useState<any[]>([]);
+ 
+  const [garaCoach, setGaraCoach] = useState<{ [id: string]: any }>({});
+ 
+  const [aperta, setAperta] = useState<string | null>(null);
+ 
+  const concluse = (gare || [])
+ 
+    .filter((g: any) => { const m = giorniAlla(g.event_date); return m !== null && m < 0; })
+ 
+    .filter((g: any) => (!dal || String(g.event_date) >= dal) && (!al || String(g.event_date) <= al))
+ 
+    .sort((a: any, b: any) => String(b.event_date).localeCompare(String(a.event_date)));
+ 
+  const ids = concluse.map((g: any) => g.gara_id).filter(Boolean);
+ 
+  const chiave = ids.join(',');
+ 
+  useEffect(() => {
+ 
+    let vivo = true;
+ 
+    if (!ids.length) { setRisultati([]); return; }
+ 
+    (async () => {
+ 
+      try {
+ 
+        const { data: rs } = await supabase.from('gare_risultati').select('*').eq('athlete_id', athleteId).in('gara_id', ids);
+ 
+        const { data: gc } = await supabase.from('gare_coach').select('id, workouts').in('id', ids);
+ 
+        if (!vivo) return;
+ 
+        setRisultati(rs || []);
+ 
+        const m: { [id: string]: any } = {};
+ 
+        (gc || []).forEach((g: any) => { m[g.id] = g; });
+ 
+        setGaraCoach(m);
+ 
+      } catch (e) { /* tabelle non ancora create */ }
+ 
+    })();
+ 
+    return () => { vivo = false; };
+ 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
+  }, [athleteId, chiave]);
+ 
+  if (concluse.length === 0) return null;
+ 
+  const piazzDi = (gid: string) => risultati.find((r: any) => r.gara_id === gid && r.workout_id === PIAZZAMENTO_GARA);
+ 
+  const migliore = concluse.map((g: any) => piazzDi(g.gara_id)?.posizione).filter((p: any) => p > 0).sort((a: number, b: number) => a - b)[0];
+ 
+  return (
+ 
+    <div style={{ marginTop: '22px', paddingTop: '16px', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+      <h4 style={{ margin: '0 0 3px 0', fontSize: '15px', color: 'var(--fg-10b981)' }}>{'\u{1F3C6} Gare'}</h4>
+ 
+      <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--fg-64748b)' }}>{`${concluse.length} ${concluse.length === 1 ? 'gara' : 'gare'} nel periodo${migliore ? ` · miglior piazzamento ${migliore}°` : ''}`}</p>
+ 
+      {concluse.map((g: any) => {
+ 
+        const p = g.gara_id ? piazzDi(g.gara_id) : null;
+ 
+        const ws: any[] = Array.isArray(garaCoach[g.gara_id]?.workouts) ? garaCoach[g.gara_id].workouts : [];
+ 
+        const suoi = risultati.filter((r: any) => r.gara_id === g.gara_id && r.workout_id !== PIAZZAMENTO_GARA);
+ 
+        const righe = ws.length
+ 
+          ? ws.map((w: any, i: number) => ({ titolo: `W${i + 1}${String(w.titolo || '').trim() ? ` · ${w.titolo}` : ''}`, corto: `W${i + 1}`, r: suoi.find((x: any) => x.workout_id === w.id) })).filter((x: any) => x.r)
+ 
+          : suoi.map((r: any, i: number) => ({ titolo: `Workout ${i + 1}`, corto: `W${i + 1}`, r }));
+ 
+        const isAperta = aperta === g.id;
+ 
+        return (
+ 
+          <div key={g.id} onClick={() => setAperta(isAperta ? null : g.id)} style={{ padding: '10px 12px', marginBottom: '8px', borderRadius: '10px', border: '1px solid var(--bd-e2e8f0)', borderLeft: '4px solid var(--bd-10b981)', background: 'var(--bg-ffffff)', cursor: 'pointer' }}>
+ 
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+ 
+              <span style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)', overflowWrap: 'anywhere' }}>{g.name}</span>
+ 
+              <span style={{ fontSize: '12px', color: 'var(--fg-64748b)', whiteSpace: 'nowrap' }}>{formatDateToIT(g.event_date)}</span>
+ 
+            </div>
+ 
+            {(p?.posizione || righe.length > 0) ? (
+ 
+              <span style={{ display: 'block', fontSize: '13px', color: 'var(--fg-047857)', fontWeight: 'bold', marginTop: '3px', overflowWrap: 'anywhere' }}>
+ 
+                {[p?.posizione ? `\u{1F3C5} ${testoPiazzamento(p)}` : '', ...righe.map((x: any) => (x.r.score ? `${x.corto}: ${x.r.score}` : ''))].filter(Boolean).join(' · ')}
+ 
+              </span>
+ 
+            ) : <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-94a3b8)', marginTop: '3px' }}>Nessun risultato segnato</span>}
+ 
+            {isAperta && (
+ 
+              <div style={{ marginTop: '8px' }}>
+ 
+                {righe.map((x: any, i: number) => (
+ 
+                  <div key={i} style={{ padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+ 
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-334155)', overflowWrap: 'anywhere' }}>{x.titolo}</span>
+ 
+                      <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--fg-047857)', whiteSpace: 'nowrap' }}>{x.r.score || '–'}</span>
+ 
+                    </div>
+ 
+                    {String(x.r.note || '').trim() && <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', fontStyle: 'italic', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{x.r.note}</p>}
+ 
+                  </div>
+ 
+                ))}
+ 
+                {String(p?.note || '').trim() && (
+ 
+                  <div style={{ padding: '6px 0', borderTop: '1px solid var(--bd-e2e8f0)' }}>
+ 
+                    <span style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-334155)' }}>Note sulla gara</span>
+ 
+                    <p style={{ margin: '2px 0 0 0', fontSize: '12.5px', color: 'var(--fg-64748b)', fontStyle: 'italic', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{p.note}</p>
+ 
+                  </div>
+ 
+                )}
+ 
+                {righe.length === 0 && !String(p?.note || '').trim() && <span style={{ fontSize: '12px', color: 'var(--fg-94a3b8)' }}>Nessuna nota</span>}
+ 
+              </div>
+ 
+            )}
+ 
+          </div>
+ 
+        );
+ 
+      })}
+ 
+    </div>
+ 
+  );
+ 
+}
+ 
 // Area Gare del coach
  
 function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string]: string } }) {
@@ -10770,8 +10930,7 @@ const [notificationError, setNotificationError] = useState('');
  
         p256dh: subJson.keys?.p256dh,
  
-        auth: subJson.keys?.auth,
- 
+        auth: subJson.keys?.auth, 
       },
  
       { onConflict: 'endpoint' }
@@ -13374,7 +13533,8 @@ const [notificationError, setNotificationError] = useState('');
  
       setSavedOf(aid, salvato);
  
-      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima); 
+      const migliore = type === 'time' ? (prima === null || numeric < prima) : (prima === null || numeric > prima);
+ 
       if (migliore) {
  
         setPrBadge({
@@ -16853,8 +17013,7 @@ const [notificationError, setNotificationError] = useState('');
  
       }
  
-    };
- 
+    }; 
     if (contesto === 'edit') {
  
       if (!editingProgram) return;
@@ -18891,6 +19050,8 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
         )}
  
+        {athleteId && <PercorsoGare gare={perAtleta ? competitions : (coachCompetitions[athleteId] || [])} athleteId={athleteId} dal={dal} al={al} />}
+ 
       </div>
  
     );
@@ -20839,7 +21000,8 @@ fetchAllAthleteResultsForCoach();
  
             100% { opacity: 1; transform: translateY(0); }
  
-          } 
+          }
+ 
           @keyframes logoHeartbeat {
  
             0%   { opacity: 1; transform: scale(1); }
@@ -21668,8 +21830,7 @@ fetchAllAthleteResultsForCoach();
  
           }}
  
-        >
- 
+        > 
           <Icona nome="spunta" size={16} /> {messaggio}
  
         </div>
@@ -21949,7 +22110,8 @@ fetchAllAthleteResultsForCoach();
           />
  
         ) : (
-         <FinestraScore
+ 
+        <FinestraScore
  
           blk={scoreAperto.blk}
  
@@ -23068,7 +23230,8 @@ fetchAllAthleteResultsForCoach();
                     return !(scad !== null && scad > 0);
  
                   });
-                 });
+ 
+                });
  
  
                 // 5) Prove: in corso e finite senza abbonamento attivo
@@ -23639,8 +23802,7 @@ fetchAllAthleteResultsForCoach();
                   <button type="button" onClick={() => apriSezioneBanner('banner')} style={{ width: '100%', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '11px', borderRadius: '999px', border: '1px solid var(--bd-10b981)', background: 'transparent', color: 'var(--fg-10b981)', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}><Icona nome="modifica" size={14} /> Modifica</button>
  
                 )}
- 
-              </form>
+               </form>
  
               </>)}
  
@@ -26130,7 +26292,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   {[['singolo', 'Programma singolo'], ['pacchetto', 'Pacchetto']].map(([k, t]) => (
  
-                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button> 
+                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button>
+ 
                                   ))}
  
                                 </div>
