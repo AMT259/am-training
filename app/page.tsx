@@ -11894,8 +11894,7 @@ const [notificationError, setNotificationError] = useState('');
  
     if (numeric && numeric > 0) {
  
-      const prevRaw = getSavedOf(aid)[name]?.result;
- 
+      const prevRaw = getSavedOf(aid)[name]?.result; 
       const prima = type === 'time' ? timeToSeconds(prevRaw) : type === 'rounds' ? roundsToNumber(prevRaw) : parseWeightValue(prevRaw);
  
       await recordMaxHistory(aid, name, -3, numeric, 'benchmark');
@@ -22426,8 +22425,7 @@ fetchAllAthleteResultsForCoach();
  
                 <h4 style={{ fontSize: '15px', margin: '0 0 4px 0', color: 'var(--fg-10b981)' }}><Icona nome="link" size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Invito abbonamento scaduto</h4>
  
-                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}>
- 
+                <p style={{ fontSize: '12px', color: 'var(--fg-64748b)', margin: '0 0 12px 0', lineHeight: 1.45 }}> 
                   Compare solo agli atleti con abbonamento &quot;Scaduto&quot;, al posto delle schede. Se lasci un campo vuoto si usa il testo predefinito.
  
                 </p>
@@ -23634,17 +23632,19 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                     ) : blk.type === 'test' ? (
  
-                                      <div style={{ background: 'var(--bg-eff6ff)', padding: '10px', borderRadius: '6px', border: '1px solid var(--bd-bfdbfe)', marginBottom: '8px', textAlign: 'center' }}>
+                                      <div style={{ marginBottom: '8px' }}>
  
-                                        <span style={{ fontSize: '16px', color: 'var(--fg-1e3a8a)', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
  
-                                        <span style={{ fontWeight: 'bold', fontSize: '11px', color: 'var(--fg-1e40af)', letterSpacing: '0.5px' }}>
+                                          <span style={{ display: 'inline-block', fontWeight: 'bold', fontSize: '11px', letterSpacing: '0.6px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(var(--acc-rgb), 0.15)', color: 'var(--fg-10b981)', border: '1px solid rgba(var(--acc-rgb), 0.4)' }}>
  
                                             {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
  
-                                        </span>
+                                          </span>
  
-                                        {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: 'var(--fg-1e40af)', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                          {blk.target && <span style={{ overflowWrap: 'anywhere', fontSize: '15px', color: 'var(--fg-334155)', minWidth: 0 }}>{blk.target}</span>}
+ 
+                                        </div>
  
                                         {(() => {
  
@@ -23656,21 +23656,21 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                           return (
  
-                                            <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
+                                            <div style={{ marginTop: '12px' }}>
  
-                                              <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                              <div style={{ display: 'flex', gap: '6px' }}>
  
                                                 {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, selectedCoachAthlete.id); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                  <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k, selectedCoachAthlete.id); }} style={{ padding: '5px 14px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{lab}</button>
  
                                                 ))}
  
                                               </div>
  
-                                              <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                              <p style={{ overflowWrap: 'anywhere', margin: '10px 0 0 0', fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-line', lineHeight: 1.55 }}>{benchDesc(bench, lvl)}</p>
  
-                                              <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
+                                              <div style={{ fontSize: '13px', color: 'var(--fg-b45309)', marginTop: '8px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                             </div>
  
@@ -29144,8 +29144,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                     </select>
  
-                  </div>
- 
+                  </div> 
                   <div>
  
                     <label style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--fg-475569)', display: 'block', marginBottom: '4px' }}>Attrezzatura disponibile</label>
@@ -30272,17 +30271,19 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                 ) : blk.type === 'test' ? (
  
-                                                  <div style={{ background: 'var(--bg-eff6ff)', padding: '12px', borderRadius: '6px', border: '1px solid var(--bd-bfdbfe)', marginBottom: '8px', textAlign: 'center' }}>
+                                                  <div style={{ marginBottom: '8px' }}>
  
-                                                    <span style={{ fontSize: '16px', color: 'var(--fg-1e3a8a)', display: 'block', fontWeight: 'bold' }}>{blk.name || 'TEST'}</span>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
  
-                                                    <span style={{ fontWeight: 'bold', fontSize: '11px', color: 'var(--fg-1e40af)', letterSpacing: '0.5px' }}>
+                                                      <span style={{ display: 'inline-block', fontWeight: 'bold', fontSize: '11px', letterSpacing: '0.6px', padding: '3px 10px', borderRadius: '999px', background: 'rgba(var(--acc-rgb), 0.15)', color: 'var(--fg-10b981)', border: '1px solid rgba(var(--acc-rgb), 0.4)' }}>
  
                                                         {gymPRNames.includes(blk.name) ? 'MAX REP UBK' : metconPRNames.includes(blk.name) ? 'MAX EFFORT' : 'TEST'}
  
-                                                    </span>
+                                                      </span>
  
-                                                    {blk.target && <span style={{ overflowWrap: 'anywhere', display: 'block', fontSize: '12px', color: 'var(--fg-1e40af)', marginTop: '4px', fontWeight: 'normal' }}>{blk.target}</span>}
+                                                      {blk.target && <span style={{ overflowWrap: 'anywhere', fontSize: '15px', color: 'var(--fg-334155)', minWidth: 0 }}>{blk.target}</span>}
+ 
+                                                    </div>
  
                                                     {(() => {
  
@@ -30294,21 +30295,21 @@ if (!(blk.type !== 'emom' && String(it.rest || '').trim())) return <div style={{
  
                                                       return (
  
-                                                        <div style={{ background: 'var(--bg-ffffff)', border: '1px solid var(--bd-bfdbfe)', borderRadius: '6px', padding: '10px', marginTop: '8px', textAlign: 'left' }}>
+                                                        <div style={{ marginTop: '12px' }}>
  
-                                                          <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                                          <div style={{ display: 'flex', gap: '6px' }}>
  
                                                             {[['rx','RX'],['int','INT'],['beg','BEG']].map(([k, lab]) => (
  
-                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '3px 10px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '10px', cursor: 'pointer' }}>{lab}</button>
+                                                              <button key={k} type="button" onClick={(e) => { e.stopPropagation(); handleResultChange(prog.id, resultKey, 'level', k); }} style={{ padding: '5px 14px', borderRadius: '999px', border: 'none', background: lvl === k ? 'var(--bg-10b981)' : 'var(--bg-e2e8f0)', color: lvl === k ? 'var(--onacc)' : 'var(--fg-334155)', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{lab}</button>
  
                                                             ))}
  
                                                           </div>
  
-                                                          <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: 'var(--fg-334155)', whiteSpace: 'pre-line', lineHeight: 1.45 }}>{benchDesc(bench, lvl)}</p>
+                                                          <p style={{ overflowWrap: 'anywhere', margin: '10px 0 0 0', fontSize: '15px', color: 'var(--fg-000000)', whiteSpace: 'pre-line', lineHeight: 1.55 }}>{benchDesc(bench, lvl)}</p>
  
-                                                          <div style={{ fontSize: '10px', color: 'var(--fg-b45309)', marginTop: '6px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={12} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
+                                                          <div style={{ fontSize: '13px', color: 'var(--fg-b45309)', marginTop: '8px', fontWeight: 'bold' }}><Icona nome="bersaglio" size={14} style={{ marginRight: '6px', verticalAlign: '-2px' }} />Target: {benchTarget(bench, lvl)}</div>
  
                                                         </div>
  
