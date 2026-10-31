@@ -2716,7 +2716,9 @@ function giorniAlla(data: any): number | null {
  
 // Conto alla rovescia verso la prossima gara, con le successive in coda
  
-function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: boolean }) {
+function CompetitionCountdown({ gare, perCoach, athleteId, bloccata, linkShop }: { gare: any[]; perCoach?: boolean; athleteId?: string; bloccata?: boolean; linkShop?: string }) {
+ 
+  const [garaAperta, setGaraAperta] = useState<any>(null);
  
   const future = (gare || [])
  
@@ -2791,6 +2793,48 @@ function CompetitionCountdown({ gare, perCoach }: { gare: any[]; perCoach?: bool
           poi: {dopo.map((g: any) => `${g.name} (${formatDateToIT(g.event_date)})`).join(' · ')}
  
         </span>
+ 
+      )}
+ 
+      {!perCoach && athleteId && prossima.gara_id && (
+ 
+        <button type="button" onClick={() => setGaraAperta(prossima)} style={{ width: '100%', boxSizing: 'border-box', marginTop: '11px', padding: '10px', borderRadius: '999px', border: `1.5px solid ${stile.forte}`, background: 'transparent', color: stile.forte, fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+ 
+          {'\u{1F4CB} Workout e consigli della gara'}
+ 
+        </button>
+ 
+      )}
+ 
+      {garaAperta && athleteId && (
+ 
+        <div onClick={() => setGaraAperta(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 6000, background: 'rgba(0,0,0,0.8)', overflowY: 'auto', padding: '16px', boxSizing: 'border-box' }}>
+ 
+          <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px', margin: '0 auto', background: 'var(--bg-fafafa)', color: 'var(--fg-000000)', borderRadius: '16px', padding: '16px', boxSizing: 'border-box' }}>
+ 
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+ 
+              <span style={{ flex: 1, minWidth: 0 }}>
+ 
+                <span style={{ display: 'block', fontSize: '18px', fontWeight: 'bold', color: 'var(--fg-10b981)', overflowWrap: 'anywhere' }}>{garaAperta.name}</span>
+ 
+                <span style={{ display: 'block', fontSize: '12px', color: 'var(--fg-64748b)', marginTop: '2px' }}>{`${formatDateToIT(garaAperta.event_date)} \u00b7 ${testoGiorni}`}</span>
+ 
+              </span>
+ 
+              <button type="button" aria-label="Chiudi" onClick={() => setGaraAperta(null)} style={{ width: '34px', height: '34px', borderRadius: '999px', border: '1px solid var(--bd-cbd5e1)', background: 'var(--bg-f1f5f9)', color: 'var(--fg-000000)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+ 
+                <Icona nome="chiudi" size={14} />
+ 
+              </button>
+ 
+            </div>
+ 
+            <GaraCollegata garaId={garaAperta.gara_id} athleteId={athleteId} isCoach={false} bloccata={bloccata} linkShop={linkShop} mostraVuoto />
+ 
+          </div>
+ 
+        </div>
  
       )}
  
@@ -4682,7 +4726,7 @@ function ContenutoWorkoutGara({ w, consiglio, etichettaConsiglio }: { w: any; co
  
 // Nella gara dell'atleta: workout e consigli presi dall'area Gare del coach
  
-function GaraCollegata({ garaId, athleteId, isCoach }: { garaId: string; athleteId: string; isCoach: boolean }) {
+function GaraCollegata({ garaId, athleteId, isCoach, bloccata, linkShop, mostraVuoto }: { garaId: string; athleteId: string; isCoach: boolean; bloccata?: boolean; linkShop?: string; mostraVuoto?: boolean }) {
  
   const [gara, setGara] = useState<any>(null);
  
@@ -4690,9 +4734,13 @@ function GaraCollegata({ garaId, athleteId, isCoach }: { garaId: string; athlete
  
   const [aperti, setAperti] = useState<{ [k: string]: boolean }>({});
  
+  const [letta, setLetta] = useState(false);
+ 
   useEffect(() => {
  
     let vivo = true;
+ 
+    if (bloccata) return;
  
     (async () => {
  
@@ -4714,15 +4762,45 @@ function GaraCollegata({ garaId, athleteId, isCoach }: { garaId: string; athlete
  
       } catch (e) { /* tabella non ancora creata */ }
  
+      if (vivo) setLetta(true);
+ 
     })();
  
     return () => { vivo = false; };
  
-  }, [garaId, athleteId]);
+  }, [garaId, athleteId, bloccata]);
  
   const workouts: any[] = Array.isArray(gara?.workouts) ? gara.workouts : [];
  
-  if (!gara || (workouts.length === 0 && !String(gara.notes || '').trim())) return null;
+  // Atleta senza programma attivo: workout e consigli restano riservati
+ 
+  if (bloccata) {
+ 
+    return (
+ 
+      <div style={{ marginTop: '10px', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-f8fafc)', border: '1px solid var(--bd-e2e8f0)', textAlign: 'center' }}>
+ 
+        <p style={{ margin: 0, fontSize: '13px', color: 'var(--fg-334155)', lineHeight: 1.5 }}>{'\u{1F512} Workout, standard e strategie della gara sono riservati agli atleti con un programma AMT attivo.'}</p>
+ 
+        {linkShop && (
+ 
+          <a href={linkShop} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '10px', padding: '9px 18px', borderRadius: '999px', background: 'var(--bg-10b981)', color: 'var(--onacc)', fontWeight: 'bold', fontSize: '13px', textDecoration: 'none' }}>Scopri i programmi</a>
+ 
+        )}
+ 
+      </div>
+ 
+    );
+ 
+  }
+ 
+  if (!gara || (workouts.length === 0 && !String(gara.notes || '').trim())) {
+ 
+    if (mostraVuoto && letta) return <p style={{ margin: '14px 0 4px 0', fontSize: '13px', color: 'var(--fg-64748b)', textAlign: 'center' }}>Il coach non ha ancora inserito i workout di questa gara.</p>;
+ 
+    return null;
+ 
+  }
  
   return (
  
@@ -4768,7 +4846,7 @@ function GaraCollegata({ garaId, athleteId, isCoach }: { garaId: string; athlete
  
 // Area Gare del coach
  
-function AreaGareCoach({ atleti }: { atleti: any[] }) {
+function AreaGareCoach({ atleti, stati }: { atleti: any[]; stati?: { [id: string]: string } }) {
  
   const [gare, setGare] = useState<any[]>([]);
  
@@ -4801,6 +4879,12 @@ function AreaGareCoach({ atleti }: { atleti: any[] }) {
   const [sposta, setSposta] = useState<any>(null); // riga dell'atleta da spostare
  
   const nomeAtleta = (id: string) => { const a = (atleti || []).find((x: any) => x.id === id); return a?.full_name || a?.email || 'Atleta'; };
+ 
+  // Chi non e' attivo non vede workout e consigli: lo segnalo accanto al nome
+ 
+  const statoAtleta = (id: string) => { const s = (stati || {})[id] || 'prova'; return s === 'attivo' ? '' : s === 'prova' ? 'in prova' : 'non attivo'; };
+ 
+  const bollinoStato = (id: string) => { const t = statoAtleta(id); return t ? <span style={{ display: 'inline-block', marginLeft: '6px', fontSize: '10px', fontWeight: 'bold', padding: '1px 7px', borderRadius: '999px', background: 'var(--bg-fef9c3)', color: 'var(--fg-92400e)', verticalAlign: '1px' }}>{t}</span> : null; };
  
   const carica = async () => {
  
@@ -5152,7 +5236,7 @@ function AreaGareCoach({ atleti }: { atleti: any[] }) {
  
           </span>
  
-          <span style={{ display: 'block', fontSize: '13px', color: 'var(--fg-334155)', marginTop: '5px', overflowWrap: 'anywhere' }}>{chi.length ? chi.map((r: any) => nomeAtleta(r.athlete_id)).join(', ') : 'Nessun atleta'}</span>
+          <span style={{ display: 'block', fontSize: '13px', color: 'var(--fg-334155)', marginTop: '5px', overflowWrap: 'anywhere' }}>{chi.length ? chi.map((r: any) => nomeAtleta(r.athlete_id) + (statoAtleta(r.athlete_id) ? ` (${statoAtleta(r.athlete_id)})` : '')).join(', ') : 'Nessun atleta'}</span>
  
           <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '11px', fontWeight: 'bold', padding: '2px 9px', borderRadius: '999px', background: nW ? 'rgba(var(--acc-rgb), 0.15)' : 'var(--bg-fef9c3)', color: nW ? 'var(--fg-10b981)' : 'var(--fg-92400e)' }}>{nW ? `${nW} workout` : 'Da preparare'}</span>
  
@@ -5238,7 +5322,7 @@ function AreaGareCoach({ atleti }: { atleti: any[] }) {
  
           <span style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
  
-            <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{nomeAtleta(r.athlete_id)}</span>
+            <span style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: 'var(--fg-000000)' }}>{nomeAtleta(r.athlete_id)}{bollinoStato(r.athlete_id)}</span>
  
             {r.name && r.name !== gara.name && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-64748b)' }}>{`ha scritto: ${r.name}`}</span>}
  
@@ -5426,7 +5510,7 @@ function AreaGareCoach({ atleti }: { atleti: any[] }) {
  
                   <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
  
-                    <span style={{ display: 'block', fontSize: '14px' }}>{a.full_name || a.email || 'Atleta'}</span>
+                    <span style={{ display: 'block', fontSize: '14px' }}>{a.full_name || a.email || 'Atleta'}{bollinoStato(a.id)}</span>
  
                     {gia && <span style={{ display: 'block', fontSize: '11px', color: 'var(--fg-b45309)', fontWeight: 'bold' }}>{`ha già segnato: ${gia.name}`}</span>}
  
@@ -10637,8 +10721,7 @@ const [notificationError, setNotificationError] = useState('');
     if (promemoriaAnamnesiRef.current === chiave) return;
  
     promemoriaAnamnesiRef.current = chiave;
- 
-    controllaPromemoriaAnamnesi(chiave, mesi, mancante);
+     controllaPromemoriaAnamnesi(chiave, mesi, mancante);
  
     // eslint-disable-next-line react-hooks/exhaustive-deps
  
@@ -13290,7 +13373,8 @@ const [notificationError, setNotificationError] = useState('');
  
       if (!(await saveMax(updatedAll))) return;
  
-      if (ripristino) await togliOggiDalloStorico(bench.name, -3); 
+      if (ripristino) await togliOggiDalloStorico(bench.name, -3);
+ 
       else await recordMaxHistory(athleteId, bench.name, -3, val, 'scheda');
  
       if (!isCorrection) {
@@ -18733,7 +18817,7 @@ color: sel || pieno ? 'var(--onacc)' : f > 0 ? '#101214' : 'var(--fg-334155)',
  
               {g.notes && <p style={{ margin: '5px 0 0 0', fontSize: '11.5px', color: 'var(--fg-64748b)', lineHeight: 1.45, whiteSpace: 'pre-line' }}>{g.notes}</p>}
  
-              {g.gara_id && <GaraCollegata garaId={g.gara_id} athleteId={athleteId} isCoach={isCoach} />}
+              {g.gara_id && <GaraCollegata garaId={g.gara_id} athleteId={athleteId} isCoach={isCoach} bloccata={!isCoach && subscriptionStatus !== 'attivo'} linkShop={linkLogo} />}
  
               <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
  
@@ -19731,7 +19815,8 @@ setProgramWeeks(updated);
  
     if (!programTitle) {
  
-      alert('Inserisci un titolo per il programma'); 
+      alert('Inserisci un titolo per il programma');
+ 
       return;
  
     }
@@ -21421,7 +21506,8 @@ fetchAllAthleteResultsForCoach();
             }}
  
           />
-         ) : (
+ 
+        ) : (
  
         <FinestraScore
  
@@ -22951,7 +23037,7 @@ fetchAllAthleteResultsForCoach();
  
             <div style={{ color: 'var(--fg-000000)' }}>
  
-              <AreaGareCoach atleti={athletes} />
+              <AreaGareCoach atleti={athletes} stati={coachSubs} />
  
             </div>
  
@@ -23454,8 +23540,7 @@ fetchAllAthleteResultsForCoach();
                     <button type="button" onClick={async () => { await saveScadutoCta(); chiudiSezioneBanner(); }} style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '12px', background: 'var(--bg-10b981)', color: 'var(--onacc)', border: 'none', borderRadius: '999px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>
  
                   Salva invito scaduto
- 
-                </button>
+                 </button>
  
                   </div>
  
@@ -25605,7 +25690,8 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
                                   {[['singolo', 'Programma singolo'], ['pacchetto', 'Pacchetto']].map(([k, t]) => (
  
-                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button> 
+                                    <button key={k} type="button" onClick={() => setBozzaAbb({ ...b, tipo: k, inizio: k === 'pacchetto' && !b.inizio ? isoDiOggi() : b.inizio, fine: k === 'pacchetto' && !b.fine ? fineDopoMesi(b.inizio || isoDiOggi(), 12) : b.fine })} style={{ ...pillola(b.tipo === k, 'var(--fg-10b981)', 'piccolo'), flex: 1 }}>{t}</button>
+ 
                                   ))}
  
                                 </div>
@@ -30346,7 +30432,7 @@ items={comeSuperserie(blk.type) ? blk.items : undefined}
  
               })}
  
-              <CompetitionCountdown gare={competitions} />
+              <CompetitionCountdown gare={competitions} athleteId={session.user.id} bloccata={subscriptionStatus !== 'attivo'} linkShop={linkLogo} />
  
               <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>I tuoi allenamenti</h3>
  
